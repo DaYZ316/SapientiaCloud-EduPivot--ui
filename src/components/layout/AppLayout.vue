@@ -22,28 +22,7 @@
     </n-layout-header>
 
     <!-- 主体布局 -->
-    <n-layout has-sider position="absolute" style="top: 64px">
-      <!-- 侧边导航栏 -->
-      <n-layout-sider
-        bordered
-        show-trigger="bar"
-        collapse-mode="width"
-        :collapsed-width="64"
-        :width="240"
-        :collapsed="collapsed"
-        @collapse="collapsed = true"
-        @expand="collapsed = false"
-      >
-        <n-menu
-          :collapsed="collapsed"
-          :collapsed-width="64"
-          :collapsed-icon-size="22"
-          :options="menuOptions"
-          :value="activeKey"
-          @update:value="handleMenuUpdate"
-        />
-      </n-layout-sider>
-
+    <n-layout position="absolute" style="top: 64px">
       <!-- 内容区域 -->
       <n-layout-content content-style="padding: 16px;">
         <n-card class="content-card">
@@ -76,9 +55,6 @@ const userStore = useUserStore()
 const theme = useThemeStore()
 const { t } = useI18n()
 
-// 侧边栏折叠状态
-const collapsed = ref(false)
-
 // 获取用户信息
 const userInfo = computed(() => userStore.userInfo)
 
@@ -107,25 +83,6 @@ const userMenuOptions = computed(() => [
   }
 ])
 
-// 侧边导航菜单选项
-const menuOptions = computed(() => [
-  {
-    label: t('menu.dashboard'),
-    key: 'Dashboard',
-    icon: renderIcon(HomeOutline)
-  },
-  {
-    label: t('menu.profile'),
-    key: 'Profile',
-    icon: renderIcon(PersonOutline)
-  },
-  {
-    label: t('menu.settings'),
-    key: 'Settings',
-    icon: renderIcon(SettingsOutline)
-  }
-])
-
 // 渲染图标的辅助函数
 function renderIcon(icon: Component) {
   return () => h(NIcon, null, { default: () => h(icon) })
@@ -146,11 +103,6 @@ const handleUserMenuSelect = async (key: string) => {
   } else if (key === 'settings') {
     router.push('/settings');
   }
-}
-
-// 处理菜单项更新
-const handleMenuUpdate = (key: string) => {
-  router.push({ name: key })
 }
 
 // 初始化主题和用户信息

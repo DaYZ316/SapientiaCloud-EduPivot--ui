@@ -1,6 +1,13 @@
 <template>
   <div class="settings-container">
-    <h1 class="page-title">{{ $t('menu.settings') }}</h1>
+    <div class="page-header">
+      <n-button quaternary circle @click="goBack">
+        <template #icon>
+          <n-icon><arrow-back-outline /></n-icon>
+        </template>
+      </n-button>
+      <h1 class="page-title">{{ $t('menu.settings') }}</h1>
+    </div>
     
     <n-tabs type="line" animated>
       <!-- 个人设置 -->
@@ -18,19 +25,35 @@
 
 <script setup lang="ts">
 import { defineAsyncComponent } from 'vue'
+import { useRouter } from 'vue-router'
+import { NIcon, NButton } from 'naive-ui'
+import { ArrowBackOutline } from '@vicons/ionicons5'
+
+const router = useRouter()
 
 // 使用异步组件加载各个设置模块
 const PersonalSettings = defineAsyncComponent(() => import('./components/PersonalSettings.vue'))
 const SystemSettings = defineAsyncComponent(() => import('./components/SystemSettings.vue'))
+
+// 返回上一页
+function goBack() {
+  router.back()
+}
 </script>
 
 <style scoped lang="scss">
 .settings-container {
-  .page-title {
+  .page-header {
+    display: flex;
+    align-items: center;
     margin-bottom: 24px;
-    font-weight: 500;
-    font-size: 24px;
-    color: var(--text-color-primary);
+    
+    .page-title {
+      margin: 0 0 0 12px;
+      font-weight: 500;
+      font-size: 24px;
+      color: var(--text-color-primary);
+    }
   }
 }
 </style> 

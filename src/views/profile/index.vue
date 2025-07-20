@@ -1,5 +1,12 @@
 <template>
   <div class="profile-container">
+    <div class="page-header">
+      <n-button quaternary circle @click="goBack">
+        <template #icon>
+          <n-icon><arrow-back-outline /></n-icon>
+        </template>
+      </n-button>
+    </div>
     <div class="profile-header">
       <div class="profile-bg"></div>
       <div class="profile-avatar-container">
@@ -161,8 +168,10 @@ import {
   NCollapse,
   NCollapseItem,
   NButton,
-  NTree
+  NTree,
+  NIcon
 } from 'naive-ui'
+import { ArrowBackOutline } from '@vicons/ionicons5'
 import type { TreeOption } from 'naive-ui'
 import { useUserStore } from '@/store'
 import { useI18n } from 'vue-i18n'
@@ -299,6 +308,11 @@ function formatDateTime(dateStr?: string): string {
 function goToSettings() {
   router.push('/settings')
 }
+
+// 返回上一页
+function goBack() {
+  router.back()
+}
 </script>
 
 <style scoped lang="scss">
@@ -307,6 +321,12 @@ function goToSettings() {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  
+  .page-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  }
   
   .profile-header {
     position: relative;

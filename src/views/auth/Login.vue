@@ -1,6 +1,7 @@
 <template>
   <div class="login-container">
-    <cloud-background />
+    <cloud-background v-if="!isDarkMode" />
+    <galaxy-background v-else />
     <n-card class="login-card" :title="$t('app.name')" bordered>
       <n-form
         ref="formRef"
@@ -60,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
@@ -68,14 +69,20 @@ import {
   PersonOutline, LockClosedOutline
 } from '@vicons/ionicons5'
 import { useUserStore } from '@/store'
+import { useThemeStore } from '@/store/modules/theme'
 import LanguageSwitch from '@/components/common/LanguageSwitch.vue'
 import CloudBackground from '@/components/common/CloudBackground.vue'
+import GalaxyBackground from '@/components/common/GalaxyBackground.vue'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const themeStore = useThemeStore()
 const message = useMessage()
 const { t } = useI18n()
+
+// 获取当前主题模式
+const isDarkMode = computed(() => themeStore.isDarkMode)
 
 // 表单引用
 const formRef = ref(null)
@@ -118,11 +125,10 @@ const handleSubmit = async () => {
       // 如果存在重定向，则跳转到该页面，否则跳转到首页
       const redirectPath = route.query.redirect as string
       router.replace(redirectPath || '/dashboard')
-    } else {
-      message.error(t('auth.loginFail'))
     }
+    // 错误已经在HTTP模块中处理，不需要在这里重复处理
   } catch (error) {
-    console.error(t('auth.loginError'), error)
+    // 只处理未被HTTP模块捕获的错误
     message.error(t('auth.tryAgainLater'))
   } finally {
     loading.value = false

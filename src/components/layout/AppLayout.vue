@@ -60,6 +60,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, h } from 'vue'
+import type { Component } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { 
@@ -67,6 +68,7 @@ import {
   HomeOutline, LogOutOutline, SettingsOutline, PersonOutline
 } from '@vicons/ionicons5'
 import { useUserStore, useThemeStore } from '@/store'
+import { NIcon } from 'naive-ui'
 
 const router = useRouter()
 const route = useRoute()
@@ -88,12 +90,12 @@ const userMenuOptions = computed(() => [
   {
     key: 'profile',
     label: t('menu.profile'),
-    icon: () => h('n-icon', null, { default: () => h(PersonOutline) })
+    icon: renderIcon(PersonOutline)
   },
   {
     key: 'settings',
     label: t('menu.settings'),
-    icon: () => h('n-icon', null, { default: () => h(SettingsOutline) })
+    icon: renderIcon(SettingsOutline)
   },
   {
     type: 'divider'
@@ -101,7 +103,7 @@ const userMenuOptions = computed(() => [
   {
     key: 'logout',
     label: t('auth.logout'),
-    icon: () => h('n-icon', null, { default: () => h(LogOutOutline) })
+    icon: renderIcon(LogOutOutline)
   }
 ])
 
@@ -110,33 +112,39 @@ const menuOptions = computed(() => [
   {
     label: t('menu.dashboard'),
     key: 'Dashboard',
-    icon: () => h('n-icon', null, { default: () => h(HomeOutline) })
+    icon: renderIcon(HomeOutline)
   },
   {
     label: t('menu.profile'),
     key: 'Profile',
-    icon: () => h('n-icon', null, { default: () => h(PersonOutline) })
+    icon: renderIcon(PersonOutline)
   },
   {
     label: t('menu.settings'),
     key: 'Settings',
-    icon: () => h('n-icon', null, { default: () => h(SettingsOutline) })
+    icon: renderIcon(SettingsOutline)
   }
 ])
 
+// 渲染图标的辅助函数
+function renderIcon(icon: Component) {
+  return () => h(NIcon, null, { default: () => h(icon) })
+}
+
 // 处理用户菜单选择
-const handleUserMenuSelect = (key: string) => {
+const handleUserMenuSelect = async (key: string) => {
   if (key === 'logout') {
-    userStore.logout().then(() => {
-      router.push('/login')
-    }).catch((error) => {
-      console.error(t('auth.logoutFail'), error)
-      router.push('/login')
-    })
+    try {
+      await userStore.logout();
+      router.push('/login');
+    } catch (error: any) {
+      console.error(t('auth.logoutFail'), error);
+      router.push('/login');
+    }
   } else if (key === 'profile') {
-    router.push('/profile')
+    router.push('/profile');
   } else if (key === 'settings') {
-    router.push('/settings')
+    router.push('/settings');
   }
 }
 
@@ -145,9 +153,14 @@ const handleMenuUpdate = (key: string) => {
   router.push({ name: key })
 }
 
-// 初始化主题
-onMounted(() => {
+// 初始化主题和用户信息
+onMounted(async () => {
   theme.initSettings()
+  
+  // 如果已登录，刷新用户信息
+  if (userStore.isLogin) {
+    await userStore.refreshUserInfo()
+  }
 })
 </script>
 

@@ -10,8 +10,16 @@ import naive from 'naive-ui'
 // 导入i18n
 import i18n from '@/i18n'
 
+// 导入HTTP消息处理
+import { setMessageInstance } from '@/utils/http'
+import { createDiscreteApi } from 'naive-ui'
+
 // 创建Vue应用实例
 const app = createApp(App)
+
+// 初始化全局消息实例
+const { message } = createDiscreteApi(['message'])
+setMessageInstance(message)
 
 // 注册Pinia状态管理
 app.use(pinia)

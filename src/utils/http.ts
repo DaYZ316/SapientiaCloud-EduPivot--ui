@@ -1,8 +1,9 @@
 import axios from 'axios'
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
-import type { Result } from '@/types/http'
+import type { Result } from '@/types/common/base'
 import { useRouter } from 'vue-router'
-import { createDiscreteApi } from 'naive-ui'
+import { useMessage } from 'naive-ui'
+import { useUserStore } from '@/store'
 
 /**
  * API请求路径配置类
@@ -38,6 +39,28 @@ class ApiConfig {
     }
     return `${this.getBaseUrl()}${path}`
   }
+}
+
+/**
+ * 全局消息提示实例
+ */
+let messageInstance: ReturnType<typeof useMessage> | null = null
+
+/**
+ * 设置全局消息提示实例
+ */
+export const setMessageInstance = (instance: ReturnType<typeof useMessage>) => {
+  messageInstance = instance
+}
+
+/**
+ * 获取全局消息提示实例
+ */
+export const getMessageInstance = () => {
+  if (!messageInstance) {
+    throw new Error('消息提示实例未初始化，请在应用启动时调用setMessageInstance')
+  }
+  return messageInstance
 }
 
 /**
@@ -78,7 +101,8 @@ class HttpClient {
     this.instance.interceptors.request.use(
       (config) => {
         // 获取token并添加到请求头
-        const token = localStorage.getItem('token')
+        const userStore = useUserStore()
+        const token = userStore.token
         if (token && config.headers) {
           config.headers.Authorization = `Bearer ${token}`
         }
@@ -112,14 +136,15 @@ class HttpClient {
    * 处理业务错误码
    */
   private handleErrorCode(code: number, message: string): void {
-    const { message: messageApi } = createDiscreteApi(['message'])
+    const messageApi = getMessageInstance()
+    const userStore = useUserStore()
     
     // 根据不同错误码处理
     switch (code) {
       // 未授权
       case 401:
         messageApi.error('登录已过期，请重新登录')
-        localStorage.removeItem('token')
+        userStore.resetUserState()
         useRouter().push('/login')
         break
       // 权限不足
@@ -136,7 +161,8 @@ class HttpClient {
    * 处理HTTP错误
    */
   private handleHttpError(error: any): void {
-    const { message: messageApi } = createDiscreteApi(['message'])
+    const messageApi = getMessageInstance()
+    const userStore = useUserStore()
     
     let message = '未知错误'
     
@@ -150,7 +176,7 @@ class HttpClient {
           break
         case 401:
           message = '登录已过期，请重新登录'
-          localStorage.removeItem('token')
+          userStore.resetUserState()
           useRouter().push('/login')
           break
         case 403:

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { darkTheme } from 'naive-ui'
-import { useThemeStore } from '@/store'
-import { computed } from 'vue'
+import { useThemeStore, useUserStore } from '@/store'
+import { computed, onMounted } from 'vue'
 
 const themeStore = useThemeStore()
+const userStore = useUserStore()
 
 // 初始化主题
 themeStore.initSettings()
@@ -21,6 +22,18 @@ const themeOverrides = computed(() => ({
     primaryColorPressed: themeStore.primaryColor,
   }
 }))
+
+// 在应用启动时检查登录状态并刷新用户信息
+onMounted(async () => {
+  if (userStore.token) {
+    // 如果存在token，验证其有效性
+    const isValid = await userStore.validateToken()
+    if (isValid) {
+      // 如果token有效，刷新用户信息
+      await userStore.refreshUserInfo()
+    }
+  }
+})
 </script>
 
 <template>

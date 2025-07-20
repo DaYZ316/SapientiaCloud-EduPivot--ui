@@ -13,7 +13,7 @@
             @before-upload="beforeAvatarUpload"
           >
             <n-avatar
-              :src="personalForm.avatar || '/default-avatar.png'"
+              :src="userInfo?.avatar || '/default-avatar.png'"
               :size="80"
               round
               class="avatar-upload"
@@ -21,7 +21,7 @@
           </n-upload>
         </div>
         <div class="user-info-brief">
-          <h3>{{ personalForm.nickName || personalForm.username }}</h3>
+          <h3>{{ userInfo?.nickName || userInfo?.username }}</h3>
           <n-tag v-for="role in userRoles" :key="role.id" class="role-tag" size="small">
             {{ role.roleName }}
           </n-tag>
@@ -89,7 +89,7 @@
             </n-form-item>
 
             <n-form-item :label="$t('settings.personal.lastLoginTime')">
-              <span>{{ formatDateTime(personalForm.lastLoginTime) }}</span>
+              <span>{{ formatDateTime(userInfo?.lastLoginTime) }}</span>
             </n-form-item>
 
             <n-form-item>
@@ -123,8 +123,8 @@
               <template #header>
                 <div class="flex-between">
                   <span>{{ $t('settings.personal.accountStatus') }}</span>
-                  <n-tag :type="personalForm.status === 0 ? 'success' : 'error'">
-                    {{ personalForm.status === 0 ? $t('settings.personal.statusNormal') : $t('settings.personal.statusDisabled') }}
+                  <n-tag :type="userInfo?.status === 0 ? 'success' : 'error'">
+                    {{ userInfo?.status === 0 ? $t('settings.personal.statusNormal') : $t('settings.personal.statusDisabled') }}
                   </n-tag>
                 </div>
               </template>
@@ -209,48 +209,6 @@ import type { FormInst, FormRules, UploadInst, UploadFileInfo, UploadCustomReque
 import { useUserStore } from '@/store'
 import { useI18n } from 'vue-i18n'
 
-// 临时声明类型，实际项目中已有类型定义，但在编辑时未找到
-interface SysRoleVO {
-  id: string
-  roleName: string
-  roleKey: string
-  permissions?: any[]
-  sort?: number
-  status?: number
-  description?: string
-  create_time?: string
-  update_time?: string
-}
-
-interface SysPermissionVO {
-  id: string
-  parentId: string
-  permissionName: string
-  permissionKey: string
-  children?: SysPermissionVO[]
-  sort?: number
-  status?: number
-  createTime?: string
-  updateTime?: string
-}
-
-interface SysUserLoginVO {
-  id: string
-  username: string
-  nickName: string
-  email: string
-  mobile: string
-  gender: number
-  avatar: string
-  status: number
-  lastLoginTime: string
-  roles: SysRoleVO[]
-  permissions: SysPermissionVO[]
-  accessToken: string
-  createTime?: string
-  updateTime?: string
-}
-
 const userStore = useUserStore()
 const message = useMessage()
 const { t } = useI18n()
@@ -260,24 +218,34 @@ const uploadRef = ref<UploadInst | null>(null)
 const fileList = ref<UploadFileInfo[]>([])
 const showPasswordModal = ref(false)
 
-// 用户角色
+// 使用计算属性获取用户信息
+const userInfo = computed(() => userStore.userInfo)
 const userRoles = computed(() => userStore.userInfo?.roles || [])
 
 // 表单数据
-const personalForm = reactive<SysUserLoginVO>({
-  id: userStore.userInfo?.id || '',
-  username: userStore.userInfo?.username || '',
-  nickName: userStore.userInfo?.nickName || '',
-  email: userStore.userInfo?.email || '',
-  mobile: userStore.userInfo?.mobile || '',
-  gender: userStore.userInfo?.gender || 0,
-  avatar: userStore.userInfo?.avatar || '',
-  status: userStore.userInfo?.status || 0,
-  lastLoginTime: userStore.userInfo?.lastLoginTime || '',
-  roles: userStore.userInfo?.roles || [],
-  permissions: userStore.userInfo?.permissions || [],
-  accessToken: userStore.userInfo?.accessToken || '',
+const personalForm = reactive({
+  username: '',
+  nickName: '',
+  email: '',
+  mobile: '',
+  gender: 0,
+  avatar: '',
 })
+
+// 监听用户信息变化，更新表单数据
+const initFormData = () => {
+  if (userInfo.value) {
+    personalForm.username = userInfo.value.username || ''
+    personalForm.nickName = userInfo.value.nickName || ''
+    personalForm.email = userInfo.value.email || ''
+    personalForm.mobile = userInfo.value.mobile || ''
+    personalForm.gender = userInfo.value.gender || 0
+    personalForm.avatar = userInfo.value.avatar || ''
+  }
+}
+
+// 初始化表单数据
+initFormData()
 
 // 修改密码表单
 const passwordForm = ref({
@@ -321,7 +289,7 @@ const passwordRules: FormRules = {
 }
 
 // 格式化日期时间
-function formatDateTime(dateStr: string): string {
+function formatDateTime(dateStr?: string): string {
   if (!dateStr) return '-'
   try {
     const date = new Date(dateStr)
@@ -340,10 +308,14 @@ const savePersonalSettings = () => {
       message.success(t('settings.personal.updateSuccess'))
       
       // 更新本地存储的用户信息
-      if (userStore.userInfo) {
+      if (userInfo.value) {
         userStore.userInfo = {
-          ...userStore.userInfo,
-          ...personalForm
+          ...userInfo.value,
+          nickName: personalForm.nickName,
+          email: personalForm.email,
+          mobile: personalForm.mobile,
+          gender: personalForm.gender,
+          avatar: personalForm.avatar
         }
       }
     }
@@ -352,9 +324,7 @@ const savePersonalSettings = () => {
 
 // 重置表单
 const resetForm = () => {
-  if (userStore.userInfo) {
-    Object.assign(personalForm, userStore.userInfo)
-  }
+  initFormData()
 }
 
 // 修改密码

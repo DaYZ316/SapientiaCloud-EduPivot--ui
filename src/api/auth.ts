@@ -38,7 +38,7 @@ const AuthApi = {
    * 获取当前登录用户信息
    */
   getCurrentUser() {
-    return http.get<SysUserLoginVO>('/auth/current-user')
+    return http.get<SysUserLoginVO>('/auth/info')
   }
 }
 

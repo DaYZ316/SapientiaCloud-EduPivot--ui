@@ -82,9 +82,8 @@
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
 |200|OK|ResultBoolean|
-|400|Bad Request||
+|400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-|500|Internal Server Error|ResultString|
 
 
 **响应状态码-200**:
@@ -112,7 +111,7 @@
 ```
 
 
-**响应状态码-403**:
+**响应状态码-400**:
 
 
 **响应参数**:
@@ -123,7 +122,7 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|string||
+|data|响应数据体 (泛型)|object||
 
 
 **响应示例**:
@@ -132,12 +131,12 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": ""
+	"data": {}
 }
 ```
 
 
-**响应状态码-500**:
+**响应状态码-403**:
 
 
 **响应参数**:
@@ -203,9 +202,8 @@
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
 |200|OK|ResultInteger|
-|400|Bad Request||
+|400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-|500|Internal Server Error|ResultString|
 
 
 **响应状态码-200**:
@@ -233,7 +231,7 @@
 ```
 
 
-**响应状态码-403**:
+**响应状态码-400**:
 
 
 **响应参数**:
@@ -244,7 +242,7 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|string||
+|data|响应数据体 (泛型)|object||
 
 
 **响应示例**:
@@ -253,12 +251,12 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": ""
+	"data": {}
 }
 ```
 
 
-**响应状态码-500**:
+**响应状态码-403**:
 
 
 **响应参数**:
@@ -316,9 +314,8 @@
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
 |200|OK|ResultSysRoleVO|
-|400|Bad Request||
+|400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-|500|Internal Server Error|ResultString|
 
 
 **响应状态码-200**:
@@ -399,7 +396,7 @@
 ```
 
 
-**响应状态码-403**:
+**响应状态码-400**:
 
 
 **响应参数**:
@@ -410,7 +407,7 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|string||
+|data|响应数据体 (泛型)|object||
 
 
 **响应示例**:
@@ -419,12 +416,12 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": ""
+	"data": {}
 }
 ```
 
 
-**响应状态码-500**:
+**响应状态码-403**:
 
 
 **响应参数**:
@@ -482,9 +479,8 @@
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
 |200|OK|ResultBoolean|
-|400|Bad Request||
+|400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-|500|Internal Server Error|ResultString|
 
 
 **响应状态码-200**:
@@ -512,7 +508,7 @@
 ```
 
 
-**响应状态码-403**:
+**响应状态码-400**:
 
 
 **响应参数**:
@@ -523,7 +519,7 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|string||
+|data|响应数据体 (泛型)|object||
 
 
 **响应示例**:
@@ -532,12 +528,12 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": ""
+	"data": {}
 }
 ```
 
 
-**响应状态码-500**:
+**响应状态码-403**:
 
 
 **响应参数**:
@@ -604,9 +600,8 @@
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
 |200|OK|ResultBoolean|
-|400|Bad Request||
+|400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-|500|Internal Server Error|ResultString|
 
 
 **响应状态码-200**:
@@ -634,7 +629,7 @@
 ```
 
 
-**响应状态码-403**:
+**响应状态码-400**:
 
 
 **响应参数**:
@@ -645,7 +640,7 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|string||
+|data|响应数据体 (泛型)|object||
 
 
 **响应示例**:
@@ -654,12 +649,12 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": ""
+	"data": {}
 }
 ```
 
 
-**响应状态码-500**:
+**响应状态码-403**:
 
 
 **响应参数**:
@@ -736,9 +731,8 @@
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
 |200|OK|ResultBoolean|
-|400|Bad Request||
+|400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-|500|Internal Server Error|ResultString|
 
 
 **响应状态码-200**:
@@ -766,7 +760,7 @@
 ```
 
 
-**响应状态码-403**:
+**响应状态码-400**:
 
 
 **响应参数**:
@@ -777,7 +771,7 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|string||
+|data|响应数据体 (泛型)|object||
 
 
 **响应示例**:
@@ -786,12 +780,12 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": ""
+	"data": {}
 }
 ```
 
 
-**响应状态码-500**:
+**响应状态码-403**:
 
 
 **响应参数**:
@@ -855,9 +849,8 @@
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
 |200|OK|ResultPageInfoSysRoleVO|
-|400|Bad Request||
+|400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-|500|Internal Server Error|ResultString|
 
 
 **响应状态码-200**:
@@ -977,7 +970,7 @@
 ```
 
 
-**响应状态码-403**:
+**响应状态码-400**:
 
 
 **响应参数**:
@@ -988,7 +981,7 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|string||
+|data|响应数据体 (泛型)|object||
 
 
 **响应示例**:
@@ -997,12 +990,12 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": ""
+	"data": {}
 }
 ```
 
 
-**响应状态码-500**:
+**响应状态码-403**:
 
 
 **响应参数**:
@@ -1080,9 +1073,8 @@
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
 |200|OK|ResultBoolean|
-|400|Bad Request||
+|400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-|500|Internal Server Error|ResultString|
 
 
 **响应状态码-200**:
@@ -1110,7 +1102,7 @@
 ```
 
 
-**响应状态码-403**:
+**响应状态码-400**:
 
 
 **响应参数**:
@@ -1121,7 +1113,7 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|string||
+|data|响应数据体 (泛型)|object||
 
 
 **响应示例**:
@@ -1130,12 +1122,12 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": ""
+	"data": {}
 }
 ```
 
 
-**响应状态码-500**:
+**响应状态码-403**:
 
 
 **响应参数**:
@@ -1212,9 +1204,8 @@
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
 |200|OK|ResultBoolean|
-|400|Bad Request||
+|400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-|500|Internal Server Error|ResultString|
 
 
 **响应状态码-200**:
@@ -1242,7 +1233,7 @@
 ```
 
 
-**响应状态码-403**:
+**响应状态码-400**:
 
 
 **响应参数**:
@@ -1253,7 +1244,7 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|string||
+|data|响应数据体 (泛型)|object||
 
 
 **响应示例**:
@@ -1262,12 +1253,12 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": ""
+	"data": {}
 }
 ```
 
 
-**响应状态码-500**:
+**响应状态码-403**:
 
 
 **响应参数**:
@@ -1333,9 +1324,8 @@
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
 |200|OK|ResultInteger|
-|400|Bad Request||
+|400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-|500|Internal Server Error|ResultString|
 
 
 **响应状态码-200**:
@@ -1363,7 +1353,7 @@
 ```
 
 
-**响应状态码-403**:
+**响应状态码-400**:
 
 
 **响应参数**:
@@ -1374,7 +1364,7 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|string||
+|data|响应数据体 (泛型)|object||
 
 
 **响应示例**:
@@ -1383,12 +1373,12 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": ""
+	"data": {}
 }
 ```
 
 
-**响应状态码-500**:
+**响应状态码-403**:
 
 
 **响应参数**:
@@ -1446,9 +1436,8 @@
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
 |200|OK|ResultSysPermission|
-|400|Bad Request||
+|400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-|500|Internal Server Error|ResultString|
 
 
 **响应状态码-200**:
@@ -1489,7 +1478,7 @@
 ```
 
 
-**响应状态码-403**:
+**响应状态码-400**:
 
 
 **响应参数**:
@@ -1500,7 +1489,7 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|string||
+|data|响应数据体 (泛型)|object||
 
 
 **响应示例**:
@@ -1509,12 +1498,12 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": ""
+	"data": {}
 }
 ```
 
 
-**响应状态码-500**:
+**响应状态码-403**:
 
 
 **响应参数**:
@@ -1572,9 +1561,8 @@
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
 |200|OK|ResultBoolean|
-|400|Bad Request||
+|400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-|500|Internal Server Error|ResultString|
 
 
 **响应状态码-200**:
@@ -1602,7 +1590,7 @@
 ```
 
 
-**响应状态码-403**:
+**响应状态码-400**:
 
 
 **响应参数**:
@@ -1613,7 +1601,7 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|string||
+|data|响应数据体 (泛型)|object||
 
 
 **响应示例**:
@@ -1622,12 +1610,12 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": ""
+	"data": {}
 }
 ```
 
 
-**响应状态码-500**:
+**响应状态码-403**:
 
 
 **响应参数**:
@@ -1691,9 +1679,8 @@
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
 |200|OK|ResultPageInfoSysPermissionVO|
-|400|Bad Request||
+|400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-|500|Internal Server Error|ResultString|
 
 
 **响应状态码-200**:
@@ -1790,7 +1777,7 @@
 ```
 
 
-**响应状态码-403**:
+**响应状态码-400**:
 
 
 **响应参数**:
@@ -1801,7 +1788,7 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|string||
+|data|响应数据体 (泛型)|object||
 
 
 **响应示例**:
@@ -1810,12 +1797,12 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": ""
+	"data": {}
 }
 ```
 
 
-**响应状态码-500**:
+**响应状态码-403**:
 
 
 **响应参数**:
@@ -1901,9 +1888,8 @@
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
 |200|OK|ResultBoolean|
-|400|Bad Request||
+|400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-|500|Internal Server Error|ResultString|
 
 
 **响应状态码-200**:
@@ -1931,7 +1917,7 @@
 ```
 
 
-**响应状态码-403**:
+**响应状态码-400**:
 
 
 **响应参数**:
@@ -1942,7 +1928,7 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|string||
+|data|响应数据体 (泛型)|object||
 
 
 **响应示例**:
@@ -1951,12 +1937,12 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": ""
+	"data": {}
 }
 ```
 
 
-**响应状态码-500**:
+**响应状态码-403**:
 
 
 **响应参数**:
@@ -2022,9 +2008,8 @@
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
 |200|OK|ResultInteger|
-|400|Bad Request||
+|400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-|500|Internal Server Error|ResultString|
 
 
 **响应状态码-200**:
@@ -2052,7 +2037,7 @@
 ```
 
 
-**响应状态码-403**:
+**响应状态码-400**:
 
 
 **响应参数**:
@@ -2063,7 +2048,7 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|string||
+|data|响应数据体 (泛型)|object||
 
 
 **响应示例**:
@@ -2072,12 +2057,12 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": ""
+	"data": {}
 }
 ```
 
 
-**响应状态码-500**:
+**响应状态码-403**:
 
 
 **响应参数**:
@@ -2135,9 +2120,8 @@
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
 |200|OK|ResultSysUserVO|
-|400|Bad Request||
+|400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-|500|Internal Server Error|ResultString|
 
 
 **响应状态码-200**:
@@ -2245,7 +2229,7 @@
 ```
 
 
-**响应状态码-403**:
+**响应状态码-400**:
 
 
 **响应参数**:
@@ -2256,7 +2240,7 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|string||
+|data|响应数据体 (泛型)|object||
 
 
 **响应示例**:
@@ -2265,12 +2249,12 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": ""
+	"data": {}
 }
 ```
 
 
-**响应状态码-500**:
+**响应状态码-403**:
 
 
 **响应参数**:
@@ -2328,9 +2312,8 @@
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
 |200|OK|ResultBoolean|
-|400|Bad Request||
+|400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-|500|Internal Server Error|ResultString|
 
 
 **响应状态码-200**:
@@ -2358,7 +2341,7 @@
 ```
 
 
-**响应状态码-403**:
+**响应状态码-400**:
 
 
 **响应参数**:
@@ -2369,7 +2352,7 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|string||
+|data|响应数据体 (泛型)|object||
 
 
 **响应示例**:
@@ -2378,12 +2361,12 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": ""
+	"data": {}
 }
 ```
 
 
-**响应状态码-500**:
+**响应状态码-403**:
 
 
 **响应参数**:
@@ -2450,9 +2433,8 @@
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
 |200|OK|ResultBoolean|
-|400|Bad Request||
+|400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-|500|Internal Server Error|ResultString|
 
 
 **响应状态码-200**:
@@ -2480,7 +2462,7 @@
 ```
 
 
-**响应状态码-403**:
+**响应状态码-400**:
 
 
 **响应参数**:
@@ -2491,7 +2473,7 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|string||
+|data|响应数据体 (泛型)|object||
 
 
 **响应示例**:
@@ -2500,12 +2482,12 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": ""
+	"data": {}
 }
 ```
 
 
-**响应状态码-500**:
+**响应状态码-403**:
 
 
 **响应参数**:
@@ -2570,9 +2552,8 @@
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
 |200|OK|ResultPageInfoSysUserVO|
-|400|Bad Request||
+|400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-|500|Internal Server Error|ResultString|
 
 
 **响应状态码-200**:
@@ -2719,6 +2700,31 @@
 ```
 
 
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
 **响应状态码-403**:
 
 
@@ -2744,7 +2750,738 @@
 ```
 
 
-**响应状态码-500**:
+# 用户内部接口
+
+
+## 内部接口 - 获取用户权限列表
+
+
+**接口地址**:`/api/system/user/internal/{userId}/permission`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>获取指定用户的权限列表</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|userId|用户ID|path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListSysPermissionVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|SysPermissionVO|
+|&emsp;&emsp;id|权限ID|string(uuid)||
+|&emsp;&emsp;parent_id|父级权限ID|string(uuid)||
+|&emsp;&emsp;permission_name|权限名称|string||
+|&emsp;&emsp;permission_key|权限标识|string||
+|&emsp;&emsp;children|子权限列表|array|SysPermissionVO|
+|&emsp;&emsp;sort|排序|integer(int32)||
+|&emsp;&emsp;create_time|创建时间|string(date-time)||
+|&emsp;&emsp;update_time|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"parent_id": "",
+			"permission_name": "",
+			"permission_key": "",
+			"children": [
+				{
+					"id": "",
+					"parent_id": "",
+					"permission_name": "",
+					"permission_key": "",
+					"children": [
+						{}
+					],
+					"sort": 0,
+					"create_time": "",
+					"update_time": ""
+				}
+			],
+			"sort": 0,
+			"create_time": "",
+			"update_time": ""
+		}
+	]
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 内部接口 - 获取用户角色列表
+
+
+**接口地址**:`/api/system/user/internal/{userId}/role`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>获取指定用户的角色列表</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|userId|用户ID|path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListSysRoleVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|SysRoleVO|
+|&emsp;&emsp;id|角色ID|string(uuid)||
+|&emsp;&emsp;role_name|角色名称|string||
+|&emsp;&emsp;role_key|角色标识|string||
+|&emsp;&emsp;permissions|系统权限视图对象 (VO)|array|SysPermissionVO|
+|&emsp;&emsp;&emsp;&emsp;id|权限ID|string||
+|&emsp;&emsp;&emsp;&emsp;parent_id|父级权限ID|string||
+|&emsp;&emsp;&emsp;&emsp;permission_name|权限名称|string||
+|&emsp;&emsp;&emsp;&emsp;permission_key|权限标识|string||
+|&emsp;&emsp;&emsp;&emsp;children|子权限列表|array|SysPermissionVO|
+|&emsp;&emsp;&emsp;&emsp;sort|排序|integer||
+|&emsp;&emsp;&emsp;&emsp;create_time|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;update_time|更新时间|string||
+|&emsp;&emsp;sort|排序|integer(int32)||
+|&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer(int32)||
+|&emsp;&emsp;description|描述|string||
+|&emsp;&emsp;create_time|创建时间|string(date-time)||
+|&emsp;&emsp;update_time|更新时间|string(date-time)||
+|&emsp;&emsp;admin||boolean||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"role_name": "",
+			"role_key": "",
+			"permissions": [
+				{
+					"id": "",
+					"parent_id": "",
+					"permission_name": "",
+					"permission_key": "",
+					"children": [
+						{
+							"id": "",
+							"parent_id": "",
+							"permission_name": "",
+							"permission_key": "",
+							"children": [
+								{}
+							],
+							"sort": 0,
+							"create_time": "",
+							"update_time": ""
+						}
+					],
+					"sort": 0,
+					"create_time": "",
+					"update_time": ""
+				}
+			],
+			"sort": 0,
+			"status": 0,
+			"description": "",
+			"create_time": "",
+			"update_time": "",
+			"admin": true
+		}
+	]
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 内部接口 - 管理员添加新用户
+
+
+**接口地址**:`/api/system/user/internal/add`
+
+
+**请求方式**:`POST`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>管理员添加系统用户</p>
+
+
+
+**请求示例**:
+
+
+```javascript
+{
+  "username": "",
+  "nickName": "",
+  "email": "",
+  "mobile": "",
+  "gender": 0,
+  "avatar": "",
+  "status": 0
+}
+```
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|sysUserAdminDTO|系统用户数据传输对象|body|true|SysUserAdminDTO|SysUserAdminDTO|
+|&emsp;&emsp;username|用户名||false|string||
+|&emsp;&emsp;nickName|用户昵称||false|string||
+|&emsp;&emsp;email|邮箱||false|string||
+|&emsp;&emsp;mobile|手机号||false|string||
+|&emsp;&emsp;gender|性别 (0=未知, 1=男, 2=女)||false|integer(int32)||
+|&emsp;&emsp;avatar|用户头像URL||false|string||
+|&emsp;&emsp;status|状态 (0=正常, 1=停用)||false|integer(int32)||
+|&emsp;&emsp;createTime|创建时间||false|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间||false|string(date-time)||
+|&emsp;&emsp;lastLoginTime|最后登录时间||false|string(date-time)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultSysUserVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data||SysUserVO|SysUserVO|
+|&emsp;&emsp;id|用户ID|string(uuid)||
+|&emsp;&emsp;username|用户名|string||
+|&emsp;&emsp;nickName|用户昵称|string||
+|&emsp;&emsp;email|邮箱|string||
+|&emsp;&emsp;mobile|手机号|string||
+|&emsp;&emsp;gender|性别 (0=未知, 1=男, 2=女)|integer(int32)||
+|&emsp;&emsp;avatar|用户头像URL|string||
+|&emsp;&emsp;roles|系统角色视图对象 (VO)|array|SysRoleVO|
+|&emsp;&emsp;&emsp;&emsp;id|角色ID|string||
+|&emsp;&emsp;&emsp;&emsp;role_name|角色名称|string||
+|&emsp;&emsp;&emsp;&emsp;role_key|角色标识|string||
+|&emsp;&emsp;&emsp;&emsp;permissions|系统权限视图对象 (VO)|array|SysPermissionVO|
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;id|权限ID|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;parent_id|父级权限ID|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permission_name|权限名称|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permission_key|权限标识|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;children|子权限列表|array|SysPermissionVO|
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;sort|排序|integer||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;create_time|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;update_time|更新时间|string||
+|&emsp;&emsp;&emsp;&emsp;sort|排序|integer||
+|&emsp;&emsp;&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer||
+|&emsp;&emsp;&emsp;&emsp;description|描述|string||
+|&emsp;&emsp;&emsp;&emsp;create_time|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;update_time|更新时间|string||
+|&emsp;&emsp;&emsp;&emsp;admin||boolean||
+|&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer(int32)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+|&emsp;&emsp;lastLoginTime|最后登录时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"id": "",
+		"username": "",
+		"nickName": "",
+		"email": "",
+		"mobile": "",
+		"gender": 0,
+		"avatar": "",
+		"roles": [
+			{
+				"id": "",
+				"role_name": "",
+				"role_key": "",
+				"permissions": [
+					{
+						"id": "",
+						"parent_id": "",
+						"permission_name": "",
+						"permission_key": "",
+						"children": [
+							{
+								"id": "",
+								"parent_id": "",
+								"permission_name": "",
+								"permission_key": "",
+								"children": [
+									{}
+								],
+								"sort": 0,
+								"create_time": "",
+								"update_time": ""
+							}
+						],
+						"sort": 0,
+						"create_time": "",
+						"update_time": ""
+					}
+				],
+				"sort": 0,
+				"status": 0,
+				"description": "",
+				"create_time": "",
+				"update_time": "",
+				"admin": true
+			}
+		],
+		"status": 0,
+		"createTime": "",
+		"updateTime": "",
+		"lastLoginTime": ""
+	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 内部接口 - 根据用户名获取用户信息
+
+
+**接口地址**:`/api/system/user/internal/info/{username}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>通过用户名获取用户详细信息</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|username||path|true|string||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultSysUserInternalVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data||SysUserInternalVO|SysUserInternalVO|
+|&emsp;&emsp;create_time|创建时间 (系统自动生成)|string(date-time)||
+|&emsp;&emsp;update_time|更新时间 (系统自动生成)|string(date-time)||
+|&emsp;&emsp;id|用户ID|string(uuid)||
+|&emsp;&emsp;username|用户名|string||
+|&emsp;&emsp;nick_name|用户昵称|string||
+|&emsp;&emsp;email|邮箱|string||
+|&emsp;&emsp;mobile|手机号|string||
+|&emsp;&emsp;gender|性别 (0=未知, 1=男, 2=女)|integer(int32)||
+|&emsp;&emsp;avatar|用户头像URL|string||
+|&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer(int32)||
+|&emsp;&emsp;last_login_time|最后登录时间|string(date-time)||
+|&emsp;&emsp;roles|系统角色视图对象 (VO)|array|SysRoleVO|
+|&emsp;&emsp;&emsp;&emsp;id|角色ID|string||
+|&emsp;&emsp;&emsp;&emsp;role_name|角色名称|string||
+|&emsp;&emsp;&emsp;&emsp;role_key|角色标识|string||
+|&emsp;&emsp;&emsp;&emsp;permissions|系统权限视图对象 (VO)|array|SysPermissionVO|
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;id|权限ID|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;parent_id|父级权限ID|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permission_name|权限名称|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permission_key|权限标识|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;children|子权限列表|array|SysPermissionVO|
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;sort|排序|integer||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;create_time|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;update_time|更新时间|string||
+|&emsp;&emsp;&emsp;&emsp;sort|排序|integer||
+|&emsp;&emsp;&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer||
+|&emsp;&emsp;&emsp;&emsp;description|描述|string||
+|&emsp;&emsp;&emsp;&emsp;create_time|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;update_time|更新时间|string||
+|&emsp;&emsp;&emsp;&emsp;admin||boolean||
+|&emsp;&emsp;permissions|系统权限视图对象 (VO)|array|SysPermissionVO|
+|&emsp;&emsp;&emsp;&emsp;id|权限ID|string||
+|&emsp;&emsp;&emsp;&emsp;parent_id|父级权限ID|string||
+|&emsp;&emsp;&emsp;&emsp;permission_name|权限名称|string||
+|&emsp;&emsp;&emsp;&emsp;permission_key|权限标识|string||
+|&emsp;&emsp;&emsp;&emsp;children|子权限列表|array|SysPermissionVO|
+|&emsp;&emsp;&emsp;&emsp;sort|排序|integer||
+|&emsp;&emsp;&emsp;&emsp;create_time|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;update_time|更新时间|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"id": "",
+		"username": "",
+		"nick_name": "",
+		"email": "",
+		"mobile": "",
+		"gender": 0,
+		"avatar": "",
+		"status": 0,
+		"last_login_time": "",
+		"roles": [
+			{
+				"id": "",
+				"role_name": "",
+				"role_key": "",
+				"permissions": [
+					{
+						"id": "",
+						"parent_id": "",
+						"permission_name": "",
+						"permission_key": "",
+						"children": [
+							{
+								"id": "",
+								"parent_id": "",
+								"permission_name": "",
+								"permission_key": "",
+								"children": [
+									{}
+								],
+								"sort": 0,
+								"create_time": "",
+								"update_time": ""
+							}
+						],
+						"sort": 0,
+						"create_time": "",
+						"update_time": ""
+					}
+				],
+				"sort": 0,
+				"status": 0,
+				"description": "",
+				"create_time": "",
+				"update_time": "",
+				"admin": true
+			}
+		],
+		"permissions": [
+			{
+				"id": "",
+				"parent_id": "",
+				"permission_name": "",
+				"permission_key": "",
+				"children": [
+					{
+						"id": "",
+						"parent_id": "",
+						"permission_name": "",
+						"permission_key": "",
+						"children": [
+							{}
+						],
+						"sort": 0,
+						"create_time": "",
+						"update_time": ""
+					}
+				],
+				"sort": 0,
+				"create_time": "",
+				"update_time": ""
+			}
+		]
+	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
 
 
 **响应参数**:
@@ -2772,7 +3509,7 @@
 ## 注册用户
 
 
-**接口地址**:`/api/system/user/register`
+**接口地址**:`/api/system/user/internal/register`
 
 
 **请求方式**:`POST`
@@ -2821,9 +3558,8 @@
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
 |200|OK|ResultBoolean|
-|400|Bad Request||
+|400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-|500|Internal Server Error|ResultString|
 
 
 **响应状态码-200**:
@@ -2847,6 +3583,31 @@
 	"code": 200,
 	"message": "操作成功",
 	"data": true
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
 }
 ```
 
@@ -2876,7 +3637,119 @@
 ```
 
 
-**响应状态码-500**:
+## 内部接口 - 更新用户信息
+
+
+**接口地址**:`/api/system/user/internal/update`
+
+
+**请求方式**:`PUT`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>内部接口，更新用户信息</p>
+
+
+
+**请求示例**:
+
+
+```javascript
+{
+  "id": "",
+  "nickName": "",
+  "email": "",
+  "mobile": "",
+  "gender": 0,
+  "avatar": "",
+  "status": 0,
+  "last_login_time": ""
+}
+```
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|sysUserDTO|系统用户数据传输对象|body|true|SysUserDTO|SysUserDTO|
+|&emsp;&emsp;id|用户ID，更新时必须提供||true|string(uuid)||
+|&emsp;&emsp;nickName|用户昵称||true|string||
+|&emsp;&emsp;email|邮箱||true|string||
+|&emsp;&emsp;mobile|手机号||true|string||
+|&emsp;&emsp;gender|性别 (0=未知, 1=男, 2=女)||false|integer(int32)||
+|&emsp;&emsp;avatar|用户头像URL||false|string||
+|&emsp;&emsp;status|状态 (0=正常, 1=停用)||false|integer(int32)||
+|&emsp;&emsp;last_login_time|最后登录时间||false|string(date-time)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultBoolean|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|boolean||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
 
 
 **响应参数**:

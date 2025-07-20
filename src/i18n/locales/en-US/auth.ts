@@ -1,0 +1,23 @@
+export default {
+  login: 'Login',
+  logout: 'Logout',
+  register: 'Register',
+  forgotPassword: 'Forgot Password?',
+  username: 'Username',
+  password: 'Password',
+  confirmPassword: 'Confirm Password',
+  email: 'Email',
+  phone: 'Phone',
+  verificationCode: 'Verification Code',
+  loginSuccess: 'Login Success',
+  loginFail: 'Login Failed, Please Check Your Username and Password',
+  loginError: 'Login Error',
+  logoutSuccess: 'Logout Success',
+  logoutFail: 'Logout Failed',
+  rememberMe: 'Remember Me',
+  noAccount: 'No Account?',
+  usernameRequired: 'Please Enter Username',
+  passwordRequired: 'Please Enter Password',
+  tryAgainLater: 'Login Error, Please Try Again Later',
+  contactAdmin: 'Please Contact Administrator to Reset Password'
+} 

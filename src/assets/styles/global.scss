@@ -1,0 +1,161 @@
+/**
+ * 全局样式
+ */
+
+/* 导入主题和变量 */
+@use './variables' as vars;
+@use './theme';
+
+/* 重置样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  text-decoration: none;
+  color: var(--primary-color);
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: var(--primary-color-hover, #40a9ff);
+  }
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+/* 通用样式类 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 间距类 */
+@for $i from 0 through 10 {
+  .m-#{$i} {
+    margin: #{$i * 4}px !important;
+  }
+  
+  .mt-#{$i} {
+    margin-top: #{$i * 4}px !important;
+  }
+  
+  .mr-#{$i} {
+    margin-right: #{$i * 4}px !important;
+  }
+  
+  .mb-#{$i} {
+    margin-bottom: #{$i * 4}px !important;
+  }
+  
+  .ml-#{$i} {
+    margin-left: #{$i * 4}px !important;
+  }
+  
+  .mx-#{$i} {
+    margin-left: #{$i * 4}px !important;
+    margin-right: #{$i * 4}px !important;
+  }
+  
+  .my-#{$i} {
+    margin-top: #{$i * 4}px !important;
+    margin-bottom: #{$i * 4}px !important;
+  }
+  
+  .p-#{$i} {
+    padding: #{$i * 4}px !important;
+  }
+  
+  .pt-#{$i} {
+    padding-top: #{$i * 4}px !important;
+  }
+  
+  .pr-#{$i} {
+    padding-right: #{$i * 4}px !important;
+  }
+  
+  .pb-#{$i} {
+    padding-bottom: #{$i * 4}px !important;
+  }
+  
+  .pl-#{$i} {
+    padding-left: #{$i * 4}px !important;
+  }
+  
+  .px-#{$i} {
+    padding-left: #{$i * 4}px !important;
+    padding-right: #{$i * 4}px !important;
+  }
+  
+  .py-#{$i} {
+    padding-top: #{$i * 4}px !important;
+    padding-bottom: #{$i * 4}px !important;
+  }
+} 

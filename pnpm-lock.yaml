@@ -11,6 +11,9 @@ importers:
       '@types/three':
         specifier: ^0.178.1
         version: 0.178.1
+      '@vicons/antd':
+        specifier: ^0.13.0
+        version: 0.13.0
       '@vicons/ionicons5':
         specifier: ^0.13.0
         version: 0.13.0
@@ -537,6 +540,9 @@ packages:
 
   '@types/webxr@0.5.22':
     resolution: {integrity: sha512-Vr6Stjv5jPRqH690f5I5GLjVk8GSsoQSYJ2FVd/3jJF7KaqfwPi3ehfBS96mlQ2kPCwZaX6U0rG2+NGHBKkA/A==}
+
+  '@vicons/antd@0.13.0':
+    resolution: {integrity: sha512-yrUGoUSz2BbGupk9ghQOahc04n5H3MwUDM9pVPsLh9U1uqB47oRWZvYRiZaT1JKPqgTgSE6BXcVw4i9MOF4M+g==}
 
   '@vicons/ionicons5@0.13.0':
     resolution: {integrity: sha512-zvZKBPjEXKN7AXNo2Na2uy+nvuv6SP4KAMQxpKL2vfHMj0fSvuw7JZcOPCjQC3e7ayssKnaoFVAhbYcW6v41qQ==}
@@ -1360,6 +1366,8 @@ snapshots:
   '@types/web-bluetooth@0.0.21': {}
 
   '@types/webxr@0.5.22': {}
+
+  '@vicons/antd@0.13.0': {}
 
   '@vicons/ionicons5@0.13.0': {}
 

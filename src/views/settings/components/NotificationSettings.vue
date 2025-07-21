@@ -132,15 +132,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import {
-  NCard,
-  NSpace,
-  NGrid,
-  NGi,
-  NSwitch,
-  NRadioGroup,
-  NRadio,
-  NButton,
-  NAlert,
   NIcon,
   useMessage
 } from 'naive-ui'

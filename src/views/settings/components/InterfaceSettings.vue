@@ -101,21 +101,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import {
-  NCard,
-  NSpace,
-  NFormItem,
-  NRadioGroup,
-  NRadio,
-  NIcon,
-  NSwitch,
-  NSlider,
-  NSelect,
-  NButton,
-  NColorPicker,
-  useMessage
-} from 'naive-ui'
-import { SunnyOutline as Sunny, MoonOutline as Moon, DesktopOutline as Desktop } from '@vicons/ionicons5'
+import { useMessage } from 'naive-ui'
 import { useThemeStore } from '@/store'
 
 const message = useMessage()

@@ -837,10 +837,13 @@
 |roleName|角色名称|query|false|string||
 |roleKey|角色标识|query|false|string||
 |status|状态 (0=正常, 1=停用)|query|false|string||
-|pageNum|当前页码|query|false|string||
-|pageSize|每页记录数|query|false|string||
 |startTime|起始时间|query|false|string||
 |endTime|结束时间|query|false|string||
+|pageNum|当前记录起始索引|query|false|string||
+|pageSize|每页显示记录数|query|false|string||
+|orderByColumn|排序列|query|false|string||
+|isAsc|排序的方向,可用值:asc,desc|query|false|string||
+|reasonable|分页参数合理化|query|false|string||
 
 
 **响应状态**:
@@ -848,7 +851,7 @@
 
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
-|200|OK|ResultPageInfoSysRoleVO|
+|200|OK|TableDataResult|
 |400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
 
@@ -861,111 +864,19 @@
 
 | 参数名称 | 参数说明 | 类型 | schema |
 | -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data||PageInfoSysRoleVO|PageInfoSysRoleVO|
-|&emsp;&emsp;total||integer(int64)||
-|&emsp;&emsp;list|系统角色视图对象 (VO)|array|SysRoleVO|
-|&emsp;&emsp;&emsp;&emsp;id|角色ID|string||
-|&emsp;&emsp;&emsp;&emsp;role_name|角色名称|string||
-|&emsp;&emsp;&emsp;&emsp;role_key|角色标识|string||
-|&emsp;&emsp;&emsp;&emsp;permissions|系统权限视图对象 (VO)|array|SysPermissionVO|
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;id|权限ID|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;parent_id|父级权限ID|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permission_name|权限名称|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permission_key|权限标识|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;children|子权限列表|array|SysPermissionVO|
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;sort|排序|integer||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;create_time|创建时间|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;update_time|更新时间|string||
-|&emsp;&emsp;&emsp;&emsp;sort|排序|integer||
-|&emsp;&emsp;&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer||
-|&emsp;&emsp;&emsp;&emsp;description|描述|string||
-|&emsp;&emsp;&emsp;&emsp;create_time|创建时间|string||
-|&emsp;&emsp;&emsp;&emsp;update_time|更新时间|string||
-|&emsp;&emsp;&emsp;&emsp;admin||boolean||
-|&emsp;&emsp;pageNum||integer(int32)||
-|&emsp;&emsp;pageSize||integer(int32)||
-|&emsp;&emsp;size||integer(int32)||
-|&emsp;&emsp;startRow||integer(int64)||
-|&emsp;&emsp;endRow||integer(int64)||
-|&emsp;&emsp;pages||integer(int32)||
-|&emsp;&emsp;prePage||integer(int32)||
-|&emsp;&emsp;nextPage||integer(int32)||
-|&emsp;&emsp;isFirstPage||boolean||
-|&emsp;&emsp;isLastPage||boolean||
-|&emsp;&emsp;hasPreviousPage||boolean||
-|&emsp;&emsp;hasNextPage||boolean||
-|&emsp;&emsp;navigatePages||integer(int32)||
-|&emsp;&emsp;navigatepageNums||array|integer(int32)|
-|&emsp;&emsp;navigateFirstPage||integer(int32)||
-|&emsp;&emsp;navigateLastPage||integer(int32)||
+|total|总记录数|integer(int64)|integer(int64)|
+|data|列表数据|array||
+|code|消息状态码|integer(int32)|integer(int32)|
+|msg|消息内容|string||
 
 
 **响应示例**:
 ```javascript
 {
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {
-		"total": 0,
-		"list": [
-			{
-				"id": "",
-				"role_name": "",
-				"role_key": "",
-				"permissions": [
-					{
-						"id": "",
-						"parent_id": "",
-						"permission_name": "",
-						"permission_key": "",
-						"children": [
-							{
-								"id": "",
-								"parent_id": "",
-								"permission_name": "",
-								"permission_key": "",
-								"children": [
-									{}
-								],
-								"sort": 0,
-								"create_time": "",
-								"update_time": ""
-							}
-						],
-						"sort": 0,
-						"create_time": "",
-						"update_time": ""
-					}
-				],
-				"sort": 0,
-				"status": 0,
-				"description": "",
-				"create_time": "",
-				"update_time": "",
-				"admin": true
-			}
-		],
-		"pageNum": 0,
-		"pageSize": 0,
-		"size": 0,
-		"startRow": 0,
-		"endRow": 0,
-		"pages": 0,
-		"prePage": 0,
-		"nextPage": 0,
-		"isFirstPage": true,
-		"isLastPage": true,
-		"hasPreviousPage": true,
-		"hasNextPage": true,
-		"navigatePages": 0,
-		"navigatepageNums": [],
-		"navigateFirstPage": 0,
-		"navigateLastPage": 0
-	}
+	"total": 0,
+	"data": [],
+	"code": 0,
+	"msg": ""
 }
 ```
 
@@ -1667,10 +1578,13 @@
 |permissionName|权限名称|query|false|string||
 |permissionKey|权限标识|query|false|string||
 |parentId|父级权限ID|query|false|string||
-|pageNum|当前页码|query|false|string||
-|pageSize|每页记录数|query|false|string||
 |startTime|起始时间|query|false|string||
 |endTime|结束时间|query|false|string||
+|pageNum|当前记录起始索引|query|false|string||
+|pageSize|每页显示记录数|query|false|string||
+|orderByColumn|排序列|query|false|string||
+|isAsc|排序的方向,可用值:asc,desc|query|false|string||
+|reasonable|分页参数合理化|query|false|string||
 
 
 **响应状态**:
@@ -1678,7 +1592,7 @@
 
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
-|200|OK|ResultPageInfoSysPermissionVO|
+|200|OK|TableDataResult|
 |400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
 
@@ -1691,88 +1605,19 @@
 
 | 参数名称 | 参数说明 | 类型 | schema |
 | -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data||PageInfoSysPermissionVO|PageInfoSysPermissionVO|
-|&emsp;&emsp;total||integer(int64)||
-|&emsp;&emsp;list|系统权限视图对象 (VO)|array|SysPermissionVO|
-|&emsp;&emsp;&emsp;&emsp;id|权限ID|string||
-|&emsp;&emsp;&emsp;&emsp;parent_id|父级权限ID|string||
-|&emsp;&emsp;&emsp;&emsp;permission_name|权限名称|string||
-|&emsp;&emsp;&emsp;&emsp;permission_key|权限标识|string||
-|&emsp;&emsp;&emsp;&emsp;children|子权限列表|array|SysPermissionVO|
-|&emsp;&emsp;&emsp;&emsp;sort|排序|integer||
-|&emsp;&emsp;&emsp;&emsp;create_time|创建时间|string||
-|&emsp;&emsp;&emsp;&emsp;update_time|更新时间|string||
-|&emsp;&emsp;pageNum||integer(int32)||
-|&emsp;&emsp;pageSize||integer(int32)||
-|&emsp;&emsp;size||integer(int32)||
-|&emsp;&emsp;startRow||integer(int64)||
-|&emsp;&emsp;endRow||integer(int64)||
-|&emsp;&emsp;pages||integer(int32)||
-|&emsp;&emsp;prePage||integer(int32)||
-|&emsp;&emsp;nextPage||integer(int32)||
-|&emsp;&emsp;isFirstPage||boolean||
-|&emsp;&emsp;isLastPage||boolean||
-|&emsp;&emsp;hasPreviousPage||boolean||
-|&emsp;&emsp;hasNextPage||boolean||
-|&emsp;&emsp;navigatePages||integer(int32)||
-|&emsp;&emsp;navigatepageNums||array|integer(int32)|
-|&emsp;&emsp;navigateFirstPage||integer(int32)||
-|&emsp;&emsp;navigateLastPage||integer(int32)||
+|total|总记录数|integer(int64)|integer(int64)|
+|data|列表数据|array||
+|code|消息状态码|integer(int32)|integer(int32)|
+|msg|消息内容|string||
 
 
 **响应示例**:
 ```javascript
 {
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {
-		"total": 0,
-		"list": [
-			{
-				"id": "",
-				"parent_id": "",
-				"permission_name": "",
-				"permission_key": "",
-				"children": [
-					{
-						"id": "",
-						"parent_id": "",
-						"permission_name": "",
-						"permission_key": "",
-						"children": [
-							{}
-						],
-						"sort": 0,
-						"create_time": "",
-						"update_time": ""
-					}
-				],
-				"sort": 0,
-				"create_time": "",
-				"update_time": ""
-			}
-		],
-		"pageNum": 0,
-		"pageSize": 0,
-		"size": 0,
-		"startRow": 0,
-		"endRow": 0,
-		"pages": 0,
-		"prePage": 0,
-		"nextPage": 0,
-		"isFirstPage": true,
-		"isLastPage": true,
-		"hasPreviousPage": true,
-		"hasNextPage": true,
-		"navigatePages": 0,
-		"navigatepageNums": [],
-		"navigateFirstPage": 0,
-		"navigateLastPage": 0
-	}
+	"total": 0,
+	"data": [],
+	"code": 0,
+	"msg": ""
 }
 ```
 
@@ -2540,10 +2385,15 @@
 |nickName|用户昵称|query|false|string||
 |gender|性别 (0=未知, 1=男, 2=女)|query|false|string||
 |status|状态 (0=正常, 1=停用)|query|false|string||
-|pageNum|当前页码|query|false|string||
-|pageSize|每页记录数|query|false|string||
+|mobile|手机号码|query|false|string||
+|email|邮箱|query|false|string||
 |startTime|起始时间|query|false|string||
 |endTime|结束时间|query|false|string||
+|pageNum|当前记录起始索引|query|false|string||
+|pageSize|每页显示记录数|query|false|string||
+|orderByColumn|排序列|query|false|string||
+|isAsc|排序的方向,可用值:asc,desc|query|false|string||
+|reasonable|分页参数合理化|query|false|string||
 
 
 **响应状态**:
@@ -2551,7 +2401,7 @@
 
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
-|200|OK|ResultPageInfoSysUserVO|
+|200|OK|TableDataResult|
 |400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
 
@@ -2564,138 +2414,19 @@
 
 | 参数名称 | 参数说明 | 类型 | schema |
 | -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data||PageInfoSysUserVO|PageInfoSysUserVO|
-|&emsp;&emsp;total||integer(int64)||
-|&emsp;&emsp;list|系统用户视图对象 (VO)|array|SysUserVO|
-|&emsp;&emsp;&emsp;&emsp;id|用户ID|string||
-|&emsp;&emsp;&emsp;&emsp;username|用户名|string||
-|&emsp;&emsp;&emsp;&emsp;nickName|用户昵称|string||
-|&emsp;&emsp;&emsp;&emsp;email|邮箱|string||
-|&emsp;&emsp;&emsp;&emsp;mobile|手机号|string||
-|&emsp;&emsp;&emsp;&emsp;gender|性别 (0=未知, 1=男, 2=女)|integer||
-|&emsp;&emsp;&emsp;&emsp;avatar|用户头像URL|string||
-|&emsp;&emsp;&emsp;&emsp;roles|系统角色视图对象 (VO)|array|SysRoleVO|
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;id|角色ID|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;role_name|角色名称|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;role_key|角色标识|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permissions|系统权限视图对象 (VO)|array|SysPermissionVO|
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;id|权限ID|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;parent_id|父级权限ID|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permission_name|权限名称|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permission_key|权限标识|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;children|子权限列表|array|SysPermissionVO|
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;sort|排序|integer||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;create_time|创建时间|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;update_time|更新时间|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;sort|排序|integer||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;description|描述|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;create_time|创建时间|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;update_time|更新时间|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;admin||boolean||
-|&emsp;&emsp;&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer||
-|&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
-|&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
-|&emsp;&emsp;&emsp;&emsp;lastLoginTime|最后登录时间|string||
-|&emsp;&emsp;pageNum||integer(int32)||
-|&emsp;&emsp;pageSize||integer(int32)||
-|&emsp;&emsp;size||integer(int32)||
-|&emsp;&emsp;startRow||integer(int64)||
-|&emsp;&emsp;endRow||integer(int64)||
-|&emsp;&emsp;pages||integer(int32)||
-|&emsp;&emsp;prePage||integer(int32)||
-|&emsp;&emsp;nextPage||integer(int32)||
-|&emsp;&emsp;isFirstPage||boolean||
-|&emsp;&emsp;isLastPage||boolean||
-|&emsp;&emsp;hasPreviousPage||boolean||
-|&emsp;&emsp;hasNextPage||boolean||
-|&emsp;&emsp;navigatePages||integer(int32)||
-|&emsp;&emsp;navigatepageNums||array|integer(int32)|
-|&emsp;&emsp;navigateFirstPage||integer(int32)||
-|&emsp;&emsp;navigateLastPage||integer(int32)||
+|total|总记录数|integer(int64)|integer(int64)|
+|data|列表数据|array||
+|code|消息状态码|integer(int32)|integer(int32)|
+|msg|消息内容|string||
 
 
 **响应示例**:
 ```javascript
 {
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {
-		"total": 0,
-		"list": [
-			{
-				"id": "",
-				"username": "",
-				"nickName": "",
-				"email": "",
-				"mobile": "",
-				"gender": 0,
-				"avatar": "",
-				"roles": [
-					{
-						"id": "",
-						"role_name": "",
-						"role_key": "",
-						"permissions": [
-							{
-								"id": "",
-								"parent_id": "",
-								"permission_name": "",
-								"permission_key": "",
-								"children": [
-									{
-										"id": "",
-										"parent_id": "",
-										"permission_name": "",
-										"permission_key": "",
-										"children": [
-											{}
-										],
-										"sort": 0,
-										"create_time": "",
-										"update_time": ""
-									}
-								],
-								"sort": 0,
-								"create_time": "",
-								"update_time": ""
-							}
-						],
-						"sort": 0,
-						"status": 0,
-						"description": "",
-						"create_time": "",
-						"update_time": "",
-						"admin": true
-					}
-				],
-				"status": 0,
-				"createTime": "",
-				"updateTime": "",
-				"lastLoginTime": ""
-			}
-		],
-		"pageNum": 0,
-		"pageSize": 0,
-		"size": 0,
-		"startRow": 0,
-		"endRow": 0,
-		"pages": 0,
-		"prePage": 0,
-		"nextPage": 0,
-		"isFirstPage": true,
-		"isLastPage": true,
-		"hasPreviousPage": true,
-		"hasNextPage": true,
-		"navigatePages": 0,
-		"navigatepageNums": [],
-		"navigateFirstPage": 0,
-		"navigateLastPage": 0
-	}
+	"total": 0,
+	"data": [],
+	"code": 0,
+	"msg": ""
 }
 ```
 
@@ -3010,224 +2741,6 @@
 			"admin": true
 		}
 	]
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
-## 内部接口 - 管理员添加新用户
-
-
-**接口地址**:`/api/system/user/internal/add`
-
-
-**请求方式**:`POST`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded,application/json`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:<p>管理员添加系统用户</p>
-
-
-
-**请求示例**:
-
-
-```javascript
-{
-  "username": "",
-  "nickName": "",
-  "email": "",
-  "mobile": "",
-  "gender": 0,
-  "avatar": "",
-  "status": 0
-}
-```
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|sysUserAdminDTO|系统用户数据传输对象|body|true|SysUserAdminDTO|SysUserAdminDTO|
-|&emsp;&emsp;username|用户名||false|string||
-|&emsp;&emsp;nickName|用户昵称||false|string||
-|&emsp;&emsp;email|邮箱||false|string||
-|&emsp;&emsp;mobile|手机号||false|string||
-|&emsp;&emsp;gender|性别 (0=未知, 1=男, 2=女)||false|integer(int32)||
-|&emsp;&emsp;avatar|用户头像URL||false|string||
-|&emsp;&emsp;status|状态 (0=正常, 1=停用)||false|integer(int32)||
-|&emsp;&emsp;createTime|创建时间||false|string(date-time)||
-|&emsp;&emsp;updateTime|更新时间||false|string(date-time)||
-|&emsp;&emsp;lastLoginTime|最后登录时间||false|string(date-time)||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|ResultSysUserVO|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data||SysUserVO|SysUserVO|
-|&emsp;&emsp;id|用户ID|string(uuid)||
-|&emsp;&emsp;username|用户名|string||
-|&emsp;&emsp;nickName|用户昵称|string||
-|&emsp;&emsp;email|邮箱|string||
-|&emsp;&emsp;mobile|手机号|string||
-|&emsp;&emsp;gender|性别 (0=未知, 1=男, 2=女)|integer(int32)||
-|&emsp;&emsp;avatar|用户头像URL|string||
-|&emsp;&emsp;roles|系统角色视图对象 (VO)|array|SysRoleVO|
-|&emsp;&emsp;&emsp;&emsp;id|角色ID|string||
-|&emsp;&emsp;&emsp;&emsp;role_name|角色名称|string||
-|&emsp;&emsp;&emsp;&emsp;role_key|角色标识|string||
-|&emsp;&emsp;&emsp;&emsp;permissions|系统权限视图对象 (VO)|array|SysPermissionVO|
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;id|权限ID|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;parent_id|父级权限ID|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permission_name|权限名称|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permission_key|权限标识|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;children|子权限列表|array|SysPermissionVO|
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;sort|排序|integer||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;create_time|创建时间|string||
-|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;update_time|更新时间|string||
-|&emsp;&emsp;&emsp;&emsp;sort|排序|integer||
-|&emsp;&emsp;&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer||
-|&emsp;&emsp;&emsp;&emsp;description|描述|string||
-|&emsp;&emsp;&emsp;&emsp;create_time|创建时间|string||
-|&emsp;&emsp;&emsp;&emsp;update_time|更新时间|string||
-|&emsp;&emsp;&emsp;&emsp;admin||boolean||
-|&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer(int32)||
-|&emsp;&emsp;createTime|创建时间|string(date-time)||
-|&emsp;&emsp;updateTime|更新时间|string(date-time)||
-|&emsp;&emsp;lastLoginTime|最后登录时间|string(date-time)||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {
-		"id": "",
-		"username": "",
-		"nickName": "",
-		"email": "",
-		"mobile": "",
-		"gender": 0,
-		"avatar": "",
-		"roles": [
-			{
-				"id": "",
-				"role_name": "",
-				"role_key": "",
-				"permissions": [
-					{
-						"id": "",
-						"parent_id": "",
-						"permission_name": "",
-						"permission_key": "",
-						"children": [
-							{
-								"id": "",
-								"parent_id": "",
-								"permission_name": "",
-								"permission_key": "",
-								"children": [
-									{}
-								],
-								"sort": 0,
-								"create_time": "",
-								"update_time": ""
-							}
-						],
-						"sort": 0,
-						"create_time": "",
-						"update_time": ""
-					}
-				],
-				"sort": 0,
-				"status": 0,
-				"description": "",
-				"create_time": "",
-				"update_time": "",
-				"admin": true
-			}
-		],
-		"status": 0,
-		"createTime": "",
-		"updateTime": "",
-		"lastLoginTime": ""
-	}
 }
 ```
 

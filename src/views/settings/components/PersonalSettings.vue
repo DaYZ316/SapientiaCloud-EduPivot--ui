@@ -185,26 +185,7 @@
 
 <script setup lang="ts">
 import { ref, computed, reactive } from 'vue'
-import { 
-  NForm, 
-  NFormItem, 
-  NInput, 
-  NButton, 
-  NSpace, 
-  NAvatar, 
-  NUpload, 
-  NUploadDragger,
-  NGrid,
-  NGridItem,
-  NCard,
-  NTabs,
-  NTabPane,
-  NRadioGroup,
-  NRadio,
-  NTag,
-  NModal,
-  useMessage
-} from 'naive-ui'
+import { useMessage } from 'naive-ui'
 import type { FormInst, FormRules, UploadInst, UploadFileInfo, UploadCustomRequestOptions } from 'naive-ui'
 import { useUserStore } from '@/store'
 import { useI18n } from 'vue-i18n'

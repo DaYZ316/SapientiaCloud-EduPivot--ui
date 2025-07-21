@@ -6,23 +6,41 @@ import '@/assets/styles/global.scss'
 
 // 导入naive-ui的全部组件
 import naive from 'naive-ui'
+import { darkTheme, createDiscreteApi } from 'naive-ui'
 
 // 导入i18n
 import i18n from '@/i18n'
 
 // 导入HTTP消息处理
 import { setMessageInstance } from '@/utils/http'
-import { createDiscreteApi } from 'naive-ui'
+import { useThemeStore } from '@/store'
 
 // 创建Vue应用实例
 const app = createApp(App)
 
-// 初始化全局消息实例
-const { message } = createDiscreteApi(['message'])
-setMessageInstance(message)
-
-// 注册Pinia状态管理
+// 先注册Pinia状态管理，以便于获取主题信息
 app.use(pinia)
+
+// 获取主题信息
+const themeStore = useThemeStore()
+
+// 初始化全局消息实例，支持主题变化
+const { message } = createDiscreteApi(
+  ['message'],
+  {
+    configProviderProps: {
+      theme: themeStore.isDarkMode ? darkTheme : null,
+      themeOverrides: {
+        common: {
+          primaryColor: themeStore.primaryColor,
+          primaryColorHover: themeStore.primaryColor,
+          primaryColorPressed: themeStore.primaryColor,
+        }
+      }
+    }
+  }
+)
+setMessageInstance(message)
 
 // 注册路由
 app.use(router)

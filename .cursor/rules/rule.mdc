@@ -7,3 +7,4 @@ alwaysApply: true
 3.变量初始化通常用null,如果为数组则用[],对象变量用{},int 变量用0(如果接口文档有写默认值则用接口文档的),boolean变量用false
 4.scr路径的别名为@,在根目录下的tsconfig.app.json文件中
 5.组件库只用naiveUI
+6.局部引入组件只遇到useMessage, NIcon这两个组件需要引入,其余组件在根目录下的app.vue文件中全局引入了

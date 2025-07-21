@@ -44,7 +44,9 @@ import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { 
   ChevronDownOutline, 
-  HomeOutline, LogOutOutline, SettingsOutline, PersonOutline
+  LogOutOutline,
+  SettingsOutline,
+  PersonOutline
 } from '@vicons/ionicons5'
 import { useUserStore, useThemeStore } from '@/store'
 import { NIcon } from 'naive-ui'

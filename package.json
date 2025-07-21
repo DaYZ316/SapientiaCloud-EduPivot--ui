@@ -28,6 +28,7 @@
     "@types/vue": "^2.0.0",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vue/tsconfig": "^0.7.0",
+    "fdir": "^6.4.6",
     "postcss-custom-properties": "^14.0.6",
     "typescript": "~5.8.3",
     "vite": "^7.0.4",

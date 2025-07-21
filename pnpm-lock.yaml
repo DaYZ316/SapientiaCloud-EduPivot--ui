@@ -60,6 +60,9 @@ importers:
       '@vue/tsconfig':
         specifier: ^0.7.0
         version: 0.7.0(typescript@5.8.3)(vue@3.5.17(typescript@5.8.3))
+      fdir:
+        specifier: ^6.4.6
+        version: 6.4.6(picomatch@4.0.3)
       postcss-custom-properties:
         specifier: ^14.0.6
         version: 14.0.6(postcss@8.5.6)

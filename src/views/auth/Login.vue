@@ -1,7 +1,7 @@
 <template>
   <div class="login-container">
-    <cloud-background v-if="!isDarkMode" />
-    <galaxy-background v-else />
+    <!-- <cloud-background v-if="!isDarkMode" />
+    <galaxy-background v-else /> -->
     <n-card class="login-card" :title="$t('app.name')" bordered>
       <n-form
         ref="formRef"

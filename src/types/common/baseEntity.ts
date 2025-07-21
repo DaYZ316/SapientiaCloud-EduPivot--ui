@@ -2,14 +2,18 @@
  * 基础实体类型定义
  * 包含系统通用的数据结构、分页参数和响应类型
  */
-import type { SysPermissionVO } from './permission'
-import type { SysRoleVO } from './role'
+import type { SysPermissionVO } from '../system/permission'
+import type { SysRoleVO } from '../system/role'
 
 /**
  * 分页请求参数接口
  * 用于系统模块的分页查询请求
  */
 export interface PageQuery {
+  /** 起始时间 */
+  startTime?: string
+  /** 结束时间 */
+  endTime?: string
   /** 当前记录起始索引 */
   pageNum?: number;
   /** 每页显示记录数 */

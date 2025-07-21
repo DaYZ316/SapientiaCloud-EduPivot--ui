@@ -3,7 +3,7 @@
  */
 import type { SysRoleVO } from './role'
 import type { SysPermissionVO } from './permission'
-import type { PageQuery } from './baseEntity'
+import type { PageQuery } from '../common/baseEntity'
 
 /**
  * 系统用户登录视图对象
@@ -158,7 +158,7 @@ export interface RegisterParams {
 /**
  * 用户查询参数接口
  */
-export interface UserPageQuery extends PageQuery {
+export interface UserPageQueryDTO extends PageQuery {
   /** 用户名 */
   username?: string
   /** 用户昵称 */
@@ -171,8 +171,4 @@ export interface UserPageQuery extends PageQuery {
   mobile?: string
   /** 邮箱 */
   email?: string
-  /** 起始时间 */
-  startTime?: string
-  /** 结束时间 */
-  endTime?: string
 } 

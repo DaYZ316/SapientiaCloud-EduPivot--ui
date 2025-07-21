@@ -1,6 +1,6 @@
 import axios from 'axios'
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
-import type { Result } from '@/types/common/base'
+import type { Result } from '@/types/common/baseEntity'
 import { useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import { useUserStore } from '@/store'
@@ -27,17 +27,6 @@ class ApiConfig {
    */
   public getBaseUrl(): string {
     return `http://${this.ip}:${this.port}${this.prefix}`
-  }
-  
-  /**
-   * 获取完整的API路径
-   */
-  public getUrl(path: string): string {
-    // 确保路径以/开头
-    if (!path.startsWith('/')) {
-      path = '/' + path
-    }
-    return `${this.getBaseUrl()}${path}`
   }
 }
 
@@ -74,6 +63,7 @@ class HttpClient {
   // 公共配置
   private config: AxiosRequestConfig = {
     timeout: 10000,
+    withCredentials: true, // 允许跨域请求携带cookie
     headers: {
       'Content-Type': 'application/json'
     }
@@ -117,7 +107,7 @@ class HttpClient {
     this.instance.interceptors.response.use(
       (response): any => {
         // 业务状态码处理
-        const res = response.data as Result
+        const res = response.data as Result<any>
         if (!res.success || res.code !== 200) {
           this.handleErrorCode(res.code, res.message)
           return Promise.reject(res)

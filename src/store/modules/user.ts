@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { SysUserLoginVO, SysPermissionVO, SysRoleVO } from '@/types'
-import AuthApi from '@/api/auth'
+import * as AuthApi from '@/api/auth/auth'
 
 // 用于本地存储的键名
 const TOKEN_KEY = 'token'
@@ -18,8 +18,8 @@ export const useUserStore = defineStore('user', () => {
 
   // 计算属性
   const isLogin = ref<boolean>(!!token.value)
-  const hasRole = (roleKey: string) => roles.value.some((role: SysRoleVO) => role.roleKey === roleKey)
-  const hasPermission = (permissionKey: string) => permissions.value.some((permission: SysPermissionVO) => permission.permissionKey === permissionKey)
+  const hasRole = (roleKey: string) => roles.value.some((role: SysRoleVO) => role.role_key === roleKey)
+  const hasPermission = (permissionKey: string) => permissions.value.some((permission: SysPermissionVO) => permission.permission_key === permissionKey)
 
   // 方法
   /**

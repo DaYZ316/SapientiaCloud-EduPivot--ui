@@ -1,7 +1,7 @@
 /**
  * 权限相关类型定义
  */
-import type { PageQuery } from './baseEntity'
+import type { PageQuery } from '../common/baseEntity'
 
 /**
  * 系统权限视图对象
@@ -70,15 +70,11 @@ export interface SysPermissionDTO extends SysPermissionAddDTO {
 /**
  * 权限查询参数接口
  */
-export interface PermissionPageQuery extends PageQuery {
+export interface PermissionPageQueryDTO extends PageQuery {
   /** 权限名称 */
   permissionName?: string
   /** 权限标识 */
   permissionKey?: string
   /** 父级权限ID */
   parentId?: string
-  /** 起始时间 */
-  startTime?: string
-  /** 结束时间 */
-  endTime?: string
 } 

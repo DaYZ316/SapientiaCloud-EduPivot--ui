@@ -3,4 +3,4 @@
  */
 
 // 导出基础HTTP类型
-export * from './base' 
+export * from './baseEntity' 

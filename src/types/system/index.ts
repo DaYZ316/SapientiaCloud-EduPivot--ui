@@ -12,4 +12,4 @@ export * from './role'
 export * from './user'
 
 // 导出基础实体和分页相关类型
-export * from './baseEntity' 
+export * from '../common/baseEntity' 

@@ -18,14 +18,14 @@ export const useUserStore = defineStore('user', () => {
 
   // 计算属性
   const isLogin = ref<boolean>(!!token.value)
-  
-  const hasRole = (roleKey: string): boolean => 
-    roles.value.some((role: SysRoleVO) => role.roleKey === roleKey)
+  const hasRole = (roleKey: string) => roles.value.some((role: SysRoleVO) => role.role_key === roleKey)
+  const hasPermission = (permissionKey: string) => permissions.value.some((permission: SysPermissionVO) => permission.permission_key === permissionKey)
 
-  const hasPermission = (permissionKey: string): boolean => 
-    permissions.value.some((permission: SysPermissionVO) => permission.permissionKey === permissionKey)
-
-  const login = async (username: string, password: string): Promise<boolean> => {
+  // 方法
+  /**
+   * 登录
+   */
+  const login = async (username: string, password: string) => {
     try {
       const res = await AuthApi.login({ username, password })
       if (res.success && res.data) {
@@ -53,24 +53,25 @@ export const useUserStore = defineStore('user', () => {
   /**
    * 登出
    */
-  const logout = async (): Promise<void> => {
+  const logout = async () => {
     try {
       if (token.value) {
         await AuthApi.logout()
       }
       // 无论API是否成功，都清除本地状态
       resetUserState()
+      return Promise.resolve()
     } catch (error) {
       console.error('登出API调用失败:', error)
       resetUserState()
-      throw error
+      return Promise.reject(error)
     }
   }
 
   /**
    * 重置用户状态
    */
-  const resetUserState = (): void => {
+  const resetUserState = () => {
     token.value = null
     userInfo.value = null
     permissions.value = []
@@ -83,7 +84,6 @@ export const useUserStore = defineStore('user', () => {
 
   /**
    * 验证令牌
-   * @returns 令牌是否有效
    */
   const validateToken = async (): Promise<boolean> => {
     if (!token.value) return false
@@ -99,7 +99,6 @@ export const useUserStore = defineStore('user', () => {
 
   /**
    * 刷新用户信息
-   * @returns 是否成功获取用户信息
    */
   const refreshUserInfo = async (): Promise<boolean> => {
     if (!token.value) return false

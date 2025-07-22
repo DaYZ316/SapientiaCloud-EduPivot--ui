@@ -2,7 +2,7 @@
  * 角色相关类型定义
  */
 import type { SysPermissionVO } from './permission'
-import type { PageEntity } from '../common/baseEntity'
+import type { PageQuery } from '../common/baseEntity'
 
 /**
  * 系统角色视图对象
@@ -11,9 +11,9 @@ export interface SysRoleVO {
   /** 角色ID */
   id: string
   /** 角色名称 */
-  roleName: string
+  role_name: string
   /** 角色标识 */
-  roleKey: string
+  role_key: string
   /** 权限列表 */
   permissions?: SysPermissionVO[]
   /** 排序 */
@@ -23,9 +23,9 @@ export interface SysRoleVO {
   /** 描述 */
   description: string
   /** 创建时间 */
-  createTime: string
+  create_time: string
   /** 更新时间 */
-  updateTime: string
+  update_time: string
   /** 是否为管理员角色 */
   admin: boolean
 }
@@ -69,7 +69,7 @@ export interface SysRoleDTO {
 /**
  * 角色查询参数接口
  */
-export interface RolePageQueryDTO extends PageEntity {
+export interface RolePageQueryDTO extends PageQuery {
   /** 角色名称 */
   roleName?: string
   /** 角色标识 */

@@ -12,7 +12,6 @@ export default {
   },
   tabs: {
     personal: '个人设置',
-    user: '用户管理',
     system: '系统设置'
   },
   personal: {
@@ -64,73 +63,6 @@ export default {
     avatarSizeError: '头像大小不能超过2MB',
     avatarUploadSuccess: '头像上传成功',
     avatarUploadFail: '头像上传失败'
-  },
-  user: {
-    title: '用户管理',
-    searchForm: {
-      username: '用户名',
-      nickname: '昵称',
-      gender: '性别',
-      status: '状态',
-      mobile: '手机号',
-      email: '邮箱',
-      search: '搜索',
-      reset: '重置'
-    },
-    actions: {
-      add: '新增用户',
-      edit: '编辑',
-      delete: '删除',
-      assignRole: '分配角色'
-    },
-    table: {
-      userId: '用户ID',
-      username: '用户名',
-      nickname: '昵称',
-      email: '邮箱',
-      mobile: '手机号',
-      gender: '性别',
-      status: '状态',
-      createTime: '创建时间',
-      lastLoginTime: '最后登录时间',
-      actions: '操作'
-    },
-    gender: {
-      unknown: '未知',
-      male: '男',
-      female: '女'
-    },
-    status: {
-      normal: '正常',
-      disabled: '停用'
-    },
-    messages: {
-      deleteConfirm: '确定要删除该用户吗？',
-      deleteSuccess: '删除成功',
-      deleteFail: '删除失败',
-      fetchFail: '获取用户列表失败',
-      editNotImplemented: '编辑用户功能尚未实现',
-      addNotImplemented: '新增用户功能尚未实现',
-      addSuccess: '添加用户成功',
-      addFail: '添加用户失败'
-    },
-    addUser: {
-      title: '添加用户',
-      username: '用户名',
-      nickname: '昵称',
-      email: '邮箱',
-      mobile: '手机号',
-      gender: '性别',
-      status: '状态',
-      avatar: '头像链接',
-      usernamePlaceholder: '请输入用户名',
-      nicknamePlaceholder: '请输入昵称',
-      emailPlaceholder: '请输入邮箱',
-      mobilePlaceholder: '请输入手机号',
-      avatarPlaceholder: '请输入头像链接',
-      cancel: '取消',
-      submit: '提交'
-    }
   },
   system: {
     title: '系统设置',

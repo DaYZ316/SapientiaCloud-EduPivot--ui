@@ -1,7 +1,7 @@
 /**
  * 权限相关类型定义
  */
-import type { PageEntity } from '../common/baseEntity'
+import type { PageQuery } from '../common/baseEntity'
 
 /**
  * 系统权限视图对象
@@ -10,19 +10,19 @@ export interface SysPermissionVO {
   /** 权限ID */
   id: string
   /** 父级权限ID */
-  parentId?: string
+  parent_id?: string
   /** 权限名称 */
-  permissionName: string
+  permission_name: string
   /** 权限标识 */
-  permissionKey: string
+  permission_key: string
   /** 子权限列表 */
   children?: SysPermissionVO[]
   /** 排序 */
   sort: number
   /** 创建时间 */
-  createTime?: string
+  create_time?: string
   /** 更新时间 */
-  updateTime?: string
+  update_time?: string
 }
 
 /**
@@ -32,17 +32,17 @@ export interface SysPermission {
   /** 权限ID */
   id: string
   /** 父级权限ID */
-  parentId?: string
+  parent_id?: string
   /** 权限名称 */
-  permissionName: string
+  permission_name: string
   /** 权限标识 */
-  permissionKey: string
+  permission_key: string
   /** 排序 */
   sort: number
   /** 创建时间 */
-  createTime?: string
+  create_time?: string
   /** 更新时间 */
-  updateTime?: string
+  update_time?: string
 }
 
 /**
@@ -70,7 +70,7 @@ export interface SysPermissionDTO extends SysPermissionAddDTO {
 /**
  * 权限查询参数接口
  */
-export interface PermissionPageQueryDTO extends PageEntity {
+export interface PermissionPageQueryDTO extends PageQuery {
   /** 权限名称 */
   permissionName?: string
   /** 权限标识 */

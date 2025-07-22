@@ -90,24 +90,6 @@ router.beforeEach(async (to, from, next) => {
     }
   }
   
-  // 根路径特殊处理，检查JWT并重定向
-  if (to.path === '/') {
-    if (userStore.token) {
-      // 验证token有效性
-      const isValid = await userStore.validateToken()
-      if (isValid) {
-        // 如果JWT存在并有效，直接重定向到主页
-        return next('/dashboard')
-      } else {
-        // 如果JWT无效，重定向到登录页
-        return next('/login')
-      }
-    } else {
-      // 如果JWT不存在，重定向到登录页
-      return next('/login')
-    }
-  }
-  
   if (requiresAuth && !userStore.isLogin) {
     next({ name: 'Login', query: { redirect: to.fullPath } })
   } else if (to.name === 'Login' && userStore.isLogin) {

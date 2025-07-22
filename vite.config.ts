@@ -24,16 +24,5 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['three']
-  },
-  server: {
-    proxy: {
-      // 配置代理
-      '/api': {
-        target: 'http://117.72.194.197:31600',
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path
-      }
-    }
   }
 })

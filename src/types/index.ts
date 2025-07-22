@@ -5,9 +5,6 @@
 // 导出通用类型
 export * from './common'
 
-// 导出认证相关类型
-export * from './auth'
-
 // 导出系统模块类型（优先）
 export * from './system'
 

@@ -1,6 +1,6 @@
 import type { UserStore, ThemeStore } from './index'
 
-export interface AppStore {
-  user: UserStore
-  theme: ThemeStore
-}
+declare module '@/store' {
+  export function useUserStore(): UserStore
+  export function useThemeStore(): ThemeStore
+} 

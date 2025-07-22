@@ -15,11 +15,6 @@
         <personal-settings />
       </n-tab-pane>
       
-      <!-- 用户设置 -->
-      <n-tab-pane name="user" :tab="$t('settings.tabs.user')">
-        <user-settings />
-      </n-tab-pane>
-      
       <!-- 系统设置 -->
       <n-tab-pane name="system" :tab="$t('settings.tabs.system')">
         <system-settings />
@@ -38,7 +33,6 @@ const router = useRouter()
 
 // 使用异步组件加载各个设置模块
 const PersonalSettings = defineAsyncComponent(() => import('./components/PersonalSettings.vue'))
-const UserSettings = defineAsyncComponent(() => import('./components/UserSettings.vue'))
 const SystemSettings = defineAsyncComponent(() => import('./components/SystemSettings.vue'))
 
 // 返回上一页

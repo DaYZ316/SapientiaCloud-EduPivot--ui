@@ -21,7 +21,7 @@ const i18n = createI18n({
 })
 
 // 提供切换语言的函数
-export function setLanguage(locale: "zh-CN" | "en-US") {
+export function setLanguage(locale: string) {
   i18n.global.locale.value = locale
   defaultLocale.value = locale
   // 设置HTML的lang属性

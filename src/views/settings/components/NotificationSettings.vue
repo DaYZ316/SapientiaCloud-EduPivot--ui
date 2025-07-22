@@ -131,11 +131,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { NIcon } from 'naive-ui'
+import {
+  NIcon,
+  useMessage
+} from 'naive-ui'
 import { WarningOutline } from '@vicons/ionicons5'
-import { getMessageInstance } from '@/utils/http'
 
-const message = getMessageInstance()
+const message = useMessage()
 
 // 通知类型设置
 const emailNotifications = ref(true)

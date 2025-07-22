@@ -102,10 +102,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useMessage } from 'naive-ui'
-import { getMessageInstance } from '@/utils/http'
 import { useThemeStore } from '@/store'
 
-const message = getMessageInstance()
+const message = useMessage()
 const themeStore = useThemeStore()
 
 // 主题模式设置
@@ -128,7 +127,7 @@ const animationEffect = ref('fade')
 // 初始化设置
 onMounted(() => {
   // 从主题store获取当前主题
-  themeMode.value = themeStore.themeMode
+  themeMode.value = themeStore.theme === 'dark' ? 'dark' : 'light'
   
   // 其他设置可以从本地存储或API中获取
   const savedSettings = localStorage.getItem('interfaceSettings')
@@ -153,9 +152,9 @@ const saveSettings = () => {
   if (themeMode.value === 'system') {
     // 根据系统主题设置
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
-    themeStore.setThemeMode(isDarkMode ? 'dark' : 'light')
+    themeStore.setTheme(isDarkMode ? 'dark' : 'light')
   } else {
-    themeStore.setThemeMode(themeMode.value)
+    themeStore.setTheme(themeMode.value)
   }
   
   // 保存其他设置到本地存储
@@ -185,7 +184,7 @@ const resetSettings = () => {
   animationEffect.value = 'fade'
   
   // 应用默认主题
-  themeStore.setThemeMode('light')
+  themeStore.setTheme('light')
   
   // 清除本地存储
   localStorage.removeItem('interfaceSettings')

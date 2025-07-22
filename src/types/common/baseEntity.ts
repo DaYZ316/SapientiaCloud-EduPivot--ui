@@ -1,8 +1,15 @@
 /**
+ * 基础实体类型定义
+ * 包含系统通用的数据结构、分页参数和响应类型
+ */
+import type { SysPermissionVO } from '../system/permission'
+import type { SysRoleVO } from '../system/role'
+
+/**
  * 分页请求参数接口
  * 用于系统模块的分页查询请求
  */
-export interface PageEntity {
+export interface PageQuery {
   /** 起始时间 */
   startTime?: string
   /** 结束时间 */
@@ -62,3 +69,33 @@ export interface TableDataResult<T = any> {
   /** 消息内容 */
   msg: string;
 }
+
+/**
+ * 布尔类型结果
+ */
+export interface ResultBoolean extends Result<boolean> {}
+
+/**
+ * 整型结果
+ */
+export interface ResultInteger extends Result<number> {}
+
+/**
+ * 字符串结果
+ */
+export interface ResultString extends Result<string> {}
+
+/**
+ * Map类型结果
+ */
+export interface ResultMapStringString extends Result<Record<string, string>> {}
+
+/**
+ * 列表类型结果 - 权限
+ */
+export interface ResultListSysPermissionVO extends Result<SysPermissionVO[]> {}
+
+/**
+ * 列表类型结果 - 角色
+ */
+export interface ResultListSysRoleVO extends Result<SysRoleVO[]> {} 

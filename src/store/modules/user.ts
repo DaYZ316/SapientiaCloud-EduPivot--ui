@@ -20,10 +20,10 @@ export const useUserStore = defineStore('user', () => {
   const isLogin = ref<boolean>(!!token.value)
   
   const hasRole = (roleKey: string): boolean => 
-    roles.value.some((role: SysRoleVO) => role.role_key === roleKey)
+    roles.value.some((role: SysRoleVO) => role.roleKey === roleKey)
 
   const hasPermission = (permissionKey: string): boolean => 
-    permissions.value.some((permission: SysPermissionVO) => permission.permission_key === permissionKey)
+    permissions.value.some((permission: SysPermissionVO) => permission.permissionKey === permissionKey)
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {

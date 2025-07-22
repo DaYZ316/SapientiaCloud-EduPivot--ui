@@ -50,7 +50,7 @@ const languageOptions = [
 ]
 
 // 当前语言
-const currentLang = ref(locale.value)
+const currentLang = ref<'zh-CN' | 'en-US'>(locale.value as 'zh-CN' | 'en-US')
 
 // 设置状态管理
 const themeStore = useThemeStore()

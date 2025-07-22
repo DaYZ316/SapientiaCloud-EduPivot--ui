@@ -127,7 +127,7 @@ const animationEffect = ref('fade')
 // 初始化设置
 onMounted(() => {
   // 从主题store获取当前主题
-  themeMode.value = themeStore.theme === 'dark' ? 'dark' : 'light'
+  themeMode.value = themeStore.themeMode
   
   // 其他设置可以从本地存储或API中获取
   const savedSettings = localStorage.getItem('interfaceSettings')
@@ -152,9 +152,9 @@ const saveSettings = () => {
   if (themeMode.value === 'system') {
     // 根据系统主题设置
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
-    themeStore.setTheme(isDarkMode ? 'dark' : 'light')
+    themeStore.setThemeMode(isDarkMode ? 'dark' : 'light')
   } else {
-    themeStore.setTheme(themeMode.value)
+    themeStore.setThemeMode(themeMode.value)
   }
   
   // 保存其他设置到本地存储
@@ -184,7 +184,7 @@ const resetSettings = () => {
   animationEffect.value = 'fade'
   
   // 应用默认主题
-  themeStore.setTheme('light')
+  themeStore.setThemeMode('light')
   
   // 清除本地存储
   localStorage.removeItem('interfaceSettings')

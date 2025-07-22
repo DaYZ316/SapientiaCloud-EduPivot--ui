@@ -61,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
@@ -69,20 +69,14 @@ import {
   PersonOutline, LockClosedOutline
 } from '@vicons/ionicons5'
 import { useUserStore } from '@/store'
-import { useThemeStore } from '@/store/modules/theme'
-import LanguageSwitch from '@/components/common/LanguageSwitch.vue'
 // import CloudBackground from '@/components/common/CloudBackground.vue'
 // import GalaxyBackground from '@/components/common/GalaxyBackground.vue'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
-const themeStore = useThemeStore()
 const message = useMessage()
 const { t } = useI18n()
-
-// 获取当前主题模式
-const isDarkMode = computed(() => themeStore.isDarkMode)
 
 // 表单引用
 const formRef = ref(null)

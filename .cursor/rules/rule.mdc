@@ -8,3 +8,4 @@ alwaysApply: true
 4.scr路径的别名为@,在根目录下的tsconfig.app.json文件中
 5.组件库只用naiveUI
 6.局部引入组件只遇到useMessage, NIcon这两个组件需要引入,其余组件在根目录下的app.vue文件中全局引入了
+6.所有的对象都在@/type中定义和引出

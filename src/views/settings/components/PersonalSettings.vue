@@ -262,7 +262,7 @@ const passwordRules: FormRules = {
   confirmPassword: [
     { required: true, message: t('settings.personal.confirmPasswordRequired'), trigger: 'blur' },
     {
-      validator: (rule, value) => value === passwordForm.value.newPassword,
+      validator: (_, value) => value === passwordForm.value.newPassword,
       message: t('settings.personal.passwordsNotMatch'),
       trigger: 'blur'
     }

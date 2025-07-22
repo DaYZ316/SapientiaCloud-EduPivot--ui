@@ -154,25 +154,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { NIcon } from 'naive-ui'
 import { ArrowBackOutline } from '@vicons/ionicons5'
 import type { TreeOption } from 'naive-ui'
 import { useUserStore } from '@/store'
 import { useI18n } from 'vue-i18n'
-
-// 临时声明类型，用于组件内部使用
-interface SysPermissionVO {
-  id: string
-  parentId: string
-  permissionName: string
-  permissionKey: string
-  children?: SysPermissionVO[]
-  sort: number
-  createTime: string
-  updateTime: string
-}
+import type { SysPermissionVO } from '@/types/system'
 
 const router = useRouter()
 const userStore = useUserStore()

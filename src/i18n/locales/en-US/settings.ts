@@ -13,6 +13,8 @@ export default {
   tabs: {
     personal: 'Personal Settings',
     user: 'User Management',
+    role: 'Role Management',
+    permission: 'Permission Management',
     system: 'System Settings'
   },
   personal: {
@@ -168,6 +170,164 @@ export default {
       mobileFormat: 'Invalid mobile number format',
       genderRequired: 'Please select gender',
       statusRequired: 'Please select status'
+    }
+  },
+  role: {
+    title: 'Role Management',
+    searchForm: {
+      roleName: 'Role Name',
+      roleKey: 'Role Key',
+      status: 'Status',
+      roleNamePlaceholder: 'Enter role name',
+      roleKeyPlaceholder: 'Enter role key',
+      search: 'Search',
+      reset: 'Reset'
+    },
+    actions: {
+      add: 'Add Role',
+      edit: 'Edit',
+      delete: 'Delete',
+      assignPermission: 'Assign Permissions'
+    },
+    table: {
+      id: 'Role ID',
+      roleName: 'Role Name',
+      roleKey: 'Role Key',
+      sort: 'Sort Order',
+      status: 'Status',
+      description: 'Description',
+      createTime: 'Create Time',
+      actions: 'Actions'
+    },
+    status: {
+      normal: 'Normal',
+      disabled: 'Disabled'
+    },
+    messages: {
+      deleteConfirm: 'Are you sure you want to delete this role?',
+      deleteSuccess: 'Deleted successfully',
+      deleteFail: 'Failed to delete',
+      fetchFail: 'Failed to fetch role list',
+      addSuccess: 'Role added successfully',
+      addFail: 'Failed to add role',
+      editSuccess: 'Role updated successfully',
+      editFail: 'Failed to update role',
+      formInvalid: 'Please check the form and fix the errors',
+      getPermissionFail: 'Failed to get permission data',
+      assignSuccess: 'Permissions assigned successfully',
+      assignFail: 'Failed to assign permissions'
+    },
+    addRole: {
+      title: 'Add Role',
+      roleName: 'Role Name',
+      roleKey: 'Role Key',
+      sort: 'Sort Order',
+      status: 'Status',
+      description: 'Description',
+      roleNamePlaceholder: 'Enter role name',
+      roleKeyPlaceholder: 'Enter role key',
+      sortPlaceholder: 'Enter sort value',
+      descriptionPlaceholder: 'Enter role description',
+      cancel: 'Cancel',
+      submit: 'Submit'
+    },
+    updateRole: {
+      title: 'Edit Role',
+      roleName: 'Role Name',
+      roleKey: 'Role Key',
+      sort: 'Sort Order',
+      status: 'Status',
+      description: 'Description',
+      roleNamePlaceholder: 'Enter role name',
+      roleKeyPlaceholder: 'Enter role key',
+      sortPlaceholder: 'Enter sort value',
+      descriptionPlaceholder: 'Enter role description',
+      cancel: 'Cancel',
+      submit: 'Submit'
+    },
+    assignPermission: {
+      title: 'Assign Permissions',
+      role: 'Role',
+      permissions: 'Permission List',
+      cancel: 'Cancel',
+      submit: 'Save'
+    },
+    rules: {
+      roleNameRequired: 'Role name is required',
+      roleNameLength: 'Role name must be 2-30 characters',
+      roleKeyRequired: 'Role key is required',
+      roleKeyLength: 'Role key must be 2-100 characters',
+      statusRequired: 'Please select a status'
+    }
+  },
+  permission: {
+    title: 'Permission Management',
+    searchForm: {
+      permissionName: 'Permission Name',
+      permissionKey: 'Permission Key',
+      parentId: 'Parent Permission',
+      permissionNamePlaceholder: 'Enter permission name',
+      permissionKeyPlaceholder: 'Enter permission key',
+      parentIdPlaceholder: 'Select parent permission',
+      search: 'Search',
+      reset: 'Reset'
+    },
+    actions: {
+      add: 'Add Permission',
+      edit: 'Edit',
+      delete: 'Delete'
+    },
+    table: {
+      id: 'Permission ID',
+      permissionName: 'Permission Name',
+      permissionKey: 'Permission Key',
+      parentId: 'Parent Permission',
+      sort: 'Sort Order',
+      createTime: 'Create Time',
+      actions: 'Actions'
+    },
+    messages: {
+      deleteConfirm: 'Are you sure you want to delete this permission?',
+      deleteSuccess: 'Deleted successfully',
+      deleteFail: 'Failed to delete',
+      fetchFail: 'Failed to fetch permission list',
+      addSuccess: 'Permission added successfully',
+      addFail: 'Failed to add permission',
+      editSuccess: 'Permission updated successfully',
+      editFail: 'Failed to update permission',
+      formInvalid: 'Please check the form and fix the errors'
+    },
+    addPermission: {
+      title: 'Add Permission',
+      parentId: 'Parent Permission',
+      permissionName: 'Permission Name',
+      permissionKey: 'Permission Key',
+      sort: 'Sort Order',
+      parentIdPlaceholder: 'Select parent permission',
+      permissionNamePlaceholder: 'Enter permission name',
+      permissionKeyPlaceholder: 'Enter permission key',
+      sortPlaceholder: 'Enter sort value',
+      cancel: 'Cancel',
+      submit: 'Submit'
+    },
+    updatePermission: {
+      title: 'Edit Permission',
+      parentId: 'Parent Permission',
+      permissionName: 'Permission Name',
+      permissionKey: 'Permission Key',
+      sort: 'Sort Order',
+      parentIdPlaceholder: 'Select parent permission',
+      permissionNamePlaceholder: 'Enter permission name',
+      permissionKeyPlaceholder: 'Enter permission key',
+      sortPlaceholder: 'Enter sort value',
+      cancel: 'Cancel',
+      submit: 'Submit'
+    },
+    rules: {
+      permissionNameRequired: 'Permission name is required',
+      permissionNameLength: 'Permission name must be 2-30 characters',
+      permissionKeyRequired: 'Permission key is required',
+      permissionKeyLength: 'Permission key must be 2-100 characters'
     }
   },
   system: {

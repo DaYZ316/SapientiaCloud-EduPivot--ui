@@ -20,6 +20,16 @@
         <user-settings />
       </n-tab-pane>
       
+      <!-- 角色设置 -->
+      <n-tab-pane name="role" :tab="$t('settings.tabs.role')">
+        <role-settings />
+      </n-tab-pane>
+      
+      <!-- 权限设置 -->
+      <n-tab-pane name="permission" :tab="$t('settings.tabs.permission')">
+        <permission-settings />
+      </n-tab-pane>
+      
       <!-- 系统设置 -->
       <n-tab-pane name="system" :tab="$t('settings.tabs.system')">
         <system-settings />
@@ -39,6 +49,8 @@ const router = useRouter()
 // 使用异步组件加载各个设置模块
 const PersonalSettings = defineAsyncComponent(() => import('./components/PersonalSettings.vue'))
 const UserSettings = defineAsyncComponent(() => import('./components/UserSettings.vue'))
+const RoleSettings = defineAsyncComponent(() => import('./components/RoleSettings.vue'))
+const PermissionSettings = defineAsyncComponent(() => import('./components/PermissionSettings.vue'))
 const SystemSettings = defineAsyncComponent(() => import('./components/SystemSettings.vue'))
 
 // 返回上一页

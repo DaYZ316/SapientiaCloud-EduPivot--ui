@@ -1,0 +1,615 @@
+<template>
+  <div class="role-settings-container">
+    <n-card :title="$t('settings.role.title')" size="small">
+      <!-- 搜索表单 -->
+      <n-form :model="searchForm" inline class="search-form">
+        <n-form-item :label="$t('settings.role.searchForm.roleName')" path="roleName">
+          <n-input v-model:value="searchForm.roleName" clearable :placeholder="$t('settings.role.searchForm.roleNamePlaceholder')" />
+        </n-form-item>
+        <n-form-item :label="$t('settings.role.searchForm.roleKey')" path="roleKey">
+          <n-input v-model:value="searchForm.roleKey" clearable :placeholder="$t('settings.role.searchForm.roleKeyPlaceholder')" />
+        </n-form-item>
+        <n-form-item :label="$t('settings.role.searchForm.status')" path="status">
+          <n-select
+            v-model:value="searchForm.status"
+            clearable
+            :placeholder="$t('settings.role.searchForm.status')"
+            :options="statusOptions"
+            style="min-width: 120px;"
+          />
+        </n-form-item>
+        <n-form-item>
+          <n-button type="primary" @click="handleSearch">
+            <template #icon><n-icon><search-outline /></n-icon></template>
+            {{ $t('settings.role.searchForm.search') }}
+          </n-button>
+          <n-button class="ml-2" @click="resetSearch">
+            <template #icon><n-icon><refresh-outline /></n-icon></template>
+            {{ $t('settings.role.searchForm.reset') }}
+          </n-button>
+        </n-form-item>
+      </n-form>
+
+      <!-- 操作按钮 -->
+      <div class="table-actions">
+        <n-button type="primary" @click="handleAdd">
+          <template #icon><n-icon><add-outline /></n-icon></template>
+          {{ $t('settings.role.actions.add') }}
+        </n-button>
+      </div>
+
+      <!-- 角色表格 -->
+      <n-data-table
+        :loading="loading"
+        :columns="columns"
+        :data="roleList"
+        :bordered="false"
+        size="small"
+      />
+      
+      <!-- 分页组件 -->
+      <div class="pagination-container">
+        <n-pagination
+          v-model:page="pagination.pageNum"
+          v-model:page-size="pagination.pageSize"
+          :page-sizes="[10, 20, 30, 50]"
+          show-size-picker
+          show-quick-jumper
+          :item-count="pagination.total"
+          @update:page="handlePageChange"
+          @update:page-size="handleSizeChange"
+        />
+      </div>
+    </n-card>
+    
+    <!-- 添加角色对话框 -->
+    <n-modal v-model:show="showAddModal" :title="$t('settings.role.addRole.title')" preset="card" style="width: 600px">
+      <n-form
+        ref="addFormRef"
+        :model="addRoleForm"
+        :rules="roleFormRules"
+        :style="{ maxWidth: '540px' }"
+      >
+        <n-form-item :label="$t('settings.role.addRole.roleName')" path="roleName">
+          <n-input 
+            v-model:value="addRoleForm.roleName" 
+            :placeholder="$t('settings.role.addRole.roleNamePlaceholder')"
+          />
+        </n-form-item>
+        
+        <n-form-item :label="$t('settings.role.addRole.roleKey')" path="roleKey">
+          <n-input 
+            v-model:value="addRoleForm.roleKey" 
+            :placeholder="$t('settings.role.addRole.roleKeyPlaceholder')"
+          />
+        </n-form-item>
+        
+        <n-form-item :label="$t('settings.role.addRole.sort')" path="sort">
+          <n-input-number 
+            v-model:value="addRoleForm.sort" 
+            :placeholder="$t('settings.role.addRole.sortPlaceholder')"
+          />
+        </n-form-item>
+        
+        <n-form-item :label="$t('settings.role.addRole.status')" path="status">
+          <n-select 
+            v-model:value="addRoleForm.status" 
+            :options="statusOptions"
+          />
+        </n-form-item>
+        
+        <n-form-item :label="$t('settings.role.addRole.description')" path="description">
+          <n-input 
+            v-model:value="addRoleForm.description"
+            type="textarea" 
+            :placeholder="$t('settings.role.addRole.descriptionPlaceholder')"
+          />
+        </n-form-item>
+      </n-form>
+      
+      <template #footer>
+        <n-space justify="end">
+          <n-button @click="closeAddModal">{{ $t('settings.role.addRole.cancel') }}</n-button>
+          <n-button type="primary" :loading="submitting" @click="submitAddRole">
+            {{ $t('settings.role.addRole.submit') }}
+          </n-button>
+        </n-space>
+      </template>
+    </n-modal>
+    
+    <!-- 编辑角色对话框 -->
+    <n-modal v-model:show="showEditModal" :title="$t('settings.role.updateRole.title')" preset="card" style="width: 600px">
+      <n-form
+        ref="editFormRef"
+        :model="updateRoleForm"
+        :rules="roleFormRules"
+        :style="{ maxWidth: '540px' }"
+      >
+        <n-form-item :label="$t('settings.role.updateRole.roleName')" path="roleName">
+          <n-input 
+            v-model:value="updateRoleForm.roleName" 
+            :placeholder="$t('settings.role.updateRole.roleNamePlaceholder')"
+          />
+        </n-form-item>
+        
+        <n-form-item :label="$t('settings.role.updateRole.roleKey')" path="roleKey">
+          <n-input 
+            v-model:value="updateRoleForm.roleKey" 
+            :placeholder="$t('settings.role.updateRole.roleKeyPlaceholder')"
+          />
+        </n-form-item>
+        
+        <n-form-item :label="$t('settings.role.updateRole.sort')" path="sort">
+          <n-input-number 
+            v-model:value="updateRoleForm.sort" 
+            :placeholder="$t('settings.role.updateRole.sortPlaceholder')"
+          />
+        </n-form-item>
+        
+        <n-form-item :label="$t('settings.role.updateRole.status')" path="status">
+          <n-select 
+            v-model:value="updateRoleForm.status" 
+            :options="statusOptions"
+            :disabled="updateRoleForm.admin"
+          />
+        </n-form-item>
+        
+        <n-form-item :label="$t('settings.role.updateRole.description')" path="description">
+          <n-input 
+            v-model:value="updateRoleForm.description"
+            type="textarea" 
+            :placeholder="$t('settings.role.updateRole.descriptionPlaceholder')"
+          />
+        </n-form-item>
+      </n-form>
+      
+      <template #footer>
+        <n-space justify="end">
+          <n-button @click="closeEditModal">{{ $t('settings.role.updateRole.cancel') }}</n-button>
+          <n-button type="primary" :loading="submitting" @click="submitUpdateRole">
+            {{ $t('settings.role.updateRole.submit') }}
+          </n-button>
+        </n-space>
+      </template>
+    </n-modal>
+
+    <!-- 分配权限对话框 -->
+    <n-modal v-model:show="showAssignModal" :title="$t('settings.role.assignPermission.title')" preset="card" style="width: 600px">
+      <div v-if="currentRole" class="assign-header">
+        <p>{{ $t('settings.role.assignPermission.role') }}: {{ currentRole.roleName }}</p>
+      </div>
+
+      <n-tree
+        v-if="permissionTree.length"
+        ref="permissionTreeRef"
+        :data="permissionTree"
+        checkable
+        cascade
+        :checked-keys="checkedPermissions"
+        :selectable="false"
+        :expand-on-click="true"
+        :default-expanded-keys="expandedKeys"
+        @update:checked-keys="handlePermissionCheck"
+      />
+      
+      <template #footer>
+        <n-space justify="end">
+          <n-button @click="closeAssignModal">{{ $t('settings.role.assignPermission.cancel') }}</n-button>
+          <n-button type="primary" :loading="submitting" @click="submitAssignPermissions">
+            {{ $t('settings.role.assignPermission.submit') }}
+          </n-button>
+        </n-space>
+      </template>
+    </n-modal>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, reactive, onMounted, h, computed } from 'vue'
+import { NIcon, useDialog } from 'naive-ui'
+import type { FormRules, FormInst } from 'naive-ui'
+import { SearchOutline, RefreshOutline, AddOutline, TrashOutline, CreateOutline, KeyOutline } from '@vicons/ionicons5'
+import { sysRoleList, removeRole, getDefaultRoleQuery, addRole, getDefaultSysRoleAddDTO, getDefaultSysRoleDTO, updateRole, getRoleDetail, assignRolePermissions } from '@/api/system/role'
+import { sysPermissionList } from '@/api/system/permission'
+import type { RolePageQueryDTO, SysRoleVO, SysRoleAddDTO, SysRoleDTO } from '@/types/system/role'
+import type { SysPermissionVO } from '@/types/system/permission'
+import { useI18n } from 'vue-i18n'
+import { StatusEnum } from '@/enum/common'
+import StatusDisplay from '@/components/common/StatusDisplay.vue'
+import { getMessageInstance } from '@/utils/http'
+import { usePageUtil } from '@/utils/pageUtil'
+
+const message = getMessageInstance()
+const dialog = useDialog()
+const { t, locale } = useI18n()
+
+// 是否为英文环境
+const isEnglish = computed(() => locale.value === 'en-US')
+
+// 状态选项
+const statusOptions = [
+  { label: t('settings.role.status.normal'), value: StatusEnum.NORMAL },
+  { label: t('settings.role.status.disabled'), value: StatusEnum.DISABLED }
+]
+
+// 搜索表单
+const searchForm = reactive<RolePageQueryDTO>(getDefaultRoleQuery())
+
+// 角色列表数据
+const roleList = ref<SysRoleVO[]>([])
+
+// 分页相关
+const { 
+  pagination, 
+  loading, 
+  fetchPageData, 
+  handlePageChange: onPageChange,
+  handleSizeChange: onSizeChange,
+  resetPagination 
+} = usePageUtil<SysRoleVO, RolePageQueryDTO>()
+
+// 添加角色相关
+const showAddModal = ref(false)
+const submitting = ref(false)
+const addFormRef = ref<FormInst | null>(null)
+
+// 添加角色表单
+const addRoleForm = reactive<SysRoleAddDTO>(getDefaultSysRoleAddDTO())
+
+// 编辑角色相关
+const showEditModal = ref(false)
+const editFormRef = ref<FormInst | null>(null)
+const updateRoleForm = reactive<SysRoleDTO>(getDefaultSysRoleDTO())
+const currentEditingRoleId = ref<string | null>(null)
+
+// 分配权限相关
+const showAssignModal = ref(false)
+const currentRole = ref<SysRoleVO | null>(null)
+const permissionTree = ref<any[]>([])
+const checkedPermissions = ref<string[]>([])
+const expandedKeys = ref<string[]>([])
+const permissionTreeRef = ref(null)
+
+// 角色表单验证规则
+const roleFormRules = reactive<FormRules>({
+  roleName: [
+    { required: true, message: t('settings.role.rules.roleNameRequired'), trigger: 'blur' },
+    { min: 2, max: 30, message: t('settings.role.rules.roleNameLength'), trigger: 'blur' }
+  ],
+  roleKey: [
+    { required: true, message: t('settings.role.rules.roleKeyRequired'), trigger: 'blur' },
+    { min: 2, max: 100, message: t('settings.role.rules.roleKeyLength'), trigger: 'blur' }
+  ],
+  status: [
+    { required: true, type: 'number', message: t('settings.role.rules.statusRequired'), trigger: ['blur', 'change'] }
+  ]
+})
+
+// 表格列定义
+const columns = computed(() => [
+  { title: t('settings.role.table.id'), key: 'id' },
+  { title: t('settings.role.table.roleName'), key: 'roleName' },
+  { title: t('settings.role.table.roleKey'), key: 'roleKey' },
+  { title: t('settings.role.table.sort'), key: 'sort' },
+  { 
+    title: t('settings.role.table.status'), 
+    key: 'status',
+    render(row: SysRoleVO) {
+      return h(StatusDisplay, { status: row.status, type: 'dot' })
+    }
+  },
+  { title: t('settings.role.table.description'), key: 'description' },
+  { title: t('settings.role.table.createTime'), key: 'createTime' },
+  {
+    title: t('settings.role.table.actions'),
+    key: 'actions',
+    render(row: SysRoleVO) {
+      return [
+        h(
+          'button',
+          {
+            class: 'n-button n-button--tertiary n-button--small',
+            style: { marginRight: '8px' },
+            onClick: () => handleEdit(row)
+          },
+          [
+            h(NIcon, null, { default: () => h(CreateOutline) }),
+            ' ' + t('settings.role.actions.edit')
+          ]
+        ),
+        h(
+          'button',
+          {
+            class: 'n-button n-button--tertiary n-button--small',
+            style: { marginRight: '8px' },
+            disabled: row.admin,
+            onClick: () => handleAssign(row)
+          },
+          [
+            h(NIcon, null, { default: () => h(KeyOutline) }),
+            ' ' + t('settings.role.actions.assignPermission')
+          ]
+        ),
+        h(
+          'button',
+          {
+            class: 'n-button n-button--error n-button--small',
+            disabled: row.admin,
+            onClick: () => handleDelete(row)
+          },
+          [
+            h(NIcon, null, { default: () => h(TrashOutline) }),
+            ' ' + t('settings.role.actions.delete')
+          ]
+        )
+      ]
+    }
+  }
+])
+
+// 搜索处理
+function handleSearch() {
+  pagination.pageNum = 1
+  fetchRoleList()
+}
+
+// 重置搜索
+function resetSearch() {
+  Object.assign(searchForm, getDefaultRoleQuery())
+  resetPagination()
+  fetchRoleList()
+}
+
+// 获取角色列表数据
+async function fetchRoleList() {
+  await fetchPageData(sysRoleList, searchForm, roleList)
+}
+
+// 处理页码变化
+function handlePageChange(page: number) {
+  onPageChange(page)
+  fetchRoleList()
+}
+
+// 处理每页条数变化
+function handleSizeChange(pageSize: number) {
+  onSizeChange(pageSize)
+  fetchRoleList()
+}
+
+// 编辑角色
+function handleEdit(row: SysRoleVO) {
+  currentEditingRoleId.value = row.id
+  Object.assign(updateRoleForm, {
+    id: row.id,
+    roleName: row.roleName,
+    roleKey: row.roleKey,
+    sort: row.sort,
+    status: row.status,
+    description: row.description,
+    admin: row.admin
+  })
+  showEditModal.value = true
+}
+
+// 关闭编辑对话框
+function closeEditModal() {
+  showEditModal.value = false
+  currentEditingRoleId.value = null
+}
+
+// 提交编辑角色
+async function submitUpdateRole() {
+  if (!currentEditingRoleId.value) return
+  
+  try {
+    // 表单验证
+    await editFormRef.value?.validate()
+    
+    submitting.value = true
+    try {
+      await updateRole(updateRoleForm)
+      message.success(t('settings.role.messages.editSuccess'))
+      closeEditModal()
+      fetchRoleList()
+    } catch (error) {
+      console.error('更新角色失败:', error)
+      message.error(t('settings.role.messages.editFail'))
+    } finally {
+      submitting.value = false
+    }
+  } catch (err) {
+    // 表单验证失败
+    message.error(t('settings.role.messages.formInvalid'))
+  }
+}
+
+// 删除角色
+async function handleDelete(row: SysRoleVO) {
+  dialog.warning({
+    title: t('settings.role.actions.delete'),
+    content: t('settings.role.messages.deleteConfirm'),
+    positiveText: t('settings.role.actions.delete'),
+    negativeText: t('common.cancel'),
+    onPositiveClick: async () => {
+      try {
+        await removeRole(row.id)
+        message.success(t('settings.role.messages.deleteSuccess'))
+        fetchRoleList()
+      } catch (error) {
+        console.error('删除角色出错:', error)
+        message.error(t('settings.role.messages.deleteFail'))
+      }
+    }
+  })
+}
+
+// 重置添加角色表单
+function resetAddRoleForm() {
+  Object.assign(addRoleForm, getDefaultSysRoleAddDTO())
+  addRoleForm.status = StatusEnum.NORMAL
+  addRoleForm.sort = 0
+}
+
+// 关闭添加角色对话框
+function closeAddModal() {
+  showAddModal.value = false
+  resetAddRoleForm()
+}
+
+// 提交添加角色
+async function submitAddRole() {
+  try {
+    await addFormRef.value?.validate()
+    
+    submitting.value = true
+    try {
+      await addRole(addRoleForm)
+      message.success(t('settings.role.messages.addSuccess'))
+      closeAddModal()
+      fetchRoleList()
+    } catch (error) {
+      console.error('添加角色失败:', error)
+      message.error(t('settings.role.messages.addFail'))
+    } finally {
+      submitting.value = false
+    }
+  } catch (err) {
+    // 表单验证失败
+    message.error(t('settings.role.messages.formInvalid'))
+  }
+}
+
+// 新增角色
+function handleAdd() {
+  resetAddRoleForm()
+  showAddModal.value = true
+}
+
+// 权限树处理
+function buildPermissionTree(permissions: SysPermissionVO[]): any[] {
+  const tree: any[] = []
+  const map: Record<string, any> = {}
+  
+  // 首先创建所有节点的映射
+  permissions.forEach(perm => {
+    map[perm.id] = {
+      key: perm.id,
+      label: perm.permissionName,
+      permissionKey: perm.permissionKey,
+      children: []
+    }
+  })
+  
+  // 构建树结构
+  permissions.forEach(perm => {
+    const node = map[perm.id]
+    
+    if (perm.parentId && map[perm.parentId]) {
+      // 如果有父节点，则添加到父节点的children中
+      map[perm.parentId].children.push(node)
+    } else {
+      // 如果没有父节点或父节点不存在，则作为根节点
+      tree.push(node)
+    }
+  })
+  
+  return tree
+}
+
+// 处理分配权限
+async function handleAssign(row: SysRoleVO) {
+  currentRole.value = row
+  submitting.value = true
+  
+  try {
+    // 获取角色详情，包括已分配的权限
+    const roleDetail = await getRoleDetail(row.id)
+    const rolePermissions = roleDetail?.data?.permissions || []
+    
+    // 获取所有权限列表
+    const permResult = await sysPermissionList({ pageNum: 1, pageSize: 1000 })
+    const permissions: SysPermissionVO[] = permResult?.data || []
+    
+    // 构建权限树
+    permissionTree.value = buildPermissionTree(permissions)
+    
+    // 设置已选中的权限
+    checkedPermissions.value = rolePermissions.map((p: SysPermissionVO) => p.id)
+    
+    // 展开所有节点
+    expandedKeys.value = permissions.map((p: SysPermissionVO) => p.id)
+    
+    // 显示分配权限对话框
+    showAssignModal.value = true
+  } catch (error) {
+    console.error('获取权限数据失败:', error)
+    message.error(t('settings.role.messages.getPermissionFail'))
+  } finally {
+    submitting.value = false
+  }
+}
+
+// 处理权限选中状态变化
+function handlePermissionCheck(keys: string[]) {
+  checkedPermissions.value = keys
+}
+
+// 关闭分配权限对话框
+function closeAssignModal() {
+  showAssignModal.value = false
+  currentRole.value = null
+  checkedPermissions.value = []
+}
+
+// 提交分配权限
+async function submitAssignPermissions() {
+  if (!currentRole.value) return
+  
+  submitting.value = true
+  try {
+    await assignRolePermissions(currentRole.value.id, checkedPermissions.value)
+    message.success(t('settings.role.messages.assignSuccess'))
+    closeAssignModal()
+  } catch (error) {
+    console.error('分配权限失败:', error)
+    message.error(t('settings.role.messages.assignFail'))
+  } finally {
+    submitting.value = false
+  }
+}
+
+// 初始化加载
+onMounted(() => {
+  fetchRoleList()
+})
+</script>
+
+<style scoped lang="scss">
+.role-settings-container {
+  .search-form {
+    margin-bottom: 16px;
+  }
+  
+  .table-actions {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 8px;
+  }
+  
+  .ml-2 {
+    margin-left: 8px;
+  }
+  
+  .pagination-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+  }
+
+  .assign-header {
+    margin-bottom: 16px;
+    font-weight: bold;
+  }
+}
+</style> 

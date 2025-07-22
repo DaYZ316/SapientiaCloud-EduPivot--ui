@@ -112,7 +112,10 @@ export default {
       editNotImplemented: 'Edit user feature not implemented yet',
       addNotImplemented: 'Add user feature not implemented yet',
       addSuccess: 'User added successfully',
-      addFail: 'Failed to add user'
+      addFail: 'Failed to add user',
+      editSuccess: 'User updated successfully',
+      editFail: 'Failed to update user',
+      formInvalid: 'Please check the form and fix the errors'
     },
     addUser: {
       title: 'Add User',
@@ -129,7 +132,42 @@ export default {
       mobilePlaceholder: 'Enter mobile number',
       avatarPlaceholder: 'Enter avatar URL',
       cancel: 'Cancel',
-      submit: 'Submit'
+      submit: 'Submit',
+      usernameRequired: 'Username is required',
+      usernameLength: 'Username must be 2-20 characters',
+      nicknameRequired: 'Nickname is required',
+      emailRequired: 'Email is required',
+      emailFormat: 'Invalid email format',
+      mobileRequired: 'Mobile number is required',
+      mobileFormat: 'Invalid mobile number format',
+      genderRequired: 'Please select gender',
+      statusRequired: 'Please select status'
+    },
+    updateUser: {
+      title: 'Edit User',
+      username: 'Username',
+      nickname: 'Nickname',
+      email: 'Email',
+      mobile: 'Mobile',
+      gender: 'Gender',
+      status: 'Status',
+      avatar: 'Avatar URL',
+      usernamePlaceholder: 'Enter username',
+      nicknamePlaceholder: 'Enter nickname',
+      emailPlaceholder: 'Enter email',
+      mobilePlaceholder: 'Enter mobile number',
+      avatarPlaceholder: 'Enter avatar URL',
+      cancel: 'Cancel',
+      submit: 'Submit',
+      usernameRequired: 'Username is required',
+      usernameLength: 'Username must be 2-20 characters',
+      nicknameRequired: 'Nickname is required',
+      emailRequired: 'Email is required',
+      emailFormat: 'Invalid email format',
+      mobileRequired: 'Mobile number is required',
+      mobileFormat: 'Invalid mobile number format',
+      genderRequired: 'Please select gender',
+      statusRequired: 'Please select status'
     }
   },
   system: {

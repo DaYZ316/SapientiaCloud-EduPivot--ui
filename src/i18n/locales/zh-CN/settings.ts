@@ -112,7 +112,10 @@ export default {
       editNotImplemented: '编辑用户功能尚未实现',
       addNotImplemented: '新增用户功能尚未实现',
       addSuccess: '添加用户成功',
-      addFail: '添加用户失败'
+      addFail: '添加用户失败',
+      editSuccess: '编辑用户成功',
+      editFail: '编辑用户失败',
+      formInvalid: '请检查表单并修正错误'
     },
     addUser: {
       title: '添加用户',
@@ -129,7 +132,42 @@ export default {
       mobilePlaceholder: '请输入手机号',
       avatarPlaceholder: '请输入头像链接',
       cancel: '取消',
-      submit: '提交'
+      submit: '提交',
+      usernameRequired: '用户名不能为空',
+      usernameLength: '用户名长度必须在2-20个字符之间',
+      nicknameRequired: '昵称不能为空',
+      emailRequired: '邮箱不能为空',
+      emailFormat: '邮箱格式不正确',
+      mobileRequired: '手机号不能为空',
+      mobileFormat: '手机号格式不正确',
+      genderRequired: '请选择性别',
+      statusRequired: '请选择状态'
+    },
+    updateUser: {
+      title: '编辑用户',
+      username: '用户名',
+      nickname: '昵称',
+      email: '邮箱',
+      mobile: '手机号',
+      gender: '性别',
+      status: '状态',
+      avatar: '头像链接',
+      usernamePlaceholder: '请输入用户名',
+      nicknamePlaceholder: '请输入昵称',
+      emailPlaceholder: '请输入邮箱',
+      mobilePlaceholder: '请输入手机号',
+      avatarPlaceholder: '请输入头像链接',
+      cancel: '取消',
+      submit: '提交',
+      usernameRequired: '用户名不能为空',
+      usernameLength: '用户名长度必须在2-20个字符之间',
+      nicknameRequired: '昵称不能为空',
+      emailRequired: '邮箱不能为空',
+      emailFormat: '邮箱格式不正确',
+      mobileRequired: '手机号不能为空',
+      mobileFormat: '手机号格式不正确',
+      genderRequired: '请选择性别',
+      statusRequired: '请选择状态'
     }
   },
   system: {

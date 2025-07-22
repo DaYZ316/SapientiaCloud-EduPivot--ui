@@ -137,14 +137,84 @@
         </n-space>
       </template>
     </n-modal>
+    
+    <!-- 编辑用户对话框 -->
+    <n-modal v-model:show="showEditModal" :title="$t('settings.user.updateUser.title')" preset="card" style="width: 600px">
+      <n-form
+        ref="editFormRef"
+        :model="updateUserForm"
+        :rules="userFormRules"
+        :style="{ maxWidth: '540px' }"
+      >
+        <n-form-item :label="$t('settings.user.updateUser.username')" path="username">
+          <n-input 
+            v-model:value="updateUserForm.username" 
+            :placeholder="$t('settings.user.updateUser.usernamePlaceholder')"
+            disabled
+          />
+        </n-form-item>
+        
+        <n-form-item :label="$t('settings.user.updateUser.nickname')" path="nickName">
+          <n-input 
+            v-model:value="updateUserForm.nickName" 
+            :placeholder="$t('settings.user.updateUser.nicknamePlaceholder')"
+          />
+        </n-form-item>
+        
+        <n-form-item :label="$t('settings.user.updateUser.email')" path="email">
+          <n-input 
+            v-model:value="updateUserForm.email" 
+            :placeholder="$t('settings.user.updateUser.emailPlaceholder')"
+          />
+        </n-form-item>
+        
+        <n-form-item :label="$t('settings.user.updateUser.mobile')" path="mobile">
+          <n-input 
+            v-model:value="updateUserForm.mobile" 
+            :placeholder="$t('settings.user.updateUser.mobilePlaceholder')"
+          />
+        </n-form-item>
+        
+        <n-form-item :label="$t('settings.user.updateUser.gender')" path="gender">
+          <n-select 
+            v-model:value="updateUserForm.gender" 
+            :options="genderOptions"
+          />
+        </n-form-item>
+        
+        <n-form-item :label="$t('settings.user.updateUser.status')" path="status">
+          <n-select 
+            v-model:value="updateUserForm.status" 
+            :options="statusOptions"
+          />
+        </n-form-item>
+        
+        <n-form-item :label="$t('settings.user.updateUser.avatar')" path="avatar">
+          <n-input 
+            v-model:value="updateUserForm.avatar" 
+            :placeholder="$t('settings.user.updateUser.avatarPlaceholder')"
+          />
+        </n-form-item>
+      </n-form>
+      
+      <template #footer>
+        <n-space justify="end">
+          <n-button @click="closeEditModal">{{ $t('settings.user.updateUser.cancel') }}</n-button>
+          <n-button type="primary" :loading="submitting" @click="submitupdateUser">
+            {{ $t('settings.user.updateUser.submit') }}
+          </n-button>
+        </n-space>
+      </template>
+    </n-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, h, computed } from 'vue'
 import { NIcon, useDialog } from 'naive-ui'
+import type { FormRules, FormInst } from 'naive-ui'
 import { SearchOutline, RefreshOutline, AddOutline, TrashOutline, CreateOutline } from '@vicons/ionicons5'
-import { sysUserList, removeUser, getDefaultUserQuery, addSysUser, getDefaultSysUserAdminDTO } from '@/api/system/user'
+import { sysUserList, removeUser, getDefaultUserQuery, addSysUser, getDefaultSysUserAdminDTO, updateUser } from '@/api/system/user'
 import type { UserPageQueryDTO, SysUserVO, SysUserAdminDTO } from '@/types/system/user'
 import { useI18n } from 'vue-i18n'
 import { GenderEnum, StatusEnum, getGenderLabel } from '@/enum/common'
@@ -195,6 +265,37 @@ const addFormRef = ref()
 
 // 添加用户表单
 const addUserForm = reactive<SysUserAdminDTO>(getDefaultSysUserAdminDTO())
+
+// 编辑用户相关
+const showEditModal = ref(false)
+const editFormRef = ref<FormInst | null>(null)
+const updateUserForm = reactive<SysUserAdminDTO>(getDefaultSysUserAdminDTO())
+const currentEditingUserId = ref<string | null>(null)
+
+// 编辑用户表单验证规则
+const userFormRules = reactive<FormRules>({
+  username: [
+    { required: true, message: t('settings.user.updateUser.usernameRequired'), trigger: 'blur' },
+    { min: 2, max: 20, message: t('settings.user.updateUser.usernameLength'), trigger: 'blur' }
+  ],
+  nickName: [
+    { required: true, message: t('settings.user.updateUser.nicknameRequired'), trigger: 'blur' }
+  ],
+  email: [
+    { required: true, message: t('settings.user.updateUser.emailRequired'), trigger: 'blur' },
+    { type: 'email', message: t('settings.user.updateUser.emailFormat'), trigger: 'blur' }
+  ],
+  mobile: [
+    { required: true, message: t('settings.user.updateUser.mobileRequired'), trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: t('settings.user.updateUser.mobileFormat'), trigger: 'blur' }
+  ],
+  gender: [
+    { required: true, type: 'number', message: t('settings.user.updateUser.genderRequired'), trigger: ['blur', 'change']  }
+  ],
+  status: [
+    { required: true, type: 'number', message: t('settings.user.updateUser.statusRequired'), trigger: ['blur', 'change'] }
+  ]
+})
 
 // 表格列定义
 const columns = computed(() => [
@@ -284,8 +385,52 @@ function handleSizeChange(pageSize: number) {
 
 // 编辑用户
 function handleEdit(row: SysUserVO) {
-  message.info(t('settings.user.messages.editNotImplemented'))
-  console.log('编辑用户:', row)
+  currentEditingUserId.value = row.id
+  Object.assign(updateUserForm, {
+    username: row.username,
+    nickName: row.nickName,
+    email: row.email,
+    mobile: row.mobile,
+    gender: row.gender,
+    status: row.status,
+    avatar: row.avatar
+  })
+  showEditModal.value = true
+}
+
+// 关闭编辑对话框
+function closeEditModal() {
+  showEditModal.value = false
+  currentEditingUserId.value = null
+}
+
+// 提交编辑用户
+async function submitupdateUser() {
+  if (currentEditingUserId.value === null) return
+  
+  try {
+    // 表单验证
+    await editFormRef.value?.validate()
+    
+    submitting.value = true
+    try {
+      await updateUser({
+        id: String(currentEditingUserId.value),
+        ...updateUserForm
+      })
+      message.success(t('settings.user.messages.editSuccess'))
+      closeEditModal()
+      fetchUserList()
+    } catch (error) {
+      console.error('更新用户失败:', error)
+      message.error(t('settings.user.messages.editFail'))
+    } finally {
+      submitting.value = false
+    }
+  } catch (err) {
+    // 表单验证失败
+    message.error(t('settings.user.messages.formInvalid'))
+  }
 }
 
 // 删除用户

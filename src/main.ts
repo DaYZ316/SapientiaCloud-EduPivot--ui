@@ -42,6 +42,26 @@ const { message } = createDiscreteApi(
 )
 setMessageInstance(message)
 
+// 监听主题变化并更新消息实例
+themeStore.$subscribe((_mutation, state) => {
+  const { message: newMessage } = createDiscreteApi(
+    ['message'],
+    {
+      configProviderProps: {
+        theme: themeStore.isDarkMode ? darkTheme : null,
+        themeOverrides: {
+          common: {
+            primaryColor: state.primaryColor,
+            primaryColorHover: state.primaryColor,
+            primaryColorPressed: state.primaryColor,
+          }
+        }
+      }
+    }
+  )
+  setMessageInstance(newMessage)
+})
+
 // 注册路由
 app.use(router)
 

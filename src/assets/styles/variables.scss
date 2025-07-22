@@ -4,6 +4,10 @@ $success-color-base: #52c41a;
 $warning-color-base: #faad14;
 $error-color-base: #f5222d;
 
+// 状态颜色变量
+$status-normal-color-base: #18a058;
+$status-disabled-color-base: #d03050;
+
 // CSS变量引用
 $primary-color: var(--primary-color, #1890ff);
 $primary-color-hover: var(--primary-color-hover, #40a9ff);
@@ -11,6 +15,10 @@ $primary-color-pressed: var(--primary-color-pressed, #096dd9);
 $success-color: var(--success-color, #52c41a);
 $warning-color: var(--warning-color, #faad14);
 $error-color: var(--error-color, #f5222d);
+
+// 状态颜色
+$status-normal-color: var(--status-normal-color, #18a058);
+$status-disabled-color: var(--status-disabled-color, #d03050);
 
 // 中性色
 $text-color-primary: var(--text-color-primary, rgba(0, 0, 0, 0.85));

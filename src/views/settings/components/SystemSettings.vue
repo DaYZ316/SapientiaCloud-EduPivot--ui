@@ -38,7 +38,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useThemeStore } from '@/store'
-import { useMessage } from 'naive-ui'
+import { getMessageInstance } from '@/utils/http'
 import { setLanguage } from '@/i18n'
 
 // 国际化
@@ -54,7 +54,7 @@ const currentLang = ref<'zh-CN' | 'en-US'>(locale.value as 'zh-CN' | 'en-US')
 
 // 设置状态管理
 const themeStore = useThemeStore()
-const message = useMessage()
+const message = getMessageInstance()
 
 // 主题设置状态
 const themeMode = ref(themeStore.themeMode || 'system')

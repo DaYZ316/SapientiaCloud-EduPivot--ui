@@ -26,7 +26,16 @@ class ApiConfig {
    * 获取完整的基础URL
    */
   public getBaseUrl(): string {
-    return `http://${this.ip}:${this.port}${this.prefix}`
+    // 判断是否为开发环境
+    const isDev = import.meta.env.DEV
+    
+    if (isDev) {
+      // 开发环境使用相对路径，由Vite代理处理
+      return this.prefix
+    } else {
+      // 生产环境使用完整URL
+      return `http://${this.ip}:${this.port}${this.prefix}`
+    }
   }
 }
 
@@ -106,9 +115,16 @@ class HttpClient {
     // 响应拦截器
     this.instance.interceptors.response.use(
       (response): any => {
-        // 业务状态码处理
-        const res = response.data as Result<any>
-        if (!res.success || res.code !== 200) {
+        // 检查响应是否为TableDataResult格式
+        const data = response.data
+        if (data && 'total' in data && 'data' in data && 'code' in data && data.code === 200) {
+          // 是TableDataResult格式，直接返回
+          return data
+        }
+
+        // 业务状态码处理，处理Result<T>格式
+        const res = data as Result<any>
+        if (!res.success && res.code !== 200) {
           this.handleErrorCode(res.code, res.message)
           return Promise.reject(res)
         }
@@ -128,6 +144,7 @@ class HttpClient {
   private handleErrorCode(code: number, message: string): void {
     const messageApi = getMessageInstance()
     const userStore = useUserStore()
+    const router = useRouter()
     
     // 根据不同错误码处理
     switch (code) {
@@ -135,7 +152,7 @@ class HttpClient {
       case 401:
         messageApi.error('登录已过期，请重新登录')
         userStore.resetUserState()
-        useRouter().push('/login')
+        router.push('/login')
         break
       // 权限不足
       case 403:
@@ -153,6 +170,7 @@ class HttpClient {
   private handleHttpError(error: any): void {
     const messageApi = getMessageInstance()
     const userStore = useUserStore()
+    const router = useRouter()
     
     let message = '未知错误'
     
@@ -167,7 +185,7 @@ class HttpClient {
         case 401:
           message = '登录已过期，请重新登录'
           userStore.resetUserState()
-          useRouter().push('/login')
+          router.push('/login')
           break
         case 403:
           message = '权限不足'

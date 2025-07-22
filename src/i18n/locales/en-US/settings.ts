@@ -12,6 +12,7 @@ export default {
   },
   tabs: {
     personal: 'Personal Settings',
+    user: 'User Management',
     system: 'System Settings'
   },
   personal: {
@@ -63,6 +64,73 @@ export default {
     avatarSizeError: 'Avatar size cannot exceed 2MB',
     avatarUploadSuccess: 'Avatar uploaded successfully',
     avatarUploadFail: 'Failed to upload avatar'
+  },
+  user: {
+    title: 'User Management',
+    searchForm: {
+      username: 'Username',
+      nickname: 'Nickname',
+      gender: 'Gender',
+      status: 'Status',
+      mobile: 'Mobile',
+      email: 'Email',
+      search: 'Search',
+      reset: 'Reset'
+    },
+    actions: {
+      add: 'Add User',
+      edit: 'Edit',
+      delete: 'Delete',
+      assignRole: 'Assign Role'
+    },
+    table: {
+      userId: 'User ID',
+      username: 'Username',
+      nickname: 'Nickname',
+      email: 'Email',
+      mobile: 'Mobile',
+      gender: 'Gender',
+      status: 'Status',
+      createTime: 'Create Time',
+      lastLoginTime: 'Last Login Time',
+      actions: 'Actions'
+    },
+    gender: {
+      unknown: 'Unknown',
+      male: 'Male',
+      female: 'Female'
+    },
+    status: {
+      normal: 'Normal',
+      disabled: 'Disabled'
+    },
+    messages: {
+      deleteConfirm: 'Are you sure you want to delete this user?',
+      deleteSuccess: 'Deleted successfully',
+      deleteFail: 'Failed to delete',
+      fetchFail: 'Failed to fetch user list',
+      editNotImplemented: 'Edit user feature not implemented yet',
+      addNotImplemented: 'Add user feature not implemented yet',
+      addSuccess: 'User added successfully',
+      addFail: 'Failed to add user'
+    },
+    addUser: {
+      title: 'Add User',
+      username: 'Username',
+      nickname: 'Nickname',
+      email: 'Email',
+      mobile: 'Mobile',
+      gender: 'Gender',
+      status: 'Status',
+      avatar: 'Avatar URL',
+      usernamePlaceholder: 'Enter username',
+      nicknamePlaceholder: 'Enter nickname',
+      emailPlaceholder: 'Enter email',
+      mobilePlaceholder: 'Enter mobile number',
+      avatarPlaceholder: 'Enter avatar URL',
+      cancel: 'Cancel',
+      submit: 'Submit'
+    }
   },
   system: {
     title: 'System Settings',

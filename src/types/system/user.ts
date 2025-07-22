@@ -88,4 +88,24 @@ export interface UserPageQueryDTO extends PageEntity {
   mobile?: string
   /** 邮箱 */
   email?: string
-} 
+}
+
+/**
+ *  管理员添加用户DTO
+ */
+export interface SysUserAdminDTO {
+  /** 用户名 */
+  username: string
+  /** 用户昵称 */
+  nickName: string
+  /** 邮箱 */
+  email: string
+  /** 手机号 */
+  mobile: string
+  /** 性别 (0=未知, 1=男, 2=女) */
+  gender: number
+  /** 用户头像URL */
+  avatar: string
+  /** 状态 */
+  status: number
+}

@@ -5,8 +5,23 @@ import type {
   SysRoleDTO
 } from '@/types/system'
 
+// 获取默认角色查询对象
+export function getDefaultRoleQuery(): RolePageQueryDTO {
+  return {
+    roleName: undefined,
+    roleKey: undefined,
+    status: undefined,
+    startTime: undefined,
+    endTime: undefined,
+    pageNum: 1,
+    pageSize: 10,
+    orderByColumn: 'create_time',
+    isAsc: 'asc'
+  }
+}
+
 // 分页查询角色列表
-export function getRoleList(params: RolePageQueryDTO) {
+export function sysRoleList(params: RolePageQueryDTO) {
   return http.get('/system/role/list', params)
 }
 
@@ -26,12 +41,12 @@ export function updateRole(data: SysRoleDTO) {
 }
 
 // 删除角色
-export function deleteRole(id: string) {
+export function removeRole(id: string) {
   return http.delete(`/system/role/${id}`)
 }
 
 // 批量删除角色
-export function batchDeleteRoles(ids: string[]) {
+export function removeRoles(ids: string[]) {
   return http.delete('/system/role', { data: ids })
 }
 

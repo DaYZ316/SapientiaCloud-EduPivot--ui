@@ -102,9 +102,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useMessage } from 'naive-ui'
+import { getMessageInstance } from '@/utils/http'
 import { useThemeStore } from '@/store'
 
-const message = useMessage()
+const message = getMessageInstance()
 const themeStore = useThemeStore()
 
 // 主题模式设置

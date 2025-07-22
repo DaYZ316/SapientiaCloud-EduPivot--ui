@@ -63,19 +63,19 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import {
   PersonOutline, LockClosedOutline
 } from '@vicons/ionicons5'
 import { useUserStore } from '@/store'
+import { getMessageInstance } from '@/utils/http'
 // import CloudBackground from '@/components/common/CloudBackground.vue'
 // import GalaxyBackground from '@/components/common/GalaxyBackground.vue'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
-const message = useMessage()
+const message = getMessageInstance()
 const { t } = useI18n()
 
 // 表单引用

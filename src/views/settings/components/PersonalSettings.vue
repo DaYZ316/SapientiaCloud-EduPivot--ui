@@ -184,14 +184,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive } from 'vue'
-import { useMessage } from 'naive-ui'
+import { ref, computed, reactive, onMounted } from 'vue'
 import type { FormInst, FormRules, UploadInst, UploadFileInfo, UploadCustomRequestOptions } from 'naive-ui'
 import { useUserStore } from '@/store'
 import { useI18n } from 'vue-i18n'
+import { updateUser } from '@/api/system/user'
+import { getMessageInstance } from '@/utils/http'
 
 const userStore = useUserStore()
-const message = useMessage()
+const message = getMessageInstance()
 const { t } = useI18n()
 const formRef = ref<FormInst | null>(null)
 const passwordFormRef = ref<FormInst | null>(null)
@@ -225,8 +226,6 @@ const initFormData = () => {
   }
 }
 
-// 初始化表单数据
-initFormData()
 
 // 修改密码表单
 const passwordForm = ref({
@@ -284,20 +283,34 @@ function formatDateTime(dateStr?: string): string {
 const savePersonalSettings = () => {
   formRef.value?.validate(async (errors) => {
     if (!errors) {
-      // 这里应该调用后端API保存用户信息
-      // 以下为模拟保存成功
-      message.success(t('settings.personal.updateSuccess'))
-      
-      // 更新本地存储的用户信息
-      if (userInfo.value) {
-        userStore.userInfo = {
-          ...userInfo.value,
+      try {
+        if (!userInfo.value || !userInfo.value.id) {
+          message.error(t('settings.personal.updateFail'))
+          return
+        }
+
+        // 调用API更新用户信息
+        const userData = {
+          id: userInfo.value.id,
           nickName: personalForm.nickName,
           email: personalForm.email,
           mobile: personalForm.mobile,
           gender: personalForm.gender,
           avatar: personalForm.avatar
         }
+
+        const res = await updateUser(userData)
+        if (res.success && res.data) {
+          message.success(t('settings.personal.updateSuccess'))
+          
+          // 更新本地存储的用户信息
+          await userStore.refreshUserInfo()
+        } else {
+          message.error(t('settings.personal.updateFail'))
+        }
+      } catch (error) {
+        console.error('更新用户信息失败:', error)
+        message.error(t('settings.personal.updateFail'))
       }
     }
   })
@@ -369,6 +382,13 @@ const customAvatarUpload = ({
     message.error(t('settings.personal.avatarUploadFail'))
   }
 }
+
+// 初始化表单数据
+onMounted(async () => {
+  // 刷新用户信息，确保数据是最新的
+  await userStore.refreshUserInfo()
+  initFormData()
+})
 </script>
 
 <style scoped lang="scss">

@@ -1,0 +1,150 @@
+export default {
+  languageSettings: 'Language Settings',
+  languageOptions: {
+    chinese: 'Simplified Chinese',
+    english: 'English'
+  },
+  theme: {
+    title: 'Theme Settings',
+    light: 'Light Mode',
+    dark: 'Dark Mode',
+    system: 'System Mode'
+  },
+  tabs: {
+    personal: 'Personal Settings',
+    user: 'User Management',
+    system: 'System Settings'
+  },
+  personal: {
+    title: 'Personal Information',
+    avatar: 'Avatar',
+    nickname: 'Nickname',
+    email: 'Email',
+    phone: 'Phone',
+    gender: 'Gender',
+    genderUnknown: 'Unknown',
+    genderMale: 'Male',
+    genderFemale: 'Female',
+    lastLoginTime: 'Last Login Time',
+    updateAvatar: 'Update Avatar',
+    uploadTip: 'Support jpg, png format, file size should not exceed 2MB',
+    updateSuccess: 'Personal information updated successfully',
+    updateFail: 'Failed to update personal information',
+    usernamePlaceholder: 'Please enter username',
+    emailPlaceholder: 'Please enter email address',
+    nicknamePlaceholder: 'Please enter nickname',
+    phonePlaceholder: 'Please enter phone number',
+    nicknameRequired: 'Nickname is required',
+    emailRequired: 'Email is required',
+    emailInvalid: 'Invalid email format',
+    phoneRequired: 'Phone number is required',
+    phoneInvalid: 'Invalid phone number format',
+    security: 'Security Settings',
+    basicInfo: 'Basic Info',
+    changePassword: 'Change Password',
+    modify: 'Modify',
+    passwordDesc: 'Regularly changing your password helps protect your account',
+    currentPassword: 'Current Password',
+    newPassword: 'New Password',
+    confirmPassword: 'Confirm Password',
+    currentPasswordPlaceholder: 'Please enter current password',
+    newPasswordPlaceholder: 'Please enter new password',
+    confirmPasswordPlaceholder: 'Please confirm new password',
+    currentPasswordRequired: 'Current password is required',
+    newPasswordRequired: 'New password is required',
+    confirmPasswordRequired: 'Please confirm your password',
+    passwordLengthInvalid: 'Password must be at least 6 characters',
+    passwordsNotMatch: 'Passwords do not match',
+    passwordChangeSuccess: 'Password changed successfully',
+    accountStatus: 'Account Status',
+    statusNormal: 'Normal',
+    statusDisabled: 'Disabled',
+    accountStatusDesc: 'Account status is controlled by system administrators',
+    avatarTypeError: 'Avatar must be JPG or PNG format',
+    avatarSizeError: 'Avatar size cannot exceed 2MB',
+    avatarUploadSuccess: 'Avatar uploaded successfully',
+    avatarUploadFail: 'Failed to upload avatar'
+  },
+  user: {
+    title: 'User Management',
+    searchForm: {
+      username: 'Username',
+      nickname: 'Nickname',
+      gender: 'Gender',
+      status: 'Status',
+      mobile: 'Mobile',
+      email: 'Email',
+      search: 'Search',
+      reset: 'Reset'
+    },
+    actions: {
+      add: 'Add User',
+      edit: 'Edit',
+      delete: 'Delete',
+      assignRole: 'Assign Role'
+    },
+    table: {
+      userId: 'User ID',
+      username: 'Username',
+      nickname: 'Nickname',
+      email: 'Email',
+      mobile: 'Mobile',
+      gender: 'Gender',
+      status: 'Status',
+      createTime: 'Create Time',
+      lastLoginTime: 'Last Login Time',
+      actions: 'Actions'
+    },
+    gender: {
+      unknown: 'Unknown',
+      male: 'Male',
+      female: 'Female'
+    },
+    status: {
+      normal: 'Normal',
+      disabled: 'Disabled'
+    },
+    messages: {
+      deleteConfirm: 'Are you sure you want to delete this user?',
+      deleteSuccess: 'Deleted successfully',
+      deleteFail: 'Failed to delete',
+      fetchFail: 'Failed to fetch user list',
+      editNotImplemented: 'Edit user feature not implemented yet',
+      addNotImplemented: 'Add user feature not implemented yet',
+      addSuccess: 'User added successfully',
+      addFail: 'Failed to add user'
+    },
+    addUser: {
+      title: 'Add User',
+      username: 'Username',
+      nickname: 'Nickname',
+      email: 'Email',
+      mobile: 'Mobile',
+      gender: 'Gender',
+      status: 'Status',
+      avatar: 'Avatar URL',
+      usernamePlaceholder: 'Enter username',
+      nicknamePlaceholder: 'Enter nickname',
+      emailPlaceholder: 'Enter email',
+      mobilePlaceholder: 'Enter mobile number',
+      avatarPlaceholder: 'Enter avatar URL',
+      cancel: 'Cancel',
+      submit: 'Submit'
+    }
+  },
+  system: {
+    title: 'System Settings',
+    defaultLanguage: 'Language',
+    timeFormat: 'Time Format',
+    timezone: 'Timezone',
+    startPage: 'Start Page',
+    autoSave: 'Auto Save',
+    autoSaveInterval: 'Auto Save Interval',
+    logLevel: 'Log Level',
+    themeMode: 'Theme Mode',
+    colorPrimary: 'Primary Color',
+    updateSuccess: 'System settings saved successfully',
+    updateFail: 'Failed to save system settings',
+    resetSuccess: 'System settings have been reset'
+  }
+} 

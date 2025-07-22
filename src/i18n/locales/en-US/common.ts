@@ -1,0 +1,21 @@
+export default {
+  confirm: 'Confirm',
+  cancel: 'Cancel',
+  submit: 'Submit',
+  reset: 'Reset',
+  search: 'Search',
+  add: 'Add',
+  edit: 'Edit',
+  delete: 'Delete',
+  success: 'Operation Successful',
+  fail: 'Failed',
+  loading: 'Loading...',
+  noData: 'No Data',
+  backToHome: 'Back to Home',
+  operation: 'Operation',
+  save: 'Save',
+  more: 'More',
+  yes: 'Yes',
+  no: 'No',
+  user: 'User'
+} 

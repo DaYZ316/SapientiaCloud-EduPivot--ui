@@ -1,0 +1,21 @@
+export default {
+  confirm: '确认',
+  cancel: '取消',
+  submit: '提交',
+  reset: '重置',
+  search: '搜索',
+  add: '新增',
+  edit: '编辑',
+  delete: '删除',
+  success: '操作成功',
+  fail: '失败',
+  loading: '加载中...',
+  noData: '暂无数据',
+  backToHome: '返回首页',
+  operation: '操作',
+  save: '保存',
+  more: '更多',
+  yes: '是',
+  no: '否',
+  user: '用户'
+} 

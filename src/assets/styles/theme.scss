@@ -1,0 +1,86 @@
+/**
+ * 主题配置
+ * 支持亮色和暗色主题
+ */
+
+// 亮色主题变量
+:root {
+  // 品牌色
+  --primary-color: #1890ff;
+  --primary-color-hover: #40a9ff;
+  --primary-color-pressed: #096dd9;
+  --success-color: #52c41a;
+  --warning-color: #faad14;
+  --error-color: #f5222d;
+  
+  // 文本色
+  --text-color-primary: rgba(0, 0, 0, 0.85);
+  --text-color-secondary: rgba(0, 0, 0, 0.65);
+  --text-color-disabled: rgba(0, 0, 0, 0.25);
+  
+  // 背景色
+  --background-color-base: #f5f5f5;
+  --background-color-light: #fafafa;
+  --component-background: #fff;
+  
+  // 边框
+  --border-color: #d9d9d9;
+  --box-shadow-base: 0 2px 8px rgba(0, 0, 0, 0.15);
+  
+  // 字体
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+}
+
+// 暗色主题变量
+html.dark {
+  // 品牌色
+  --primary-color: #177ddc;
+  --primary-color-hover: #1f8ae0;
+  --primary-color-pressed: #1167b3;
+  --success-color: #49aa19;
+  --warning-color: #d89614;
+  --error-color: #d32029;
+  
+  // 文本色
+  --text-color-primary: rgba(255, 255, 255, 0.85);
+  --text-color-secondary: rgba(255, 255, 255, 0.65);
+  --text-color-disabled: rgba(255, 255, 255, 0.35);
+  
+  // 背景色
+  --background-color-base: #1f1f1f;
+  --background-color-light: #141414;
+  --component-background: #1f1f1f;
+  
+  // 边框
+  --border-color: #434343;
+  --box-shadow-base: 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+
+// 全局样式
+body {
+  font-family: var(--font-family);
+  color: var(--text-color-primary);
+  background-color: var(--background-color-base);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+// 暗色模式下的滚动条样式
+html.dark {
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #141414;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #434343;
+    border-radius: 4px;
+
+    &:hover {
+      background: #646464;
+    }
+  }
+} 

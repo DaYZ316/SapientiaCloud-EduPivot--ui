@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 
-interface SettingState {
+// 主题状态类型
+interface ThemeState {
   themeMode: 'light' | 'dark' | 'system'
   primaryColor: string
   defaultPrimaryColor: string
@@ -8,9 +9,9 @@ interface SettingState {
   defaultLocale: string
 }
 
-// 设置 Store
-export const useSettingStore = defineStore('setting', {
-  state: (): SettingState => ({
+// 主题 Store
+export const useThemeStore = defineStore('theme', {
+  state: (): ThemeState => ({
     themeMode: localStorage.getItem('themeMode') as 'light' | 'dark' | 'system' || 'system',
     primaryColor: localStorage.getItem('primaryColor') || '#18a058',
     defaultPrimaryColor: '#18a058',
@@ -93,7 +94,4 @@ export const useSettingStore = defineStore('setting', {
       }
     }
   }
-})
-
-// 为了向后兼容，保持原来的 useThemeStore
-export const useThemeStore = useSettingStore 
+}) 

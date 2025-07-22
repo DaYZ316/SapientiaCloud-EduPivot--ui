@@ -71,8 +71,8 @@ import {
 import { useUserStore } from '@/store'
 import { useThemeStore } from '@/store/modules/theme'
 import LanguageSwitch from '@/components/common/LanguageSwitch.vue'
-import CloudBackground from '@/components/common/CloudBackground.vue'
-import GalaxyBackground from '@/components/common/GalaxyBackground.vue'
+// import CloudBackground from '@/components/common/CloudBackground.vue'
+// import GalaxyBackground from '@/components/common/GalaxyBackground.vue'
 
 const router = useRouter()
 const route = useRoute()

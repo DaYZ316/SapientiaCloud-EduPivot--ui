@@ -52,10 +52,23 @@
         :loading="loading"
         :columns="columns"
         :data="userList"
-        :pagination="pagination"
         :bordered="false"
         size="small"
       />
+      
+      <!-- 分页组件 -->
+      <div class="pagination-container">
+        <n-pagination
+          v-model:page="pagination.pageNum"
+          v-model:page-size="pagination.pageSize"
+          :page-sizes="[10, 20, 30, 50]"
+          show-size-picker
+          show-quick-jumper
+          :item-count="pagination.total"
+          @update:page="handlePageChange"
+          @update:page-size="handleSizeChange"
+        />
+      </div>
     </n-card>
     
     <!-- 添加用户对话框 -->
@@ -131,13 +144,13 @@
 import { ref, reactive, onMounted, h, computed } from 'vue'
 import { NIcon, useDialog } from 'naive-ui'
 import { SearchOutline, RefreshOutline, AddOutline, TrashOutline, CreateOutline } from '@vicons/ionicons5'
-import { sysUserList, removeUser, getDefaultUserQuery, addSysUser } from '@/api/system/user'
+import { sysUserList, removeUser, getDefaultUserQuery, addSysUser, getDefaultSysUserAdminDTO } from '@/api/system/user'
 import type { UserPageQueryDTO, SysUserVO, SysUserAdminDTO } from '@/types/system/user'
 import { useI18n } from 'vue-i18n'
 import { GenderEnum, StatusEnum, getGenderLabel } from '@/enum/common'
 import StatusDisplay from '@/components/common/StatusDisplay.vue'
-import { createPagination } from '@/utils/pagination'
 import { getMessageInstance } from '@/utils/http'
+import { usePageUtil } from '@/utils/pageUtil'
 
 const message = getMessageInstance()
 const dialog = useDialog()
@@ -162,9 +175,18 @@ const statusOptions = [
 // 搜索表单
 const searchForm = reactive<UserPageQueryDTO>(getDefaultUserQuery())
 
-// 表格数据相关
-const loading = ref(false)
+// 用户列表数据
 const userList = ref<SysUserVO[]>([])
+
+// 分页相关
+const { 
+  pagination, 
+  loading, 
+  fetchPageData, 
+  handlePageChange: onPageChange,
+  handleSizeChange: onSizeChange,
+  resetPagination 
+} = usePageUtil<SysUserVO, UserPageQueryDTO>()
 
 // 添加用户相关
 const showAddModal = ref(false)
@@ -172,28 +194,7 @@ const submitting = ref(false)
 const addFormRef = ref()
 
 // 添加用户表单
-const addUserForm = reactive<SysUserAdminDTO>({
-  username: '',
-  nickName: '',
-  email: '',
-  mobile: '',
-  gender: GenderEnum.UNKNOWN,
-  avatar: '',
-  status: StatusEnum.NORMAL
-})
-
-// 分页配置
-const pagination = createPagination({
-  onChange: (page: number) => {
-    searchForm.pageNum = page
-    fetchUserList()
-  },
-  onUpdatePageSize: (pageSize: number) => {
-    searchForm.pageSize = pageSize
-    searchForm.pageNum = 1
-    fetchUserList()
-  }
-})
+const addUserForm = reactive<SysUserAdminDTO>(getDefaultSysUserAdminDTO())
 
 // 表格列定义
 const columns = computed(() => [
@@ -253,41 +254,32 @@ const columns = computed(() => [
 
 // 搜索处理
 function handleSearch() {
-  searchForm.pageNum = 1
-  pagination.page = 1
+  pagination.pageNum = 1
   fetchUserList()
 }
 
 // 重置搜索
 function resetSearch() {
   Object.assign(searchForm, getDefaultUserQuery())
-  pagination.page = 1
+  resetPagination()
   fetchUserList()
 }
 
 // 获取用户列表数据
 async function fetchUserList() {
-  loading.value = true
-  
-  try {
-    const res = await sysUserList({ ...searchForm })
-    
-    // 统一处理不同格式的响应
-    if ((res?.code === 200 && res?.data) || (res && 'data' in res)) {
-      userList.value = res.data || []
-      // 设置分页总数
-      pagination.itemCount = 'total' in res ? Number(res.total) || 0 : 0
-    } else {
-      throw new Error(t('settings.user.messages.fetchFail'))
-    }
-  } catch (error) {
-    console.error('获取用户列表出错:', error)
-    message.error(t('settings.user.messages.fetchFail'))
-    userList.value = []
-    pagination.itemCount = 0
-  } finally {
-    loading.value = false
-  }
+  await fetchPageData(sysUserList, searchForm, userList)
+}
+
+// 处理页码变化
+function handlePageChange(page: number) {
+  onPageChange(page)
+  fetchUserList()
+}
+
+// 处理每页条数变化
+function handleSizeChange(pageSize: number) {
+  onSizeChange(pageSize)
+  fetchUserList()
 }
 
 // 编辑用户
@@ -318,13 +310,7 @@ async function handleDelete(row: SysUserVO) {
 
 // 重置添加用户表单
 function resetAddUserForm() {
-  addUserForm.username = ''
-  addUserForm.nickName = ''
-  addUserForm.email = ''
-  addUserForm.mobile = ''
-  addUserForm.gender = GenderEnum.UNKNOWN
-  addUserForm.avatar = ''
-  addUserForm.status = StatusEnum.NORMAL
+  Object.assign(addUserForm, getDefaultSysUserAdminDTO())
 }
 
 // 关闭添加用户对话框
@@ -375,6 +361,12 @@ onMounted(() => {
   
   .ml-2 {
     margin-left: 8px;
+  }
+  
+  .pagination-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
   }
 }
 </style> 

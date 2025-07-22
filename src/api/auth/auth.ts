@@ -1,5 +1,5 @@
 import http from '@/utils/http'
-import type { SysUserRegisterDTO } from '@/types/auth'
+import type { SysUserLoginDTO, SysUserRegisterDTO } from '@/types/auth'
 
 /**
  * 登录参数接口
@@ -11,6 +11,25 @@ export interface LoginParams {
   password: string
   /** 记住我 */
   rememberMe?: boolean
+}
+
+// 获取默认用户登录DTO
+export function getDefaultSysUserLoginDTO(): SysUserLoginDTO {
+  return {
+    username: null,
+    password: null
+  }
+}
+
+// 获取默认用户注册DTO
+export function getDefaultSysUserRegisterDTO(): SysUserRegisterDTO {
+  return {
+    username: null,
+    password: null,
+    confirmPassword: null,
+    avatar: null,
+    nickName: null
+  }
 }
 
 // 用户登录

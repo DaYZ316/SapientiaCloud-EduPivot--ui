@@ -17,7 +17,9 @@
             @keyup.enter="handleSubmit"
           >
             <template #prefix>
-              <n-icon><person-outline /></n-icon>
+              <n-icon>
+                <PersonOutline />
+              </n-icon>
             </template>
           </n-input>
         </n-form-item>
@@ -30,7 +32,9 @@
             @keyup.enter="handleSubmit"
           >
             <template #prefix>
-              <n-icon><lock-closed-outline /></n-icon>
+              <n-icon>
+                <LockClosedOutline />
+              </n-icon>
             </template>
           </n-input>
         </n-form-item>
@@ -52,10 +56,6 @@
           <a href="#" @click.prevent="handleRegister">{{ $t('auth.register') }}</a>
         </div>
       </n-form>
-      
-      <div class="language-switch-container">
-        <language-switch />
-      </div>
     </n-card>
   </div>
 </template>
@@ -64,11 +64,10 @@
 import { ref, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import {
-  PersonOutline, LockClosedOutline
-} from '@vicons/ionicons5'
 import { useUserStore } from '@/store'
 import { getMessageInstance } from '@/utils/http'
+import { PersonOutline, LockClosedOutline } from '@vicons/ionicons5'
+import { NIcon } from 'naive-ui'
 // import CloudBackground from '@/components/common/CloudBackground.vue'
 // import GalaxyBackground from '@/components/common/GalaxyBackground.vue'
 
@@ -182,11 +181,5 @@ const handleForgetPassword = () => {
     color: var(--primary-color);
     margin-left: 8px;
   }
-}
-
-.language-switch-container {
-  position: absolute;
-  top: 16px;
-  right: 16px;
 }
 </style> 

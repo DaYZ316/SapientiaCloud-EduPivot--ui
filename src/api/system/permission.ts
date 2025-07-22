@@ -8,15 +8,36 @@ import type {
 // 获取默认权限查询对象
 export function getDefaultPermissionQuery(): PermissionPageQueryDTO {
   return {
-    permissionName: undefined,
-    permissionKey: undefined,
-    parentId: undefined,
-    startTime: undefined,
-    endTime: undefined,
+    permissionName: null,
+    permissionKey: null,
+    parentId: null,
+    startTime: null,
+    endTime: null,
     pageNum: 1,
     pageSize: 10,
     orderByColumn: 'create_time',
     isAsc: 'asc'
+  }
+}
+
+// 获取默认权限添加DTO
+export function getDefaultSysPermissionAddDTO(): SysPermissionAddDTO {
+  return {
+    parentId: null,
+    permissionName: null,
+    permissionKey: null,
+    sort: 0
+  }
+}
+
+// 获取默认权限更新DTO
+export function getDefaultSysPermissionDTO(): SysPermissionDTO {
+  return {
+    id: null,
+    parentId: null,
+    permissionName: null,
+    permissionKey: null,
+    sort: 0
   }
 }
 

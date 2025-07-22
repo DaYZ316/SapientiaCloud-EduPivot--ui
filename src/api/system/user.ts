@@ -1,21 +1,60 @@
 import http from '@/utils/http'
-import type { UserPageQueryDTO, SysUserDTO, SysUserAdminDTO } from '@/types/system/user'
+import type { UserPageQueryDTO, SysUserDTO, SysUserAdminDTO, RegisterParams } from '@/types/system/user'
+import { GenderEnum, StatusEnum } from '@/enum/common'
 
 // 获取默认用户查询对象
 export function getDefaultUserQuery(): UserPageQueryDTO {
   return {
-    username: undefined,
-    nickName: undefined,
-    gender: undefined,
-    status: undefined,
-    mobile: undefined,
-    email: undefined,
-    startTime: undefined,
-    endTime: undefined,
+    username: null,
+    nickName: null,
+    gender: null,
+    status: null,
+    mobile: null,
+    email: null,
+    startTime: null,
+    endTime: null,
     pageNum: 1,
     pageSize: 10,
     orderByColumn: 'create_time',
     isAsc: 'asc'
+  }
+}
+
+// 获取默认管理员添加用户对象
+export function getDefaultSysUserAdminDTO(): SysUserAdminDTO {
+  return {
+    username: null,
+    nickName: null,
+    email: null,
+    mobile: null,
+    gender: null,
+    avatar: null,
+    status: null
+  }
+}
+
+// 获取默认用户修改DTO
+export function getDefaultSysUserDTO(): SysUserDTO {
+  return {
+    id: null,
+    nickName: null,
+    email: null,
+    mobile: null,
+    gender: null,
+    avatar: null,
+    status: null,
+    lastLoginTime: null
+  }
+}
+
+// 获取默认用户注册参数
+export function getDefaultRegisterParams(): RegisterParams {
+  return {
+    username: null,
+    password: null,
+    confirmPassword: null,
+    avatar: null,
+    nickName: null
   }
 }
 

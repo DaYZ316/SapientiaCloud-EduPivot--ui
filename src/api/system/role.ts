@@ -8,15 +8,39 @@ import type {
 // 获取默认角色查询对象
 export function getDefaultRoleQuery(): RolePageQueryDTO {
   return {
-    roleName: undefined,
-    roleKey: undefined,
-    status: undefined,
-    startTime: undefined,
-    endTime: undefined,
+    roleName: null,
+    roleKey: null,
+    status: null,
+    startTime: null,
+    endTime: null,
     pageNum: 1,
     pageSize: 10,
     orderByColumn: 'create_time',
     isAsc: 'asc'
+  }
+}
+
+// 获取默认角色添加DTO
+export function getDefaultSysRoleAddDTO(): SysRoleAddDTO {
+  return {
+    roleName: null,
+    roleKey: null,
+    sort: null,
+    status: null,
+    description: null
+  }
+}
+
+// 获取默认角色更新DTO
+export function getDefaultSysRoleDTO(): SysRoleDTO {
+  return {
+    id: null,
+    roleName: null,
+    roleKey: null,
+    sort: null,
+    status: null,
+    description: null,
+    admin: null
   }
 }
 

@@ -2,7 +2,6 @@
  * 用户相关类型定义
  */
 import type { SysRoleVO } from './role'
-import type { SysPermissionVO } from './permission'
 import type { PageEntity } from '../common/baseEntity'
 
 /**

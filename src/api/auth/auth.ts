@@ -1,7 +1,5 @@
 import http from '@/utils/http'
-import type { 
-  SysUserRegisterDTO 
-} from '@/types/system'
+import type { SysUserRegisterDTO } from '@/types/auth'
 
 /**
  * 登录参数接口

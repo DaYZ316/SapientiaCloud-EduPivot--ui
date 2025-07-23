@@ -117,7 +117,10 @@ export default {
       addFail: '添加用户失败',
       editSuccess: '编辑用户成功',
       editFail: '编辑用户失败',
-      formInvalid: '请检查表单并修正错误'
+      formInvalid: '请检查表单并修正错误',
+      getRoleFail: '获取角色数据失败',
+      assignSuccess: '角色分配成功',
+      assignFail: '角色分配失败'
     },
     addUser: {
       title: '添加用户',
@@ -170,6 +173,13 @@ export default {
       mobileFormat: '手机号格式不正确',
       genderRequired: '请选择性别',
       statusRequired: '请选择状态'
+    },
+    assignRole: {
+      title: '分配角色',
+      user: '用户',
+      roles: '角色列表',
+      cancel: '取消',
+      submit: '保存'
     }
   },
   role: {

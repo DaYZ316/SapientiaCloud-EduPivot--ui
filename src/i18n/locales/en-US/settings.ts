@@ -117,7 +117,10 @@ export default {
       addFail: 'Failed to add user',
       editSuccess: 'User updated successfully',
       editFail: 'Failed to update user',
-      formInvalid: 'Please check the form and fix the errors'
+      formInvalid: 'Please check the form and fix the errors',
+      getRoleFail: 'Failed to get role data',
+      assignSuccess: 'Roles assigned successfully',
+      assignFail: 'Failed to assign roles'
     },
     addUser: {
       title: 'Add User',
@@ -170,6 +173,13 @@ export default {
       mobileFormat: 'Invalid mobile number format',
       genderRequired: 'Please select gender',
       statusRequired: 'Please select status'
+    },
+    assignRole: {
+      title: 'Assign Roles',
+      user: 'User',
+      roles: 'Role List',
+      cancel: 'Cancel',
+      submit: 'Save'
     }
   },
   role: {

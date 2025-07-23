@@ -206,6 +206,31 @@
         </n-space>
       </template>
     </n-modal>
+    
+    <!-- 分配角色对话框 -->
+    <n-modal v-model:show="showAssignModal" :title="$t('settings.user.assignRole.title')" preset="card" style="width: 600px">
+      <div v-if="currentUser" class="assign-header">
+        <p>{{ $t('settings.user.assignRole.user') }}: {{ currentUser.username }} ({{ currentUser.nickName }})</p>
+      </div>
+      
+      <n-transfer
+        v-model:value="selectedRoleIds"
+        :options="availableRoles.map(role => ({
+          label: role.roleName,
+          value: role.id,
+          disabled: role.admin && !selectedRoleIds.includes(role.id)
+        }))"
+      />
+      
+      <template #footer>
+        <n-space justify="end">
+          <n-button @click="closeAssignModal">{{ $t('settings.user.assignRole.cancel') }}</n-button>
+          <n-button type="primary" :loading="submittingRoles" @click="submitAssignRoles">
+            {{ $t('settings.user.assignRole.submit') }}
+          </n-button>
+        </n-space>
+      </template>
+    </n-modal>
   </div>
 </template>
 
@@ -213,9 +238,11 @@
 import { ref, reactive, onMounted, h, computed } from 'vue'
 import { NIcon, useDialog } from 'naive-ui'
 import type { FormRules, FormInst } from 'naive-ui'
-import { SearchOutline, RefreshOutline, AddOutline, TrashOutline, CreateOutline } from '@vicons/ionicons5'
-import { sysUserList, removeUser, getDefaultUserQuery, addSysUser, getDefaultSysUserAdminDTO, updateUser } from '@/api/system/user'
+import { SearchOutline, RefreshOutline, AddOutline, TrashOutline, CreateOutline, PeopleOutline } from '@vicons/ionicons5'
+import { sysUserList, removeUser, getDefaultUserQuery, addSysUser, getDefaultSysUserAdminDTO, updateUser, getUserById, assignUserRoles } from '@/api/system/user'
+import { sysRoleList } from '@/api/system/role'
 import type { UserPageQueryDTO, SysUserVO, SysUserAdminDTO } from '@/types/system/user'
+import type { SysRoleVO } from '@/types/system/role'
 import { useI18n } from 'vue-i18n'
 import { GenderEnum, StatusEnum, getGenderLabel } from '@/enum/common'
 import StatusDisplay from '@/components/common/StatusDisplay.vue'
@@ -297,6 +324,14 @@ const userFormRules = reactive<FormRules>({
   ]
 })
 
+// 分配角色相关
+const showAssignModal = ref(false)
+const currentUser = ref<SysUserVO | null>(null)
+const availableRoles = ref<SysRoleVO[]>([])
+const selectedRoleIds = ref<string[]>([])
+const userRoles = ref<SysRoleVO[]>([])
+const submittingRoles = ref(false)
+
 // 表格列定义
 const columns = computed(() => [
   { title: t('settings.user.table.userId'), key: 'id' },
@@ -335,6 +370,18 @@ const columns = computed(() => [
           [
             h(NIcon, null, { default: () => h(CreateOutline) }),
             ' ' + t('settings.user.actions.edit')
+          ]
+        ),
+        h(
+          'button',
+          {
+            class: 'n-button n-button--tertiary n-button--small',
+            style: { marginRight: '8px' },
+            onClick: () => handleAssignRole(row)
+          },
+          [
+            h(NIcon, null, { default: () => h(PeopleOutline) }),
+            ' ' + t('settings.user.actions.assignRole')
           ]
         ),
         h(
@@ -486,6 +533,57 @@ function handleAdd() {
   showAddModal.value = true
 }
 
+// 处理分配角色
+async function handleAssignRole(row: SysUserVO) {
+  currentUser.value = row
+  submittingRoles.value = true
+  
+  try {
+    // 获取用户详情，包括已分配的角色
+    const userDetail = await getUserById(row.id)
+    userRoles.value = userDetail?.data?.roles || []
+    
+    // 获取所有角色列表
+    const roleResult = await sysRoleList({ pageNum: 1, pageSize: 1000 })
+    availableRoles.value = roleResult?.data || []
+    
+    // 设置已选中的角色
+    selectedRoleIds.value = userRoles.value.map((r: SysRoleVO) => r.id)
+    
+    // 显示分配角色对话框
+    showAssignModal.value = true
+  } catch (error) {
+    console.error('获取角色数据失败:', error)
+    message.error(t('settings.user.messages.getRoleFail'))
+  } finally {
+    submittingRoles.value = false
+  }
+}
+
+// 关闭分配角色对话框
+function closeAssignModal() {
+  showAssignModal.value = false
+  currentUser.value = null
+  selectedRoleIds.value = []
+}
+
+// 提交分配角色
+async function submitAssignRoles() {
+  if (!currentUser.value) return
+  
+  submittingRoles.value = true
+  try {
+    await assignUserRoles(currentUser.value.id, selectedRoleIds.value)
+    message.success(t('settings.user.messages.assignSuccess'))
+    closeAssignModal()
+  } catch (error) {
+    console.error('分配角色失败:', error)
+    message.error(t('settings.user.messages.assignFail'))
+  } finally {
+    submittingRoles.value = false
+  }
+}
+
 // 初始化加载
 onMounted(() => {
   fetchUserList()
@@ -512,6 +610,11 @@ onMounted(() => {
     display: flex;
     justify-content: flex-end;
     margin-top: 16px;
+  }
+
+  .assign-header {
+    margin-bottom: 16px;
+    font-weight: bold;
   }
 }
 </style> 

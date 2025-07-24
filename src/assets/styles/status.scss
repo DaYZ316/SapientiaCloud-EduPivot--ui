@@ -1,33 +1,33 @@
 /**
  * 状态样式工具类
  */
-@import './variables.scss';
+ @use './variables.scss' as variables;
 
 // 文本颜色
 .text-status-normal {
-  color: $status-normal-color !important;
+  color: variables.$status-normal-color !important;
 }
 
 .text-status-disabled {
-  color: $status-disabled-color !important;
+  color: variables.$status-disabled-color !important;
 }
 
 // 背景颜色
 .bg-status-normal {
-  background-color: $status-normal-color !important;
+  background-color: variables.$status-normal-color !important;
 }
 
 .bg-status-disabled {
-  background-color: $status-disabled-color !important;
+  background-color: variables.$status-disabled-color !important;
 }
 
 // 边框颜色
 .border-status-normal {
-  border-color: $status-normal-color !important;
+  border-color: variables.$status-normal-color !important;
 }
 
 .border-status-disabled {
-  border-color: $status-disabled-color !important;
+  border-color: variables.$status-disabled-color !important;
 }
 
 // 状态标记点
@@ -41,12 +41,12 @@
 
 .status-dot-normal {
   @extend .status-dot;
-  background-color: $status-normal-color;
+  background-color: variables.$status-normal-color;
 }
 
 .status-dot-disabled {
   @extend .status-dot;
-  background-color: $status-disabled-color;
+  background-color: variables.$status-disabled-color;
 }
 
 // 状态标签
@@ -59,12 +59,12 @@
 
 .status-tag-normal {
   @extend .status-tag;
-  background-color: rgba($status-normal-color-base, 0.1);
-  color: $status-normal-color;
+  background-color: rgba(variables.$status-normal-color-base, 0.1);
+  color: variables.$status-normal-color;
 }
 
 .status-tag-disabled {
   @extend .status-tag;
-  background-color: rgba($status-disabled-color-base, 0.1);
-  color: $status-disabled-color;
+  background-color: rgba(variables.$status-disabled-color-base, 0.1);
+  color: variables.$status-disabled-color;
 } 

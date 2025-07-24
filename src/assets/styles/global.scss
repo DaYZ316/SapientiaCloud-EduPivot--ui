@@ -5,7 +5,7 @@
 /* 导入主题和变量 */
 @use './variables' as vars;
 @use './theme';
-@import './status.scss';
+@use './status.scss';
 
 /* 重置样式 */
 * {

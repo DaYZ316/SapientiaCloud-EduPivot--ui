@@ -1,11 +1,10 @@
+import type {AxiosInstance, AxiosRequestConfig} from 'axios'
 import axios from 'axios'
-import type { AxiosInstance, AxiosRequestConfig } from 'axios'
-import type { Result } from '@/types/common/baseEntity'
+import type {Result} from '@/types/common/baseEntity'
 import router from '@/router'
-import { useMessage, useDialog } from 'naive-ui'
-import { useUserStore } from '@/store'
+import {createDiscreteApi, useDialog, useMessage} from 'naive-ui'
+import {useUserStore} from '@/store'
 import i18n from '@/i18n'
-import { createDiscreteApi } from 'naive-ui'
 
 // 创建一个获取翻译文本的函数
 function t(key: string): string {

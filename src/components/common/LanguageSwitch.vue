@@ -18,11 +18,11 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { GlobeOutline } from '@vicons/ionicons5'
-import { setLanguage } from '@/i18n'
-import type { Locale } from '@/types/i18n'
+import {computed} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {GlobeOutline} from '@vicons/ionicons5'
+import {setLanguage} from '@/i18n'
+import type {Locale} from '@/types/i18n'
 
 const i18n = useI18n()
 

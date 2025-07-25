@@ -1,8 +1,8 @@
 /**
  * 角色相关类型定义
  */
-import type { SysPermissionVO } from './permission'
-import type { PageEntity } from '../common/baseEntity'
+import type {SysPermissionVO} from './permission'
+import type {PageEntity} from '../common/baseEntity'
 
 /**
  * 系统角色视图对象

@@ -1,4 +1,4 @@
-import type { UserStore, ThemeStore } from './index'
+import type {ThemeStore, UserStore} from './index'
 
 export interface AppStore {
   user: UserStore

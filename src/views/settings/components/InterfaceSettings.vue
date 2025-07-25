@@ -100,10 +100,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useThemeStore } from '@/store'
-import { getMessageInstance } from '@/utils/http'
+import {onMounted, ref} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {useThemeStore} from '@/store'
+import {getMessageInstance} from '@/utils/http'
 
 const message = getMessageInstance()
 const { t } = useI18n()

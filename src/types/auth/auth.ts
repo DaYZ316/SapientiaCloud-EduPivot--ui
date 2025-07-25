@@ -1,8 +1,8 @@
 /**
  * 认证模块相关类型定义
  */
-import type { SysRoleVO } from '../system/role'
-import type { SysPermissionVO } from '../system/permission'
+import type {SysRoleVO} from '../system/role'
+import type {SysPermissionVO} from '../system/permission'
 
 /**
  * 系统用户登录请求DTO

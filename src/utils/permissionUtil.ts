@@ -1,5 +1,5 @@
-import type { DirectiveBinding } from 'vue'
-import { useUserStore } from '@/store'
+import type {DirectiveBinding} from 'vue'
+import {useUserStore} from '@/store'
 
 /**
  * 权限指令 v-hasPermission

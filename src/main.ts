@@ -1,19 +1,17 @@
-import { createApp } from 'vue'
+import {createApp} from 'vue'
 import App from '@/App.vue'
 import router from '@/router'
-import pinia from '@/store'
+import pinia, {useThemeStore} from '@/store'
 import '@/assets/styles/global.scss'
 
 // 导入naive-ui的全部组件
-import naive from 'naive-ui'
-import { darkTheme, createDiscreteApi } from 'naive-ui'
+import naive, {createDiscreteApi, darkTheme} from 'naive-ui'
 
 // 导入i18n
 import i18n from '@/i18n'
 
 // 导入HTTP消息处理
-import { setMessageInstance, setDialogInstance } from '@/utils/http'
-import { useThemeStore } from '@/store'
+import {setDialogInstance, setMessageInstance} from '@/utils/http'
 
 // 导入自定义组件
 import PageTable from '@/components/common/PageTable.vue'

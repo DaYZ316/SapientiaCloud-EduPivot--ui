@@ -1,5 +1,5 @@
 import http from '@/utils/http'
-import type { SysUserLoginDTO, SysUserRegisterDTO, SysUserPasswordDTO } from '@/types/auth'
+import type {SysUserLoginDTO, SysUserPasswordDTO, SysUserRegisterDTO} from '@/types/auth'
 
 /**
  * 登录参数接口

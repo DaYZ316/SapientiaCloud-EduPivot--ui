@@ -1,8 +1,8 @@
 /**
  * 用户相关类型定义
  */
-import type { SysRoleVO } from './role'
-import type { PageEntity } from '../common/baseEntity'
+import type {SysRoleVO} from './role'
+import type {PageEntity} from '../common/baseEntity'
 
 /**
  * 系统用户视图对象

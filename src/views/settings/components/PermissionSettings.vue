@@ -149,14 +149,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, h, computed } from 'vue'
-import { NIcon } from 'naive-ui'
-import type { FormRules, FormInst, TreeSelectOption } from 'naive-ui'
-import { SearchOutline, RefreshOutline, AddOutline, TrashOutline, CreateOutline } from '@vicons/ionicons5'
-import { sysPermissionList, removePermission, getDefaultPermissionQuery, addPermission, getDefaultSysPermissionAddDTO, getDefaultSysPermissionDTO, updatePermission } from '@/api/system/permission'
-import type { PermissionPageQueryDTO, SysPermissionVO, SysPermissionAddDTO, SysPermissionDTO } from '@/types/system/permission'
-import { useI18n } from 'vue-i18n'
-import { getMessageInstance, getDialogInstance } from '@/utils/http'
+import {computed, h, onMounted, reactive, ref} from 'vue'
+import type {FormInst, FormRules, TreeSelectOption} from 'naive-ui'
+import {NIcon} from 'naive-ui'
+import {AddOutline, CreateOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
+import {
+  addPermission,
+  getDefaultPermissionQuery,
+  getDefaultSysPermissionAddDTO,
+  getDefaultSysPermissionDTO,
+  removePermission,
+  sysPermissionList,
+  updatePermission
+} from '@/api/system/permission'
+import type {
+  PermissionPageQueryDTO,
+  SysPermissionAddDTO,
+  SysPermissionDTO,
+  SysPermissionVO
+} from '@/types/system/permission'
+import {useI18n} from 'vue-i18n'
+import {getDialogInstance, getMessageInstance} from '@/utils/http'
 
 const message = getMessageInstance()
 const dialog = getDialogInstance()

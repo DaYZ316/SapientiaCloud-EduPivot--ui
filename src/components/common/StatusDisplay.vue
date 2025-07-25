@@ -6,9 +6,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { StatusEnum, getStatusLabel } from '@/enum/common';
+import {computed} from 'vue';
+import {useI18n} from 'vue-i18n';
+import {getStatusLabel, StatusEnum} from '@/enum/common';
 
 const props = defineProps({
   // 状态值

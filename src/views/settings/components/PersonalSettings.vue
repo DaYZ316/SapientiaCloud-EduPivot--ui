@@ -184,16 +184,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive, onMounted } from 'vue'
-import type { FormInst, FormRules, UploadInst, UploadFileInfo, UploadCustomRequestOptions } from 'naive-ui'
-import { useUserStore } from '@/store'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { updateUserProfile, getDefaultSysUserProfileDTO } from '@/api/system/user'
-import { updatePassword, getDefaultSysUserPasswordDTO, logout } from '@/api/auth/auth'
-import { getMessageInstance, getDialogInstance } from '@/utils/http'
-import type { SysUserProfileDTO } from '@/types/system/user'
-import type { SysUserPasswordDTO } from '@/types/auth/auth'
+import {computed, onMounted, reactive, ref} from 'vue'
+import type {FormInst, FormRules, UploadCustomRequestOptions, UploadFileInfo, UploadInst} from 'naive-ui'
+import {useUserStore} from '@/store'
+import {useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {getDefaultSysUserProfileDTO, updateUserProfile} from '@/api/system/user'
+import {getDefaultSysUserPasswordDTO, logout, updatePassword} from '@/api/auth/auth'
+import {getDialogInstance, getMessageInstance} from '@/utils/http'
+import type {SysUserProfileDTO} from '@/types/system/user'
+import type {SysUserPasswordDTO} from '@/types/auth/auth'
 
 const userStore = useUserStore()
 const router = useRouter()

@@ -223,18 +223,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, h, computed } from 'vue'
-import { NIcon } from 'naive-ui'
-import type { FormRules, FormInst } from 'naive-ui'
-import { SearchOutline, RefreshOutline, AddOutline, TrashOutline, CreateOutline, PeopleOutline } from '@vicons/ionicons5'
-import { sysUserList, removeUser, getDefaultUserQuery, addSysUser, getDefaultSysUserAdminDTO, updateUser, getUserById, assignUserRoles } from '@/api/system/user'
-import { sysRoleList } from '@/api/system/role'
-import type { UserPageQueryDTO, SysUserVO, SysUserAdminDTO } from '@/types/system/user'
-import type { SysRoleVO } from '@/types/system/role'
-import { useI18n } from 'vue-i18n'
-import { GenderEnum, StatusEnum, getGenderLabel } from '@/enum/common'
+import {computed, h, onMounted, reactive, ref} from 'vue'
+import type {FormInst, FormRules} from 'naive-ui'
+import {NIcon} from 'naive-ui'
+import {AddOutline, CreateOutline, PeopleOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
+import {
+  addSysUser,
+  assignUserRoles,
+  getDefaultSysUserAdminDTO,
+  getDefaultUserQuery,
+  getUserById,
+  removeUser,
+  sysUserList,
+  updateUser
+} from '@/api/system/user'
+import {sysRoleList} from '@/api/system/role'
+import type {SysUserAdminDTO, SysUserVO, UserPageQueryDTO} from '@/types/system/user'
+import type {SysRoleVO} from '@/types/system/role'
+import {useI18n} from 'vue-i18n'
+import {GenderEnum, getGenderLabel, StatusEnum} from '@/enum/common'
 import StatusDisplay from '@/components/common/StatusDisplay.vue'
-import { getMessageInstance, getDialogInstance } from '@/utils/http'
+import {getDialogInstance, getMessageInstance} from '@/utils/http'
 
 const message = getMessageInstance()
 const dialog = getDialogInstance()

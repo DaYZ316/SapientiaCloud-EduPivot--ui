@@ -29,10 +29,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch, computed } from 'vue'
-import type { Ref } from 'vue'
-import type { DataTableColumns } from 'naive-ui'
-import type { PageEntity, TableDataResult, Result, PageResult } from '@/types/common/baseEntity'
+import type {Ref} from 'vue'
+import {computed, onMounted, reactive, ref, watch} from 'vue'
+import type {DataTableColumns} from 'naive-ui'
+import type {PageEntity, PageResult, Result, TableDataResult} from '@/types/common/baseEntity'
 
 const props = defineProps({
   // 表格列定义

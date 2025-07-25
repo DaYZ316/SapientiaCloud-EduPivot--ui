@@ -61,13 +61,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { useUserStore } from '@/store'
-import { getMessageInstance } from '@/utils/http'
-import { PersonOutline, LockClosedOutline } from '@vicons/ionicons5'
-import { NIcon } from 'naive-ui'
+import {reactive, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {useUserStore} from '@/store'
+import {getMessageInstance} from '@/utils/http'
+import {LockClosedOutline, PersonOutline} from '@vicons/ionicons5'
+import {NIcon} from 'naive-ui'
 // import CloudBackground from '@/components/common/CloudBackground.vue'
 // import GalaxyBackground from '@/components/common/GalaxyBackground.vue'
 

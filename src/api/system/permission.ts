@@ -1,9 +1,5 @@
 import http from '@/utils/http'
-import type { 
-  PermissionPageQueryDTO, 
-  SysPermissionAddDTO,
-  SysPermissionDTO
-} from '@/types/system'
+import type {PermissionPageQueryDTO, SysPermissionAddDTO, SysPermissionDTO} from '@/types/system'
 
 // 获取默认权限查询对象
 export function getDefaultPermissionQuery(): PermissionPageQueryDTO {

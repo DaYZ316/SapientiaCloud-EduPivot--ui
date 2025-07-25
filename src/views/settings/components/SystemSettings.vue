@@ -35,11 +35,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useThemeStore } from '@/store'
-import { getMessageInstance } from '@/utils/http'
-import { setLanguage } from '@/i18n'
+import {ref} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {useThemeStore} from '@/store'
+import {getMessageInstance} from '@/utils/http'
+import {setLanguage} from '@/i18n'
 
 // 国际化
 const { locale, t } = useI18n()

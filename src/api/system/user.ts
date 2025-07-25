@@ -1,6 +1,11 @@
 import http from '@/utils/http'
-import type { UserPageQueryDTO, SysUserDTO, SysUserAdminDTO, RegisterParams, SysUserProfileDTO } from '@/types/system/user'
-import { GenderEnum, StatusEnum } from '@/enum/common'
+import type {
+  RegisterParams,
+  SysUserAdminDTO,
+  SysUserDTO,
+  SysUserProfileDTO,
+  UserPageQueryDTO
+} from '@/types/system/user'
 
 // 获取默认用户查询对象
 export function getDefaultUserQuery(): UserPageQueryDTO {

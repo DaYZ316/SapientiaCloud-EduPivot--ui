@@ -1,7 +1,7 @@
-import { createI18n } from 'vue-i18n'
+import {createI18n} from 'vue-i18n'
 import zh from './locales/zh-CN/index'
 import en from './locales/en-US/index'
-import { useStorage } from '@vueuse/core'
+import {useStorage} from '@vueuse/core'
 
 // 创建存储语言偏好的本地存储
 const defaultLocale = useStorage('language', 'zh-CN')

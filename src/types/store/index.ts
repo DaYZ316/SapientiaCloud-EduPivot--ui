@@ -1,7 +1,7 @@
 /**
  * 状态管理类型定义索引文件
  */
-import type { SysUserLoginVO, SysPermissionVO, SysRoleVO } from '@/types'
+import type {SysPermissionVO, SysRoleVO, SysUserLoginVO} from '@/types'
 
 // 用户存储类型定义
 export interface UserStore {

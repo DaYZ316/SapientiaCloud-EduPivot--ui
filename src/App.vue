@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { darkTheme } from 'naive-ui'
-import { useThemeStore, useUserStore } from '@/store'
-import { computed, onMounted } from 'vue'
+import {darkTheme} from 'naive-ui'
+import {useThemeStore, useUserStore} from '@/store'
+import {computed, onMounted} from 'vue'
 
 const themeStore = useThemeStore()
 const userStore = useUserStore()

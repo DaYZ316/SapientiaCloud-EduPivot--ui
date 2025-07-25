@@ -3,9 +3,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import {onBeforeUnmount, onMounted, ref, watch} from 'vue'
 import * as THREE from 'three'
-import { useThemeStore } from '@/store'
+import {useThemeStore} from '@/store'
 
 // 获取主题状态
 const themeStore = useThemeStore()

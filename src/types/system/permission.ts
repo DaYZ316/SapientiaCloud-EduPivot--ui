@@ -1,7 +1,7 @@
 /**
  * 权限相关类型定义
  */
-import type { PageEntity } from '../common/baseEntity'
+import type {PageEntity} from '../common/baseEntity'
 
 /**
  * 系统权限视图对象

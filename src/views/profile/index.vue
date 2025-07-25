@@ -154,14 +154,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { NIcon } from 'naive-ui'
-import { ArrowBackOutline } from '@vicons/ionicons5'
-import type { TreeOption } from 'naive-ui'
-import { useUserStore } from '@/store'
-import { useI18n } from 'vue-i18n'
-import type { SysPermissionVO } from '@/types/system'
+import {computed} from 'vue'
+import {useRouter} from 'vue-router'
+import type {TreeOption} from 'naive-ui'
+import {NIcon} from 'naive-ui'
+import {ArrowBackOutline} from '@vicons/ionicons5'
+import {useUserStore} from '@/store'
+import {useI18n} from 'vue-i18n'
+import type {SysPermissionVO} from '@/types/system'
 
 const router = useRouter()
 const userStore = useUserStore()

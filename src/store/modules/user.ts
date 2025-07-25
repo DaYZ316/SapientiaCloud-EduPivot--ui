@@ -1,6 +1,6 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import type { SysUserLoginVO, SysPermissionVO, SysRoleVO } from '@/types'
+import {defineStore} from 'pinia'
+import {ref} from 'vue'
+import type {SysPermissionVO, SysRoleVO, SysUserLoginVO} from '@/types'
 import * as AuthApi from '@/api/auth/auth'
 
 // 用于本地存储的键名

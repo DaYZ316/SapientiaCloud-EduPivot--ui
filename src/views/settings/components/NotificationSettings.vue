@@ -130,10 +130,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { NIcon } from 'naive-ui'
-import { WarningOutline } from '@vicons/ionicons5'
-import { getMessageInstance } from '@/utils/http'
+import {onMounted, ref} from 'vue'
+import {NIcon} from 'naive-ui'
+import {WarningOutline} from '@vicons/ionicons5'
+import {getMessageInstance} from '@/utils/http'
 
 const message = getMessageInstance()
 

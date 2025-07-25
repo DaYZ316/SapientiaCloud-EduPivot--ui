@@ -38,18 +38,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, h } from 'vue'
-import type { Component } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { 
-  ChevronDownOutline, 
-  LogOutOutline,
-  SettingsOutline,
-  PersonOutline
-} from '@vicons/ionicons5'
-import { useUserStore, useThemeStore } from '@/store'
-import { NIcon } from 'naive-ui'
+import type {Component} from 'vue'
+import {computed, h, onMounted} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {ChevronDownOutline, LogOutOutline, PersonOutline, SettingsOutline} from '@vicons/ionicons5'
+import {useThemeStore, useUserStore} from '@/store'
+import {NIcon} from 'naive-ui'
 
 const router = useRouter()
 const route = useRoute()

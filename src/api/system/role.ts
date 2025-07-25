@@ -1,9 +1,5 @@
 import http from '@/utils/http'
-import type { 
-  RolePageQueryDTO, 
-  SysRoleAddDTO,
-  SysRoleDTO
-} from '@/types/system'
+import type {RolePageQueryDTO, SysRoleAddDTO, SysRoleDTO} from '@/types/system'
 
 // 获取默认角色查询对象
 export function getDefaultRoleQuery(): RolePageQueryDTO {

@@ -39,10 +39,10 @@
 </template>
 
 <script setup lang="ts">
-import { defineAsyncComponent } from 'vue'
-import { useRouter } from 'vue-router'
-import { NIcon, NButton } from 'naive-ui'
-import { ArrowBackOutline } from '@vicons/ionicons5'
+import {defineAsyncComponent} from 'vue'
+import {useRouter} from 'vue-router'
+import {NButton, NIcon} from 'naive-ui'
+import {ArrowBackOutline} from '@vicons/ionicons5'
 
 const router = useRouter()
 

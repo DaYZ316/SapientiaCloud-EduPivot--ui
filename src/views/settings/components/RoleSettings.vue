@@ -193,18 +193,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, h, computed } from 'vue'
-import { NIcon } from 'naive-ui'
-import type { FormRules, FormInst } from 'naive-ui'
-import { SearchOutline, RefreshOutline, AddOutline, TrashOutline, CreateOutline, KeyOutline } from '@vicons/ionicons5'
-import { sysRoleList, removeRole, getDefaultRoleQuery, addRole, getDefaultSysRoleAddDTO, getDefaultSysRoleDTO, updateRole, getRoleDetail, assignRolePermissions } from '@/api/system/role'
-import { sysPermissionList } from '@/api/system/permission'
-import type { RolePageQueryDTO, SysRoleVO, SysRoleAddDTO, SysRoleDTO } from '@/types/system/role'
-import type { SysPermissionVO } from '@/types/system/permission'
-import { useI18n } from 'vue-i18n'
-import { StatusEnum } from '@/enum/common'
+import {computed, h, onMounted, reactive, ref} from 'vue'
+import type {FormInst, FormRules} from 'naive-ui'
+import {NIcon} from 'naive-ui'
+import {AddOutline, CreateOutline, KeyOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
+import {
+  addRole,
+  assignRolePermissions,
+  getDefaultRoleQuery,
+  getDefaultSysRoleAddDTO,
+  getDefaultSysRoleDTO,
+  getRoleDetail,
+  removeRole,
+  sysRoleList,
+  updateRole
+} from '@/api/system/role'
+import {sysPermissionList} from '@/api/system/permission'
+import type {RolePageQueryDTO, SysRoleAddDTO, SysRoleDTO, SysRoleVO} from '@/types/system/role'
+import type {SysPermissionVO} from '@/types/system/permission'
+import {useI18n} from 'vue-i18n'
+import {StatusEnum} from '@/enum/common'
 import StatusDisplay from '@/components/common/StatusDisplay.vue'
-import { getMessageInstance, getDialogInstance } from '@/utils/http'
+import {getDialogInstance, getMessageInstance} from '@/utils/http'
 
 
 const message = getMessageInstance()

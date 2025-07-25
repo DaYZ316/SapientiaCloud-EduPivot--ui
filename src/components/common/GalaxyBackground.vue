@@ -3,9 +3,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import {onBeforeUnmount, onMounted, ref} from 'vue'
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls'
 
 const galaxyContainer = ref(null)
 let scene, renderer, camera, controls

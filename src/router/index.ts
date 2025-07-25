@@ -1,6 +1,6 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import type { RouteRecordRaw } from 'vue-router'
-import { useUserStore } from '@/store'
+import type {RouteRecordRaw} from 'vue-router'
+import {createRouter, createWebHistory} from 'vue-router'
+import {useUserStore} from '@/store'
 
 /**
  * 路由配置

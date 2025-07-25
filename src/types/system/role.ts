@@ -35,15 +35,15 @@ export interface SysRoleVO {
  */
 export interface SysRoleAddDTO {
   /** 角色名称 */
-  roleName: string
+  roleName: string | null
   /** 角色标识 */
-  roleKey: string
+  roleKey: string | null
   /** 排序 */
-  sort?: number
+  sort?: number | null
   /** 状态 (0=正常, 1=停用) */
-  status?: number
+  status?: number | null
   /** 描述 */
-  description?: string
+  description?: string | null
 }
 
 /**
@@ -51,19 +51,19 @@ export interface SysRoleAddDTO {
  */
 export interface SysRoleDTO {
   /** 角色ID */
-  id: string
+  id: string | null
   /** 角色名称 */
-  roleName: string
+  roleName: string | null
   /** 角色标识 */
-  roleKey: string
+  roleKey: string | null
   /** 排序 */
-  sort?: number
+  sort?: number | null
   /** 状态 (0=正常, 1=停用) */
-  status?: number
+  status?: number | null
   /** 描述 */
-  description?: string
+  description?: string | null
   /** 是否为管理员角色 */
-  admin?: boolean
+  admin?: boolean | null
 }
 
 /**
@@ -71,9 +71,9 @@ export interface SysRoleDTO {
  */
 export interface RolePageQueryDTO extends PageEntity {
   /** 角色名称 */
-  roleName?: string
+  roleName?: string | null
   /** 角色标识 */
-  roleKey?: string
+  roleKey?: string | null
   /** 状态 (0=正常, 1=停用) */
-  status?: string | number
+  status?: number | null
 } 

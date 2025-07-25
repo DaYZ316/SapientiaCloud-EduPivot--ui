@@ -9,9 +9,9 @@ import type { SysPermissionVO } from '../system/permission'
  */
 export interface SysUserLoginDTO {
   /** 用户名 */
-  username: string
+  username: string | null
   /** 密码 */
-  password: string
+  password: string | null
 }
 
 /**
@@ -85,13 +85,25 @@ export interface SysUserInternalVO {
  */
 export interface SysUserRegisterDTO {
   /** 用户名，必须是4-20位的字母、数字或下划线 */
-  username: string
+  username: string | null
   /** 密码，必须是6-20位的任意字符 */
-  password: string
+  password: string | null
   /** 确认密码，必须与密码字段一致 */
-  confirmPassword: string
+  confirmPassword: string | null
   /** 用户头像URL */
-  avatar?: string
+  avatar?: string | null
   /** 用户昵称 */
-  nickName: string
+  nickName: string | null
+}
+
+/**
+ * 用户密码修改DTO
+ */
+export interface SysUserPasswordDTO {
+  /** 当前密码 */
+  currentPassword: string | null
+  /** 新密码 */
+  newPassword: string | null
+  /** 确认密码 */
+  confirmPassword: string | null
 }

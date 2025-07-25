@@ -100,12 +100,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useMessage } from 'naive-ui'
-import { getMessageInstance } from '@/utils/http'
+import { ref, reactive, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useThemeStore } from '@/store'
+import { getMessageInstance } from '@/utils/http'
 
 const message = getMessageInstance()
+const { t } = useI18n()
 const themeStore = useThemeStore()
 
 // 主题模式设置

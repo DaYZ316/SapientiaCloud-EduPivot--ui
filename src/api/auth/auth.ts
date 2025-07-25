@@ -1,5 +1,5 @@
 import http from '@/utils/http'
-import type { SysUserLoginDTO, SysUserRegisterDTO } from '@/types/auth'
+import type { SysUserLoginDTO, SysUserRegisterDTO, SysUserPasswordDTO } from '@/types/auth'
 
 /**
  * 登录参数接口
@@ -32,6 +32,15 @@ export function getDefaultSysUserRegisterDTO(): SysUserRegisterDTO {
   }
 }
 
+// 获取默认密码修改DTO
+export function getDefaultSysUserPasswordDTO(): SysUserPasswordDTO {
+  return {
+    currentPassword: null,
+    newPassword: null,
+    confirmPassword: null
+  }
+}
+
 // 用户登录
 export function login(params: LoginParams) {
   return http.post('/auth/login', params)
@@ -39,7 +48,7 @@ export function login(params: LoginParams) {
 
 // 用户注册
 export function register(params: SysUserRegisterDTO) {
-  return http.post('/system/user/internal/register', params)
+  return http.post('/auth/register', params)
 }
 
 // 用户登出
@@ -55,4 +64,9 @@ export function validate(token: string) {
 // 获取当前登录用户信息
 export function getCurrentUser() {
   return http.get('/auth/info')
+}
+
+// 修改用户密码
+export function updatePassword(data: SysUserPasswordDTO) {
+  return http.put('/auth/password', data)
 } 

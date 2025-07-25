@@ -50,13 +50,13 @@ export interface SysPermission {
  */
 export interface SysPermissionAddDTO {
   /** 父级权限ID */
-  parentId?: string
+  parentId?: string | null
   /** 权限名称 */
-  permissionName: string
+  permissionName: string | null
   /** 权限标识 */
-  permissionKey: string
+  permissionKey: string | null
   /** 排序 */
-  sort?: number
+  sort?: number | null
 }
 
 /**
@@ -64,7 +64,7 @@ export interface SysPermissionAddDTO {
  */
 export interface SysPermissionDTO extends SysPermissionAddDTO {
   /** 权限ID */
-  id: string
+  id: string | null
 }
 
 /**
@@ -72,9 +72,9 @@ export interface SysPermissionDTO extends SysPermissionAddDTO {
  */
 export interface PermissionPageQueryDTO extends PageEntity {
   /** 权限名称 */
-  permissionName?: string
+  permissionName?: string | null
   /** 权限标识 */
-  permissionKey?: string
+  permissionKey?: string | null
   /** 父级权限ID */
-  parentId?: string
+  parentId?: string | null
 } 

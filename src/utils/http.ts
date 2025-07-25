@@ -1,9 +1,38 @@
 import axios from 'axios'
-import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import type { AxiosInstance, AxiosRequestConfig } from 'axios'
 import type { Result } from '@/types/common/baseEntity'
-import { useRouter } from 'vue-router'
-import { useMessage } from 'naive-ui'
+import router from '@/router'
+import { useMessage, useDialog } from 'naive-ui'
 import { useUserStore } from '@/store'
+import i18n from '@/i18n'
+import { createDiscreteApi } from 'naive-ui'
+
+// 创建一个获取翻译文本的函数
+function t(key: string): string {
+  // 定义默认文本
+  const defaultTexts: Record<string, string> = {
+    'unknown': '未知错误',
+    'timeout': '网络请求超时，请检查网络连接',
+    'badRequest': '请求参数错误',
+    'unauthorized': '登录已过期，请重新登录',
+    'unauthorizedTitle': '登录已过期',
+    'unauthorizedContent': '您的登录已过期，请重新登录',
+    'confirm': '确认',
+    'forbidden': '权限不足',
+    'notFound': '请求资源不存在',
+    'serverError': '服务器内部错误',
+    'requestFailed': '请求失败',
+    'notInitialized': '对话框实例未初始化'
+  };
+  
+  try {
+    // 尝试使用i18n
+    return i18n.global.t(`common.http.${key}`);
+  } catch (error) {
+    // 如果失败，返回默认文本
+    return defaultTexts[key] || key;
+  }
+}
 
 /**
  * API请求路径配置类
@@ -45,6 +74,11 @@ class ApiConfig {
 let messageInstance: ReturnType<typeof useMessage> | null = null
 
 /**
+ * 全局对话框实例
+ */
+let dialogInstance: ReturnType<typeof useDialog> | null = null
+
+/**
  * 设置全局消息提示实例
  */
 export const setMessageInstance = (instance: ReturnType<typeof useMessage>) => {
@@ -52,13 +86,34 @@ export const setMessageInstance = (instance: ReturnType<typeof useMessage>) => {
 }
 
 /**
+ * 设置全局对话框实例
+ */
+export const setDialogInstance = (instance: ReturnType<typeof useDialog>) => {
+  dialogInstance = instance
+}
+
+/**
  * 获取全局消息提示实例
  */
 export const getMessageInstance = () => {
   if (!messageInstance) {
-    throw new Error('消息提示实例未初始化，请在应用启动时调用setMessageInstance')
+    // 使用createDiscreteApi创建一个临时实例
+    const { message } = createDiscreteApi(['message'])
+    messageInstance = message
   }
   return messageInstance
+}
+
+/**
+ * 获取全局对话框实例
+ */
+export const getDialogInstance = () => {
+  if (!dialogInstance) {
+    // 使用createDiscreteApi创建一个临时实例
+    const { dialog } = createDiscreteApi(['dialog'])
+    dialogInstance = dialog
+  }
+  return dialogInstance
 }
 
 /**
@@ -125,7 +180,35 @@ class HttpClient {
         // 业务状态码处理，处理Result<T>格式
         const res = data as Result<any>
         if (!res.success && res.code !== 200) {
-          this.handleErrorCode(res.code, res.message)
+          // 检查是否为401未授权错误
+          if (res.code === 401) {
+            const userStore = useUserStore()
+            try {
+              const dialog = getDialogInstance()
+              dialog.warning({
+                title: t('unauthorizedTitle'),
+                content: t('unauthorizedContent'),
+                positiveText: t('confirm'),
+                positiveButtonProps: {
+                  type: 'primary',
+                  ghost: false
+                },
+                onPositiveClick: () => {
+                  userStore.resetUserState()
+                  router.push('/login')
+                }
+              })
+            } catch (error) {
+              console.error('对话框实例未初始化', error)
+              // 如果对话框未初始化，则使用消息提示
+              const messageApi = getMessageInstance()
+              messageApi.error(t('unauthorized'))
+              userStore.resetUserState()
+              router.push('/login')
+            }
+          } else {
+            this.handleErrorCode(res.code || 500, res.message || '请求失败')
+          }
           return Promise.reject(res)
         }
         return res
@@ -142,25 +225,23 @@ class HttpClient {
    * 处理业务错误码
    */
   private handleErrorCode(code: number, message: string): void {
-    const messageApi = getMessageInstance()
-    const userStore = useUserStore()
-    const router = useRouter()
-    
-    // 根据不同错误码处理
-    switch (code) {
-      // 未授权
-      case 401:
-        messageApi.error('登录已过期，请重新登录')
-        userStore.resetUserState()
-        router.push('/login')
-        break
-      // 权限不足
-      case 403:
-        messageApi.error('权限不足')
-        break
-      // 其他错误
-      default:
-        messageApi.error(message || '请求失败')
+    try {
+      const messageApi = getMessageInstance()
+      const userStore = useUserStore()
+      
+      // 根据不同错误码处理
+      switch (code) {
+        // 未授权情况已在响应拦截器中处理
+        // 权限不足
+        case 403:
+          messageApi.error(t('forbidden'))
+          break
+        // 其他错误
+        default:
+          messageApi.error(message || '请求失败')
+      }
+    } catch (error) {
+      console.error('处理业务错误码失败:', error)
     }
   }
 
@@ -170,7 +251,6 @@ class HttpClient {
   private handleHttpError(error: any): void {
     const messageApi = getMessageInstance()
     const userStore = useUserStore()
-    const router = useRouter()
     
     let message = '未知错误'
     
@@ -180,30 +260,56 @@ class HttpClient {
       // 根据HTTP状态码处理
       switch (status) {
         case 400:
-          message = '请求参数错误'
+          message = t('badRequest')
+          messageApi.error(message)
           break
         case 401:
-          message = '登录已过期，请重新登录'
-          userStore.resetUserState()
-          router.push('/login')
+          message = t('unauthorized')
+          try {
+            const dialog = getDialogInstance()
+            dialog.warning({
+              title: t('unauthorizedTitle'),
+              content: t('unauthorizedContent'),
+              positiveText: t('confirm'),
+              positiveButtonProps: {
+                type: 'primary',
+                ghost: false
+              },
+              onPositiveClick: () => {
+                userStore.resetUserState()
+                router.push('/login')
+              }
+            })
+          } catch (error) {
+            console.error('对话框实例未初始化', error)
+            // 如果对话框未初始化，则使用消息提示
+            messageApi.error(message)
+            userStore.resetUserState()
+            router.push('/login')
+          }
           break
         case 403:
-          message = '权限不足'
+          message = t('forbidden')
+          messageApi.error(message)
           break
         case 404:
-          message = '请求资源不存在'
+          message = t('notFound')
+          messageApi.error(message)
           break
         case 500:
-          message = '服务器内部错误'
+          message = t('serverError')
+          messageApi.error(message)
           break
         default:
-          message = `请求失败(${status})`
+          message = t('requestFailed') + `(${status})`
+          messageApi.error(message)
       }
     } else if (error.request) {
-      message = '网络请求超时，请检查网络连接'
+      message = t('timeout')
+      messageApi.error(message)
+    } else {
+      messageApi.error(message)
     }
-    
-    messageApi.error(message)
   }
 
   /**

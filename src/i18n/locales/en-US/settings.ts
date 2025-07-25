@@ -58,6 +58,8 @@ export default {
     passwordLengthInvalid: 'Password must be at least 6 characters',
     passwordsNotMatch: 'Passwords do not match',
     passwordChangeSuccess: 'Password changed successfully',
+    passwordChangeFail: 'Failed to change password',
+    passwordChangeRedirect: 'Password has been changed, you need to login again',
     accountStatus: 'Account Status',
     statusNormal: 'Normal',
     statusDisabled: 'Disabled',
@@ -274,11 +276,9 @@ export default {
     title: 'Permission Management',
     searchForm: {
       permissionName: 'Permission Name',
-      permissionKey: 'Permission Key',
-      parentId: 'Parent Permission',
       permissionNamePlaceholder: 'Enter permission name',
+      permissionKey: 'Permission Key',
       permissionKeyPlaceholder: 'Enter permission key',
-      parentIdPlaceholder: 'Select parent permission',
       search: 'Search',
       reset: 'Reset'
     },
@@ -288,56 +288,55 @@ export default {
       delete: 'Delete'
     },
     table: {
-      id: 'Permission ID',
       permissionName: 'Permission Name',
       permissionKey: 'Permission Key',
       parentId: 'Parent Permission',
-      sort: 'Sort Order',
+      sort: 'Sort',
       createTime: 'Create Time',
       actions: 'Actions'
     },
-    messages: {
-      deleteConfirm: 'Are you sure you want to delete this permission?',
-      deleteSuccess: 'Deleted successfully',
-      deleteFail: 'Failed to delete',
-      fetchFail: 'Failed to fetch permission list',
-      addSuccess: 'Permission added successfully',
-      addFail: 'Failed to add permission',
-      editSuccess: 'Permission updated successfully',
-      editFail: 'Failed to update permission',
-      formInvalid: 'Please check the form and fix the errors'
-    },
     addPermission: {
       title: 'Add Permission',
-      parentId: 'Parent Permission',
       permissionName: 'Permission Name',
-      permissionKey: 'Permission Key',
-      sort: 'Sort Order',
-      parentIdPlaceholder: 'Select parent permission',
       permissionNamePlaceholder: 'Enter permission name',
+      permissionKey: 'Permission Key',
       permissionKeyPlaceholder: 'Enter permission key',
+      parentId: 'Parent Permission',
+      parentIdPlaceholder: 'Select parent permission',
+      sort: 'Sort',
       sortPlaceholder: 'Enter sort value',
-      cancel: 'Cancel',
-      submit: 'Submit'
+      submit: 'Submit',
+      cancel: 'Cancel'
     },
     updatePermission: {
       title: 'Edit Permission',
-      parentId: 'Parent Permission',
       permissionName: 'Permission Name',
-      permissionKey: 'Permission Key',
-      sort: 'Sort Order',
-      parentIdPlaceholder: 'Select parent permission',
       permissionNamePlaceholder: 'Enter permission name',
+      permissionKey: 'Permission Key',
       permissionKeyPlaceholder: 'Enter permission key',
+      parentId: 'Parent Permission',
+      parentIdPlaceholder: 'Select parent permission',
+      sort: 'Sort',
       sortPlaceholder: 'Enter sort value',
-      cancel: 'Cancel',
-      submit: 'Submit'
+      submit: 'Submit',
+      cancel: 'Cancel'
     },
     rules: {
       permissionNameRequired: 'Permission name is required',
       permissionNameLength: 'Permission name must be 2-30 characters',
       permissionKeyRequired: 'Permission key is required',
       permissionKeyLength: 'Permission key must be 2-100 characters'
+    },
+    messages: {
+      addSuccess: 'Permission added successfully',
+      addFail: 'Failed to add permission',
+      editSuccess: 'Permission updated successfully',
+      editFail: 'Failed to update permission',
+      deleteSuccess: 'Permission deleted successfully',
+      deleteFail: 'Failed to delete permission',
+      deleteConfirm: 'Are you sure to delete this permission?',
+      formInvalid: 'Form validation failed, please check your input',
+      loadFail: 'Failed to load permission data'
     }
   },
   system: {

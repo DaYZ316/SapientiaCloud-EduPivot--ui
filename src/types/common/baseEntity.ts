@@ -4,15 +4,15 @@
  */
 export interface PageEntity {
   /** 起始时间 */
-  startTime?: string
+  startTime?: string | null
   /** 结束时间 */
-  endTime?: string
+  endTime?: string | null
   /** 当前记录起始索引 */
-  pageNum?: number;
+  pageNum?: number | null;
   /** 每页显示记录数 */
-  pageSize?: number;
+  pageSize?: number | null;
   /** 排序列 */
-  orderByColumn?: string;
+  orderByColumn?: string | null;
   /** 排序的方向, 可用值: asc, desc */
   isAsc?: 'asc' | 'desc';
   /** 分页参数合理化 */
@@ -25,13 +25,13 @@ export interface PageEntity {
  */
 export interface PageResult<T> {
   /** 总记录数 */
-  total: number;
+  total: number | null;
   /** 列表数据 */
   data: T[];
   /** 消息状态码 */
-  code: number;
+  code: number | null;
   /** 消息内容 */
-  msg: string;
+  msg: string | null;
 }
 
 /**
@@ -39,11 +39,11 @@ export interface PageResult<T> {
  */
 export interface Result<T> {
   /** 请求是否成功 */
-  success: boolean;
+  success: boolean | null;
   /** 业务状态码 (200表示成功) */
-  code: number;
+  code: number | null;
   /** 响应消息 */
-  message: string;
+  message: string | null;
   /** 响应数据体 (泛型) */
   data: T;
 }
@@ -54,11 +54,11 @@ export interface Result<T> {
  */
 export interface TableDataResult<T = any> {
   /** 总记录数 */
-  total: number;
+  total: number | null;
   /** 列表数据 */
   data: T[];
   /** 消息状态码 */
-  code: number;
+  code: number | null;
   /** 消息内容 */
-  msg: string;
+  msg: string | null;
 }

@@ -1,5 +1,5 @@
 import http from '@/utils/http'
-import type { UserPageQueryDTO, SysUserDTO, SysUserAdminDTO, RegisterParams } from '@/types/system/user'
+import type { UserPageQueryDTO, SysUserDTO, SysUserAdminDTO, RegisterParams, SysUserProfileDTO } from '@/types/system/user'
 import { GenderEnum, StatusEnum } from '@/enum/common'
 
 // 获取默认用户查询对象
@@ -27,9 +27,9 @@ export function getDefaultSysUserAdminDTO(): SysUserAdminDTO {
     nickName: null,
     email: null,
     mobile: null,
-    gender: null,
+    gender: 0,
     avatar: null,
-    status: null
+    status: 0
   }
 }
 
@@ -40,21 +40,33 @@ export function getDefaultSysUserDTO(): SysUserDTO {
     nickName: null,
     email: null,
     mobile: null,
-    gender: null,
+    gender: 0,
     avatar: null,
-    status: null,
+    status: 0,
     lastLoginTime: null
   }
 }
 
 // 获取默认用户注册参数
 export function getDefaultRegisterParams(): RegisterParams {
-  return {
+    return {
     username: null,
     password: null,
     confirmPassword: null,
     avatar: null,
     nickName: null
+  }
+}
+
+// 获取默认用户个人信息DTO
+export function getDefaultSysUserProfileDTO(): SysUserProfileDTO {
+  return {
+    username: null,
+    nickName: null,
+    email: null,
+    mobile: null,
+    gender: 0,
+    avatar: null
   }
 }
 
@@ -91,4 +103,9 @@ export function assignUserRoles(userId: string, roleIds: string[]) {
 // 管理员添加用户
 export function addSysUser(data: SysUserAdminDTO) {
   return http.post('/system/user/add', data)
+}
+
+// 更新用户个人信息
+export function updateUserProfile(data: SysUserProfileDTO) {
+  return http.put('/system/user/profile', data)
 }

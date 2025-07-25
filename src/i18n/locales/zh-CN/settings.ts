@@ -58,6 +58,8 @@ export default {
     passwordLengthInvalid: '密码长度不能少于6位',
     passwordsNotMatch: '两次输入的密码不一致',
     passwordChangeSuccess: '密码修改成功',
+    passwordChangeFail: '密码修改失败',
+    passwordChangeRedirect: '密码已修改，需要重新登录',
     accountStatus: '账号状态',
     statusNormal: '正常',
     statusDisabled: '已禁用',
@@ -288,10 +290,9 @@ export default {
       delete: '删除'
     },
     table: {
-      id: '权限ID',
       permissionName: '权限名称',
       permissionKey: '权限标识',
-      parentId: '上级权限',
+      parentId: '父级权限',
       sort: '排序',
       createTime: '创建时间',
       actions: '操作'
@@ -301,43 +302,44 @@ export default {
       deleteSuccess: '删除成功',
       deleteFail: '删除失败',
       fetchFail: '获取权限列表失败',
-      addSuccess: '添加权限成功',
-      addFail: '添加权限失败',
+      addSuccess: '新增权限成功',
+      addFail: '新增权限失败',
       editSuccess: '编辑权限成功',
       editFail: '编辑权限失败',
-      formInvalid: '请检查表单并修正错误'
+      formInvalid: '表单验证失败，请检查输入',
+      loadFail: '加载权限数据失败'
     },
     addPermission: {
-      title: '添加权限',
-      parentId: '上级权限',
+      title: '新增权限',
       permissionName: '权限名称',
-      permissionKey: '权限标识',
-      sort: '排序',
-      parentIdPlaceholder: '请选择上级权限',
       permissionNamePlaceholder: '请输入权限名称',
+      permissionKey: '权限标识',
       permissionKeyPlaceholder: '请输入权限标识',
-      sortPlaceholder: '请输入排序数值',
-      cancel: '取消',
-      submit: '提交'
+      parentId: '父级权限',
+      parentIdPlaceholder: '请选择父级权限',
+      sort: '排序',
+      sortPlaceholder: '请输入排序值',
+      submit: '提交',
+      cancel: '取消'
     },
     updatePermission: {
       title: '编辑权限',
-      parentId: '上级权限',
       permissionName: '权限名称',
-      permissionKey: '权限标识',
-      sort: '排序',
-      parentIdPlaceholder: '请选择上级权限',
       permissionNamePlaceholder: '请输入权限名称',
+      permissionKey: '权限标识',
       permissionKeyPlaceholder: '请输入权限标识',
-      sortPlaceholder: '请输入排序数值',
-      cancel: '取消',
-      submit: '提交'
+      parentId: '父级权限',
+      parentIdPlaceholder: '请选择父级权限',
+      sort: '排序',
+      sortPlaceholder: '请输入排序值',
+      submit: '提交',
+      cancel: '取消'
     },
     rules: {
       permissionNameRequired: '权限名称不能为空',
-      permissionNameLength: '权限名称长度必须在2-30个字符之间',
+      permissionNameLength: '权限名称长度在2-30个字符之间',
       permissionKeyRequired: '权限标识不能为空',
-      permissionKeyLength: '权限标识长度必须在2-100个字符之间'
+      permissionKeyLength: '权限标识长度在2-100个字符之间'
     }
   },
   system: {

@@ -17,5 +17,21 @@ export default {
   more: 'More',
   yes: 'Yes',
   no: 'No',
-  user: 'User'
+  user: 'User',
+  
+  // HTTP related errors
+  http: {
+    unknown: 'Unknown Error',
+    timeout: 'Network request timeout, please check your connection',
+    badRequest: 'Bad request parameters',
+    unauthorized: 'Login expired, please log in again',
+    unauthorizedTitle: 'Login Expired',
+    unauthorizedContent: 'Your session has expired, please log in again',
+    forbidden: 'Access forbidden',
+    notFound: 'Resource not found',
+    serverError: 'Internal server error',
+    requestFailed: 'Request failed',
+    statusCode: 'Request failed ({0})',
+    notInitialized: 'Dialog instance not initialized'
+  }
 } 

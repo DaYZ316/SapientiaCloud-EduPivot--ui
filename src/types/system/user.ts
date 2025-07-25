@@ -39,21 +39,21 @@ export interface SysUserVO {
  */
 export interface SysUserDTO {
   /** 用户ID */
-  id: string
+  id: string | null
   /** 用户昵称 */
-  nickName: string
+  nickName: string | null
   /** 邮箱 */
-  email: string
+  email: string | null
   /** 手机号 */
-  mobile: string
+  mobile: string | null
   /** 性别 (0=未知, 1=男, 2=女) */
-  gender?: number
+  gender?: number | null
   /** 用户头像URL */
-  avatar?: string
+  avatar?: string | null
   /** 状态 (0=正常, 1=停用) */
-  status?: number
+  status?: number | null
   /** 最后登录时间 */
-  lastLoginTime?: string
+  lastLoginTime?: string | null
 }
 
 /**
@@ -61,15 +61,15 @@ export interface SysUserDTO {
  */
 export interface RegisterParams {
   /** 用户名 */
-  username: string
+  username: string | null
   /** 密码 */
-  password: string
+  password: string | null
   /** 确认密码 */
-  confirmPassword: string
+  confirmPassword: string | null
   /** 用户头像URL */
-  avatar?: string
+  avatar?: string | null
   /** 用户昵称 */
-  nickName: string
+  nickName: string | null
 }
 
 /**
@@ -77,17 +77,17 @@ export interface RegisterParams {
  */
 export interface UserPageQueryDTO extends PageEntity {
   /** 用户名 */
-  username?: string
+  username?: string | null
   /** 用户昵称 */
-  nickName?: string
+  nickName?: string | null
   /** 性别 (0=未知, 1=男, 2=女) */
-  gender?: string | number
+  gender?: number | null
   /** 状态 (0=正常, 1=停用) */
-  status?: string | number
+  status?: number | null
   /** 手机号码 */
-  mobile?: string
+  mobile?: string | null
   /** 邮箱 */
-  email?: string
+  email?: string | null
 }
 
 /**
@@ -95,17 +95,38 @@ export interface UserPageQueryDTO extends PageEntity {
  */
 export interface SysUserAdminDTO {
   /** 用户名 */
-  username: string
+  username: string | null
   /** 用户昵称 */
-  nickName: string
+  nickName: string | null
   /** 邮箱 */
-  email: string
+  email: string | null
   /** 手机号 */
-  mobile: string
+  mobile: string | null
   /** 性别 (0=未知, 1=男, 2=女) */
-  gender: number
+  gender: number | null
   /** 用户头像URL */
-  avatar: string
+  avatar: string | null
   /** 状态 */
-  status: number
+  status: number | null
+}
+
+/**
+ * 用户个人信息更新DTO
+ */
+export interface SysUserProfileDTO {
+  username: string | null;
+  nickName: string | null;
+  email: string | null;
+  mobile: string | null;
+  gender?: number | null;
+  avatar?: string | null;
+}
+
+/**
+ * 用户密码修改DTO
+ */
+export interface SysUserPasswordDTO {
+  currentPassword: string | null;
+  newPassword: string | null;
+  confirmPassword: string | null;
 }

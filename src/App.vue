@@ -38,13 +38,7 @@ onMounted(async () => {
 
 <template>
   <n-config-provider :theme="currentTheme" :theme-overrides="themeOverrides">
-    <n-notification-provider>
-      <n-dialog-provider>
-        <n-message-provider>
-          <router-view />
-        </n-message-provider>
-      </n-dialog-provider>
-    </n-notification-provider>
+    <router-view />
   </n-config-provider>
 </template>
 

@@ -48,27 +48,15 @@
       </div>
 
       <!-- 用户表格 -->
-      <n-data-table
-        :loading="loading"
+      <page-table
+        ref="pageTableRef"
         :columns="columns"
-        :data="userList"
-        :bordered="false"
+        :api-fn="sysUserList"
+        :query-params="searchForm"
+        :auto-search="false"
         size="small"
+        @update:data="onDataUpdate"
       />
-      
-      <!-- 分页组件 -->
-      <div class="pagination-container">
-        <n-pagination
-          v-model:page="pagination.pageNum"
-          v-model:page-size="pagination.pageSize"
-          :page-sizes="[10, 20, 30, 50]"
-          show-size-picker
-          show-quick-jumper
-          :item-count="pagination.total"
-          @update:page="handlePageChange"
-          @update:page-size="handleSizeChange"
-        />
-      </div>
     </n-card>
     
     <!-- 添加用户对话框 -->
@@ -236,7 +224,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, h, computed } from 'vue'
-import { NIcon, useDialog } from 'naive-ui'
+import { NIcon } from 'naive-ui'
 import type { FormRules, FormInst } from 'naive-ui'
 import { SearchOutline, RefreshOutline, AddOutline, TrashOutline, CreateOutline, PeopleOutline } from '@vicons/ionicons5'
 import { sysUserList, removeUser, getDefaultUserQuery, addSysUser, getDefaultSysUserAdminDTO, updateUser, getUserById, assignUserRoles } from '@/api/system/user'
@@ -246,11 +234,10 @@ import type { SysRoleVO } from '@/types/system/role'
 import { useI18n } from 'vue-i18n'
 import { GenderEnum, StatusEnum, getGenderLabel } from '@/enum/common'
 import StatusDisplay from '@/components/common/StatusDisplay.vue'
-import { getMessageInstance } from '@/utils/http'
-import { usePageUtil } from '@/utils/pageUtil'
+import { getMessageInstance, getDialogInstance } from '@/utils/http'
 
 const message = getMessageInstance()
-const dialog = useDialog()
+const dialog = getDialogInstance()
 const { t, locale } = useI18n()
 
 // 是否为英文环境
@@ -275,15 +262,8 @@ const searchForm = reactive<UserPageQueryDTO>(getDefaultUserQuery())
 // 用户列表数据
 const userList = ref<SysUserVO[]>([])
 
-// 分页相关
-const { 
-  pagination, 
-  loading, 
-  fetchPageData, 
-  handlePageChange: onPageChange,
-  handleSizeChange: onSizeChange,
-  resetPagination 
-} = usePageUtil<SysUserVO, UserPageQueryDTO>()
+// 分页表格引用
+const pageTableRef = ref()
 
 // 添加用户相关
 const showAddModal = ref(false)
@@ -334,7 +314,6 @@ const submittingRoles = ref(false)
 
 // 表格列定义
 const columns = computed(() => [
-  { title: t('settings.user.table.userId'), key: 'id' },
   { title: t('settings.user.table.username'), key: 'username' },
   { title: t('settings.user.table.nickname'), key: 'nickName' },
   { title: t('settings.user.table.email'), key: 'email' },
@@ -358,6 +337,7 @@ const columns = computed(() => [
   {
     title: t('settings.user.table.actions'),
     key: 'actions',
+    width: 280,
     render(row: SysUserVO) {
       return [
         h(
@@ -402,32 +382,18 @@ const columns = computed(() => [
 
 // 搜索处理
 function handleSearch() {
-  pagination.pageNum = 1
-  fetchUserList()
+  pageTableRef.value?.fetchData()
 }
 
 // 重置搜索
 function resetSearch() {
   Object.assign(searchForm, getDefaultUserQuery())
-  resetPagination()
-  fetchUserList()
+  pageTableRef.value?.reset()
 }
 
-// 获取用户列表数据
-async function fetchUserList() {
-  await fetchPageData(sysUserList, searchForm, userList)
-}
-
-// 处理页码变化
-function handlePageChange(page: number) {
-  onPageChange(page)
-  fetchUserList()
-}
-
-// 处理每页条数变化
-function handleSizeChange(pageSize: number) {
-  onSizeChange(pageSize)
-  fetchUserList()
+// 数据更新处理函数
+function onDataUpdate(data: SysUserVO[]) {
+  userList.value = data
 }
 
 // 编辑用户
@@ -467,7 +433,7 @@ async function submitupdateUser() {
       })
       message.success(t('settings.user.messages.editSuccess'))
       closeEditModal()
-      fetchUserList()
+      pageTableRef.value?.fetchData()
     } catch (error) {
       console.error('更新用户失败:', error)
       message.error(t('settings.user.messages.editFail'))
@@ -491,7 +457,7 @@ async function handleDelete(row: SysUserVO) {
       try {
         await removeUser(row.id)
         message.success(t('settings.user.messages.deleteSuccess'))
-        fetchUserList()
+        pageTableRef.value?.fetchData()
       } catch (error) {
         console.error('删除用户出错:', error)
         message.error(t('settings.user.messages.deleteFail'))
@@ -518,7 +484,7 @@ async function submitAddUser() {
     await addSysUser(addUserForm)
     message.success(t('settings.user.messages.addSuccess'))
     closeAddModal()
-    fetchUserList()
+    pageTableRef.value?.fetchData()
   } catch (error) {
     console.error('添加用户失败:', error)
     message.error(t('settings.user.messages.addFail'))
@@ -586,7 +552,7 @@ async function submitAssignRoles() {
 
 // 初始化加载
 onMounted(() => {
-  fetchUserList()
+  // 在PageTable组件中已经自动执行初始化加载
 })
 </script>
 

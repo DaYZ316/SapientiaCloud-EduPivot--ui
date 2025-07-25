@@ -22,8 +22,53 @@ export const useUserStore = defineStore('user', () => {
   const hasRole = (roleKey: string): boolean => 
     roles.value.some((role: SysRoleVO) => role.roleKey === roleKey)
 
-  const hasPermission = (permissionKey: string): boolean => 
-    permissions.value.some((permission: SysPermissionVO) => permission.permissionKey === permissionKey)
+  /**
+   * 检查一个权限是否是另一个权限的父权限
+   */
+  function isParentPermission(parentPerm: string, childPerm: string): boolean {
+    // 如果完全相同，直接返回true
+    if (parentPerm === childPerm) {
+      return true
+    }
+    
+    // 使用冒号拆分权限码
+    const parentParts = parentPerm.split(':')
+    const childParts = childPerm.split(':')
+    
+    // 父权限的部分必须少于或等于子权限的部分
+    if (parentParts.length > childParts.length) {
+      return false
+    }
+    
+    // 检查父权限是否是子权限的前缀
+    for (let i = 0; i < parentParts.length; i++) {
+      if (parentParts[i] !== childParts[i]) {
+        return false
+      }
+    }
+    
+    return true
+  }
+
+  // 检查用户是否具有指定权限
+  const hasPermission = (permissionKey: string): boolean => {
+    // 如果是ADMIN角色，直接放行
+    for (let i = 0; i < roles.value.length; i++) {
+      if (roles.value[i].roleKey === 'ADMIN') {
+        return true
+      }
+    }
+    
+    // 检查是否有匹配的权限（包括父权限）
+    for (let i = 0; i < permissions.value.length; i++) {
+      const userPerm = permissions.value[i].permissionKey
+      if (isParentPermission(userPerm, permissionKey)) {
+        return true
+      }
+    }
+    
+    return false
+  }
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {

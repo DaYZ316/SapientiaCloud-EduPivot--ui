@@ -32,34 +32,22 @@
 
       <!-- 操作按钮 -->
       <div class="table-actions">
-        <n-button type="primary" @click="handleAdd">
+        <n-button type="primary" v-hasPermission="'system:role:add'" @click="handleAdd">
           <template #icon><n-icon><add-outline /></n-icon></template>
           {{ $t('settings.role.actions.add') }}
         </n-button>
       </div>
 
       <!-- 角色表格 -->
-      <n-data-table
-        :loading="loading"
+      <page-table
+        ref="pageTableRef"
         :columns="columns"
-        :data="roleList"
-        :bordered="false"
+        :api-fn="sysRoleList"
+        :query-params="searchForm"
+        :auto-search="false"
         size="small"
+        @update:data="onDataUpdate"
       />
-      
-      <!-- 分页组件 -->
-      <div class="pagination-container">
-        <n-pagination
-          v-model:page="pagination.pageNum"
-          v-model:page-size="pagination.pageSize"
-          :page-sizes="[10, 20, 30, 50]"
-          show-size-picker
-          show-quick-jumper
-          :item-count="pagination.total"
-          @update:page="handlePageChange"
-          @update:page-size="handleSizeChange"
-        />
-      </div>
     </n-card>
     
     <!-- 添加角色对话框 -->
@@ -206,7 +194,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, h, computed } from 'vue'
-import { NIcon, useDialog } from 'naive-ui'
+import { NIcon } from 'naive-ui'
 import type { FormRules, FormInst } from 'naive-ui'
 import { SearchOutline, RefreshOutline, AddOutline, TrashOutline, CreateOutline, KeyOutline } from '@vicons/ionicons5'
 import { sysRoleList, removeRole, getDefaultRoleQuery, addRole, getDefaultSysRoleAddDTO, getDefaultSysRoleDTO, updateRole, getRoleDetail, assignRolePermissions } from '@/api/system/role'
@@ -216,11 +204,11 @@ import type { SysPermissionVO } from '@/types/system/permission'
 import { useI18n } from 'vue-i18n'
 import { StatusEnum } from '@/enum/common'
 import StatusDisplay from '@/components/common/StatusDisplay.vue'
-import { getMessageInstance } from '@/utils/http'
-import { usePageUtil } from '@/utils/pageUtil'
+import { getMessageInstance, getDialogInstance } from '@/utils/http'
+
 
 const message = getMessageInstance()
-const dialog = useDialog()
+const dialog = getDialogInstance()
 const { t, locale } = useI18n()
 
 // 是否为英文环境
@@ -238,15 +226,8 @@ const searchForm = reactive<RolePageQueryDTO>(getDefaultRoleQuery())
 // 角色列表数据
 const roleList = ref<SysRoleVO[]>([])
 
-// 分页相关
-const { 
-  pagination, 
-  loading, 
-  fetchPageData, 
-  handlePageChange: onPageChange,
-  handleSizeChange: onSizeChange,
-  resetPagination 
-} = usePageUtil<SysRoleVO, RolePageQueryDTO>()
+// 分页表格引用
+const pageTableRef = ref()
 
 // 添加角色相关
 const showAddModal = ref(false)
@@ -287,7 +268,6 @@ const roleFormRules = reactive<FormRules>({
 
 // 表格列定义
 const columns = computed(() => [
-  { title: t('settings.role.table.id'), key: 'id' },
   { title: t('settings.role.table.roleName'), key: 'roleName' },
   { title: t('settings.role.table.roleKey'), key: 'roleKey' },
   { title: t('settings.role.table.sort'), key: 'sort' },
@@ -303,6 +283,7 @@ const columns = computed(() => [
   {
     title: t('settings.role.table.actions'),
     key: 'actions',
+    width: 280,
     render(row: SysRoleVO) {
       return [
         h(
@@ -310,7 +291,13 @@ const columns = computed(() => [
           {
             class: 'n-button n-button--tertiary n-button--small',
             style: { marginRight: '8px' },
-            onClick: () => handleEdit(row)
+            onClick: () => handleEdit(row),
+            directive: [
+              {
+                name: 'hasPermission',
+                value: 'system:role:edit'
+              }
+            ]
           },
           [
             h(NIcon, null, { default: () => h(CreateOutline) }),
@@ -323,7 +310,13 @@ const columns = computed(() => [
             class: 'n-button n-button--tertiary n-button--small',
             style: { marginRight: '8px' },
             disabled: row.admin,
-            onClick: () => handleAssign(row)
+            onClick: () => handleAssign(row),
+            directive: [
+              {
+                name: 'hasPermission',
+                value: 'system:role:assign'
+              }
+            ]
           },
           [
             h(NIcon, null, { default: () => h(KeyOutline) }),
@@ -335,7 +328,13 @@ const columns = computed(() => [
           {
             class: 'n-button n-button--error n-button--small',
             disabled: row.admin,
-            onClick: () => handleDelete(row)
+            onClick: () => handleDelete(row),
+            directive: [
+              {
+                name: 'hasPermission',
+                value: 'system:role:delete'
+              }
+            ]
           },
           [
             h(NIcon, null, { default: () => h(TrashOutline) }),
@@ -347,34 +346,20 @@ const columns = computed(() => [
   }
 ])
 
-// 搜索处理
-function handleSearch() {
-  pagination.pageNum = 1
-  fetchRoleList()
-}
+  // 搜索处理
+  function handleSearch() {
+    pageTableRef.value?.fetchData()
+  }
+  
+  // 重置搜索
+  function resetSearch() {
+    Object.assign(searchForm, getDefaultRoleQuery())
+    pageTableRef.value?.reset()
+  }
 
-// 重置搜索
-function resetSearch() {
-  Object.assign(searchForm, getDefaultRoleQuery())
-  resetPagination()
-  fetchRoleList()
-}
-
-// 获取角色列表数据
-async function fetchRoleList() {
-  await fetchPageData(sysRoleList, searchForm, roleList)
-}
-
-// 处理页码变化
-function handlePageChange(page: number) {
-  onPageChange(page)
-  fetchRoleList()
-}
-
-// 处理每页条数变化
-function handleSizeChange(pageSize: number) {
-  onSizeChange(pageSize)
-  fetchRoleList()
+// 数据更新处理函数
+function onDataUpdate(data: SysRoleVO[]) {
+  roleList.value = data
 }
 
 // 编辑角色
@@ -411,7 +396,7 @@ async function submitUpdateRole() {
       await updateRole(updateRoleForm)
       message.success(t('settings.role.messages.editSuccess'))
       closeEditModal()
-      fetchRoleList()
+      pageTableRef.value?.fetchData()
     } catch (error) {
       console.error('更新角色失败:', error)
       message.error(t('settings.role.messages.editFail'))
@@ -435,7 +420,7 @@ async function handleDelete(row: SysRoleVO) {
       try {
         await removeRole(row.id)
         message.success(t('settings.role.messages.deleteSuccess'))
-        fetchRoleList()
+        pageTableRef.value?.fetchData()
       } catch (error) {
         console.error('删除角色出错:', error)
         message.error(t('settings.role.messages.deleteFail'))
@@ -467,7 +452,7 @@ async function submitAddRole() {
       await addRole(addRoleForm)
       message.success(t('settings.role.messages.addSuccess'))
       closeAddModal()
-      fetchRoleList()
+      pageTableRef.value?.fetchData()
     } catch (error) {
       console.error('添加角色失败:', error)
       message.error(t('settings.role.messages.addFail'))
@@ -581,7 +566,7 @@ async function submitAssignPermissions() {
 
 // 初始化加载
 onMounted(() => {
-  fetchRoleList()
+  // 在PageTable组件中已经自动执行初始化加载
 })
 </script>
 

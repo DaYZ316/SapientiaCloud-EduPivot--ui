@@ -187,11 +187,17 @@
 import { ref, computed, reactive, onMounted } from 'vue'
 import type { FormInst, FormRules, UploadInst, UploadFileInfo, UploadCustomRequestOptions } from 'naive-ui'
 import { useUserStore } from '@/store'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { updateUser } from '@/api/system/user'
-import { getMessageInstance } from '@/utils/http'
+import { updateUserProfile, getDefaultSysUserProfileDTO } from '@/api/system/user'
+import { updatePassword, getDefaultSysUserPasswordDTO, logout } from '@/api/auth/auth'
+import { getMessageInstance, getDialogInstance } from '@/utils/http'
+import type { SysUserProfileDTO } from '@/types/system/user'
+import type { SysUserPasswordDTO } from '@/types/auth/auth'
 
 const userStore = useUserStore()
+const router = useRouter()
+const dialog = getDialogInstance()
 const message = getMessageInstance()
 const { t } = useI18n()
 const formRef = ref<FormInst | null>(null)
@@ -205,14 +211,7 @@ const userInfo = computed(() => userStore.userInfo)
 const userRoles = computed(() => userStore.userInfo?.roles || [])
 
 // 表单数据
-const personalForm = reactive({
-  username: '',
-  nickName: '',
-  email: '',
-  mobile: '',
-  gender: 0,
-  avatar: '',
-})
+const personalForm = reactive<SysUserProfileDTO>(getDefaultSysUserProfileDTO())
 
 // 监听用户信息变化，更新表单数据
 const initFormData = () => {
@@ -226,13 +225,8 @@ const initFormData = () => {
   }
 }
 
-
 // 修改密码表单
-const passwordForm = ref({
-  currentPassword: '',
-  newPassword: '',
-  confirmPassword: ''
-})
+const passwordForm = reactive<SysUserPasswordDTO>(getDefaultSysUserPasswordDTO())
 
 // 表单验证规则
 const rules: FormRules = {
@@ -261,7 +255,7 @@ const passwordRules: FormRules = {
   confirmPassword: [
     { required: true, message: t('settings.personal.confirmPasswordRequired'), trigger: 'blur' },
     {
-      validator: (_, value) => value === passwordForm.value.newPassword,
+      validator: (_, value) => value === passwordForm.newPassword,
       message: t('settings.personal.passwordsNotMatch'),
       trigger: 'blur'
     }
@@ -284,14 +278,14 @@ const savePersonalSettings = () => {
   formRef.value?.validate(async (errors) => {
     if (!errors) {
       try {
-        if (!userInfo.value || !userInfo.value.id) {
+        if (!userInfo.value) {
           message.error(t('settings.personal.updateFail'))
           return
         }
 
-        // 调用API更新用户信息
-        const userData = {
-          id: userInfo.value.id,
+        // 调用API更新用户个人信息
+        const userData: SysUserProfileDTO = {
+          username: personalForm.username,
           nickName: personalForm.nickName,
           email: personalForm.email,
           mobile: personalForm.mobile,
@@ -299,14 +293,14 @@ const savePersonalSettings = () => {
           avatar: personalForm.avatar
         }
 
-        const res = await updateUser(userData)
+        const res = await updateUserProfile(userData)
         if (res.success && res.data) {
           message.success(t('settings.personal.updateSuccess'))
           
           // 更新本地存储的用户信息
           await userStore.refreshUserInfo()
         } else {
-          message.error(t('settings.personal.updateFail'))
+          message.error(res.message || t('settings.personal.updateFail'))
         }
       } catch (error) {
         console.error('更新用户信息失败:', error)
@@ -325,14 +319,50 @@ const resetForm = () => {
 const changePassword = () => {
   passwordFormRef.value?.validate(async (errors) => {
     if (!errors) {
-      // 这里应该调用后端API修改密码
-      // 以下为模拟修改成功
-      message.success(t('settings.personal.passwordChangeSuccess'))
-      showPasswordModal.value = false
-      passwordForm.value = {
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
+      try {
+        const passwordData: SysUserPasswordDTO = {
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword,
+          confirmPassword: passwordForm.confirmPassword
+        }
+
+        const res = await updatePassword(passwordData)
+        if (res.success && res.data) {
+          showPasswordModal.value = false
+          
+          // 重置密码表单
+          passwordForm.currentPassword = null
+          passwordForm.newPassword = null
+          passwordForm.confirmPassword = null
+          
+          // 显示成功对话框
+          dialog.success({
+            title: t('settings.personal.passwordChangeSuccess'),
+            content: t('settings.personal.passwordChangeRedirect'),
+            positiveText: t('common.confirm'),
+            onPositiveClick: async () => {
+              try {
+                // 登出当前用户
+                await logout()
+                
+                // 清除用户状态
+                userStore.resetUserState()
+                
+                // 跳转到登录页
+                router.push('/login')
+              } catch (error) {
+                console.error('登出失败:', error)
+                // 即使登出失败也跳转到登录页
+                router.push('/login')
+              }
+            }
+          })
+        } else {
+          message.error(res.message || t('settings.personal.passwordChangeFail'))
+        }
+      } catch (error) {
+        console.error('修改密码失败:', error)
+        message.error(t('settings.personal.passwordChangeFail'))
       }
     }
   })

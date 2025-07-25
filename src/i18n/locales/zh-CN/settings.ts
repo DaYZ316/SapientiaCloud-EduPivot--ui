@@ -95,6 +95,7 @@ export default {
       mobile: '手机号',
       gender: '性别',
       status: '状态',
+      statusControl: '状态控制',
       createTime: '创建时间',
       lastLoginTime: '最后登录时间',
       actions: '操作'
@@ -110,8 +111,8 @@ export default {
     },
     messages: {
       deleteConfirm: '确定要删除该用户吗？',
-      deleteSuccess: '删除成功',
-      deleteFail: '删除失败',
+      deleteSuccess: '删除用户成功',
+      deleteFail: '删除用户失败',
       fetchFail: '获取用户列表失败',
       editNotImplemented: '编辑用户功能尚未实现',
       addNotImplemented: '新增用户功能尚未实现',
@@ -122,7 +123,11 @@ export default {
       formInvalid: '请检查表单并修正错误',
       getRoleFail: '获取角色数据失败',
       assignSuccess: '角色分配成功',
-      assignFail: '角色分配失败'
+      assignFail: '角色分配失败',
+      enableSuccess: '启用用户成功',
+      enableFail: '启用用户失败',
+      disableSuccess: '禁用用户成功',
+      disableFail: '禁用用户失败'
     },
     addUser: {
       title: '添加用户',
@@ -355,6 +360,9 @@ export default {
     colorPrimary: '主题色',
     updateSuccess: '系统设置已保存',
     updateFail: '系统设置保存失败',
-    resetSuccess: '系统设置已重置'
+    resetSuccess: '系统设置已重置',
+    resetTitle: '重置设置',
+    resetConfirm: '确定要将所有系统设置恢复为默认值吗？',
+    reset: '重置'
   }
 } 

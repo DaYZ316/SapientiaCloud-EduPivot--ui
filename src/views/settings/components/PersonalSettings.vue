@@ -184,7 +184,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, onMounted, reactive, ref} from 'vue'
+import {computed, onMounted, reactive, ref, watch} from 'vue'
 import type {FormInst, FormRules, UploadCustomRequestOptions, UploadFileInfo, UploadInst} from 'naive-ui'
 import {useUserStore} from '@/store'
 import {useRouter} from 'vue-router'
@@ -227,6 +227,24 @@ const initFormData = () => {
 
 // 修改密码表单
 const passwordForm = reactive<SysUserPasswordDTO>(getDefaultSysUserPasswordDTO())
+
+// 重置密码表单
+const resetPasswordForm = () => {
+  passwordForm.currentPassword = null
+  passwordForm.newPassword = null
+  passwordForm.confirmPassword = null
+  if (passwordFormRef.value) {
+    passwordFormRef.value.restoreValidation()
+  }
+}
+
+// 监听对话框关闭事件
+watch(showPasswordModal, (newVal) => {
+  if (!newVal) {
+    // 当对话框关闭时重置表单
+    resetPasswordForm()
+  }
+})
 
 // 表单验证规则
 const rules: FormRules = {
@@ -330,10 +348,10 @@ const changePassword = () => {
         if (res.success && res.data) {
           showPasswordModal.value = false
           
-          // 重置密码表单
-          passwordForm.currentPassword = null
-          passwordForm.newPassword = null
-          passwordForm.confirmPassword = null
+          // 重置密码表单已经在watch中处理，此处代码可以删除
+          // passwordForm.currentPassword = null
+          // passwordForm.newPassword = null
+          // passwordForm.confirmPassword = null
           
           // 显示成功对话框
           dialog.success({

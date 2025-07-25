@@ -1,4 +1,5 @@
 import {defineStore} from 'pinia'
+import {resetInstances} from '@/utils/http'
 
 // 主题状态类型
 interface ThemeState {
@@ -47,6 +48,9 @@ export const useThemeStore = defineStore('theme', {
           document.documentElement.classList.remove('dark')
         }
       }
+      
+      // 重置消息和对话框实例，以便下次获取时使用新主题
+      resetInstances()
     },
 
     // 设置主题颜色
@@ -56,6 +60,9 @@ export const useThemeStore = defineStore('theme', {
       
       // 更新CSS变量
       document.documentElement.style.setProperty('--primary-color', color)
+      
+      // 重置消息和对话框实例，以便下次获取时使用新主题
+      resetInstances()
     },
 
     // 设置语言

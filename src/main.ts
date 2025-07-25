@@ -49,26 +49,8 @@ const { message, dialog, notification } = createDiscreteApi(
 setMessageInstance(message)
 setDialogInstance(dialog)
 
-// 监听主题变化并更新消息实例和对话框实例
-themeStore.$subscribe((_mutation, state) => {
-  const { message: newMessage, dialog: newDialog } = createDiscreteApi(
-    ['message', 'dialog'],
-    {
-      configProviderProps: {
-        theme: themeStore.isDarkMode ? darkTheme : null,
-        themeOverrides: {
-          common: {
-            primaryColor: state.primaryColor,
-            primaryColorHover: state.primaryColor,
-            primaryColorPressed: state.primaryColor,
-          }
-        }
-      }
-    }
-  )
-  setMessageInstance(newMessage)
-  setDialogInstance(newDialog)
-})
+// 初始化主题设置
+themeStore.initSettings()
 
 // 注册路由
 app.use(router)

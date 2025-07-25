@@ -126,75 +126,6 @@
       </template>
     </n-modal>
     
-    <!-- 编辑用户对话框 -->
-    <n-modal v-model:show="showEditModal" :title="$t('settings.user.updateUser.title')" preset="card" style="width: 600px">
-      <n-form
-        ref="editFormRef"
-        :model="updateUserForm"
-        :rules="userFormRules"
-        :style="{ maxWidth: '540px' }"
-      >
-        <n-form-item :label="$t('settings.user.updateUser.username')" path="username">
-          <n-input 
-            v-model:value="updateUserForm.username" 
-            :placeholder="$t('settings.user.updateUser.usernamePlaceholder')"
-            disabled
-          />
-        </n-form-item>
-        
-        <n-form-item :label="$t('settings.user.updateUser.nickname')" path="nickName">
-          <n-input 
-            v-model:value="updateUserForm.nickName" 
-            :placeholder="$t('settings.user.updateUser.nicknamePlaceholder')"
-          />
-        </n-form-item>
-        
-        <n-form-item :label="$t('settings.user.updateUser.email')" path="email">
-          <n-input 
-            v-model:value="updateUserForm.email" 
-            :placeholder="$t('settings.user.updateUser.emailPlaceholder')"
-          />
-        </n-form-item>
-        
-        <n-form-item :label="$t('settings.user.updateUser.mobile')" path="mobile">
-          <n-input 
-            v-model:value="updateUserForm.mobile" 
-            :placeholder="$t('settings.user.updateUser.mobilePlaceholder')"
-          />
-        </n-form-item>
-        
-        <n-form-item :label="$t('settings.user.updateUser.gender')" path="gender">
-          <n-select 
-            v-model:value="updateUserForm.gender" 
-            :options="genderOptions"
-          />
-        </n-form-item>
-        
-        <n-form-item :label="$t('settings.user.updateUser.status')" path="status">
-          <n-select 
-            v-model:value="updateUserForm.status" 
-            :options="statusOptions"
-          />
-        </n-form-item>
-        
-        <n-form-item :label="$t('settings.user.updateUser.avatar')" path="avatar">
-          <n-input 
-            v-model:value="updateUserForm.avatar" 
-            :placeholder="$t('settings.user.updateUser.avatarPlaceholder')"
-          />
-        </n-form-item>
-      </n-form>
-      
-      <template #footer>
-        <n-space justify="end">
-          <n-button @click="closeEditModal">{{ $t('settings.user.updateUser.cancel') }}</n-button>
-          <n-button type="primary" :loading="submitting" @click="submitupdateUser">
-            {{ $t('settings.user.updateUser.submit') }}
-          </n-button>
-        </n-space>
-      </template>
-    </n-modal>
-    
     <!-- 分配角色对话框 -->
     <n-modal v-model:show="showAssignModal" :title="$t('settings.user.assignRole.title')" preset="card" style="width: 600px">
       <div v-if="currentUser" class="assign-header">
@@ -224,9 +155,8 @@
 
 <script setup lang="ts">
 import {computed, h, onMounted, reactive, ref} from 'vue'
-import type {FormInst, FormRules} from 'naive-ui'
-import {NIcon} from 'naive-ui'
-import {AddOutline, CreateOutline, PeopleOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
+import {NIcon, NSwitch, useMessage} from 'naive-ui'
+import {AddOutline, PeopleOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
 import {
   addSysUser,
   assignUserRoles,
@@ -238,7 +168,7 @@ import {
   updateUser
 } from '@/api/system/user'
 import {sysRoleList} from '@/api/system/role'
-import type {SysUserAdminDTO, SysUserVO, UserPageQueryDTO} from '@/types/system/user'
+import type {SysUserAdminDTO, SysUserDTO, SysUserVO, UserPageQueryDTO} from '@/types/system/user'
 import type {SysRoleVO} from '@/types/system/role'
 import {useI18n} from 'vue-i18n'
 import {GenderEnum, getGenderLabel, StatusEnum} from '@/enum/common'
@@ -282,37 +212,6 @@ const addFormRef = ref()
 // 添加用户表单
 const addUserForm = reactive<SysUserAdminDTO>(getDefaultSysUserAdminDTO())
 
-// 编辑用户相关
-const showEditModal = ref(false)
-const editFormRef = ref<FormInst | null>(null)
-const updateUserForm = reactive<SysUserAdminDTO>(getDefaultSysUserAdminDTO())
-const currentEditingUserId = ref<string | null>(null)
-
-// 编辑用户表单验证规则
-const userFormRules = reactive<FormRules>({
-  username: [
-    { required: true, message: t('settings.user.updateUser.usernameRequired'), trigger: 'blur' },
-    { min: 2, max: 20, message: t('settings.user.updateUser.usernameLength'), trigger: 'blur' }
-  ],
-  nickName: [
-    { required: true, message: t('settings.user.updateUser.nicknameRequired'), trigger: 'blur' }
-  ],
-  email: [
-    { required: true, message: t('settings.user.updateUser.emailRequired'), trigger: 'blur' },
-    { type: 'email', message: t('settings.user.updateUser.emailFormat'), trigger: 'blur' }
-  ],
-  mobile: [
-    { required: true, message: t('settings.user.updateUser.mobileRequired'), trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: t('settings.user.updateUser.mobileFormat'), trigger: 'blur' }
-  ],
-  gender: [
-    { required: true, type: 'number', message: t('settings.user.updateUser.genderRequired'), trigger: ['blur', 'change']  }
-  ],
-  status: [
-    { required: true, type: 'number', message: t('settings.user.updateUser.statusRequired'), trigger: ['blur', 'change'] }
-  ]
-})
-
 // 分配角色相关
 const showAssignModal = ref(false)
 const currentUser = ref<SysUserVO | null>(null)
@@ -320,6 +219,28 @@ const availableRoles = ref<SysRoleVO[]>([])
 const selectedRoleIds = ref<string[]>([])
 const userRoles = ref<SysRoleVO[]>([])
 const submittingRoles = ref(false)
+
+// 更新用户状态
+async function updateUserStatus(row: SysUserVO, value: boolean) {
+  const newStatus = value ? StatusEnum.NORMAL : StatusEnum.DISABLED;
+  const statusText = value ? 'enable' : 'disable';
+  
+  try {
+    await updateUser({
+      id: row.id,
+      status: newStatus,
+      nickName: null,
+      email: null,
+      mobile: null
+    })
+    message.success(t(`settings.user.messages.${statusText}Success`))
+    
+    // 本地更新状态而不是重新获取整个列表
+    row.status = newStatus;
+  } catch (error) {
+    message.error(t(`settings.user.messages.${statusText}Fail`))
+  }
+}
 
 // 表格列定义
 const columns = computed(() => [
@@ -343,24 +264,25 @@ const columns = computed(() => [
   },
   { title: t('settings.user.table.createTime'), key: 'createTime' },
   { title: t('settings.user.table.lastLoginTime'), key: 'lastLoginTime' },
+  { 
+    title: t('settings.user.table.statusControl'), 
+    key: 'statusControl',
+    render(row: SysUserVO) {
+      return h(
+        NSwitch,
+        {
+          value: row.status === StatusEnum.NORMAL,
+          onUpdateValue: (value: boolean) => updateUserStatus(row, value)
+        }
+      );
+    }
+  },
   {
     title: t('settings.user.table.actions'),
     key: 'actions',
-    width: 280,
+    width: 200,
     render(row: SysUserVO) {
       return [
-        h(
-          'button',
-          {
-            class: 'n-button n-button--tertiary n-button--small',
-            style: { marginRight: '8px' },
-            onClick: () => handleEdit(row)
-          },
-          [
-            h(NIcon, null, { default: () => h(CreateOutline) }),
-            ' ' + t('settings.user.actions.edit')
-          ]
-        ),
         h(
           'button',
           {
@@ -405,56 +327,6 @@ function onDataUpdate(data: SysUserVO[]) {
   userList.value = data
 }
 
-// 编辑用户
-function handleEdit(row: SysUserVO) {
-  currentEditingUserId.value = row.id
-  Object.assign(updateUserForm, {
-    username: row.username,
-    nickName: row.nickName,
-    email: row.email,
-    mobile: row.mobile,
-    gender: row.gender,
-    status: row.status,
-    avatar: row.avatar
-  })
-  showEditModal.value = true
-}
-
-// 关闭编辑对话框
-function closeEditModal() {
-  showEditModal.value = false
-  currentEditingUserId.value = null
-}
-
-// 提交编辑用户
-async function submitupdateUser() {
-  if (currentEditingUserId.value === null) return
-  
-  try {
-    // 表单验证
-    await editFormRef.value?.validate()
-    
-    submitting.value = true
-    try {
-      await updateUser({
-        id: String(currentEditingUserId.value),
-        ...updateUserForm
-      })
-      message.success(t('settings.user.messages.editSuccess'))
-      closeEditModal()
-      pageTableRef.value?.fetchData()
-    } catch (error) {
-      console.error('更新用户失败:', error)
-      message.error(t('settings.user.messages.editFail'))
-    } finally {
-      submitting.value = false
-    }
-  } catch (err) {
-    // 表单验证失败
-    message.error(t('settings.user.messages.formInvalid'))
-  }
-}
-
 // 删除用户
 async function handleDelete(row: SysUserVO) {
   dialog.warning({
@@ -468,7 +340,6 @@ async function handleDelete(row: SysUserVO) {
         message.success(t('settings.user.messages.deleteSuccess'))
         pageTableRef.value?.fetchData()
       } catch (error) {
-        console.error('删除用户出错:', error)
         message.error(t('settings.user.messages.deleteFail'))
       }
     }
@@ -495,7 +366,6 @@ async function submitAddUser() {
     closeAddModal()
     pageTableRef.value?.fetchData()
   } catch (error) {
-    console.error('添加用户失败:', error)
     message.error(t('settings.user.messages.addFail'))
   } finally {
     submitting.value = false
@@ -528,7 +398,6 @@ async function handleAssignRole(row: SysUserVO) {
     // 显示分配角色对话框
     showAssignModal.value = true
   } catch (error) {
-    console.error('获取角色数据失败:', error)
     message.error(t('settings.user.messages.getRoleFail'))
   } finally {
     submittingRoles.value = false
@@ -552,7 +421,6 @@ async function submitAssignRoles() {
     message.success(t('settings.user.messages.assignSuccess'))
     closeAssignModal()
   } catch (error) {
-    console.error('分配角色失败:', error)
     message.error(t('settings.user.messages.assignFail'))
   } finally {
     submittingRoles.value = false

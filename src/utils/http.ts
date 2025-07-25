@@ -2,8 +2,8 @@ import type {AxiosInstance, AxiosRequestConfig} from 'axios'
 import axios from 'axios'
 import type {Result} from '@/types/common/baseEntity'
 import router from '@/router'
-import {createDiscreteApi, useDialog, useMessage} from 'naive-ui'
-import {useUserStore} from '@/store'
+import {createDiscreteApi, darkTheme, useDialog, useMessage} from 'naive-ui'
+import {useThemeStore, useUserStore} from '@/store'
 import i18n from '@/i18n'
 
 // 创建一个获取翻译文本的函数
@@ -96,9 +96,21 @@ export const setDialogInstance = (instance: ReturnType<typeof useDialog>) => {
  */
 export const getMessageInstance = () => {
   if (!messageInstance) {
-    // 使用createDiscreteApi创建一个临时实例
-    const { message } = createDiscreteApi(['message'])
-    messageInstance = message
+    // 使用createDiscreteApi创建一个临时实例，并应用当前主题
+    const themeStore = useThemeStore();
+    const { message } = createDiscreteApi(['message'], {
+      configProviderProps: {
+        theme: themeStore.isDarkMode ? darkTheme : null,
+        themeOverrides: {
+          common: {
+            primaryColor: themeStore.primaryColor,
+            primaryColorHover: themeStore.primaryColor,
+            primaryColorPressed: themeStore.primaryColor,
+          }
+        }
+      }
+    });
+    messageInstance = message;
   }
   return messageInstance
 }
@@ -108,11 +120,32 @@ export const getMessageInstance = () => {
  */
 export const getDialogInstance = () => {
   if (!dialogInstance) {
-    // 使用createDiscreteApi创建一个临时实例
-    const { dialog } = createDiscreteApi(['dialog'])
-    dialogInstance = dialog
+    // 使用createDiscreteApi创建一个临时实例，并应用当前主题
+    const themeStore = useThemeStore();
+    const { dialog } = createDiscreteApi(['dialog'], {
+      configProviderProps: {
+        theme: themeStore.isDarkMode ? darkTheme : null,
+        themeOverrides: {
+          common: {
+            primaryColor: themeStore.primaryColor,
+            primaryColorHover: themeStore.primaryColor,
+            primaryColorPressed: themeStore.primaryColor,
+          }
+        }
+      }
+    });
+    dialogInstance = dialog;
   }
   return dialogInstance
+}
+
+/**
+ * 重置消息和对话框实例
+ * 当主题变化时调用此函数，以便下次获取实例时会使用新主题
+ */
+export const resetInstances = () => {
+  messageInstance = null;
+  dialogInstance = null;
 }
 
 /**

@@ -95,6 +95,7 @@ export default {
       mobile: 'Mobile',
       gender: 'Gender',
       status: 'Status',
+      statusControl: 'Status Control',
       createTime: 'Create Time',
       lastLoginTime: 'Last Login Time',
       actions: 'Actions'
@@ -110,8 +111,8 @@ export default {
     },
     messages: {
       deleteConfirm: 'Are you sure you want to delete this user?',
-      deleteSuccess: 'Deleted successfully',
-      deleteFail: 'Failed to delete',
+      deleteSuccess: 'User deleted successfully',
+      deleteFail: 'Failed to delete user',
       fetchFail: 'Failed to fetch user list',
       editNotImplemented: 'Edit user feature not implemented yet',
       addNotImplemented: 'Add user feature not implemented yet',
@@ -122,7 +123,11 @@ export default {
       formInvalid: 'Please check the form and fix the errors',
       getRoleFail: 'Failed to get role data',
       assignSuccess: 'Roles assigned successfully',
-      assignFail: 'Failed to assign roles'
+      assignFail: 'Failed to assign roles',
+      enableSuccess: 'User enabled successfully',
+      enableFail: 'Failed to enable user',
+      disableSuccess: 'User disabled successfully',
+      disableFail: 'Failed to disable user'
     },
     addUser: {
       title: 'Add User',
@@ -352,6 +357,9 @@ export default {
     colorPrimary: 'Primary Color',
     updateSuccess: 'System settings saved successfully',
     updateFail: 'Failed to save system settings',
-    resetSuccess: 'System settings have been reset'
+    resetSuccess: 'System settings have been reset',
+    resetTitle: 'Reset Settings',
+    resetConfirm: 'Are you sure you want to reset all system settings to default?',
+    reset: 'Reset'
   }
 } 

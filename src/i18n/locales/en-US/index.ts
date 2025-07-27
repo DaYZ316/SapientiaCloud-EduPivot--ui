@@ -6,10 +6,10 @@ import profile from './profile'
 import settings from './settings'
 
 export default {
-  app,
-  common,
-  auth,
-  menu,
-  profile,
-  settings
+    app,
+    common,
+    auth,
+    menu,
+    profile,
+    settings
 } 

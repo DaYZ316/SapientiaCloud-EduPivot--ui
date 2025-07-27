@@ -1,6 +1,6 @@
 <template>
   <div class="not-found">
-    <n-result status="404" title="404 页面不存在" description="您访问的页面不存在或已被删除">
+    <n-result description="您访问的页面不存在或已被删除" status="404" title="404 页面不存在">
       <template #footer>
         <n-button type="primary" @click="backToHome">返回首页</n-button>
       </template>
@@ -8,7 +8,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import {useRouter} from 'vue-router'
 
 const router = useRouter()

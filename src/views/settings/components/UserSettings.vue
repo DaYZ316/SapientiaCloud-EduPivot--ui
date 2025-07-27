@@ -2,38 +2,48 @@
   <div class="user-settings-container">
     <n-card :title="$t('settings.user.title')" size="small">
       <!-- 搜索表单 -->
-      <n-form :model="searchForm" inline class="search-form">
+      <n-form :model="searchForm" class="search-form" inline>
         <n-form-item :label="$t('settings.user.searchForm.username')" path="username">
-          <n-input v-model:value="searchForm.username" clearable :placeholder="$t('settings.personal.usernamePlaceholder')" />
+          <n-input v-model:value="searchForm.username" :placeholder="$t('settings.personal.usernamePlaceholder')"
+                   clearable/>
         </n-form-item>
         <n-form-item :label="$t('settings.user.searchForm.nickname')" path="nickName">
-          <n-input v-model:value="searchForm.nickName" clearable :placeholder="$t('settings.personal.nicknamePlaceholder')" />
+          <n-input v-model:value="searchForm.nickName" :placeholder="$t('settings.personal.nicknamePlaceholder')"
+                   clearable/>
         </n-form-item>
         <n-form-item :label="$t('settings.user.searchForm.gender')" path="gender">
           <n-select
-            v-model:value="searchForm.gender"
-            clearable
-            :placeholder="$t('settings.user.searchForm.gender')"
-            :options="genderOptions"
-            style="min-width: 120px;"
+              v-model:value="searchForm.gender"
+              :options="genderOptions"
+              :placeholder="$t('settings.user.searchForm.gender')"
+              clearable
+              style="min-width: 120px;"
           />
         </n-form-item>
         <n-form-item :label="$t('settings.user.searchForm.status')" path="status">
           <n-select
-            v-model:value="searchForm.status"
-            clearable
-            :placeholder="$t('settings.user.searchForm.status')"
-            :options="statusOptions"
-            style="min-width: 120px;"
+              v-model:value="searchForm.status"
+              :options="statusOptions"
+              :placeholder="$t('settings.user.searchForm.status')"
+              clearable
+              style="min-width: 120px;"
           />
         </n-form-item>
         <n-form-item>
           <n-button type="primary" @click="handleSearch">
-            <template #icon><n-icon><search-outline /></n-icon></template>
+            <template #icon>
+              <n-icon>
+                <search-outline/>
+              </n-icon>
+            </template>
             {{ $t('settings.user.searchForm.search') }}
           </n-button>
           <n-button class="ml-2" @click="resetSearch">
-            <template #icon><n-icon><refresh-outline /></n-icon></template>
+            <template #icon>
+              <n-icon>
+                <refresh-outline/>
+              </n-icon>
+            </template>
             {{ $t('settings.user.searchForm.reset') }}
           </n-button>
         </n-form-item>
@@ -42,109 +52,114 @@
       <!-- 操作按钮 -->
       <div class="table-actions">
         <n-button type="primary" @click="handleAdd">
-          <template #icon><n-icon><add-outline /></n-icon></template>
+          <template #icon>
+            <n-icon>
+              <add-outline/>
+            </n-icon>
+          </template>
           {{ $t('settings.user.actions.add') }}
         </n-button>
       </div>
 
       <!-- 用户表格 -->
       <page-table
-        ref="pageTableRef"
-        :columns="columns"
-        :api-fn="sysUserList"
-        :query-params="searchForm"
-        :auto-search="false"
-        size="small"
-        @update:data="onDataUpdate"
+          ref="pageTableRef"
+          :api-fn="sysUserList"
+          :auto-search="false"
+          :columns="columns"
+          :query-params="searchForm"
+          size="small"
+          @update:data="onDataUpdate"
       />
     </n-card>
-    
+
     <!-- 添加用户对话框 -->
     <n-modal v-model:show="showAddModal" :title="$t('settings.user.addUser.title')" preset="card" style="width: 600px">
       <n-form
-        ref="addFormRef"
-        :model="addUserForm"
-        :style="{ maxWidth: '540px' }"
+          ref="addFormRef"
+          :model="addUserForm"
+          :style="{ maxWidth: '540px' }"
       >
         <n-form-item :label="$t('settings.user.addUser.username')" path="username">
-          <n-input 
-            v-model:value="addUserForm.username" 
-            :placeholder="$t('settings.user.addUser.usernamePlaceholder')"
+          <n-input
+              v-model:value="addUserForm.username"
+              :placeholder="$t('settings.user.addUser.usernamePlaceholder')"
           />
         </n-form-item>
-        
+
         <n-form-item :label="$t('settings.user.addUser.nickname')" path="nickName">
-          <n-input 
-            v-model:value="addUserForm.nickName" 
-            :placeholder="$t('settings.user.addUser.nicknamePlaceholder')"
+          <n-input
+              v-model:value="addUserForm.nickName"
+              :placeholder="$t('settings.user.addUser.nicknamePlaceholder')"
           />
         </n-form-item>
-        
+
         <n-form-item :label="$t('settings.user.addUser.email')" path="email">
-          <n-input 
-            v-model:value="addUserForm.email" 
-            :placeholder="$t('settings.user.addUser.emailPlaceholder')"
+          <n-input
+              v-model:value="addUserForm.email"
+              :placeholder="$t('settings.user.addUser.emailPlaceholder')"
           />
         </n-form-item>
-        
+
         <n-form-item :label="$t('settings.user.addUser.mobile')" path="mobile">
-          <n-input 
-            v-model:value="addUserForm.mobile" 
-            :placeholder="$t('settings.user.addUser.mobilePlaceholder')"
+          <n-input
+              v-model:value="addUserForm.mobile"
+              :placeholder="$t('settings.user.addUser.mobilePlaceholder')"
           />
         </n-form-item>
-        
+
         <n-form-item :label="$t('settings.user.addUser.gender')" path="gender">
-          <n-select 
-            v-model:value="addUserForm.gender" 
-            :options="genderOptions"
+          <n-select
+              v-model:value="addUserForm.gender"
+              :options="genderOptions"
           />
         </n-form-item>
-        
+
         <n-form-item :label="$t('settings.user.addUser.status')" path="status">
-          <n-select 
-            v-model:value="addUserForm.status" 
-            :options="statusOptions"
+          <n-select
+              v-model:value="addUserForm.status"
+              :options="statusOptions"
           />
         </n-form-item>
-        
+
         <n-form-item :label="$t('settings.user.addUser.avatar')" path="avatar">
-          <n-input 
-            v-model:value="addUserForm.avatar" 
-            :placeholder="$t('settings.user.addUser.avatarPlaceholder')"
+          <n-input
+              v-model:value="addUserForm.avatar"
+              :placeholder="$t('settings.user.addUser.avatarPlaceholder')"
           />
         </n-form-item>
       </n-form>
-      
+
       <template #footer>
         <n-space justify="end">
           <n-button @click="closeAddModal">{{ $t('settings.user.addUser.cancel') }}</n-button>
-          <n-button type="primary" :loading="submitting" @click="submitAddUser">
+          <n-button :loading="submitting" type="primary" @click="submitAddUser">
             {{ $t('settings.user.addUser.submit') }}
           </n-button>
         </n-space>
       </template>
     </n-modal>
-    
+
     <!-- 分配角色对话框 -->
-    <n-modal v-model:show="showAssignModal" :title="$t('settings.user.assignRole.title')" preset="card" style="width: 600px">
+    <n-modal v-model:show="showAssignModal" :title="$t('settings.user.assignRole.title')" preset="card"
+             style="width: 600px">
       <div v-if="currentUser" class="assign-header">
         <p>{{ $t('settings.user.assignRole.user') }}: {{ currentUser.username }} ({{ currentUser.nickName }})</p>
       </div>
-      
+
       <n-transfer
-        v-model:value="selectedRoleIds"
-        :options="availableRoles.map(role => ({
+          v-model:value="selectedRoleIds"
+          :options="availableRoles.map(role => ({
           label: role.roleName,
           value: role.id,
           disabled: role.admin && !selectedRoleIds.includes(role.id)
         }))"
       />
-      
+
       <template #footer>
         <n-space justify="end">
           <n-button @click="closeAssignModal">{{ $t('settings.user.assignRole.cancel') }}</n-button>
-          <n-button type="primary" :loading="submittingRoles" @click="submitAssignRoles">
+          <n-button :loading="submittingRoles" type="primary" @click="submitAssignRoles">
             {{ $t('settings.user.assignRole.submit') }}
           </n-button>
         </n-space>
@@ -153,8 +168,8 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import {computed, h, onMounted, reactive, ref} from 'vue'
+<script lang="ts" setup>
+import {computed, h, reactive, ref} from 'vue'
 import {NIcon, NSwitch} from 'naive-ui'
 import {AddOutline, PeopleOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
 import {
@@ -178,7 +193,7 @@ import {useUserStore} from '@/store'
 
 const message = getMessageInstance()
 const dialog = getDialogInstance()
-const { t, locale } = useI18n()
+const {t, locale} = useI18n()
 const userStore = useUserStore()
 
 // 是否为英文环境
@@ -186,15 +201,15 @@ const isEnglish = computed(() => locale.value === 'en-US')
 
 // 性别选项
 const genderOptions = [
-  { label: t('settings.user.gender.unknown'), value: GenderEnum.UNKNOWN },
-  { label: t('settings.user.gender.male'), value: GenderEnum.MALE },
-  { label: t('settings.user.gender.female'), value: GenderEnum.FEMALE }
+  {label: t('settings.user.gender.unknown'), value: GenderEnum.UNKNOWN},
+  {label: t('settings.user.gender.male'), value: GenderEnum.MALE},
+  {label: t('settings.user.gender.female'), value: GenderEnum.FEMALE}
 ]
 
 // 状态选项
 const statusOptions = [
-  { label: t('settings.user.status.normal'), value: StatusEnum.NORMAL },
-  { label: t('settings.user.status.disabled'), value: StatusEnum.DISABLED }
+  {label: t('settings.user.status.normal'), value: StatusEnum.NORMAL},
+  {label: t('settings.user.status.disabled'), value: StatusEnum.DISABLED}
 ]
 
 // 搜索表单
@@ -226,7 +241,7 @@ const submittingRoles = ref(false)
 async function updateUserStatus(row: SysUserVO, value: boolean) {
   const newStatus = value ? StatusEnum.NORMAL : StatusEnum.DISABLED;
   const statusText = value ? 'enable' : 'disable';
-  
+
   try {
     await updateUser({
       id: row.id,
@@ -236,7 +251,7 @@ async function updateUserStatus(row: SysUserVO, value: boolean) {
       mobile: null
     })
     message.success(t(`settings.user.messages.${statusText}Success`))
-    
+
     // 本地更新状态而不是重新获取整个列表
     row.status = newStatus;
   } catch (error) {
@@ -246,37 +261,37 @@ async function updateUserStatus(row: SysUserVO, value: boolean) {
 
 // 表格列定义
 const columns = computed(() => [
-  { title: t('settings.user.table.username'), key: 'username' },
-  { title: t('settings.user.table.nickname'), key: 'nickName' },
-  { title: t('settings.user.table.email'), key: 'email' },
-  { title: t('settings.user.table.mobile'), key: 'mobile' },
-  { 
-    title: t('settings.user.table.gender'), 
+  {title: t('settings.user.table.username'), key: 'username'},
+  {title: t('settings.user.table.nickname'), key: 'nickName'},
+  {title: t('settings.user.table.email'), key: 'email'},
+  {title: t('settings.user.table.mobile'), key: 'mobile'},
+  {
+    title: t('settings.user.table.gender'),
     key: 'gender',
     render(row: SysUserVO) {
       return getGenderLabel(row.gender as GenderEnum, isEnglish.value);
     }
   },
-  { 
-    title: t('settings.user.table.status'), 
+  {
+    title: t('settings.user.table.status'),
     key: 'status',
     render(row: SysUserVO) {
-      return h(StatusDisplay, { status: row.status, type: 'dot' })
+      return h(StatusDisplay, {status: row.status, type: 'dot'})
     }
   },
-  { title: t('settings.user.table.createTime'), key: 'createTime' },
-  { title: t('settings.user.table.lastLoginTime'), key: 'lastLoginTime' },
-  { 
-    title: t('settings.user.table.statusControl'), 
+  {title: t('settings.user.table.createTime'), key: 'createTime'},
+  {title: t('settings.user.table.lastLoginTime'), key: 'lastLoginTime'},
+  {
+    title: t('settings.user.table.statusControl'),
     key: 'statusControl',
     render(row: SysUserVO) {
       return h(
-        NSwitch,
-        {
-          value: row.status === StatusEnum.NORMAL,
-          onUpdateValue: (value: boolean) => updateUserStatus(row, value),
-          disabled: row.id === userStore.userInfo?.id
-        }
+          NSwitch,
+          {
+            value: row.status === StatusEnum.NORMAL,
+            onUpdateValue: (value: boolean) => updateUserStatus(row, value),
+            disabled: row.id === userStore.userInfo?.id
+          }
       );
     }
   },
@@ -287,27 +302,27 @@ const columns = computed(() => [
     render(row: SysUserVO) {
       return [
         h(
-          'button',
-          {
-            class: 'n-button n-button--tertiary n-button--small',
-            style: { marginRight: '8px' },
-            onClick: () => handleAssignRole(row)
-          },
-          [
-            h(NIcon, null, { default: () => h(PeopleOutline) }),
-            ' ' + t('settings.user.actions.assignRole')
-          ]
+            'button',
+            {
+              class: 'n-button n-button--tertiary n-button--small',
+              style: {marginRight: '8px'},
+              onClick: () => handleAssignRole(row)
+            },
+            [
+              h(NIcon, null, {default: () => h(PeopleOutline)}),
+              ' ' + t('settings.user.actions.assignRole')
+            ]
         ),
         h(
-          'button',
-          {
-            class: 'n-button n-button--error n-button--small',
-            onClick: () => handleDelete(row)
-          },
-          [
-            h(NIcon, null, { default: () => h(TrashOutline) }),
-            ' ' + t('settings.user.actions.delete')
-          ]
+            'button',
+            {
+              class: 'n-button n-button--error n-button--small',
+              onClick: () => handleDelete(row)
+            },
+            [
+              h(NIcon, null, {default: () => h(TrashOutline)}),
+              ' ' + t('settings.user.actions.delete')
+            ]
         )
       ]
     }
@@ -385,19 +400,19 @@ function handleAdd() {
 async function handleAssignRole(row: SysUserVO) {
   currentUser.value = row
   submittingRoles.value = true
-  
+
   try {
     // 获取用户详情，包括已分配的角色
     const userDetail = await getUserById(row.id)
     userRoles.value = userDetail?.data?.roles || []
-    
+
     // 获取所有角色列表
     const roleResult = await getAllRoles()
     availableRoles.value = roleResult?.data || []
-    
+
     // 设置已选中的角色
     selectedRoleIds.value = userRoles.value.map((r: SysRoleVO) => r.id)
-    
+
     // 显示分配角色对话框
     showAssignModal.value = true
   } catch (error) {
@@ -418,7 +433,7 @@ function closeAssignModal() {
 // 提交分配角色
 async function submitAssignRoles() {
   if (!currentUser.value) return
-  
+
   submittingRoles.value = true
   try {
     await assignUserRoles(currentUser.value.id, selectedRoleIds.value)
@@ -434,22 +449,22 @@ async function submitAssignRoles() {
 
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .user-settings-container {
   .search-form {
     margin-bottom: 16px;
   }
-  
+
   .table-actions {
     display: flex;
     justify-content: flex-start;
     margin-bottom: 8px;
   }
-  
+
   .ml-2 {
     margin-left: 8px;
   }
-  
+
   .pagination-container {
     display: flex;
     justify-content: flex-end;

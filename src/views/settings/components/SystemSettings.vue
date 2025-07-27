@@ -15,8 +15,8 @@
     <n-form label-placement="left" label-width="120">
       <n-form-item :label="$t('settings.system.defaultLanguage')">
         <n-select
-          v-model:value="currentLang"
-          :options="languageOptions"
+            v-model:value="currentLang"
+            :options="languageOptions"
         />
       </n-form-item>
     </n-form>
@@ -24,17 +24,17 @@
     <h2>{{ $t('settings.system.colorPrimary') }}</h2>
     <n-form label-placement="left" label-width="120">
       <n-form-item :label="$t('settings.system.colorPrimary')">
-        <n-color-picker v-model:value="primaryColor" />
+        <n-color-picker v-model:value="primaryColor"/>
       </n-form-item>
       <n-form-item>
         <n-button type="primary" @click="saveSettings">{{ $t('common.save') }}</n-button>
-        <n-button @click="resetSettings" style="margin-left: 12px">{{ $t('common.reset') }}</n-button>
+        <n-button style="margin-left: 12px" @click="resetSettings">{{ $t('common.reset') }}</n-button>
       </n-form-item>
     </n-form>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import {computed, ref} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useThemeStore} from '@/store'
@@ -43,11 +43,11 @@ import {setLanguage} from '@/i18n'
 import {createDiscreteApi, darkTheme} from 'naive-ui'
 
 // 国际化
-const { locale, t } = useI18n()
+const {locale, t} = useI18n()
 
 const languageOptions = [
-  { label: '简体中文', value: 'zh-CN' },
-  { label: t('settings.languageOptions.english'), value: 'en-US' }
+  {label: '简体中文', value: 'zh-CN'},
+  {label: t('settings.languageOptions.english'), value: 'en-US'}
 ]
 
 // 当前语言
@@ -87,37 +87,37 @@ const saveSettings = () => {
     // 保存主题设置
     themeStore.setThemeMode(themeMode.value)
     themeStore.setPrimaryColor(primaryColor.value)
-    
+
     // 保存并应用语言设置
     if (currentLang.value !== locale.value) {
       setLanguage(currentLang.value)
     }
-    
+
     // 直接使用最新的主题创建消息实例
-    const { message: newMessage } = createDiscreteApi(
-      ['message'],
-      {
-        configProviderProps: {
-          theme: isDarkMode.value ? darkTheme : null,
-          themeOverrides: themeOverrides.value
+    const {message: newMessage} = createDiscreteApi(
+        ['message'],
+        {
+          configProviderProps: {
+            theme: isDarkMode.value ? darkTheme : null,
+            themeOverrides: themeOverrides.value
+          }
         }
-      }
     )
-    
+
     // 使用新创建的实例显示成功消息
     newMessage.success(t('settings.system.updateSuccess'))
   } catch (error) {
     // 直接使用最新的主题创建消息实例
-    const { message: newMessage } = createDiscreteApi(
-      ['message'],
-      {
-        configProviderProps: {
-          theme: isDarkMode.value ? darkTheme : null,
-          themeOverrides: themeOverrides.value
+    const {message: newMessage} = createDiscreteApi(
+        ['message'],
+        {
+          configProviderProps: {
+            theme: isDarkMode.value ? darkTheme : null,
+            themeOverrides: themeOverrides.value
+          }
         }
-      }
     )
-    
+
     newMessage.error(t('settings.system.updateFail'))
   }
 }
@@ -125,14 +125,14 @@ const saveSettings = () => {
 // 重置主题设置
 const resetSettings = () => {
   // 创建使用当前主题的对话框
-  const { dialog: newDialog } = createDiscreteApi(
-    ['dialog'],
-    {
-      configProviderProps: {
-        theme: isDarkMode.value ? darkTheme : null,
-        themeOverrides: themeOverrides.value
+  const {dialog: newDialog} = createDiscreteApi(
+      ['dialog'],
+      {
+        configProviderProps: {
+          theme: isDarkMode.value ? darkTheme : null,
+          themeOverrides: themeOverrides.value
+        }
       }
-    }
   )
 
   newDialog.warning({
@@ -148,35 +148,35 @@ const resetSettings = () => {
       themeMode.value = 'system'
       primaryColor.value = '#18a058'
       currentLang.value = 'zh-CN'
-      
+
       themeStore.setThemeMode('system')
       themeStore.setPrimaryColor('#18a058')
       setLanguage('zh-CN')
-      
+
       // 创建使用重置后主题的消息实例
-      const { message: newMessage } = createDiscreteApi(
-        ['message'],
-        {
-          configProviderProps: {
-            theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? darkTheme : null,
-            themeOverrides: {
-              common: {
-                primaryColor: '#18a058',
-                primaryColorHover: '#18a058',
-                primaryColorPressed: '#18a058',
+      const {message: newMessage} = createDiscreteApi(
+          ['message'],
+          {
+            configProviderProps: {
+              theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? darkTheme : null,
+              themeOverrides: {
+                common: {
+                  primaryColor: '#18a058',
+                  primaryColorHover: '#18a058',
+                  primaryColorPressed: '#18a058',
+                }
               }
             }
           }
-        }
       )
-      
+
       newMessage.success(t('settings.system.resetSuccess'))
     }
   })
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .system-settings {
   h2 {
     margin-top: 24px;

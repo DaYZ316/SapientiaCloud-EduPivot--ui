@@ -12,9 +12,11 @@
           <!-- 用户头像下拉菜单 -->
           <n-dropdown :options="userMenuOptions" placement="bottom-end" @select="handleUserMenuSelect">
             <div class="user-avatar">
-              <n-avatar round :src="userInfo?.avatar || ''" />
+              <n-avatar :src="userInfo?.avatar || ''" round/>
               <span class="nickname">{{ userInfo?.nickName || $t('common.user') }}</span>
-              <n-icon><chevron-down-outline /></n-icon>
+              <n-icon>
+                <chevron-down-outline/>
+              </n-icon>
             </div>
           </n-dropdown>
         </n-space>
@@ -27,8 +29,8 @@
       <n-layout-content content-style="padding: 16px;">
         <n-card class="content-card">
           <router-view v-slot="{ Component }">
-            <transition name="fade" mode="out-in">
-              <component :is="Component" />
+            <transition mode="out-in" name="fade">
+              <component :is="Component"/>
             </transition>
           </router-view>
         </n-card>
@@ -37,7 +39,7 @@
   </n-layout>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import type {Component} from 'vue'
 import {computed, h, onMounted} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
@@ -50,7 +52,7 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 const theme = useThemeStore()
-const { t } = useI18n()
+const {t} = useI18n()
 
 // 获取用户信息
 const userInfo = computed(() => userStore.userInfo)
@@ -82,7 +84,7 @@ const userMenuOptions = computed(() => [
 
 // 渲染图标的辅助函数
 function renderIcon(icon: Component) {
-  return () => h(NIcon, null, { default: () => h(icon) })
+  return () => h(NIcon, null, {default: () => h(icon)})
 }
 
 // 处理用户菜单选择
@@ -104,7 +106,7 @@ const handleUserMenuSelect = async (key: string) => {
 // 初始化主题和用户信息
 onMounted(async () => {
   theme.initSettings()
-  
+
   // 如果已登录，刷新用户信息
   if (userStore.isLogin) {
     await userStore.refreshUserInfo()

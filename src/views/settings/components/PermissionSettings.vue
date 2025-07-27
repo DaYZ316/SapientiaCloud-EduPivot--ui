@@ -2,20 +2,30 @@
   <div class="permission-settings-container">
     <n-card :title="$t('settings.permission.title')" size="small">
       <!-- 搜索表单 -->
-      <n-form :model="searchForm" inline class="search-form">
+      <n-form :model="searchForm" class="search-form" inline>
         <n-form-item :label="$t('settings.permission.searchForm.permissionName')" path="permissionName">
-          <n-input v-model:value="searchForm.permissionName" clearable :placeholder="$t('settings.permission.searchForm.permissionNamePlaceholder')" />
+          <n-input v-model:value="searchForm.permissionName" :placeholder="$t('settings.permission.searchForm.permissionNamePlaceholder')"
+                   clearable/>
         </n-form-item>
         <n-form-item :label="$t('settings.permission.searchForm.permissionKey')" path="permissionKey">
-          <n-input v-model:value="searchForm.permissionKey" clearable :placeholder="$t('settings.permission.searchForm.permissionKeyPlaceholder')" />
+          <n-input v-model:value="searchForm.permissionKey" :placeholder="$t('settings.permission.searchForm.permissionKeyPlaceholder')"
+                   clearable/>
         </n-form-item>
         <n-form-item>
           <n-button type="primary" @click="handleSearch">
-            <template #icon><n-icon><search-outline /></n-icon></template>
+            <template #icon>
+              <n-icon>
+                <search-outline/>
+              </n-icon>
+            </template>
             {{ $t('settings.permission.searchForm.search') }}
           </n-button>
           <n-button class="ml-2" @click="resetSearch">
-            <template #icon><n-icon><refresh-outline /></n-icon></template>
+            <template #icon>
+              <n-icon>
+                <refresh-outline/>
+              </n-icon>
+            </template>
             {{ $t('settings.permission.searchForm.reset') }}
           </n-button>
         </n-form-item>
@@ -24,120 +34,126 @@
       <!-- 操作按钮 -->
       <div class="table-actions">
         <n-button type="primary" @click="handleAdd">
-          <template #icon><n-icon><add-outline /></n-icon></template>
+          <template #icon>
+            <n-icon>
+              <add-outline/>
+            </n-icon>
+          </template>
           {{ $t('settings.permission.actions.add') }}
         </n-button>
       </div>
 
       <!-- 权限表格 -->
       <page-table
-        ref="pageTableRef"
-        :columns="columns"
-        :api-fn="sysPermissionList"
-        :query-params="searchForm"
-        :auto-search="false"
-        size="small"
-        @update:data="onDataUpdate"
+          ref="pageTableRef"
+          :api-fn="sysPermissionList"
+          :auto-search="false"
+          :columns="columns"
+          :query-params="searchForm"
+          size="small"
+          @update:data="onDataUpdate"
       />
     </n-card>
-    
+
     <!-- 添加权限对话框 -->
-    <n-modal v-model:show="showAddModal" :title="$t('settings.permission.addPermission.title')" preset="card" style="width: 600px">
+    <n-modal v-model:show="showAddModal" :title="$t('settings.permission.addPermission.title')" preset="card"
+             style="width: 600px">
       <n-form
-        ref="addFormRef"
-        :model="addPermissionForm"
-        :rules="permissionFormRules"
-        :style="{ maxWidth: '540px' }"
+          ref="addFormRef"
+          :model="addPermissionForm"
+          :rules="permissionFormRules"
+          :style="{ maxWidth: '540px' }"
       >
         <n-form-item :label="$t('settings.permission.addPermission.parentId')" path="parentId">
-          <n-tree-select 
-            v-model:value="addPermissionForm.parentId" 
-            :options="permissionTreeOptions"
-            :placeholder="$t('settings.permission.addPermission.parentIdPlaceholder')"
-            filterable
-            clearable
-            :virtual-scroll="true"
-            :loading="treeLoading"
+          <n-tree-select
+              v-model:value="addPermissionForm.parentId"
+              :loading="treeLoading"
+              :options="permissionTreeOptions"
+              :placeholder="$t('settings.permission.addPermission.parentIdPlaceholder')"
+              :virtual-scroll="true"
+              clearable
+              filterable
           />
         </n-form-item>
-        
+
         <n-form-item :label="$t('settings.permission.addPermission.permissionName')" path="permissionName">
-          <n-input 
-            v-model:value="addPermissionForm.permissionName" 
-            :placeholder="$t('settings.permission.addPermission.permissionNamePlaceholder')"
+          <n-input
+              v-model:value="addPermissionForm.permissionName"
+              :placeholder="$t('settings.permission.addPermission.permissionNamePlaceholder')"
           />
         </n-form-item>
-        
+
         <n-form-item :label="$t('settings.permission.addPermission.permissionKey')" path="permissionKey">
-          <n-input 
-            v-model:value="addPermissionForm.permissionKey" 
-            :placeholder="$t('settings.permission.addPermission.permissionKeyPlaceholder')"
+          <n-input
+              v-model:value="addPermissionForm.permissionKey"
+              :placeholder="$t('settings.permission.addPermission.permissionKeyPlaceholder')"
           />
         </n-form-item>
-        
+
         <n-form-item :label="$t('settings.permission.addPermission.sort')" path="sort">
-          <n-input-number 
-            v-model:value="addPermissionForm.sort" 
-            :placeholder="$t('settings.permission.addPermission.sortPlaceholder')"
+          <n-input-number
+              v-model:value="addPermissionForm.sort"
+              :placeholder="$t('settings.permission.addPermission.sortPlaceholder')"
           />
         </n-form-item>
       </n-form>
-      
+
       <template #footer>
         <n-space justify="end">
           <n-button @click="closeAddModal">{{ $t('settings.permission.addPermission.cancel') }}</n-button>
-          <n-button type="primary" :loading="submitting" @click="submitAddPermission">
+          <n-button :loading="submitting" type="primary" @click="submitAddPermission">
             {{ $t('settings.permission.addPermission.submit') }}
           </n-button>
         </n-space>
       </template>
     </n-modal>
-    
+
     <!-- 编辑权限对话框 -->
-    <n-modal v-model:show="showEditModal" :title="$t('settings.permission.updatePermission.title')" preset="card" style="width: 600px">
+    <n-modal v-model:show="showEditModal" :title="$t('settings.permission.updatePermission.title')" preset="card"
+             style="width: 600px">
       <n-form
-        ref="editFormRef"
-        :model="updatePermissionForm"
-        :rules="permissionFormRules"
-        :style="{ maxWidth: '540px' }"
+          ref="editFormRef"
+          :model="updatePermissionForm"
+          :rules="permissionFormRules"
+          :style="{ maxWidth: '540px' }"
       >
         <n-form-item :label="$t('settings.permission.updatePermission.parentId')" path="parentId">
-          <n-select 
-            v-model:value="updatePermissionForm.parentId" 
-            :options="editParentOptions"
-            :placeholder="$t('settings.permission.updatePermission.parentIdPlaceholder')"
-            filterable
-            clearable
-            :disabled="isParentPermissionDisabled"
+          <n-select
+              v-model:value="updatePermissionForm.parentId"
+              :disabled="isParentPermissionDisabled"
+              :options="editParentOptions"
+              :placeholder="$t('settings.permission.updatePermission.parentIdPlaceholder')"
+              clearable
+              filterable
           />
         </n-form-item>
-        
+
         <n-form-item :label="$t('settings.permission.updatePermission.permissionName')" path="permissionName">
-          <n-input 
-            v-model:value="updatePermissionForm.permissionName" 
-            :placeholder="$t('settings.permission.updatePermission.permissionNamePlaceholder')"
+          <n-input
+              v-model:value="updatePermissionForm.permissionName"
+              :placeholder="$t('settings.permission.updatePermission.permissionNamePlaceholder')"
           />
         </n-form-item>
-        
+
         <n-form-item :label="$t('settings.permission.updatePermission.permissionKey')" path="permissionKey">
-          <n-input 
-            v-model:value="updatePermissionForm.permissionKey" 
-            :placeholder="$t('settings.permission.updatePermission.permissionKeyPlaceholder')"
+          <n-input
+              v-model:value="updatePermissionForm.permissionKey"
+              :placeholder="$t('settings.permission.updatePermission.permissionKeyPlaceholder')"
           />
         </n-form-item>
-        
+
         <n-form-item :label="$t('settings.permission.updatePermission.sort')" path="sort">
-          <n-input-number 
-            v-model:value="updatePermissionForm.sort" 
-            :placeholder="$t('settings.permission.updatePermission.sortPlaceholder')"
+          <n-input-number
+              v-model:value="updatePermissionForm.sort"
+              :placeholder="$t('settings.permission.updatePermission.sortPlaceholder')"
           />
         </n-form-item>
       </n-form>
-      
+
       <template #footer>
         <n-space justify="end">
           <n-button @click="closeEditModal">{{ $t('settings.permission.updatePermission.cancel') }}</n-button>
-          <n-button type="primary" :loading="submitting" @click="submitUpdatePermission">
+          <n-button :loading="submitting" type="primary" @click="submitUpdatePermission">
             {{ $t('settings.permission.updatePermission.submit') }}
           </n-button>
         </n-space>
@@ -146,8 +162,8 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import {computed, h, onMounted, reactive, ref} from 'vue'
+<script lang="ts" setup>
+import {computed, h, reactive, ref} from 'vue'
 import type {FormInst, FormRules, TreeSelectOption} from 'naive-ui'
 import {NIcon} from 'naive-ui'
 import {AddOutline, CreateOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
@@ -172,7 +188,7 @@ import {getDialogInstance, getMessageInstance} from '@/utils/http'
 
 const message = getMessageInstance()
 const dialog = getDialogInstance()
-const { t, locale } = useI18n()
+const {t, locale} = useI18n()
 
 // 搜索表单
 const searchForm = reactive<PermissionPageQueryDTO>(getDefaultPermissionQuery())
@@ -219,29 +235,29 @@ const isParentPermissionDisabled = computed(() => {
 // 权限表单验证规则
 const permissionFormRules = reactive<FormRules>({
   permissionName: [
-    { required: true, message: t('settings.permission.rules.permissionNameRequired'), trigger: 'blur' },
-    { min: 2, max: 30, message: t('settings.permission.rules.permissionNameLength'), trigger: 'blur' }
+    {required: true, message: t('settings.permission.rules.permissionNameRequired'), trigger: 'blur'},
+    {min: 2, max: 30, message: t('settings.permission.rules.permissionNameLength'), trigger: 'blur'}
   ],
   permissionKey: [
-    { required: true, message: t('settings.permission.rules.permissionKeyRequired'), trigger: 'blur' },
-    { min: 2, max: 100, message: t('settings.permission.rules.permissionKeyLength'), trigger: 'blur' }
+    {required: true, message: t('settings.permission.rules.permissionKeyRequired'), trigger: 'blur'},
+    {min: 2, max: 100, message: t('settings.permission.rules.permissionKeyLength'), trigger: 'blur'}
   ]
 })
 
 // 表格列定义
 const columns = computed(() => [
-  { title: t('settings.permission.table.permissionName'), key: 'permissionName' },
-  { title: t('settings.permission.table.permissionKey'), key: 'permissionKey' },
-  { 
-    title: t('settings.permission.table.parentId'), 
+  {title: t('settings.permission.table.permissionName'), key: 'permissionName'},
+  {title: t('settings.permission.table.permissionKey'), key: 'permissionKey'},
+  {
+    title: t('settings.permission.table.parentId'),
     key: 'parentId',
     render(row: SysPermissionVO) {
       const parent = parentPermissionOptions.value.find(item => item.value === row.parentId)
       return parent ? parent.label : '-'
     }
   },
-  { title: t('settings.permission.table.sort'), key: 'sort' },
-  { title: t('settings.permission.table.createTime'), key: 'createTime' },
+  {title: t('settings.permission.table.sort'), key: 'sort'},
+  {title: t('settings.permission.table.createTime'), key: 'createTime'},
   {
     title: t('settings.permission.table.actions'),
     key: 'actions',
@@ -249,27 +265,27 @@ const columns = computed(() => [
     render(row: SysPermissionVO) {
       return [
         h(
-          'button',
-          {
-            class: 'n-button n-button--tertiary n-button--small',
-            style: { marginRight: '8px' },
-            onClick: () => handleEdit(row)
-          },
-          [
-            h(NIcon, null, { default: () => h(CreateOutline) }),
-            ' ' + t('settings.permission.actions.edit')
-          ]
+            'button',
+            {
+              class: 'n-button n-button--tertiary n-button--small',
+              style: {marginRight: '8px'},
+              onClick: () => handleEdit(row)
+            },
+            [
+              h(NIcon, null, {default: () => h(CreateOutline)}),
+              ' ' + t('settings.permission.actions.edit')
+            ]
         ),
         h(
-          'button',
-          {
-            class: 'n-button n-button--error n-button--small',
-            onClick: () => handleDelete(row)
-          },
-          [
-            h(NIcon, null, { default: () => h(TrashOutline) }),
-            ' ' + t('settings.permission.actions.delete')
-          ]
+            'button',
+            {
+              class: 'n-button n-button--error n-button--small',
+              onClick: () => handleDelete(row)
+            },
+            [
+              h(NIcon, null, {default: () => h(TrashOutline)}),
+              ' ' + t('settings.permission.actions.delete')
+            ]
         )
       ]
     }
@@ -297,18 +313,18 @@ function onDataUpdate(data: SysPermissionVO[]) {
 function updateParentPermissionOptions() {
   // 表格显示用的父级权限选项，包含所有权限
   parentPermissionOptions.value = permissionList.value
-    .map(item => ({
-      label: item.permissionName,
-      value: item.id
-    }))
-    
+      .map(item => ({
+        label: item.permissionName,
+        value: item.id
+      }))
+
   // 编辑对话框用的父级权限选项，过滤掉当前正在编辑的权限（不能选自己作为父级）
   editParentOptions.value = permissionList.value
-    .filter(item => item.id !== currentEditingPermissionId.value)
-    .map(item => ({
-      label: item.permissionName,
-      value: item.id
-    }))
+      .filter(item => item.id !== currentEditingPermissionId.value)
+      .map(item => ({
+        label: item.permissionName,
+        value: item.id
+      }))
 }
 
 // 加载所有权限数据
@@ -318,10 +334,10 @@ async function loadAllPermissions() {
     // 使用权限树API获取所有权限
     const response = await getPermissionTree()
     allPermissions.value = response?.data || []
-    
+
     // 将扁平的权限列表转为树形选项
     permissionTreeOptions.value = convertToTreeSelectOptions(allPermissions.value)
-    
+
     // 更新父级权限选项
     updateParentPermissionOptions()
   } catch (error) {
@@ -339,9 +355,9 @@ function convertToTreeSelectOptions(permissions: SysPermissionVO[]): TreeSelectO
     key: perm.id,
     label: perm.permissionName,
     value: perm.id,
-    children: perm.children && perm.children.length > 0 
-      ? convertToTreeSelectOptions(perm.children) 
-      : []
+    children: perm.children && perm.children.length > 0
+        ? convertToTreeSelectOptions(perm.children)
+        : []
   }))
 }
 
@@ -355,10 +371,10 @@ function handleEdit(row: SysPermissionVO) {
     permissionKey: row.permissionKey,
     sort: row.sort || 0
   })
-  
+
   // 更新父级权限选项列表
   updateParentPermissionOptions()
-  
+
   // 不在编辑对话框打开前加载权限树
   showEditModal.value = true
 }
@@ -373,18 +389,18 @@ function closeEditModal() {
 // 提交编辑权限
 async function submitUpdatePermission() {
   if (!currentEditingPermissionId.value) return
-  
+
   try {
     // 表单验证
     await editFormRef.value?.validate()
-    
+
     submitting.value = true
     try {
       await updatePermission(updatePermissionForm)
       message.success(t('settings.permission.messages.editSuccess'))
       closeEditModal()
       pageTableRef.value?.fetchData()
-      
+
       // 编辑成功后清空树数据，下次打开对话框时重新加载
       allPermissions.value = []
       permissionTreeOptions.value = []
@@ -412,7 +428,7 @@ async function handleDelete(row: SysPermissionVO) {
         await removePermission(row.id)
         message.success(t('settings.permission.messages.deleteSuccess'))
         pageTableRef.value?.fetchData()
-        
+
         // 删除成功后清空树数据，下次打开对话框时重新加载
         allPermissions.value = []
         permissionTreeOptions.value = []
@@ -439,14 +455,14 @@ function closeAddModal() {
 async function submitAddPermission() {
   try {
     await addFormRef.value?.validate()
-    
+
     submitting.value = true
     try {
       await addPermission(addPermissionForm)
       message.success(t('settings.permission.messages.addSuccess'))
       closeAddModal()
       pageTableRef.value?.fetchData()
-      
+
       // 添加成功后清空树数据，下次打开对话框时重新加载
       allPermissions.value = []
       permissionTreeOptions.value = []
@@ -465,7 +481,7 @@ async function submitAddPermission() {
 // 新增权限
 async function handleAdd() {
   resetAddPermissionForm()
-  
+
   // 在对话框打开前加载权限树
   await loadAllPermissions()
   updateParentPermissionOptions() // 重新加载父级选项
@@ -475,22 +491,22 @@ async function handleAdd() {
 
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .permission-settings-container {
   .search-form {
     margin-bottom: 16px;
   }
-  
+
   .table-actions {
     display: flex;
     justify-content: flex-start;
     margin-bottom: 8px;
   }
-  
+
   .ml-2 {
     margin-left: 8px;
   }
-  
+
   .pagination-container {
     display: flex;
     justify-content: flex-end;

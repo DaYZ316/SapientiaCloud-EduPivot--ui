@@ -1,9 +1,11 @@
 <template>
   <div class="profile-container">
     <div class="page-header">
-      <n-button quaternary circle @click="goBack">
+      <n-button circle quaternary @click="goBack">
         <template #icon>
-          <n-icon><arrow-back-outline /></n-icon>
+          <n-icon>
+            <arrow-back-outline/>
+          </n-icon>
         </template>
       </n-button>
     </div>
@@ -11,10 +13,10 @@
       <div class="profile-bg"></div>
       <div class="profile-avatar-container">
         <n-avatar
-          :src="userInfo?.avatar || '/default-avatar.png'"
-          :size="120"
-          round
-          class="profile-avatar"
+            :size="120"
+            :src="userInfo?.avatar || '/default-avatar.png'"
+            class="profile-avatar"
+            round
         />
       </div>
       <h1 class="profile-name">{{ userInfo?.nickName || userInfo?.username }}</h1>
@@ -36,8 +38,8 @@
     </div>
 
     <div class="profile-tabs">
-      <n-tabs type="line" animated :default-value="'info'" class="custom-tabs">
-        <n-tab-pane name="info" :tab="$t('profile.basicInfo')">
+      <n-tabs :default-value="'info'" animated class="custom-tabs" type="line">
+        <n-tab-pane :tab="$t('profile.basicInfo')" name="info">
           <div class="profile-section">
             <n-card :bordered="false" class="info-card">
               <n-descriptions bordered>
@@ -55,7 +57,9 @@
                 </n-descriptions-item>
                 <n-descriptions-item :label="$t('settings.personal.accountStatus')">
                   <n-tag :type="userInfo?.status === 0 ? 'success' : 'error'">
-                    {{ userInfo?.status === 0 ? $t('settings.personal.statusNormal') : $t('settings.personal.statusDisabled') }}
+                    {{
+                      userInfo?.status === 0 ? $t('settings.personal.statusNormal') : $t('settings.personal.statusDisabled')
+                    }}
                   </n-tag>
                 </n-descriptions-item>
                 <n-descriptions-item :label="$t('settings.personal.lastLoginTime')">
@@ -71,9 +75,9 @@
           </div>
         </n-tab-pane>
 
-        <n-tab-pane name="roles" :tab="$t('profile.roleInfo')">
+        <n-tab-pane :tab="$t('profile.roleInfo')" name="roles">
           <div class="profile-section">
-            <n-card :bordered="false" title-placement="left" class="roles-card">
+            <n-card :bordered="false" class="roles-card" title-placement="left">
               <template #header>
                 <div class="roles-header">
                   <h3 class="section-title">{{ $t('profile.yourRoles') }}</h3>
@@ -81,11 +85,11 @@
               </template>
               <div class="roles-grid">
                 <n-collapse accordion arrow-placement="right">
-                  <n-collapse-item 
-                    v-for="role in userRoles" 
-                    :key="role.id"
-                    :title="role.roleName"
-                    :name="role.id"
+                  <n-collapse-item
+                      v-for="role in userRoles"
+                      :key="role.id"
+                      :name="role.id"
+                      :title="role.roleName"
                   >
                     <n-space vertical>
                       <div class="role-item">
@@ -97,7 +101,9 @@
                           <div class="role-row">
                             <span class="role-label">{{ $t('profile.roleStatus') }}:</span>
                             <n-tag :type="role.status === 0 ? 'success' : 'error'" size="small">
-                              {{ role.status === 0 ? $t('settings.personal.statusNormal') : $t('settings.personal.statusDisabled') }}
+                              {{
+                                role.status === 0 ? $t('settings.personal.statusNormal') : $t('settings.personal.statusDisabled')
+                              }}
                             </n-tag>
                           </div>
                           <div class="role-row">
@@ -105,15 +111,15 @@
                             <span class="role-value">{{ role.description || '-' }}</span>
                           </div>
                         </div>
-                        <div class="role-permissions" v-if="role.permissions && role.permissions.length > 0">
+                        <div v-if="role.permissions && role.permissions.length > 0" class="role-permissions">
                           <div class="permission-title">{{ $t('profile.rolePermissions') }}:</div>
                           <div class="permission-tags">
                             <n-tag
-                              v-for="perm in role.permissions"
-                              :key="perm.id"
-                              class="permission-tag"
-                              size="small"
-                              type="info"
+                                v-for="perm in role.permissions"
+                                :key="perm.id"
+                                class="permission-tag"
+                                size="small"
+                                type="info"
                             >
                               {{ perm.permissionName }}
                             </n-tag>
@@ -128,7 +134,7 @@
           </div>
         </n-tab-pane>
 
-        <n-tab-pane name="permissions" :tab="$t('profile.permissionInfo')">
+        <n-tab-pane :tab="$t('profile.permissionInfo')" name="permissions">
           <div class="profile-section">
             <n-card :bordered="false" class="permissions-card">
               <template #header>
@@ -137,13 +143,13 @@
                 </div>
               </template>
               <n-tree
-                block-line
-                :data="formattedPermissions"
-                :default-expanded-keys="['root']"
-                key-field="id"
-                label-field="name"
-                children-field="children"
-                class="permissions-tree"
+                  :data="formattedPermissions"
+                  :default-expanded-keys="['root']"
+                  block-line
+                  children-field="children"
+                  class="permissions-tree"
+                  key-field="id"
+                  label-field="name"
               />
             </n-card>
           </div>
@@ -153,7 +159,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import {computed} from 'vue'
 import {useRouter} from 'vue-router'
 import type {TreeOption} from 'naive-ui'
@@ -165,7 +171,7 @@ import type {SysPermissionVO} from '@/types/system'
 
 const router = useRouter()
 const userStore = useUserStore()
-const { t } = useI18n()
+const {t} = useI18n()
 const userInfo = computed(() => userStore.userInfo)
 const userRoles = computed(() => userStore.userInfo?.roles || [])
 const userPermissions = computed(() => {
@@ -173,15 +179,15 @@ const userPermissions = computed(() => {
   if (userStore.permissions && userStore.permissions.length > 0) {
     return userStore.permissions;
   }
-  
+
   // 否则从用户信息中提取权限
   const allPermissions: SysPermissionVO[] = [];
-  
+
   // 合并用户直接拥有的权限
   if (userInfo.value && userInfo.value.permissions) {
     allPermissions.push(...userInfo.value.permissions);
   }
-  
+
   // 合并角色中包含的权限
   if (userRoles.value && userRoles.value.length > 0) {
     userRoles.value.forEach(role => {
@@ -190,7 +196,7 @@ const userPermissions = computed(() => {
       }
     });
   }
-  
+
   // 去重
   const uniquePermissions = new Map<string, SysPermissionVO>();
   allPermissions.forEach(perm => {
@@ -198,7 +204,7 @@ const userPermissions = computed(() => {
       uniquePermissions.set(perm.id, perm);
     }
   });
-  
+
   return Array.from(uniquePermissions.values());
 })
 
@@ -213,7 +219,7 @@ const genderLabel = computed(() => {
 // 账户创建天数
 const accountAgeDays = computed(() => {
   if (!userInfo.value?.createTime) return 0
-  
+
   const createDate = new Date(userInfo.value.createTime)
   const today = new Date()
   const diffTime = today.getTime() - createDate.getTime()
@@ -223,7 +229,7 @@ const accountAgeDays = computed(() => {
 // 转换权限为树形结构以供渲染
 const formattedPermissions = computed<TreeOption[]>(() => {
   const permissions = userPermissions.value || [];
-  
+
   // 如果没有权限数据，返回只有根节点的树
   if (!permissions.length) {
     return [{
@@ -232,31 +238,31 @@ const formattedPermissions = computed<TreeOption[]>(() => {
       children: []
     }];
   }
-  
+
   // 找到所有顶级权限（没有父级或父级为空）
   const rootPermissions = permissions.filter(p => !p.parentId);
-  
+
   // 构建一个虚拟根节点
   const root: TreeOption = {
     id: 'root',
     name: t('profile.allPermissions'),
     children: []
   };
-  
+
   // 递归构建树
   const buildPermissionTree = (parentId: string): TreeOption[] => {
     const children = permissions
-      .filter(p => p.parentId === parentId)
-      .map(p => ({
-        id: p.id,
-        name: p.permissionName,
-        key: p.permissionKey,
-        children: buildPermissionTree(p.id)
-      }));
-    
+        .filter(p => p.parentId === parentId)
+        .map(p => ({
+          id: p.id,
+          name: p.permissionName,
+          key: p.permissionKey,
+          children: buildPermissionTree(p.id)
+        }));
+
     return children.length ? children : [];
   };
-  
+
   // 将顶级权限添加到虚拟根节点
   root.children = rootPermissions.map(p => ({
     id: p.id,
@@ -264,7 +270,7 @@ const formattedPermissions = computed<TreeOption[]>(() => {
     key: p.permissionKey,
     children: buildPermissionTree(p.id)
   }));
-  
+
   return [root];
 });
 
@@ -290,19 +296,19 @@ function goBack() {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .profile-container {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  
+
   .page-header {
     display: flex;
     align-items: center;
     margin-bottom: 16px;
   }
-  
+
   .profile-header {
     position: relative;
     display: flex;
@@ -314,7 +320,7 @@ function goBack() {
     overflow: hidden;
     border-radius: 12px;
     text-align: center;
-    
+
     .profile-bg {
       position: absolute;
       top: 0;
@@ -324,18 +330,18 @@ function goBack() {
       background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
       z-index: 0;
     }
-    
+
     .profile-avatar-container {
       position: relative;
       z-index: 2;
       margin-bottom: 16px;
-      
+
       .profile-avatar {
         border: 4px solid white;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       }
     }
-    
+
     .profile-name {
       font-size: 28px;
       font-weight: 600;
@@ -343,33 +349,33 @@ function goBack() {
       position: relative;
       z-index: 2;
     }
-    
+
     .profile-bio {
       color: #64748b;
       margin: 0 0 20px 0;
       position: relative;
       z-index: 2;
     }
-    
+
     .profile-stats {
       display: flex;
       justify-content: center;
       gap: 48px;
       position: relative;
       z-index: 2;
-      
+
       .stat-item {
         display: flex;
         flex-direction: column;
         align-items: center;
-        
+
         .stat-value {
           font-size: 24px;
           font-weight: 600;
           color: #334155;
           margin-bottom: 4px;
         }
-        
+
         .stat-label {
           font-size: 14px;
           color: #64748b;
@@ -377,16 +383,16 @@ function goBack() {
       }
     }
   }
-  
+
   .profile-tabs {
     .custom-tabs {
       margin-bottom: 24px;
     }
-    
+
     .profile-section {
       margin-bottom: 30px;
     }
-    
+
     .info-card {
       .action-buttons {
         display: flex;
@@ -394,49 +400,49 @@ function goBack() {
         margin-top: 24px;
       }
     }
-    
+
     .section-title {
       font-size: 18px;
       font-weight: 500;
       margin: 0 0 16px 0;
       color: #334155;
     }
-    
+
     .roles-card {
       .roles-grid {
         display: grid;
         grid-template-columns: 1fr;
         gap: 16px;
-        
+
         .role-item {
           padding: 16px;
-          
+
           .role-content {
             margin-bottom: 16px;
-            
+
             .role-row {
               display: flex;
               align-items: center;
               margin-bottom: 8px;
-              
+
               .role-label {
                 font-weight: 500;
                 width: 120px;
                 flex-shrink: 0;
               }
-              
+
               .role-value {
                 color: #64748b;
               }
             }
           }
-          
+
           .role-permissions {
             .permission-title {
               font-weight: 500;
               margin-bottom: 12px;
             }
-            
+
             .permission-tags {
               display: flex;
               flex-wrap: wrap;
@@ -446,7 +452,7 @@ function goBack() {
         }
       }
     }
-    
+
     .permissions-card {
       .permissions-tree {
         max-height: 600px;
@@ -459,7 +465,7 @@ function goBack() {
 @media (max-width: 768px) {
   .profile-container {
     padding: 12px;
-    
+
     .profile-header {
       .profile-stats {
         gap: 24px;

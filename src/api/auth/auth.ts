@@ -3,58 +3,58 @@ import type {SysUserLoginDTO, SysUserPasswordDTO, SysUserRegisterDTO} from '@/ty
 
 // 获取默认用户登录DTO
 export function getDefaultSysUserLoginDTO(): SysUserLoginDTO {
-  return {
-    username: null,
-    password: null
-  }
+    return {
+        username: null,
+        password: null
+    }
 }
 
 // 获取默认用户注册DTO
 export function getDefaultSysUserRegisterDTO(): SysUserRegisterDTO {
-  return {
-    username: null,
-    password: null,
-    confirmPassword: null,
-    avatar: null,
-    nickName: null
-  }
+    return {
+        username: null,
+        password: null,
+        confirmPassword: null,
+        avatar: null,
+        nickName: null
+    }
 }
 
 // 获取默认密码修改DTO
 export function getDefaultSysUserPasswordDTO(): SysUserPasswordDTO {
-  return {
-    currentPassword: null,
-    newPassword: null,
-    confirmPassword: null
-  }
+    return {
+        currentPassword: null,
+        newPassword: null,
+        confirmPassword: null
+    }
 }
 
 // 用户登录
 export function login(params: SysUserLoginDTO) {
-  return http.post('/auth/login', params)
+    return http.post('/auth/login', params)
 }
 
 // 用户注册
 export function register(params: SysUserRegisterDTO) {
-  return http.post('/auth/register', params)
+    return http.post('/auth/register', params)
 }
 
 // 用户登出
 export function logout() {
-  return http.post('/auth/logout')
+    return http.post('/auth/logout')
 }
 
 // 验证令牌
 export function validate(token: string) {
-  return http.get('/auth/validate', { token })
+    return http.get('/auth/validate', {token})
 }
 
 // 获取当前登录用户信息
 export function getCurrentUser() {
-  return http.get('/auth/info')
+    return http.get('/auth/info')
 }
 
 // 修改用户密码
 export function updatePassword(data: SysUserPasswordDTO) {
-  return http.put('/auth/internal/password', data)
+    return http.put('/auth/internal/password', data)
 } 

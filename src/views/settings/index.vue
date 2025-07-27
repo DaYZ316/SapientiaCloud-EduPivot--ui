@@ -1,44 +1,46 @@
 <template>
   <div class="settings-container">
     <div class="page-header">
-      <n-button quaternary circle @click="goBack">
+      <n-button circle quaternary @click="goBack">
         <template #icon>
-          <n-icon><arrow-back-outline /></n-icon>
+          <n-icon>
+            <arrow-back-outline/>
+          </n-icon>
         </template>
       </n-button>
       <h1 class="page-title">{{ $t('menu.settings') }}</h1>
     </div>
-    
-    <n-tabs type="line" animated>
+
+    <n-tabs animated type="line">
       <!-- 个人设置 -->
-      <n-tab-pane name="personal" :tab="$t('settings.tabs.personal')">
-        <personal-settings />
+      <n-tab-pane :tab="$t('settings.tabs.personal')" name="personal">
+        <personal-settings/>
       </n-tab-pane>
-      
+
       <!-- 用户设置 -->
-      <n-tab-pane name="user" :tab="$t('settings.tabs.user')">
-        <user-settings />
+      <n-tab-pane :tab="$t('settings.tabs.user')" name="user">
+        <user-settings/>
       </n-tab-pane>
-      
+
       <!-- 角色设置 -->
-      <n-tab-pane name="role" :tab="$t('settings.tabs.role')">
-        <role-settings />
+      <n-tab-pane :tab="$t('settings.tabs.role')" name="role">
+        <role-settings/>
       </n-tab-pane>
-      
+
       <!-- 权限设置 -->
-      <n-tab-pane name="permission" :tab="$t('settings.tabs.permission')">
-        <permission-settings />
+      <n-tab-pane :tab="$t('settings.tabs.permission')" name="permission">
+        <permission-settings/>
       </n-tab-pane>
-      
+
       <!-- 系统设置 -->
-      <n-tab-pane name="system" :tab="$t('settings.tabs.system')">
-        <system-settings />
+      <n-tab-pane :tab="$t('settings.tabs.system')" name="system">
+        <system-settings/>
       </n-tab-pane>
     </n-tabs>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import {defineAsyncComponent} from 'vue'
 import {useRouter} from 'vue-router'
 import {NButton, NIcon} from 'naive-ui'
@@ -59,13 +61,13 @@ function goBack() {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .settings-container {
   .page-header {
     display: flex;
     align-items: center;
     margin-bottom: 24px;
-    
+
     .page-title {
       margin: 0 0 0 12px;
       font-weight: 500;

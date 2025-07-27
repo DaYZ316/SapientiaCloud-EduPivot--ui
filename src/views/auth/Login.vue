@@ -1,37 +1,37 @@
 <template>
   <div class="login-container">
-    <n-card class="login-card" :title="$t('app.name')" bordered>
+    <n-card :title="$t('app.name')" bordered class="login-card">
       <n-form
-        ref="formRef"
-        label-placement="left"
-        :model="formValue"
-        :rules="rules"
-        size="large"
+          ref="formRef"
+          :model="formValue"
+          :rules="rules"
+          label-placement="left"
+          size="large"
       >
-        <n-form-item :path="'username'" :label="$t('auth.username')">
+        <n-form-item :label="$t('auth.username')" :path="'username'">
           <n-input
-            v-model:value="formValue.username"
-            :placeholder="$t('auth.username')"
-            @keyup.enter="handleSubmit"
+              v-model:value="formValue.username"
+              :placeholder="$t('auth.username')"
+              @keyup.enter="handleSubmit"
           >
             <template #prefix>
               <n-icon>
-                <PersonOutline />
+                <PersonOutline/>
               </n-icon>
             </template>
           </n-input>
         </n-form-item>
-        <n-form-item :path="'password'" :label="$t('auth.password')">
+        <n-form-item :label="$t('auth.password')" :path="'password'">
           <n-input
-            v-model:value="formValue.password"
-            type="password"
-            :placeholder="$t('auth.password')"
-            show-password-on="click"
-            @keyup.enter="handleSubmit"
+              v-model:value="formValue.password"
+              :placeholder="$t('auth.password')"
+              show-password-on="click"
+              type="password"
+              @keyup.enter="handleSubmit"
           >
             <template #prefix>
               <n-icon>
-                <LockClosedOutline />
+                <LockClosedOutline/>
               </n-icon>
             </template>
           </n-input>
@@ -41,11 +41,11 @@
           <a href="#" @click.prevent="handleForgetPassword">{{ $t('auth.forgotPassword') }}</a>
         </div>
         <n-button
-          type="primary"
-          size="large"
-          block
-          :loading="loading"
-          @click="handleSubmit"
+            :loading="loading"
+            block
+            size="large"
+            type="primary"
+            @click="handleSubmit"
         >
           {{ $t('auth.login') }}
         </n-button>
@@ -58,7 +58,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import {reactive, ref} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
@@ -71,7 +71,7 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 const message = getMessageInstance()
-const { t } = useI18n()
+const {t} = useI18n()
 
 // 表单引用
 const formRef = ref(null)
@@ -91,26 +91,26 @@ const formValue = reactive({
 // 表单验证规则
 const rules = {
   username: [
-    { required: true, message: t('auth.usernameRequired'), trigger: ['blur', 'input'] }
+    {required: true, message: t('auth.usernameRequired'), trigger: ['blur', 'input']}
   ],
   password: [
-    { required: true, message: t('auth.passwordRequired'), trigger: ['blur', 'input'] }
+    {required: true, message: t('auth.passwordRequired'), trigger: ['blur', 'input']}
   ]
 }
 
 // 登录处理
 const handleSubmit = async () => {
   if (loading.value) return
-  
+
   try {
     loading.value = true
-    
+
     // 调用登录接口
     const success = await userStore.login(formValue.username, formValue.password)
-    
+
     if (success) {
       message.success(t('auth.loginSuccess'))
-      
+
       // 如果存在重定向，则跳转到该页面，否则跳转到首页
       const redirectPath = route.query.redirect as string
       router.replace(redirectPath || '/dashboard')
@@ -163,7 +163,7 @@ const handleForgetPassword = () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
-  
+
   a {
     color: var(--primary-color);
   }
@@ -172,7 +172,7 @@ const handleForgetPassword = () => {
 .login-footer {
   margin-top: 24px;
   text-align: center;
-  
+
   a {
     color: var(--primary-color);
     margin-left: 8px;

@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {darkTheme} from 'naive-ui'
 import {useThemeStore, useUserStore} from '@/store'
 import {computed, onMounted} from 'vue'
@@ -38,7 +38,7 @@ onMounted(async () => {
 
 <template>
   <n-config-provider :theme="currentTheme" :theme-overrides="themeOverrides">
-    <router-view />
+    <router-view/>
   </n-config-provider>
 </template>
 

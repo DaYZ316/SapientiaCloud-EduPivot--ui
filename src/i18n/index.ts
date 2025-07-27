@@ -7,25 +7,25 @@ import {useStorage} from '@vueuse/core'
 const defaultLocale = useStorage('language', 'zh-CN')
 
 const messages = {
-  'zh-CN': zh,
-  'en-US': en
+    'zh-CN': zh,
+    'en-US': en
 }
 
 // 创建i18n实例
 const i18n = createI18n({
-  legacy: false, // 使用组合式API
-  locale: defaultLocale.value,
-  fallbackLocale: 'zh-CN', // 降级语言
-  messages,
-  globalInjection: true, // 全局注册$t方法
+    legacy: false, // 使用组合式API
+    locale: defaultLocale.value,
+    fallbackLocale: 'zh-CN', // 降级语言
+    messages,
+    globalInjection: true, // 全局注册$t方法
 })
 
 // 提供切换语言的函数
 export function setLanguage(locale: "zh-CN" | "en-US") {
-  i18n.global.locale.value = locale
-  defaultLocale.value = locale
-  // 设置HTML的lang属性
-  document.querySelector('html')?.setAttribute('lang', locale)
+    i18n.global.locale.value = locale
+    defaultLocale.value = locale
+    // 设置HTML的lang属性
+    document.querySelector('html')?.setAttribute('lang', locale)
 }
 
 // 初始化HTML的lang属性

@@ -31,7 +31,7 @@ const getRandomPolarCoordinate = (radius) => {
   const x = radius * Math.sin(theta) * Math.cos(phi)
   const y = radius * Math.sin(theta) * Math.sin(phi)
   const z = radius * Math.cos(theta)
-  return { x, y, z }
+  return {x, y, z}
 }
 
 // 初始化场景
@@ -41,17 +41,17 @@ const initializeScene = () => {
 
   // 创建相机
   camera = new THREE.PerspectiveCamera(
-    35,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    1000
+      35,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
   )
   camera.position.set(7, 4, 7)
 
   // 创建渲染器
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+  renderer = new THREE.WebGLRenderer({antialias: true, alpha: true})
   renderer.setSize(window.innerWidth, window.innerHeight)
-  
+
   if (galaxyContainer.value) {
     galaxyContainer.value.appendChild(renderer.domElement)
   }
@@ -80,33 +80,33 @@ const generateGalaxy = () => {
   const size = 64
   canvas.width = size
   canvas.height = size
-  
+
   // 创建星星纹理
   const gradient = ctx.createRadialGradient(
-    size / 2,
-    size / 2,
-    0,
-    size / 2,
-    size / 2,
-    size / 2
+      size / 2,
+      size / 2,
+      0,
+      size / 2,
+      size / 2,
+      size / 2
   )
   gradient.addColorStop(0, 'rgba(255,255,255,1)')
   gradient.addColorStop(0.2, 'rgba(240,240,240,0.8)')
   gradient.addColorStop(0.4, 'rgba(200,200,200,0.4)')
   gradient.addColorStop(0.6, 'rgba(160,160,160,0.2)')
   gradient.addColorStop(1, 'rgba(0,0,0,0)')
-  
+
   ctx.fillStyle = gradient
   ctx.fillRect(0, 0, size, size)
-  
+
   const particleTexture = new THREE.CanvasTexture(canvas)
-  
+
   // 创建新粒子
   const positions = new Float32Array(params.particleCount * 3)
   const colors = new Float32Array(params.particleCount * 3)
   const innerColor = new THREE.Color(params.innerColor)
   const outerColor = new THREE.Color(params.outerColor)
-  
+
   for (let i = 0; i < params.particleCount; i++) {
     const i3 = i * 3
 
@@ -115,7 +115,7 @@ const generateGalaxy = () => {
     const spinAngle = params.spin * radius * Math.PI * 2
 
     const randRadius = Math.random() * params.radialRandomness * radius
-    const { x: randX, y: randY, z: randZ } = getRandomPolarCoordinate(randRadius)
+    const {x: randX, y: randY, z: randZ} = getRandomPolarCoordinate(randRadius)
 
     positions[i3] = radius * Math.cos(branchAngle + spinAngle) + randX
     positions[i3 + 1] = randY
@@ -136,7 +136,7 @@ const generateGalaxy = () => {
     transparent: true,
     alphaMap: particleTexture,
   })
-  
+
   geometry = new THREE.BufferGeometry()
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
@@ -150,10 +150,10 @@ const generateGalaxy = () => {
 // 动画循环
 const animate = () => {
   animationFrameId = requestAnimationFrame(animate)
-  
+
   if (controls) controls.update()
   if (geometry) geometry.rotateY(0.001 * spinDirection)
-  
+
   if (renderer && scene && camera) {
     renderer.render(scene, camera)
   }
@@ -180,7 +180,7 @@ onBeforeUnmount(() => {
   if (animationFrameId !== null) {
     cancelAnimationFrame(animationFrameId)
   }
-  
+
   if (geometry) geometry.dispose()
   if (material) material.dispose()
   if (renderer) renderer.dispose()

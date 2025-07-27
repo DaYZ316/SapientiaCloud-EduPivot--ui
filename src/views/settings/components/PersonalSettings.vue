@@ -1,22 +1,22 @@
 <template>
   <div class="personal-settings">
-    <n-card class="profile-card" :bordered="false">
+    <n-card :bordered="false" class="profile-card">
       <div class="profile-header">
         <div class="avatar-section">
           <n-upload
-            ref="uploadRef"
-            v-model:file-list="fileList"
-            :max="1"
-            :show-file-list="false"
-            accept=".jpg,.jpeg,.png"
-            :custom-request="customAvatarUpload"
-            @before-upload="beforeAvatarUpload"
+              ref="uploadRef"
+              v-model:file-list="fileList"
+              :custom-request="customAvatarUpload"
+              :max="1"
+              :show-file-list="false"
+              accept=".jpg,.jpeg,.png"
+              @before-upload="beforeAvatarUpload"
           >
             <n-avatar
-              :src="userInfo?.avatar || '/default-avatar.png'"
-              :size="80"
-              round
-              class="avatar-upload"
+                :size="80"
+                :src="userInfo?.avatar || '/default-avatar.png'"
+                class="avatar-upload"
+                round
             />
           </n-upload>
         </div>
@@ -29,31 +29,31 @@
       </div>
     </n-card>
 
-    <n-card class="info-card mt-4" :bordered="false">
-      <n-tabs type="line" animated>
-        <n-tab-pane name="basic" :tab="$t('settings.personal.basicInfo')">
+    <n-card :bordered="false" class="info-card mt-4">
+      <n-tabs animated type="line">
+        <n-tab-pane :tab="$t('settings.personal.basicInfo')" name="basic">
           <n-form
-            :model="personalForm"
-            ref="formRef"
-            label-placement="left"
-            label-width="120"
-            :rules="rules"
+              ref="formRef"
+              :model="personalForm"
+              :rules="rules"
+              label-placement="left"
+              label-width="120"
           >
             <n-grid :cols="24" :x-gap="24">
               <n-grid-item :span="12">
                 <n-form-item :label="$t('auth.username')" path="username">
                   <n-input
-                    v-model:value="personalForm.username"
-                    :placeholder="$t('settings.personal.usernamePlaceholder')"
-                    disabled
+                      v-model:value="personalForm.username"
+                      :placeholder="$t('settings.personal.usernamePlaceholder')"
+                      disabled
                   />
                 </n-form-item>
               </n-grid-item>
               <n-grid-item :span="12">
                 <n-form-item :label="$t('settings.personal.nickname')" path="nickName">
                   <n-input
-                    v-model:value="personalForm.nickName"
-                    :placeholder="$t('settings.personal.nicknamePlaceholder')"
+                      v-model:value="personalForm.nickName"
+                      :placeholder="$t('settings.personal.nicknamePlaceholder')"
                   />
                 </n-form-item>
               </n-grid-item>
@@ -63,16 +63,16 @@
               <n-grid-item :span="12">
                 <n-form-item :label="$t('settings.personal.email')" path="email">
                   <n-input
-                    v-model:value="personalForm.email"
-                    :placeholder="$t('settings.personal.emailPlaceholder')"
+                      v-model:value="personalForm.email"
+                      :placeholder="$t('settings.personal.emailPlaceholder')"
                   />
                 </n-form-item>
               </n-grid-item>
               <n-grid-item :span="12">
                 <n-form-item :label="$t('settings.personal.phone')" path="mobile">
                   <n-input
-                    v-model:value="personalForm.mobile"
-                    :placeholder="$t('settings.personal.phonePlaceholder')"
+                      v-model:value="personalForm.mobile"
+                      :placeholder="$t('settings.personal.phonePlaceholder')"
                   />
                 </n-form-item>
               </n-grid-item>
@@ -105,9 +105,9 @@
           </n-form>
         </n-tab-pane>
 
-        <n-tab-pane name="security" :tab="$t('settings.personal.security')">
+        <n-tab-pane :tab="$t('settings.personal.security')" name="security">
           <n-space vertical>
-            <n-card :bordered="false" size="small" class="password-card">
+            <n-card :bordered="false" class="password-card" size="small">
               <template #header>
                 <div class="flex-between">
                   <span>{{ $t('settings.personal.changePassword') }}</span>
@@ -119,12 +119,14 @@
               <div>{{ $t('settings.personal.passwordDesc') }}</div>
             </n-card>
 
-            <n-card :bordered="false" size="small" class="security-card">
+            <n-card :bordered="false" class="security-card" size="small">
               <template #header>
                 <div class="flex-between">
                   <span>{{ $t('settings.personal.accountStatus') }}</span>
                   <n-tag :type="userInfo?.status === 0 ? 'success' : 'error'">
-                    {{ userInfo?.status === 0 ? $t('settings.personal.statusNormal') : $t('settings.personal.statusDisabled') }}
+                    {{
+                      userInfo?.status === 0 ? $t('settings.personal.statusNormal') : $t('settings.personal.statusDisabled')
+                    }}
                   </n-tag>
                 </div>
               </template>
@@ -136,36 +138,37 @@
     </n-card>
 
     <!-- 修改密码的弹窗 -->
-    <n-modal v-model:show="showPasswordModal" preset="card" :title="$t('settings.personal.changePassword')" style="width: 500px;">
+    <n-modal v-model:show="showPasswordModal" :title="$t('settings.personal.changePassword')" preset="card"
+             style="width: 500px;">
       <n-form
-        :model="passwordForm"
-        ref="passwordFormRef"
-        label-placement="left"
-        label-width="140"
-        :rules="passwordRules"
+          ref="passwordFormRef"
+          :model="passwordForm"
+          :rules="passwordRules"
+          label-placement="left"
+          label-width="140"
       >
         <n-form-item :label="$t('settings.personal.currentPassword')" path="currentPassword">
           <n-input
-            v-model:value="passwordForm.currentPassword"
-            type="password"
-            show-password-on="click"
-            :placeholder="$t('settings.personal.currentPasswordPlaceholder')"
+              v-model:value="passwordForm.currentPassword"
+              :placeholder="$t('settings.personal.currentPasswordPlaceholder')"
+              show-password-on="click"
+              type="password"
           />
         </n-form-item>
         <n-form-item :label="$t('settings.personal.newPassword')" path="newPassword">
           <n-input
-            v-model:value="passwordForm.newPassword"
-            type="password"
-            show-password-on="click"
-            :placeholder="$t('settings.personal.newPasswordPlaceholder')"
+              v-model:value="passwordForm.newPassword"
+              :placeholder="$t('settings.personal.newPasswordPlaceholder')"
+              show-password-on="click"
+              type="password"
           />
         </n-form-item>
         <n-form-item :label="$t('settings.personal.confirmPassword')" path="confirmPassword">
           <n-input
-            v-model:value="passwordForm.confirmPassword"
-            type="password"
-            show-password-on="click"
-            :placeholder="$t('settings.personal.confirmPasswordPlaceholder')"
+              v-model:value="passwordForm.confirmPassword"
+              :placeholder="$t('settings.personal.confirmPasswordPlaceholder')"
+              show-password-on="click"
+              type="password"
           />
         </n-form-item>
         <div class="flex-center mt-4">
@@ -183,7 +186,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import {computed, onMounted, reactive, ref, watch} from 'vue'
 import type {FormInst, FormRules, UploadCustomRequestOptions, UploadFileInfo, UploadInst} from 'naive-ui'
 import {useUserStore} from '@/store'
@@ -199,7 +202,7 @@ const userStore = useUserStore()
 const router = useRouter()
 const dialog = getDialogInstance()
 const message = getMessageInstance()
-const { t } = useI18n()
+const {t} = useI18n()
 const formRef = ref<FormInst | null>(null)
 const passwordFormRef = ref<FormInst | null>(null)
 const uploadRef = ref<UploadInst | null>(null)
@@ -249,29 +252,29 @@ watch(showPasswordModal, (newVal) => {
 // 表单验证规则
 const rules: FormRules = {
   nickName: [
-    { required: true, message: t('settings.personal.nicknameRequired'), trigger: 'blur' }
+    {required: true, message: t('settings.personal.nicknameRequired'), trigger: 'blur'}
   ],
   email: [
-    { required: true, message: t('settings.personal.emailRequired'), trigger: 'blur' },
-    { type: 'email', message: t('settings.personal.emailInvalid'), trigger: 'blur' }
+    {required: true, message: t('settings.personal.emailRequired'), trigger: 'blur'},
+    {type: 'email', message: t('settings.personal.emailInvalid'), trigger: 'blur'}
   ],
   mobile: [
-    { required: true, message: t('settings.personal.phoneRequired'), trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: t('settings.personal.phoneInvalid'), trigger: 'blur' }
+    {required: true, message: t('settings.personal.phoneRequired'), trigger: 'blur'},
+    {pattern: /^1[3-9]\d{9}$/, message: t('settings.personal.phoneInvalid'), trigger: 'blur'}
   ]
 }
 
 // 密码表单验证规则
 const passwordRules: FormRules = {
   currentPassword: [
-    { required: true, message: t('settings.personal.currentPasswordRequired'), trigger: 'blur' }
+    {required: true, message: t('settings.personal.currentPasswordRequired'), trigger: 'blur'}
   ],
   newPassword: [
-    { required: true, message: t('settings.personal.newPasswordRequired'), trigger: 'blur' },
-    { min: 6, message: t('settings.personal.passwordLengthInvalid'), trigger: 'blur' }
+    {required: true, message: t('settings.personal.newPasswordRequired'), trigger: 'blur'},
+    {min: 6, message: t('settings.personal.passwordLengthInvalid'), trigger: 'blur'}
   ],
   confirmPassword: [
-    { required: true, message: t('settings.personal.confirmPasswordRequired'), trigger: 'blur' },
+    {required: true, message: t('settings.personal.confirmPasswordRequired'), trigger: 'blur'},
     {
       validator: (_, value) => value === passwordForm.newPassword,
       message: t('settings.personal.passwordsNotMatch'),
@@ -314,7 +317,7 @@ const savePersonalSettings = () => {
         const res = await updateUserProfile(userData)
         if (res.success && res.data) {
           message.success(t('settings.personal.updateSuccess'))
-          
+
           // 更新本地存储的用户信息
           await userStore.refreshUserInfo()
         } else {
@@ -347,12 +350,12 @@ const changePassword = () => {
         const res = await updatePassword(passwordData)
         if (res.success && res.data) {
           showPasswordModal.value = false
-          
+
           // 重置密码表单已经在watch中处理，此处代码可以删除
           // passwordForm.currentPassword = null
           // passwordForm.newPassword = null
           // passwordForm.confirmPassword = null
-          
+
           // 显示成功对话框
           dialog.success({
             title: t('settings.personal.passwordChangeSuccess'),
@@ -362,10 +365,10 @@ const changePassword = () => {
               try {
                 // 登出当前用户
                 await logout()
-                
+
                 // 清除用户状态
                 userStore.resetUserState()
-                
+
                 // 跳转到登录页
                 router.push('/login')
               } catch (error) {
@@ -392,31 +395,31 @@ const beforeAvatarUpload = (data: {
   file: UploadFileInfo
   fileList: UploadFileInfo[]
 }): boolean => {
-  const { file } = data
-  
+  const {file} = data
+
   // 验证文件类型
   if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.file?.type || '')) {
     message.error(t('settings.personal.avatarTypeError'))
     return false
   }
-  
+
   // 验证文件大小 (2MB)
   if ((file.file?.size || 0) > 2 * 1024 * 1024) {
     message.error(t('settings.personal.avatarSizeError'))
     return false
   }
-  
+
   return true
 }
 
 const customAvatarUpload = ({
-  file,
-  onFinish,
-  onError
-}: UploadCustomRequestOptions) => {
+                              file,
+                              onFinish,
+                              onError
+                            }: UploadCustomRequestOptions) => {
   // 这里应该调用后端API上传头像
   // 以下为模拟上传成功
-  
+
   const reader = new FileReader()
   reader.readAsDataURL(file.file as File)
   reader.onload = () => {
@@ -439,39 +442,39 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .personal-settings {
   .profile-card {
     border-radius: 8px;
     background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    
+
     .profile-header {
       display: flex;
       align-items: center;
-      
+
       .avatar-section {
         position: relative;
         margin-right: 24px;
-        
+
         .avatar-upload {
           cursor: pointer;
           transition: opacity 0.3s, transform 0.2s;
-          
+
           &:hover {
             opacity: 0.8;
             transform: scale(1.05);
           }
         }
       }
-      
+
       .user-info-brief {
         color: white;
-        
+
         h3 {
           font-size: 1.5rem;
           margin-bottom: 8px;
         }
-        
+
         .role-tag {
           margin-right: 8px;
           margin-bottom: 8px;
@@ -479,10 +482,10 @@ onMounted(async () => {
       }
     }
   }
-  
+
   .info-card {
     border-radius: 8px;
-    
+
     .password-card, .security-card {
       margin-bottom: 16px;
     }

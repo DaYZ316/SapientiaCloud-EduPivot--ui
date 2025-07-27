@@ -2,33 +2,33 @@
   <div class="page-table-container">
     <!-- 表格组件 -->
     <n-data-table
-      :loading="loading"
-      :columns="processedColumns"
-      :data="dataList"
-      :bordered="bordered"
-      :size="size"
-      :max-height="maxHeight"
-      :single-line="singleLine"
-      :striped="striped"
+        :bordered="bordered"
+        :columns="processedColumns"
+        :data="dataList"
+        :loading="loading"
+        :max-height="maxHeight"
+        :single-line="singleLine"
+        :size="size"
+        :striped="striped"
     />
-    
+
     <!-- 分页组件 -->
     <div class="pagination-container">
       <n-pagination
-        v-model:page="pagination.pageNum"
-        v-model:page-size="pagination.pageSize"
-        :page-sizes="pageSizes"
-        :show-size-picker="showSizePicker"
-        :show-quick-jumper="showQuickJumper"
-        :item-count="pagination.total"
-        @update:page="onPageChange"
-        @update:page-size="onSizeChange"
+          v-model:page="pagination.pageNum"
+          v-model:page-size="pagination.pageSize"
+          :item-count="pagination.total"
+          :page-sizes="pageSizes"
+          :show-quick-jumper="showQuickJumper"
+          :show-size-picker="showSizePicker"
+          @update:page="onPageChange"
+          @update:page-size="onSizeChange"
       />
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import type {Ref} from 'vue'
 import {computed, onMounted, reactive, ref, watch} from 'vue'
 import type {DataTableColumns} from 'naive-ui'
@@ -140,7 +140,7 @@ function parseResponse<R>(res: any): { list: R[], total: number } {
   let list: R[] = []
   let total = 0
 
-  if (!res) return { list, total }
+  if (!res) return {list, total}
 
   // 处理不同格式的响应
   if ('total' in res && 'data' in res) {
@@ -156,7 +156,7 @@ function parseResponse<R>(res: any): { list: R[], total: number } {
     }
   }
 
-  return { list, total }
+  return {list, total}
 }
 
 /**
@@ -187,23 +187,23 @@ function getQueryParams<P extends PageEntity>(params: P): P {
 async function fetchData() {
   loading.value = true
   emits('update:loading', true)
-  
+
   try {
     // 构建带分页参数的查询对象
     const queryParams = getQueryParams(props.queryParams)
-    
+
     // 执行API请求
     const res = await props.apiFn(queryParams)
-    
+
     if (res) {
       // 解析响应
-      const { list, total } = parseResponse(res)
-      
+      const {list, total} = parseResponse(res)
+
       // 更新数据和分页
       dataList.value = list
       updatePagination(total)
       emits('update:data', list)
-      
+
       return res
     }
   } catch (error) {
@@ -222,7 +222,7 @@ async function fetchData() {
 function onPageChange(page: number): void {
   pagination.pageNum = page
   fetchData()
-  emits('page-change', { pageNum: page, pageSize: pagination.pageSize })
+  emits('page-change', {pageNum: page, pageSize: pagination.pageSize})
 }
 
 /**
@@ -233,7 +233,7 @@ function onSizeChange(size: number): void {
   pagination.pageNum = 1 // 切换页大小时重置为第一页
   pagination.pageSize = size
   fetchData()
-  emits('page-change', { pageNum: 1, pageSize: size })
+  emits('page-change', {pageNum: 1, pageSize: size})
 }
 
 /**
@@ -260,7 +260,7 @@ watch(() => props.queryParams, () => {
     pagination.pageNum = 1 // 查询条件变化时重置为第一页
     fetchData()
   }
-}, { deep: true })
+}, {deep: true})
 
 // 组件挂载时，如果配置了自动加载则加载数据
 onMounted(() => {

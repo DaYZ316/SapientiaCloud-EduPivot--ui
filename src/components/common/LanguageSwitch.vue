@@ -1,14 +1,14 @@
 <template>
   <div class="language-switch">
     <n-dropdown
-      trigger="hover"
-      :options="options"
-      @select="handleSelect"
+        :options="options"
+        trigger="hover"
+        @select="handleSelect"
     >
       <n-button text>
         <template #icon>
           <n-icon size="18">
-            <globe-outline />
+            <globe-outline/>
           </n-icon>
         </template>
         {{ currentLang.label }}

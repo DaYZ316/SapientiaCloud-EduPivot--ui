@@ -9,49 +9,56 @@
           </div>
         </n-card>
       </n-grid-item>
-      
-      <n-grid-item :span="8" :offset="0">
+
+      <n-grid-item :offset="0" :span="8">
         <n-card :bordered="false" title="用户统计">
           <div class="stat-card">
-            <n-statistic label="总用户数" :value="userData.total">
+            <n-statistic :value="userData.total" label="总用户数">
               <template #prefix>
-                <n-icon><person-outline /></n-icon>
+                <n-icon>
+                  <person-outline/>
+                </n-icon>
               </template>
             </n-statistic>
             <div class="stat-footer">
-              <n-progress type="line" :percentage="userData.growthRate" :indicator-placement="'inside'" />
+              <n-progress :indicator-placement="'inside'" :percentage="userData.growthRate" type="line"/>
               <span>较上月增长 {{ userData.growthRate }}%</span>
             </div>
           </div>
         </n-card>
       </n-grid-item>
-      
+
       <n-grid-item :span="8">
         <n-card :bordered="false" title="系统状态">
           <div class="stat-card">
-            <n-statistic label="系统运行时间" :value="systemData.uptime">
+            <n-statistic :value="systemData.uptime" label="系统运行时间">
               <template #prefix>
-                <n-icon><time-outline /></n-icon>
+                <n-icon>
+                  <time-outline/>
+                </n-icon>
               </template>
             </n-statistic>
             <div class="stat-footer">
-              <n-progress type="line" :percentage="systemData.performance" :indicator-placement="'inside'" :color="systemData.performance > 70 ? '#18a058' : '#f0a020'" />
+              <n-progress :color="systemData.performance > 70 ? '#18a058' : '#f0a020'" :indicator-placement="'inside'" :percentage="systemData.performance"
+                          type="line"/>
               <span>系统性能评分: {{ systemData.performance }}%</span>
             </div>
           </div>
         </n-card>
       </n-grid-item>
-      
+
       <n-grid-item :span="8">
         <n-card :bordered="false" title="业务数据">
           <div class="stat-card">
-            <n-statistic label="本月活跃用户" :value="businessData.activeUsers">
+            <n-statistic :value="businessData.activeUsers" label="本月活跃用户">
               <template #prefix>
-                <n-icon><trending-up-outline /></n-icon>
+                <n-icon>
+                  <trending-up-outline/>
+                </n-icon>
               </template>
             </n-statistic>
             <div class="stat-footer">
-              <n-progress type="line" :percentage="businessData.conversionRate" :indicator-placement="'inside'" />
+              <n-progress :indicator-placement="'inside'" :percentage="businessData.conversionRate" type="line"/>
               <span>转化率: {{ businessData.conversionRate }}%</span>
             </div>
           </div>
@@ -68,13 +75,13 @@
           </div>
         </n-card>
       </n-grid-item>
-      
+
       <n-grid-item :span="8">
         <n-card :bordered="false" title="最近活动">
           <div class="activity-list">
             <n-list>
               <n-list-item v-for="(activity, index) in recentActivities" :key="index">
-                <n-thing :title="activity.title" :description="activity.time">
+                <n-thing :description="activity.time" :title="activity.title">
                   {{ activity.content }}
                 </n-thing>
               </n-list-item>
@@ -86,11 +93,11 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useUserStore } from '@/store'
-import { NIcon } from 'naive-ui'
-import { PersonOutline, TimeOutline, TrendingUpOutline } from '@vicons/ionicons5'
+<script lang="ts" setup>
+import {computed, ref} from 'vue'
+import {useUserStore} from '@/store'
+import {NIcon} from 'naive-ui'
+import {PersonOutline, TimeOutline, TrendingUpOutline} from '@vicons/ionicons5'
 
 const userStore = useUserStore()
 const userInfo = computed(() => userStore.userInfo)
@@ -148,16 +155,16 @@ const recentActivities = ref([
 <style lang="scss" scoped>
 .dashboard-container {
   padding: 16px;
-  
+
   .dashboard-header {
     margin-bottom: 16px;
-    
+
     h3 {
       margin: 0 0 8px;
       font-size: 20px;
       font-weight: 500;
     }
-    
+
     p {
       margin: 0;
       color: #666;
@@ -167,7 +174,7 @@ const recentActivities = ref([
   .stat-card {
     .stat-footer {
       margin-top: 16px;
-      
+
       span {
         display: block;
         margin-top: 4px;
@@ -176,10 +183,10 @@ const recentActivities = ref([
       }
     }
   }
-  
+
   .chart-container {
     min-height: 300px;
-    
+
     .chart-placeholder {
       display: flex;
       align-items: center;
@@ -190,7 +197,7 @@ const recentActivities = ref([
       color: #999;
     }
   }
-  
+
   .activity-list {
     min-height: 300px;
   }

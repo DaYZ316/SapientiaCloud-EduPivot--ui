@@ -2,29 +2,39 @@
   <div class="role-settings-container">
     <n-card :title="$t('settings.role.title')" size="small">
       <!-- 搜索表单 -->
-      <n-form :model="searchForm" inline class="search-form">
+      <n-form :model="searchForm" class="search-form" inline>
         <n-form-item :label="$t('settings.role.searchForm.roleName')" path="roleName">
-          <n-input v-model:value="searchForm.roleName" clearable :placeholder="$t('settings.role.searchForm.roleNamePlaceholder')" />
+          <n-input v-model:value="searchForm.roleName" :placeholder="$t('settings.role.searchForm.roleNamePlaceholder')"
+                   clearable/>
         </n-form-item>
         <n-form-item :label="$t('settings.role.searchForm.roleKey')" path="roleKey">
-          <n-input v-model:value="searchForm.roleKey" clearable :placeholder="$t('settings.role.searchForm.roleKeyPlaceholder')" />
+          <n-input v-model:value="searchForm.roleKey" :placeholder="$t('settings.role.searchForm.roleKeyPlaceholder')"
+                   clearable/>
         </n-form-item>
         <n-form-item :label="$t('settings.role.searchForm.status')" path="status">
           <n-select
-            v-model:value="searchForm.status"
-            clearable
-            :placeholder="$t('settings.role.searchForm.status')"
-            :options="statusOptions"
-            style="min-width: 120px;"
+              v-model:value="searchForm.status"
+              :options="statusOptions"
+              :placeholder="$t('settings.role.searchForm.status')"
+              clearable
+              style="min-width: 120px;"
           />
         </n-form-item>
         <n-form-item>
           <n-button type="primary" @click="handleSearch">
-            <template #icon><n-icon><search-outline /></n-icon></template>
+            <template #icon>
+              <n-icon>
+                <search-outline/>
+              </n-icon>
+            </template>
             {{ $t('settings.role.searchForm.search') }}
           </n-button>
           <n-button class="ml-2" @click="resetSearch">
-            <template #icon><n-icon><refresh-outline /></n-icon></template>
+            <template #icon>
+              <n-icon>
+                <refresh-outline/>
+              </n-icon>
+            </template>
             {{ $t('settings.role.searchForm.reset') }}
           </n-button>
         </n-form-item>
@@ -32,129 +42,134 @@
 
       <!-- 操作按钮 -->
       <div class="table-actions">
-        <n-button type="primary" v-hasPermission="'system:role:add'" @click="handleAdd">
-          <template #icon><n-icon><add-outline /></n-icon></template>
+        <n-button v-hasPermission="'system:role:add'" type="primary" @click="handleAdd">
+          <template #icon>
+            <n-icon>
+              <add-outline/>
+            </n-icon>
+          </template>
           {{ $t('settings.role.actions.add') }}
         </n-button>
       </div>
 
       <!-- 角色表格 -->
       <page-table
-        ref="pageTableRef"
-        :columns="columns"
-        :api-fn="sysRoleList"
-        :query-params="searchForm"
-        :auto-search="false"
-        size="small"
-        @update:data="onDataUpdate"
+          ref="pageTableRef"
+          :api-fn="sysRoleList"
+          :auto-search="false"
+          :columns="columns"
+          :query-params="searchForm"
+          size="small"
+          @update:data="onDataUpdate"
       />
     </n-card>
-    
+
     <!-- 添加角色对话框 -->
     <n-modal v-model:show="showAddModal" :title="$t('settings.role.addRole.title')" preset="card" style="width: 600px">
       <n-form
-        ref="addFormRef"
-        :model="addRoleForm"
-        :rules="roleFormRules"
-        :style="{ maxWidth: '540px' }"
+          ref="addFormRef"
+          :model="addRoleForm"
+          :rules="roleFormRules"
+          :style="{ maxWidth: '540px' }"
       >
         <n-form-item :label="$t('settings.role.addRole.roleName')" path="roleName">
-          <n-input 
-            v-model:value="addRoleForm.roleName" 
-            :placeholder="$t('settings.role.addRole.roleNamePlaceholder')"
+          <n-input
+              v-model:value="addRoleForm.roleName"
+              :placeholder="$t('settings.role.addRole.roleNamePlaceholder')"
           />
         </n-form-item>
-        
+
         <n-form-item :label="$t('settings.role.addRole.roleKey')" path="roleKey">
-          <n-input 
-            v-model:value="addRoleForm.roleKey" 
-            :placeholder="$t('settings.role.addRole.roleKeyPlaceholder')"
+          <n-input
+              v-model:value="addRoleForm.roleKey"
+              :placeholder="$t('settings.role.addRole.roleKeyPlaceholder')"
           />
         </n-form-item>
-        
+
         <n-form-item :label="$t('settings.role.addRole.sort')" path="sort">
-          <n-input-number 
-            v-model:value="addRoleForm.sort" 
-            :placeholder="$t('settings.role.addRole.sortPlaceholder')"
+          <n-input-number
+              v-model:value="addRoleForm.sort"
+              :placeholder="$t('settings.role.addRole.sortPlaceholder')"
           />
         </n-form-item>
-        
+
         <n-form-item :label="$t('settings.role.addRole.status')" path="status">
-          <n-select 
-            v-model:value="addRoleForm.status" 
-            :options="statusOptions"
+          <n-select
+              v-model:value="addRoleForm.status"
+              :options="statusOptions"
           />
         </n-form-item>
-        
+
         <n-form-item :label="$t('settings.role.addRole.description')" path="description">
-          <n-input 
-            v-model:value="addRoleForm.description"
-            type="textarea" 
-            :placeholder="$t('settings.role.addRole.descriptionPlaceholder')"
+          <n-input
+              v-model:value="addRoleForm.description"
+              :placeholder="$t('settings.role.addRole.descriptionPlaceholder')"
+              type="textarea"
           />
         </n-form-item>
       </n-form>
-      
+
       <template #footer>
         <n-space justify="end">
           <n-button @click="closeAddModal">{{ $t('settings.role.addRole.cancel') }}</n-button>
-          <n-button type="primary" :loading="submitting" @click="submitAddRole">
+          <n-button :loading="submitting" type="primary" @click="submitAddRole">
             {{ $t('settings.role.addRole.submit') }}
           </n-button>
         </n-space>
       </template>
     </n-modal>
-    
+
     <!-- 编辑角色对话框 -->
-    <n-modal v-model:show="showEditModal" :title="$t('settings.role.updateRole.title')" preset="card" style="width: 600px">
+    <n-modal v-model:show="showEditModal" :title="$t('settings.role.updateRole.title')" preset="card"
+             style="width: 600px">
       <n-form
-        ref="editFormRef"
-        :model="updateRoleForm"
-        :rules="roleFormRules"
-        :style="{ maxWidth: '540px' }"
+          ref="editFormRef"
+          :model="updateRoleForm"
+          :rules="roleFormRules"
+          :style="{ maxWidth: '540px' }"
       >
         <n-form-item :label="$t('settings.role.updateRole.roleName')" path="roleName">
-          <n-input 
-            v-model:value="updateRoleForm.roleName" 
-            :placeholder="$t('settings.role.updateRole.roleNamePlaceholder')"
+          <n-input
+              v-model:value="updateRoleForm.roleName"
+              :placeholder="$t('settings.role.updateRole.roleNamePlaceholder')"
           />
         </n-form-item>
-        
+
         <n-form-item :label="$t('settings.role.updateRole.roleKey')" path="roleKey">
-          <n-input 
-            v-model:value="updateRoleForm.roleKey" 
-            :placeholder="$t('settings.role.updateRole.roleKeyPlaceholder')"
+          <n-input
+              v-model:value="updateRoleForm.roleKey"
+              :placeholder="$t('settings.role.updateRole.roleKeyPlaceholder')"
           />
         </n-form-item>
-        
+
         <n-form-item :label="$t('settings.role.updateRole.sort')" path="sort">
-          <n-input-number 
-            v-model:value="updateRoleForm.sort" 
-            :placeholder="$t('settings.role.updateRole.sortPlaceholder')"
+          <n-input-number
+              v-model:value="updateRoleForm.sort"
+              :placeholder="$t('settings.role.updateRole.sortPlaceholder')"
           />
         </n-form-item>
-        
+
         <n-form-item :label="$t('settings.role.updateRole.status')" path="status">
-          <n-select 
-            v-model:value="updateRoleForm.status" 
-            :options="statusOptions"
-            :disabled="updateRoleForm.admin"
+          <n-select
+              v-model:value="updateRoleForm.status"
+              :disabled="updateRoleForm.admin"
+              :options="statusOptions"
           />
         </n-form-item>
-        
+
         <n-form-item :label="$t('settings.role.updateRole.description')" path="description">
-          <n-input 
-            v-model:value="updateRoleForm.description"
-            type="textarea" 
-            :placeholder="$t('settings.role.updateRole.descriptionPlaceholder')"
+          <n-input
+              v-model:value="updateRoleForm.description"
+              :placeholder="$t('settings.role.updateRole.descriptionPlaceholder')"
+              type="textarea"
           />
         </n-form-item>
       </n-form>
-      
+
       <template #footer>
         <n-space justify="end">
           <n-button @click="closeEditModal">{{ $t('settings.role.updateRole.cancel') }}</n-button>
-          <n-button type="primary" :loading="submitting" @click="submitUpdateRole">
+          <n-button :loading="submitting" type="primary" @click="submitUpdateRole">
             {{ $t('settings.role.updateRole.submit') }}
           </n-button>
         </n-space>
@@ -162,28 +177,29 @@
     </n-modal>
 
     <!-- 分配权限对话框 -->
-    <n-modal v-model:show="showAssignModal" :title="$t('settings.role.assignPermission.title')" preset="card" style="width: 600px">
+    <n-modal v-model:show="showAssignModal" :title="$t('settings.role.assignPermission.title')" preset="card"
+             style="width: 600px">
       <div v-if="currentRole" class="assign-header">
         <p>{{ $t('settings.role.assignPermission.role') }}: {{ currentRole.roleName }}</p>
       </div>
 
       <n-tree
-        v-if="permissionTree.length"
-        ref="permissionTreeRef"
-        :data="permissionTree"
-        checkable
-        cascade
-        :checked-keys="checkedPermissions"
-        :selectable="false"
-        :expand-on-click="true"
-        :default-expanded-keys="expandedKeys"
-        @update:checked-keys="handlePermissionCheck"
+          v-if="permissionTree.length"
+          ref="permissionTreeRef"
+          :checked-keys="checkedPermissions"
+          :data="permissionTree"
+          :default-expanded-keys="expandedKeys"
+          :expand-on-click="true"
+          :selectable="false"
+          cascade
+          checkable
+          @update:checked-keys="handlePermissionCheck"
       />
-      
+
       <template #footer>
         <n-space justify="end">
           <n-button @click="closeAssignModal">{{ $t('settings.role.assignPermission.cancel') }}</n-button>
-          <n-button type="primary" :loading="submitting" @click="submitAssignPermissions">
+          <n-button :loading="submitting" type="primary" @click="submitAssignPermissions">
             {{ $t('settings.role.assignPermission.submit') }}
           </n-button>
         </n-space>
@@ -192,8 +208,8 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import {computed, h, onMounted, reactive, ref} from 'vue'
+<script lang="ts" setup>
+import {computed, h, reactive, ref} from 'vue'
 import type {FormInst, FormRules} from 'naive-ui'
 import {NIcon} from 'naive-ui'
 import {AddOutline, CreateOutline, KeyOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
@@ -219,15 +235,15 @@ import {getDialogInstance, getMessageInstance} from '@/utils/http'
 
 const message = getMessageInstance()
 const dialog = getDialogInstance()
-const { t, locale } = useI18n()
+const {t, locale} = useI18n()
 
 // 是否为英文环境
 const isEnglish = computed(() => locale.value === 'en-US')
 
 // 状态选项
 const statusOptions = [
-  { label: t('settings.role.status.normal'), value: StatusEnum.NORMAL },
-  { label: t('settings.role.status.disabled'), value: StatusEnum.DISABLED }
+  {label: t('settings.role.status.normal'), value: StatusEnum.NORMAL},
+  {label: t('settings.role.status.disabled'), value: StatusEnum.DISABLED}
 ]
 
 // 搜索表单
@@ -264,32 +280,32 @@ const permissionTreeRef = ref(null)
 // 角色表单验证规则
 const roleFormRules = reactive<FormRules>({
   roleName: [
-    { required: true, message: t('settings.role.rules.roleNameRequired'), trigger: 'blur' },
-    { min: 2, max: 30, message: t('settings.role.rules.roleNameLength'), trigger: 'blur' }
+    {required: true, message: t('settings.role.rules.roleNameRequired'), trigger: 'blur'},
+    {min: 2, max: 30, message: t('settings.role.rules.roleNameLength'), trigger: 'blur'}
   ],
   roleKey: [
-    { required: true, message: t('settings.role.rules.roleKeyRequired'), trigger: 'blur' },
-    { min: 2, max: 100, message: t('settings.role.rules.roleKeyLength'), trigger: 'blur' }
+    {required: true, message: t('settings.role.rules.roleKeyRequired'), trigger: 'blur'},
+    {min: 2, max: 100, message: t('settings.role.rules.roleKeyLength'), trigger: 'blur'}
   ],
   status: [
-    { required: true, type: 'number', message: t('settings.role.rules.statusRequired'), trigger: ['blur', 'change'] }
+    {required: true, type: 'number', message: t('settings.role.rules.statusRequired'), trigger: ['blur', 'change']}
   ]
 })
 
 // 表格列定义
 const columns = computed(() => [
-  { title: t('settings.role.table.roleName'), key: 'roleName' },
-  { title: t('settings.role.table.roleKey'), key: 'roleKey' },
-  { title: t('settings.role.table.sort'), key: 'sort' },
-  { 
-    title: t('settings.role.table.status'), 
+  {title: t('settings.role.table.roleName'), key: 'roleName'},
+  {title: t('settings.role.table.roleKey'), key: 'roleKey'},
+  {title: t('settings.role.table.sort'), key: 'sort'},
+  {
+    title: t('settings.role.table.status'),
     key: 'status',
     render(row: SysRoleVO) {
-      return h(StatusDisplay, { status: row.status, type: 'dot' })
+      return h(StatusDisplay, {status: row.status, type: 'dot'})
     }
   },
-  { title: t('settings.role.table.description'), key: 'description' },
-  { title: t('settings.role.table.createTime'), key: 'createTime' },
+  {title: t('settings.role.table.description'), key: 'description'},
+  {title: t('settings.role.table.createTime'), key: 'createTime'},
   {
     title: t('settings.role.table.actions'),
     key: 'actions',
@@ -297,75 +313,75 @@ const columns = computed(() => [
     render(row: SysRoleVO) {
       return [
         h(
-          'button',
-          {
-            class: 'n-button n-button--tertiary n-button--small',
-            style: { marginRight: '8px' },
-            onClick: () => handleEdit(row),
-            directive: [
-              {
-                name: 'hasPermission',
-                value: 'system:role:edit'
-              }
+            'button',
+            {
+              class: 'n-button n-button--tertiary n-button--small',
+              style: {marginRight: '8px'},
+              onClick: () => handleEdit(row),
+              directive: [
+                {
+                  name: 'hasPermission',
+                  value: 'system:role:edit'
+                }
+              ]
+            },
+            [
+              h(NIcon, null, {default: () => h(CreateOutline)}),
+              ' ' + t('settings.role.actions.edit')
             ]
-          },
-          [
-            h(NIcon, null, { default: () => h(CreateOutline) }),
-            ' ' + t('settings.role.actions.edit')
-          ]
         ),
         h(
-          'button',
-          {
-            class: 'n-button n-button--tertiary n-button--small',
-            style: { marginRight: '8px' },
-            disabled: row.admin,
-            onClick: () => handleAssign(row),
-            directive: [
-              {
-                name: 'hasPermission',
-                value: 'system:role:assign'
-              }
+            'button',
+            {
+              class: 'n-button n-button--tertiary n-button--small',
+              style: {marginRight: '8px'},
+              disabled: row.admin,
+              onClick: () => handleAssign(row),
+              directive: [
+                {
+                  name: 'hasPermission',
+                  value: 'system:role:assign'
+                }
+              ]
+            },
+            [
+              h(NIcon, null, {default: () => h(KeyOutline)}),
+              ' ' + t('settings.role.actions.assignPermission')
             ]
-          },
-          [
-            h(NIcon, null, { default: () => h(KeyOutline) }),
-            ' ' + t('settings.role.actions.assignPermission')
-          ]
         ),
         h(
-          'button',
-          {
-            class: 'n-button n-button--error n-button--small',
-            disabled: row.admin,
-            onClick: () => handleDelete(row),
-            directive: [
-              {
-                name: 'hasPermission',
-                value: 'system:role:delete'
-              }
+            'button',
+            {
+              class: 'n-button n-button--error n-button--small',
+              disabled: row.admin,
+              onClick: () => handleDelete(row),
+              directive: [
+                {
+                  name: 'hasPermission',
+                  value: 'system:role:delete'
+                }
+              ]
+            },
+            [
+              h(NIcon, null, {default: () => h(TrashOutline)}),
+              ' ' + t('settings.role.actions.delete')
             ]
-          },
-          [
-            h(NIcon, null, { default: () => h(TrashOutline) }),
-            ' ' + t('settings.role.actions.delete')
-          ]
         )
       ]
     }
   }
 ])
 
-  // 搜索处理
-  function handleSearch() {
-    pageTableRef.value?.fetchData()
-  }
-  
-  // 重置搜索
-  function resetSearch() {
-    Object.assign(searchForm, getDefaultRoleQuery())
-    pageTableRef.value?.reset()
-  }
+// 搜索处理
+function handleSearch() {
+  pageTableRef.value?.fetchData()
+}
+
+// 重置搜索
+function resetSearch() {
+  Object.assign(searchForm, getDefaultRoleQuery())
+  pageTableRef.value?.reset()
+}
 
 // 数据更新处理函数
 function onDataUpdate(data: SysRoleVO[]) {
@@ -396,11 +412,11 @@ function closeEditModal() {
 // 提交编辑角色
 async function submitUpdateRole() {
   if (!currentEditingRoleId.value) return
-  
+
   try {
     // 表单验证
     await editFormRef.value?.validate()
-    
+
     submitting.value = true
     try {
       await updateRole(updateRoleForm)
@@ -456,7 +472,7 @@ function closeAddModal() {
 async function submitAddRole() {
   try {
     await addFormRef.value?.validate()
-    
+
     submitting.value = true
     try {
       await addRole(addRoleForm)
@@ -499,12 +515,12 @@ function buildPermissionTree(permissions: SysPermissionVO[]): TreeNode[] {
       permissionKey: permission.permissionKey,
       children: []
     }
-    
+
     // 如果有子节点，递归处理
     if (permission.children && permission.children.length > 0) {
       node.children = buildPermissionTree(permission.children)
     }
-    
+
     return node
   })
 }
@@ -513,25 +529,25 @@ function buildPermissionTree(permissions: SysPermissionVO[]): TreeNode[] {
 async function handleAssign(row: SysRoleVO) {
   currentRole.value = row
   submitting.value = true
-  
+
   try {
     // 获取角色详情，包括已分配的权限
     const roleDetail = await getRoleDetail(row.id)
     const rolePermissions = roleDetail?.data?.permissions || []
-    
+
     // 获取权限树结构
     const permResult = await getPermissionTree()
     const permissions: SysPermissionVO[] = permResult?.data || []
-    
+
     // 构建权限树
     permissionTree.value = buildPermissionTree(permissions)
-    
+
     // 设置已选中的权限
     checkedPermissions.value = rolePermissions.map((p: SysPermissionVO) => p.id)
-    
+
     // 展开所有节点
     expandedKeys.value = permissions.map((p: SysPermissionVO) => p.id)
-    
+
     // 显示分配权限对话框
     showAssignModal.value = true
   } catch (error) {
@@ -557,7 +573,7 @@ function closeAssignModal() {
 // 提交分配权限
 async function submitAssignPermissions() {
   if (!currentRole.value) return
-  
+
   submitting.value = true
   try {
     await assignRolePermissions(currentRole.value.id, checkedPermissions.value)
@@ -574,22 +590,22 @@ async function submitAssignPermissions() {
 
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .role-settings-container {
   .search-form {
     margin-bottom: 16px;
   }
-  
+
   .table-actions {
     display: flex;
     justify-content: flex-start;
     margin-bottom: 8px;
   }
-  
+
   .ml-2 {
     margin-left: 8px;
   }
-  
+
   .pagination-container {
     display: flex;
     justify-content: flex-end;

@@ -5,7 +5,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import {computed} from 'vue';
 import {useI18n} from 'vue-i18n';
 import {getStatusLabel, StatusEnum} from '@/enum/common';
@@ -29,7 +29,7 @@ const props = defineProps({
   }
 });
 
-const { locale } = useI18n();
+const {locale} = useI18n();
 const isEnglish = computed(() => locale.value === 'en-US');
 
 // 状态文本
@@ -44,8 +44,8 @@ const showDot = computed(() => props.type === 'dot');
 // 状态对应的CSS类
 const statusClass = computed(() => {
   const isNormal = props.status === StatusEnum.NORMAL;
-  
-  switch(props.type) {
+
+  switch (props.type) {
     case 'text':
       return isNormal ? 'text-status-normal' : 'text-status-disabled';
     case 'dot':

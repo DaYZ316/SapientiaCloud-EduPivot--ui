@@ -1,26 +1,32 @@
 <template>
   <div class="settings-module">
     <n-card :title="$t('settings.interface.title')" size="small">
-      <n-space vertical size="large">
+      <n-space size="large" vertical>
         <!-- 主题模式设置 -->
         <n-form-item :label="$t('settings.interface.themeMode')">
           <n-radio-group v-model:value="themeMode" name="theme-mode">
             <n-space>
               <n-radio value="light">
                 <n-space align="center">
-                  <n-icon><sunny /></n-icon>
+                  <n-icon>
+                    <sunny/>
+                  </n-icon>
                   {{ $t('settings.theme.light') }}
                 </n-space>
               </n-radio>
               <n-radio value="dark">
                 <n-space align="center">
-                  <n-icon><moon /></n-icon>
+                  <n-icon>
+                    <moon/>
+                  </n-icon>
                   {{ $t('settings.theme.dark') }}
                 </n-space>
               </n-radio>
               <n-radio value="system">
                 <n-space align="center">
-                  <n-icon><desktop /></n-icon>
+                  <n-icon>
+                    <desktop/>
+                  </n-icon>
                   {{ $t('settings.theme.system') }}
                 </n-space>
               </n-radio>
@@ -30,28 +36,28 @@
 
         <!-- 主题颜色设置 -->
         <n-form-item :label="$t('settings.interface.colorPrimary')">
-          <n-color-picker v-model:value="primaryColor" :show-alpha="false" />
-          <div class="color-preview" :style="{ backgroundColor: primaryColor }"></div>
+          <n-color-picker v-model:value="primaryColor" :show-alpha="false"/>
+          <div :style="{ backgroundColor: primaryColor }" class="color-preview"></div>
         </n-form-item>
 
         <!-- 布局设置 -->
         <div class="setting-section">
           <h3>{{ $t('settings.interface.layoutSettings') }}</h3>
-          
+
           <n-space vertical>
             <n-space justify="space-between">
               <span>{{ $t('settings.interface.fixedHeader') }}</span>
-              <n-switch v-model:value="fixedHeader" />
+              <n-switch v-model:value="fixedHeader"/>
             </n-space>
-            
+
             <n-space justify="space-between">
               <span>{{ $t('settings.interface.fixedSidebar') }}</span>
-              <n-switch v-model:value="fixedSidebar" />
+              <n-switch v-model:value="fixedSidebar"/>
             </n-space>
-            
+
             <n-space justify="space-between">
               <span>{{ $t('settings.interface.compactView') }}</span>
-              <n-switch v-model:value="compactView" />
+              <n-switch v-model:value="compactView"/>
             </n-space>
           </n-space>
         </div>
@@ -59,14 +65,14 @@
         <!-- 菜单设置 -->
         <div class="setting-section">
           <h3>{{ $t('settings.interface.menuStyle') }}</h3>
-          
+
           <n-form-item :label="$t('settings.interface.menuWidth')">
             <n-slider
-              v-model:value="menuWidth"
-              :min="180"
-              :max="300"
-              :step="10"
-              show-tooltip
+                v-model:value="menuWidth"
+                :max="300"
+                :min="180"
+                :step="10"
+                show-tooltip
             />
             <div class="slider-value">{{ menuWidth }}px</div>
           </n-form-item>
@@ -75,8 +81,8 @@
         <!-- 动画效果设置 -->
         <n-form-item :label="$t('settings.interface.animationEffect')">
           <n-select
-            v-model:value="animationEffect"
-            :options="[
+              v-model:value="animationEffect"
+              :options="[
               { label: 'Fade', value: 'fade' },
               { label: 'Slide', value: 'slide' },
               { label: 'Zoom', value: 'zoom' },
@@ -90,7 +96,7 @@
           <n-button type="primary" @click="saveSettings">
             {{ $t('common.save') }}
           </n-button>
-          <n-button @click="resetSettings" class="reset-button">
+          <n-button class="reset-button" @click="resetSettings">
             {{ $t('common.reset') }}
           </n-button>
         </div>
@@ -99,14 +105,14 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import {onMounted, ref} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useThemeStore} from '@/store'
 import {getMessageInstance} from '@/utils/http'
 
 const message = getMessageInstance()
-const { t } = useI18n()
+const {t} = useI18n()
 const themeStore = useThemeStore()
 
 // 主题模式设置
@@ -130,7 +136,7 @@ const animationEffect = ref('fade')
 onMounted(() => {
   // 从主题store获取当前主题
   themeMode.value = themeStore.themeMode
-  
+
   // 其他设置可以从本地存储或API中获取
   const savedSettings = localStorage.getItem('interfaceSettings')
   if (savedSettings) {
@@ -158,7 +164,7 @@ const saveSettings = () => {
   } else {
     themeStore.setThemeMode(themeMode.value)
   }
-  
+
   // 保存其他设置到本地存储
   const settings = {
     primaryColor: primaryColor.value,
@@ -168,9 +174,9 @@ const saveSettings = () => {
     menuWidth: menuWidth.value,
     animationEffect: animationEffect.value
   }
-  
+
   localStorage.setItem('interfaceSettings', JSON.stringify(settings))
-  
+
   // 显示成功消息
   message.success('界面设置已保存')
 }
@@ -184,25 +190,25 @@ const resetSettings = () => {
   compactView.value = false
   menuWidth.value = 240
   animationEffect.value = 'fade'
-  
+
   // 应用默认主题
   themeStore.setThemeMode('light')
-  
+
   // 清除本地存储
   localStorage.removeItem('interfaceSettings')
-  
+
   message.success('已重置为默认设置')
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .settings-module {
   margin-bottom: 20px;
 }
 
 .setting-section {
   margin-top: 16px;
-  
+
   h3 {
     font-size: 16px;
     font-weight: 500;
@@ -216,7 +222,7 @@ const resetSettings = () => {
   display: flex;
   justify-content: flex-end;
   margin-top: 16px;
-  
+
   .reset-button {
     margin-left: 12px;
   }

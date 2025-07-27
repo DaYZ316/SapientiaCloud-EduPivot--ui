@@ -155,7 +155,7 @@
 
 <script setup lang="ts">
 import {computed, h, onMounted, reactive, ref} from 'vue'
-import {NIcon, NSwitch, useMessage} from 'naive-ui'
+import {NIcon, NSwitch} from 'naive-ui'
 import {AddOutline, PeopleOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
 import {
   addSysUser,
@@ -167,17 +167,19 @@ import {
   sysUserList,
   updateUser
 } from '@/api/system/user'
-import {sysRoleList} from '@/api/system/role'
-import type {SysUserAdminDTO, SysUserDTO, SysUserVO, UserPageQueryDTO} from '@/types/system/user'
+import {getAllRoles} from '@/api/system/role'
+import type {SysUserAdminDTO, SysUserVO, UserPageQueryDTO} from '@/types/system/user'
 import type {SysRoleVO} from '@/types/system/role'
 import {useI18n} from 'vue-i18n'
 import {GenderEnum, getGenderLabel, StatusEnum} from '@/enum/common'
 import StatusDisplay from '@/components/common/StatusDisplay.vue'
 import {getDialogInstance, getMessageInstance} from '@/utils/http'
+import {useUserStore} from '@/store'
 
 const message = getMessageInstance()
 const dialog = getDialogInstance()
 const { t, locale } = useI18n()
+const userStore = useUserStore()
 
 // 是否为英文环境
 const isEnglish = computed(() => locale.value === 'en-US')
@@ -272,7 +274,8 @@ const columns = computed(() => [
         NSwitch,
         {
           value: row.status === StatusEnum.NORMAL,
-          onUpdateValue: (value: boolean) => updateUserStatus(row, value)
+          onUpdateValue: (value: boolean) => updateUserStatus(row, value),
+          disabled: row.id === userStore.userInfo?.id
         }
       );
     }
@@ -389,7 +392,7 @@ async function handleAssignRole(row: SysUserVO) {
     userRoles.value = userDetail?.data?.roles || []
     
     // 获取所有角色列表
-    const roleResult = await sysRoleList({ pageNum: 1, pageSize: 1000 })
+    const roleResult = await getAllRoles()
     availableRoles.value = roleResult?.data || []
     
     // 设置已选中的角色
@@ -398,6 +401,7 @@ async function handleAssignRole(row: SysUserVO) {
     // 显示分配角色对话框
     showAssignModal.value = true
   } catch (error) {
+    console.error('获取角色数据失败:', error)
     message.error(t('settings.user.messages.getRoleFail'))
   } finally {
     submittingRoles.value = false
@@ -427,10 +431,7 @@ async function submitAssignRoles() {
   }
 }
 
-// 初始化加载
-onMounted(() => {
-  // 在PageTable组件中已经自动执行初始化加载
-})
+
 </script>
 
 <style scoped lang="scss">

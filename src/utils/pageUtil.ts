@@ -103,7 +103,7 @@ export function usePageUtil<T = any, P extends PageEntity = PageEntity>() {
         return res
       }
     } catch (error) {
-      console.error('分页查询失败:', error)
+      // 清空数据并重置分页
       listRef.value = []
       updatePagination(0)
     } finally {

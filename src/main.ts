@@ -5,13 +5,14 @@ import pinia, {useThemeStore} from '@/store'
 import '@/assets/styles/global.scss'
 
 // 导入naive-ui的全部组件
-import naive, {createDiscreteApi, darkTheme} from 'naive-ui'
+import naive from 'naive-ui'
+import {createDiscreteApi, darkTheme} from 'naive-ui'
 
 // 导入i18n
 import i18n from '@/i18n'
 
 // 导入HTTP消息处理
-import {setDialogInstance, setMessageInstance} from '@/utils/http'
+import {setDialogInstance} from '@/utils/http'
 
 // 导入自定义组件
 import PageTable from '@/components/common/PageTable.vue'
@@ -45,8 +46,7 @@ const { message, dialog, notification } = createDiscreteApi(
   }
 )
 
-// 设置全局消息和对话框实例
-setMessageInstance(message)
+// 设置全局对话框实例
 setDialogInstance(dialog)
 
 // 初始化主题设置

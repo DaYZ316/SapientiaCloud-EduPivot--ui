@@ -1,18 +1,6 @@
 import http from '@/utils/http'
 import type {SysUserLoginDTO, SysUserPasswordDTO, SysUserRegisterDTO} from '@/types/auth'
 
-/**
- * 登录参数接口
- */
-export interface LoginParams {
-  /** 用户名 */
-  username: string
-  /** 密码 */
-  password: string
-  /** 记住我 */
-  rememberMe?: boolean
-}
-
 // 获取默认用户登录DTO
 export function getDefaultSysUserLoginDTO(): SysUserLoginDTO {
   return {
@@ -42,7 +30,7 @@ export function getDefaultSysUserPasswordDTO(): SysUserPasswordDTO {
 }
 
 // 用户登录
-export function login(params: LoginParams) {
+export function login(params: SysUserLoginDTO) {
   return http.post('/auth/login', params)
 }
 
@@ -68,5 +56,5 @@ export function getCurrentUser() {
 
 // 修改用户密码
 export function updatePassword(data: SysUserPasswordDTO) {
-  return http.put('/auth/password', data)
+  return http.put('/auth/internal/password', data)
 } 

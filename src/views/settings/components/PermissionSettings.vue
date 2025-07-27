@@ -57,7 +57,7 @@
             filterable
             clearable
             :virtual-scroll="true"
-            @scroll="handleTreeScroll"
+            :loading="treeLoading"
           />
         </n-form-item>
         
@@ -102,15 +102,13 @@
         :style="{ maxWidth: '540px' }"
       >
         <n-form-item :label="$t('settings.permission.updatePermission.parentId')" path="parentId">
-          <n-tree-select 
+          <n-select 
             v-model:value="updatePermissionForm.parentId" 
-            :options="permissionTreeOptions"
+            :options="editParentOptions"
             :placeholder="$t('settings.permission.updatePermission.parentIdPlaceholder')"
             filterable
             clearable
             :disabled="isParentPermissionDisabled"
-            :virtual-scroll="true"
-            @scroll="handleTreeScroll"
           />
         </n-form-item>
         
@@ -158,6 +156,7 @@ import {
   getDefaultPermissionQuery,
   getDefaultSysPermissionAddDTO,
   getDefaultSysPermissionDTO,
+  getPermissionTree,
   removePermission,
   sysPermissionList,
   updatePermission
@@ -184,13 +183,16 @@ const permissionList = ref<SysPermissionVO[]>([])
 // 父级权限选项
 const parentPermissionOptions = ref<{ label: string; value: string }[]>([])
 
+// 编辑选择器父级选项（专用于编辑对话框）
+const editParentOptions = ref<{ label: string; value: string }[]>([])
+
 // 权限树形选项
 const permissionTreeOptions = ref<TreeSelectOption[]>([])
 
-// 分页记录
-const currentPage = ref(1)
-const hasMoreData = ref(true)
-const loadingMore = ref(false)
+// 树形选择器加载状态
+const treeLoading = ref(false)
+
+// 所有权限数据
 const allPermissions = ref<SysPermissionVO[]>([])
 
 // 分页表格引用
@@ -293,8 +295,15 @@ function onDataUpdate(data: SysPermissionVO[]) {
 
 // 更新父级权限选项
 function updateParentPermissionOptions() {
-  // 过滤掉当前正在编辑的权限（不能选自己作为父级）
+  // 表格显示用的父级权限选项，包含所有权限
   parentPermissionOptions.value = permissionList.value
+    .map(item => ({
+      label: item.permissionName,
+      value: item.id
+    }))
+    
+  // 编辑对话框用的父级权限选项，过滤掉当前正在编辑的权限（不能选自己作为父级）
+  editParentOptions.value = permissionList.value
     .filter(item => item.id !== currentEditingPermissionId.value)
     .map(item => ({
       label: item.permissionName,
@@ -303,124 +312,37 @@ function updateParentPermissionOptions() {
 }
 
 // 加载所有权限数据
-async function loadAllPermissions(page = 1, pageSize = 100) {
-  // 如果是第一页，则重置数据
-  if (page === 1) {
-    allPermissions.value = []
-    hasMoreData.value = true
-  }
-  
-  if (!hasMoreData.value || loadingMore.value) return
-
-  loadingMore.value = true
+async function loadAllPermissions() {
   try {
-    const response = await sysPermissionList({
-      ...getDefaultPermissionQuery(),
-      pageNum: page,
-      pageSize: pageSize
-    })
-
-    const newData = response?.data || []
+    treeLoading.value = true
+    // 使用权限树API获取所有权限
+    const response = await getPermissionTree()
+    allPermissions.value = response?.data || []
     
-    if (newData.length === 0) {
-      hasMoreData.value = false
-      return
-    }
+    // 将扁平的权限列表转为树形选项
+    permissionTreeOptions.value = convertToTreeSelectOptions(allPermissions.value)
     
-    // 合并权限数据，确保不重复添加相同id的权限
-    const existingIds = new Set(allPermissions.value.map(p => p.id))
-    const uniqueNewData = newData.filter((p: SysPermissionVO) => !existingIds.has(p.id))
-    
-    if (uniqueNewData.length > 0) {
-      allPermissions.value = [...allPermissions.value, ...uniqueNewData]
-      updatePermissionTreeOptions()
-    }
-    
-    // 更新当前页码
-    currentPage.value = page
+    // 更新父级权限选项
+    updateParentPermissionOptions()
   } catch (error) {
     console.error('加载权限数据失败:', error)
     message.error(t('settings.permission.messages.loadFail'))
   } finally {
-    loadingMore.value = false
+    treeLoading.value = false
   }
 }
 
-// 处理树形选择器滚动
-function handleTreeScroll(e: Event) {
-  const target = e.target as HTMLElement
-  const { scrollTop, scrollHeight, clientHeight } = target
-  
-  // 当滚动到底部时加载更多数据
-  if (scrollTop + clientHeight >= scrollHeight - 20) { // 留20px余量
-    if (hasMoreData.value && !loadingMore.value) {
-      loadAllPermissions(currentPage.value + 1)
-    }
-  }
-}
-
-// 重新加载所有权限数据（完全刷新）
-async function reloadAllPermissions() {
-  currentPage.value = 1
-  allPermissions.value = []
-  hasMoreData.value = true
-  await loadAllPermissions(1)
-}
-
-// 将权限列表转换为树形结构
-function updatePermissionTreeOptions() {
-  // 过滤掉当前正在编辑的权限（不能选自己作为父级）
-  const filteredPermissions = allPermissions.value
-    .filter(item => item.id !== currentEditingPermissionId.value)
-  
-  // 构建树形结构
-  const permissionMap = new Map<string, TreeSelectOption>()
-  
-  // 首先创建所有节点
-  filteredPermissions.forEach(permission => {
-    permissionMap.set(permission.id, {
-      key: permission.id,
-      label: permission.permissionName,
-      value: permission.id,
-      children: []
-    })
-  })
-  
-  // 记录所有有父节点的权限ID
-  const childIds = new Set<string>()
-  
-  // 构建树形结构
-  filteredPermissions.forEach(permission => {
-    const currentNode = permissionMap.get(permission.id)
-    if (!currentNode) return
-    
-    if (permission.parentId && permissionMap.get(permission.parentId)) {
-      // 子节点，添加到父节点的children中
-      const parentNode = permissionMap.get(permission.parentId)
-      if (parentNode) {
-        if (!parentNode.children) {
-          parentNode.children = []
-        }
-        parentNode.children.push(currentNode)
-        // 标记为子节点
-        childIds.add(permission.id)
-      }
-    }
-  })
-  
-  // 只将没有父节点或父节点不存在的权限作为根节点
-  const rootNodes: TreeSelectOption[] = []
-  filteredPermissions.forEach(permission => {
-    // 如果不是子节点，则作为根节点
-    if (!childIds.has(permission.id)) {
-      const node = permissionMap.get(permission.id)
-      if (node) {
-        rootNodes.push(node)
-      }
-    }
-  })
-  
-  permissionTreeOptions.value = rootNodes
+// 将权限列表转换为树形选项
+function convertToTreeSelectOptions(permissions: SysPermissionVO[]): TreeSelectOption[] {
+  // 简化版转换逻辑
+  return permissions.map(perm => ({
+    key: perm.id,
+    label: perm.permissionName,
+    value: perm.id,
+    children: perm.children && perm.children.length > 0 
+      ? convertToTreeSelectOptions(perm.children) 
+      : []
+  }))
 }
 
 // 编辑权限
@@ -433,8 +355,11 @@ function handleEdit(row: SysPermissionVO) {
     permissionKey: row.permissionKey,
     sort: row.sort || 0
   })
-  // 更新选项以排除当前编辑的权限
-  updatePermissionTreeOptions()
+  
+  // 更新父级权限选项列表
+  updateParentPermissionOptions()
+  
+  // 不在编辑对话框打开前加载权限树
   showEditModal.value = true
 }
 
@@ -442,7 +367,7 @@ function handleEdit(row: SysPermissionVO) {
 function closeEditModal() {
   showEditModal.value = false
   currentEditingPermissionId.value = null
-  updatePermissionTreeOptions()
+  updateParentPermissionOptions() // 重新加载父级选项
 }
 
 // 提交编辑权限
@@ -460,8 +385,9 @@ async function submitUpdatePermission() {
       closeEditModal()
       pageTableRef.value?.fetchData()
       
-      // 重新加载所有权限
-      await reloadAllPermissions()
+      // 编辑成功后清空树数据，下次打开对话框时重新加载
+      allPermissions.value = []
+      permissionTreeOptions.value = []
     } catch (error) {
       console.error('更新权限失败:', error)
       message.error(t('settings.permission.messages.editFail'))
@@ -487,8 +413,9 @@ async function handleDelete(row: SysPermissionVO) {
         message.success(t('settings.permission.messages.deleteSuccess'))
         pageTableRef.value?.fetchData()
         
-        // 重新加载所有权限
-        await reloadAllPermissions()
+        // 删除成功后清空树数据，下次打开对话框时重新加载
+        allPermissions.value = []
+        permissionTreeOptions.value = []
       } catch (error) {
         console.error('删除权限出错:', error)
         message.error(t('settings.permission.messages.deleteFail'))
@@ -520,8 +447,9 @@ async function submitAddPermission() {
       closeAddModal()
       pageTableRef.value?.fetchData()
       
-      // 重新加载所有权限
-      await reloadAllPermissions()
+      // 添加成功后清空树数据，下次打开对话框时重新加载
+      allPermissions.value = []
+      permissionTreeOptions.value = []
     } catch (error) {
       console.error('添加权限失败:', error)
       message.error(t('settings.permission.messages.addFail'))
@@ -535,18 +463,16 @@ async function submitAddPermission() {
 }
 
 // 新增权限
-function handleAdd() {
+async function handleAdd() {
   resetAddPermissionForm()
-  updatePermissionTreeOptions()
+  
+  // 在对话框打开前加载权限树
+  await loadAllPermissions()
+  updateParentPermissionOptions() // 重新加载父级选项
   showAddModal.value = true
 }
 
-// 初始化加载
-onMounted(() => {
-  // 在PageTable组件中已经自动执行初始化加载
-  // 初始化加载所有权限用于树形选择器
-  loadAllPermissions()
-})
+
 </script>
 
 <style scoped lang="scss">

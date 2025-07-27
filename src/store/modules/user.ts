@@ -2,6 +2,7 @@ import {defineStore} from 'pinia'
 import {ref} from 'vue'
 import type {SysPermissionVO, SysRoleVO, SysUserLoginVO} from '@/types'
 import * as AuthApi from '@/api/auth/auth'
+import type {SysUserLoginDTO} from '@/types/auth'
 
 // 用于本地存储的键名
 const TOKEN_KEY = 'token'
@@ -72,7 +73,12 @@ export const useUserStore = defineStore('user', () => {
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
-      const res = await AuthApi.login({ username, password })
+      // 使用getDefaultSysUserLoginDTO函数创建DTO对象
+      const loginDTO = AuthApi.getDefaultSysUserLoginDTO();
+      loginDTO.username = username;
+      loginDTO.password = password;
+      
+      const res = await AuthApi.login(loginDTO)
       if (res.success && res.data) {
         const userData = res.data
         
@@ -106,7 +112,6 @@ export const useUserStore = defineStore('user', () => {
       // 无论API是否成功，都清除本地状态
       resetUserState()
     } catch (error) {
-      console.error('登出API调用失败:', error)
       resetUserState()
       throw error
     }
@@ -135,7 +140,7 @@ export const useUserStore = defineStore('user', () => {
     
     try {
       const res = await AuthApi.validate(token.value)
-      return res.success && res.data === true
+      return (res.success && res.data)
     } catch (error) {
       resetUserState()
       return false

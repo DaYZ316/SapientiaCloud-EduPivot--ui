@@ -208,7 +208,7 @@ import {
   sysRoleList,
   updateRole
 } from '@/api/system/role'
-import {sysPermissionList} from '@/api/system/permission'
+import {getPermissionTree} from '@/api/system/permission'
 import type {RolePageQueryDTO, SysRoleAddDTO, SysRoleDTO, SysRoleVO} from '@/types/system/role'
 import type {SysPermissionVO} from '@/types/system/permission'
 import {useI18n} from 'vue-i18n'
@@ -481,35 +481,32 @@ function handleAdd() {
   showAddModal.value = true
 }
 
+// 权限树相关类型
+interface TreeNode {
+  key: string;
+  label: string;
+  permissionKey: string;
+  children: TreeNode[];
+}
+
 // 权限树处理
-function buildPermissionTree(permissions: SysPermissionVO[]): any[] {
-  const tree: any[] = []
-  const map: Record<string, any> = {}
-  
-  // 首先创建所有节点的映射
-  permissions.forEach(perm => {
-    map[perm.id] = {
-      key: perm.id,
-      label: perm.permissionName,
-      permissionKey: perm.permissionKey,
+function buildPermissionTree(permissions: SysPermissionVO[]): TreeNode[] {
+  // 创建树结构
+  return permissions.map(permission => {
+    const node: TreeNode = {
+      key: permission.id,
+      label: permission.permissionName,
+      permissionKey: permission.permissionKey,
       children: []
     }
-  })
-  
-  // 构建树结构
-  permissions.forEach(perm => {
-    const node = map[perm.id]
     
-    if (perm.parentId && map[perm.parentId]) {
-      // 如果有父节点，则添加到父节点的children中
-      map[perm.parentId].children.push(node)
-    } else {
-      // 如果没有父节点或父节点不存在，则作为根节点
-      tree.push(node)
+    // 如果有子节点，递归处理
+    if (permission.children && permission.children.length > 0) {
+      node.children = buildPermissionTree(permission.children)
     }
+    
+    return node
   })
-  
-  return tree
 }
 
 // 处理分配权限
@@ -522,8 +519,8 @@ async function handleAssign(row: SysRoleVO) {
     const roleDetail = await getRoleDetail(row.id)
     const rolePermissions = roleDetail?.data?.permissions || []
     
-    // 获取所有权限列表
-    const permResult = await sysPermissionList({ pageNum: 1, pageSize: 1000 })
+    // 获取权限树结构
+    const permResult = await getPermissionTree()
     const permissions: SysPermissionVO[] = permResult?.data || []
     
     // 构建权限树
@@ -574,10 +571,7 @@ async function submitAssignPermissions() {
   }
 }
 
-// 初始化加载
-onMounted(() => {
-  // 在PageTable组件中已经自动执行初始化加载
-})
+
 </script>
 
 <style scoped lang="scss">

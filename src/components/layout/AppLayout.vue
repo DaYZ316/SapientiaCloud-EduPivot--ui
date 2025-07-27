@@ -92,7 +92,6 @@ const handleUserMenuSelect = async (key: string) => {
       await userStore.logout();
       router.push('/login');
     } catch (error: any) {
-      console.error(t('auth.logoutFail'), error);
       router.push('/login');
     }
   } else if (key === 'profile') {

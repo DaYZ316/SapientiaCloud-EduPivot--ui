@@ -45,6 +45,11 @@ export function sysRoleList(params: RolePageQueryDTO) {
   return http.get('/system/role/list', params)
 }
 
+// 获取所有角色
+export function getAllRoles() {
+  return http.get('/system/role/all')
+}
+
 // 获取角色详情
 export function getRoleDetail(id: string) {
   return http.get(`/system/role/${id}`)
@@ -52,7 +57,7 @@ export function getRoleDetail(id: string) {
 
 // 添加角色
 export function addRole(data: SysRoleAddDTO) {
-  return http.post('/system/role/add', data)
+  return http.post('/system/role', data)
 }
 
 // 更新角色

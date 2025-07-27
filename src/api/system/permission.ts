@@ -42,6 +42,11 @@ export function sysPermissionList(params: PermissionPageQueryDTO) {
   return http.get('/system/permission/list', params)
 }
 
+// 查询权限树结构
+export function getPermissionTree() {
+  return http.get('/system/permission/tree')
+}
+
 // 获取权限详情
 export function getPermissionById(id: string) {
   return http.get(`/system/permission/${id}`)

@@ -207,7 +207,6 @@ async function fetchData() {
       return res
     }
   } catch (error) {
-    console.error('分页查询失败:', error)
     dataList.value = []
     updatePagination(0)
   } finally {

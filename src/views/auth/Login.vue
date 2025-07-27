@@ -1,7 +1,5 @@
 <template>
   <div class="login-container">
-    <!-- <cloud-background v-if="!isDarkMode" />
-    <galaxy-background v-else /> -->
     <n-card class="login-card" :title="$t('app.name')" bordered>
       <n-form
         ref="formRef"
@@ -68,8 +66,6 @@ import {useUserStore} from '@/store'
 import {getMessageInstance} from '@/utils/http'
 import {LockClosedOutline, PersonOutline} from '@vicons/ionicons5'
 import {NIcon} from 'naive-ui'
-// import CloudBackground from '@/components/common/CloudBackground.vue'
-// import GalaxyBackground from '@/components/common/GalaxyBackground.vue'
 
 const router = useRouter()
 const route = useRoute()

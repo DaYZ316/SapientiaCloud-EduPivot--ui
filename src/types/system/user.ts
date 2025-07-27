@@ -121,12 +121,3 @@ export interface SysUserProfileDTO {
   gender?: number | null;
   avatar?: string | null;
 }
-
-/**
- * 用户密码修改DTO
- */
-export interface SysUserPasswordDTO {
-  currentPassword: string | null;
-  newPassword: string | null;
-  confirmPassword: string | null;
-}

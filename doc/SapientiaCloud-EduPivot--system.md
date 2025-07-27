@@ -26,6 +26,137 @@
 # 角色管理
 
 
+## 添加新角色
+
+
+**接口地址**:`/api/system/role`
+
+
+**请求方式**:`POST`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>添加一个新的角色到系统中。</p>
+
+
+
+**请求示例**:
+
+
+```javascript
+{
+  "roleName": "超级管理员",
+  "roleKey": "ADMIN",
+  "sort": 1,
+  "status": 0,
+  "description": "超级管理员角色"
+}
+```
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|sysRoleAddDTO|系统角色数据传输对象 (DTO)|body|true|SysRoleAddDTO|SysRoleAddDTO|
+|&emsp;&emsp;roleName|角色名称||true|string||
+|&emsp;&emsp;roleKey|角色标识||true|string||
+|&emsp;&emsp;sort|排序||false|integer(int32)||
+|&emsp;&emsp;status|状态 (0=正常, 1=停用)||false|integer(int32)||
+|&emsp;&emsp;description|描述||false|string||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultBoolean|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|boolean||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
 ## 更新现有角色
 
 
@@ -296,7 +427,7 @@
 **响应数据类型**:`*/*`
 
 
-**接口描述**:<p>通过角色ID获取其详细信息和权限列表。</p>
+**接口描述**:<p>通过角色的唯一ID获取其详细信息。</p>
 
 
 
@@ -561,7 +692,7 @@
 ## 分配角色权限
 
 
-**接口地址**:`/api/system/role/{id}/permission`
+**接口地址**:`/api/system/role/{roleId}/permission`
 
 
 **请求方式**:`POST`
@@ -590,7 +721,7 @@
 
 | 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
 | -------- | -------- | ----- | -------- | -------- | ------ |
-|id|角色ID|path|true|string(uuid)||
+|roleId|角色ID|path|true|string(uuid)||
 |strings|string|body|true|array||
 
 
@@ -679,50 +810,29 @@
 ```
 
 
-## 添加新角色
+## 获取所有角色
 
 
-**接口地址**:`/api/system/role/add`
+**接口地址**:`/api/system/role/all`
 
 
-**请求方式**:`POST`
+**请求方式**:`GET`
 
 
-**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+**请求数据类型**:`application/x-www-form-urlencoded`
 
 
 **响应数据类型**:`*/*`
 
 
-**接口描述**:<p>管理员向系统中添加一个新角色。</p>
+**接口描述**:<p>获取系统中所有的角色信息。</p>
 
-
-
-**请求示例**:
-
-
-```javascript
-{
-  "roleName": "超级管理员",
-  "roleKey": "ADMIN",
-  "sort": 1,
-  "status": 0,
-  "description": "超级管理员角色"
-}
-```
 
 
 **请求参数**:
 
 
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|sysRoleAddDTO|系统角色数据传输对象 (DTO)|body|true|SysRoleAddDTO|SysRoleAddDTO|
-|&emsp;&emsp;roleName|角色名称||true|string||
-|&emsp;&emsp;roleKey|角色标识||true|string||
-|&emsp;&emsp;sort|排序||false|integer(int32)||
-|&emsp;&emsp;status|状态 (0=正常, 1=停用)||false|integer(int32)||
-|&emsp;&emsp;description|描述||false|string||
+暂无
 
 
 **响应状态**:
@@ -730,7 +840,7 @@
 
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
-|200|OK|ResultBoolean|
+|200|OK|ResultListSysRoleVO|
 |400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
 
@@ -746,7 +856,25 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|boolean||
+|data|响应数据体 (泛型)|array|SysRoleVO|
+|&emsp;&emsp;id|角色ID|string(uuid)||
+|&emsp;&emsp;roleName|角色名称|string||
+|&emsp;&emsp;roleKey|角色标识|string||
+|&emsp;&emsp;permissions|系统权限视图对象 (VO)|array|SysPermissionVO|
+|&emsp;&emsp;&emsp;&emsp;id|权限ID|string||
+|&emsp;&emsp;&emsp;&emsp;parentId|父级权限ID|string||
+|&emsp;&emsp;&emsp;&emsp;permissionName|权限名称|string||
+|&emsp;&emsp;&emsp;&emsp;permissionKey|权限标识|string||
+|&emsp;&emsp;&emsp;&emsp;children|子权限列表|array|SysPermissionVO|
+|&emsp;&emsp;&emsp;&emsp;sort|排序|integer||
+|&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
+|&emsp;&emsp;sort|排序|integer(int32)||
+|&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer(int32)||
+|&emsp;&emsp;description|描述|string||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+|&emsp;&emsp;admin||boolean||
 
 
 **响应示例**:
@@ -755,7 +883,44 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": true
+	"data": [
+		{
+			"id": "",
+			"roleName": "",
+			"roleKey": "",
+			"permissions": [
+				{
+					"id": "",
+					"parentId": "",
+					"permissionName": "",
+					"permissionKey": "",
+					"children": [
+						{
+							"id": "",
+							"parentId": "",
+							"permissionName": "",
+							"permissionKey": "",
+							"children": [
+								{}
+							],
+							"sort": 0,
+							"createTime": "",
+							"updateTime": ""
+						}
+					],
+					"sort": 0,
+					"createTime": "",
+					"updateTime": ""
+				}
+			],
+			"sort": 0,
+			"status": 0,
+			"description": "",
+			"createTime": "",
+			"updateTime": "",
+			"admin": true
+		}
+	]
 }
 ```
 
@@ -810,7 +975,7 @@
 ```
 
 
-## 分页查找角色
+## 分页查询角色
 
 
 **接口地址**:`/api/system/role/list`
@@ -825,7 +990,7 @@
 **响应数据类型**:`*/*`
 
 
-**接口描述**:<p>根据传入的条件分页查询角色信息。支持根据角色名、角色描述等字段进行模糊查询。</p>
+**接口描述**:<p>根据传入的条件分页查询角色信息。支持根据角色名称、角色标识等字段进行模糊查询。</p>
 
 
 
@@ -933,7 +1098,7 @@
 # 权限管理
 
 
-## 添加权限
+## 添加新权限
 
 
 **接口地址**:`/api/system/permission`
@@ -948,7 +1113,7 @@
 **响应数据类型**:`*/*`
 
 
-**接口描述**:<p>添加新的权限信息。</p>
+**接口描述**:<p>添加一个新的权限到系统中。</p>
 
 
 
@@ -1345,7 +1510,7 @@
 
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
-|200|OK|ResultSysPermission|
+|200|OK|ResultSysPermissionVO|
 |400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
 
@@ -1361,14 +1526,15 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data||SysPermission|SysPermission|
-|&emsp;&emsp;createTime|创建时间 (系统自动生成)|string(date-time)||
-|&emsp;&emsp;updateTime|更新时间 (系统自动生成)|string(date-time)||
+|data||SysPermissionVO|SysPermissionVO|
 |&emsp;&emsp;id|权限ID|string(uuid)||
 |&emsp;&emsp;parentId|父级权限ID|string(uuid)||
 |&emsp;&emsp;permissionName|权限名称|string||
 |&emsp;&emsp;permissionKey|权限标识|string||
+|&emsp;&emsp;children|子权限列表|array|SysPermissionVO|
 |&emsp;&emsp;sort|排序|integer(int32)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
 
 **响应示例**:
@@ -1382,7 +1548,23 @@
 		"parentId": "",
 		"permissionName": "",
 		"permissionKey": "",
-		"sort": 0
+		"children": [
+			{
+				"id": "",
+				"parentId": "",
+				"permissionName": "",
+				"permissionKey": "",
+				"children": [
+					{}
+				],
+				"sort": 0,
+				"createTime": "",
+				"updateTime": ""
+			}
+		],
+		"sort": 0,
+		"createTime": "",
+		"updateTime": ""
 	}
 }
 ```
@@ -1550,7 +1732,7 @@
 ```
 
 
-## 分页查找权限
+## 分页查询权限
 
 
 **接口地址**:`/api/system/permission/list`
@@ -1565,7 +1747,7 @@
 **响应数据类型**:`*/*`
 
 
-**接口描述**:<p>根据传入的条件分页查询权限信息。支持根据权限名称、权限标识等字段进行模糊查询。</p>
+**接口描述**:<p>根据传入的条件分页查询权限信息。支持根据权限名称、标识等字段进行模糊查询。</p>
 
 
 
@@ -1617,6 +1799,148 @@
 	"data": [],
 	"code": 0,
 	"message": ""
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 查询权限树
+
+
+**接口地址**:`/api/system/permission/tree`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>查询权限树结构。</p>
+
+
+
+**请求参数**:
+
+
+暂无
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListSysPermissionVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|SysPermissionVO|
+|&emsp;&emsp;id|权限ID|string(uuid)||
+|&emsp;&emsp;parentId|父级权限ID|string(uuid)||
+|&emsp;&emsp;permissionName|权限名称|string||
+|&emsp;&emsp;permissionKey|权限标识|string||
+|&emsp;&emsp;children|子权限列表|array|SysPermissionVO|
+|&emsp;&emsp;sort|排序|integer(int32)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"parentId": "",
+			"permissionName": "",
+			"permissionKey": "",
+			"children": [
+				{
+					"id": "",
+					"parentId": "",
+					"permissionName": "",
+					"permissionKey": "",
+					"children": [
+						{}
+					],
+					"sort": 0,
+					"createTime": "",
+					"updateTime": ""
+				}
+			],
+			"sort": 0,
+			"createTime": "",
+			"updateTime": ""
+		}
+	]
 }
 ```
 
@@ -2517,6 +2841,198 @@
 		"updateTime": "",
 		"lastLoginTime": ""
 	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 获取所有用户
+
+
+**接口地址**:`/api/system/user/all`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>获取所有用户列表。</p>
+
+
+
+**请求参数**:
+
+
+暂无
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListSysUserVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|SysUserVO|
+|&emsp;&emsp;id|用户ID|string(uuid)||
+|&emsp;&emsp;username|用户名|string||
+|&emsp;&emsp;nickName|用户昵称|string||
+|&emsp;&emsp;email|邮箱|string||
+|&emsp;&emsp;mobile|手机号|string||
+|&emsp;&emsp;gender|性别 (0=未知, 1=男, 2=女)|integer(int32)||
+|&emsp;&emsp;avatar|用户头像URL|string||
+|&emsp;&emsp;roles|系统角色视图对象 (VO)|array|SysRoleVO|
+|&emsp;&emsp;&emsp;&emsp;id|角色ID|string||
+|&emsp;&emsp;&emsp;&emsp;roleName|角色名称|string||
+|&emsp;&emsp;&emsp;&emsp;roleKey|角色标识|string||
+|&emsp;&emsp;&emsp;&emsp;permissions|系统权限视图对象 (VO)|array|SysPermissionVO|
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;id|权限ID|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;parentId|父级权限ID|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permissionName|权限名称|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permissionKey|权限标识|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;children|子权限列表|array|SysPermissionVO|
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;sort|排序|integer||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
+|&emsp;&emsp;&emsp;&emsp;sort|排序|integer||
+|&emsp;&emsp;&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer||
+|&emsp;&emsp;&emsp;&emsp;description|描述|string||
+|&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
+|&emsp;&emsp;&emsp;&emsp;admin||boolean||
+|&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer(int32)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+|&emsp;&emsp;lastLoginTime|最后登录时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"username": "",
+			"nickName": "",
+			"email": "",
+			"mobile": "",
+			"gender": 0,
+			"avatar": "",
+			"roles": [
+				{
+					"id": "",
+					"roleName": "",
+					"roleKey": "",
+					"permissions": [
+						{
+							"id": "",
+							"parentId": "",
+							"permissionName": "",
+							"permissionKey": "",
+							"children": [
+								{
+									"id": "",
+									"parentId": "",
+									"permissionName": "",
+									"permissionKey": "",
+									"children": [
+										{}
+									],
+									"sort": 0,
+									"createTime": "",
+									"updateTime": ""
+								}
+							],
+							"sort": 0,
+							"createTime": "",
+							"updateTime": ""
+						}
+					],
+					"sort": 0,
+					"status": 0,
+					"description": "",
+					"createTime": "",
+					"updateTime": "",
+					"admin": true
+				}
+			],
+			"status": 0,
+			"createTime": "",
+			"updateTime": "",
+			"lastLoginTime": ""
+		}
+	]
 }
 ```
 

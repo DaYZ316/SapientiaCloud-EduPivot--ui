@@ -80,6 +80,11 @@ export function sysUserList(params: UserPageQueryDTO) {
   return http.get('/system/user/list', params)
 }
 
+// 获取所有用户
+export function getAllUsers() {
+  return http.get('/system/user/all')
+}
+
 // 根据ID获取用户
 export function getUserById(id: string) {
   return http.get(`/system/user/${id}`)

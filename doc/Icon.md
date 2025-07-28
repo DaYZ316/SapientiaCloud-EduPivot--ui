@@ -62,15 +62,15 @@ const menuOptions = computed(() => [
 
 ## 属性
 
-| 属性名 | 类型 | 默认值 | 说明 |
-|-------|------|-------|------|
-| color | String | null | 图标颜色 |
-| size | Number/String | null | 图标大小 |
-| depth | Number/String | null | 图标深度，用于调整暗色主题下的颜色 |
-| component | Component | null | 图标组件，通常是从图标库中导入的组件 |
+| 属性名       | 类型            | 默认值  | 说明                 |
+|-----------|---------------|------|--------------------|
+| color     | String        | null | 图标颜色               |
+| size      | Number/String | null | 图标大小               |
+| depth     | Number/String | null | 图标深度，用于调整暗色主题下的颜色  |
+| component | Component     | null | 图标组件，通常是从图标库中导入的组件 |
 
 ## 插槽
 
-| 名称 | 说明 |
-|------|------|
+| 名称      | 说明                                   |
+|---------|--------------------------------------|
 | default | 默认插槽，当不使用component属性时可以使用此插槽来自定义图标内容 | 

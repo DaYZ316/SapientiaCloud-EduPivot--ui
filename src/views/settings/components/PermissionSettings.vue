@@ -16,10 +16,10 @@
         <n-form-item :label="t('settings.permission.searchForm.createTimeRange')" path="createTimeRange">
           <n-date-picker
               v-model:value="createTimeRange"
-              type="datetimerange"
               :placeholder="t('settings.permission.searchForm.createTimeRangePlaceholder')"
               clearable
               style="min-width: 300px;"
+              type="datetimerange"
               @update:value="onDateRangeChange"
           />
         </n-form-item>

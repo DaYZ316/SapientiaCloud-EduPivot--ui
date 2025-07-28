@@ -1,5 +1,5 @@
-import { h } from 'vue'
-import type { Component } from 'vue'
+import type {Component} from 'vue'
+import {h} from 'vue'
 import Icon from '@/components/common/Icon.vue'
 
 /**
@@ -9,7 +9,7 @@ import Icon from '@/components/common/Icon.vue'
  * @returns 渲染函数
  */
 export function renderIcon(icon: Component, props: Record<string, any> = {}) {
-  return () => h(Icon, { component: icon, ...props })
+    return () => h(Icon, {component: icon, ...props})
 }
 
 /**
@@ -19,5 +19,5 @@ export function renderIcon(icon: Component, props: Record<string, any> = {}) {
  * @returns 图标组件VNode
  */
 export function createIcon(icon: Component, props: Record<string, any> = {}) {
-  return h(Icon, { component: icon, ...props })
+    return h(Icon, {component: icon, ...props})
 } 

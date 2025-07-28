@@ -19,14 +19,17 @@
 将Date对象格式化为东八区时间字符串。
 
 **参数：**
+
 - `date: Date` - 要格式化的Date对象
 
 **返回值：**
+
 - `string` - 格式化后的时间字符串，格式为 `yyyy-MM-dd HH:mm:ss`
 
 **示例：**
+
 ```typescript
-import { formatToBeijingTime } from '@/utils/dateUtil'
+import {formatToBeijingTime} from '@/utils/dateUtil'
 
 const now = new Date()
 const beijingTime = formatToBeijingTime(now)
@@ -38,14 +41,17 @@ console.log(beijingTime) // 输出：2024-01-15 14:30:25
 将时间戳数组格式化为东八区时间字符串数组。
 
 **参数：**
+
 - `timestamps: [number, number] | null` - 时间戳数组或null
 
 **返回值：**
+
 - `[string, string] | [null, null]` - 格式化后的时间字符串数组
 
 **示例：**
+
 ```typescript
-import { formatTimestampsToBeijingTime } from '@/utils/dateUtil'
+import {formatTimestampsToBeijingTime} from '@/utils/dateUtil'
 
 const timestamps: [number, number] = [1705305000000, 1705391400000]
 const [startTime, endTime] = formatTimestampsToBeijingTime(timestamps)
@@ -57,14 +63,17 @@ console.log(startTime, endTime) // 输出：2024-01-15 09:30:00 2024-01-16 09:30
 将Date对象格式化为东八区日期字符串（仅日期部分）。
 
 **参数：**
+
 - `date: Date` - 要格式化的Date对象
 
 **返回值：**
+
 - `string` - 格式化后的日期字符串，格式为 `yyyy-MM-dd`
 
 **示例：**
+
 ```typescript
-import { formatToBeijingDate } from '@/utils/dateUtil'
+import {formatToBeijingDate} from '@/utils/dateUtil'
 
 const now = new Date()
 const beijingDate = formatToBeijingDate(now)
@@ -76,19 +85,21 @@ console.log(beijingDate) // 输出：2024-01-15
 专门用于处理日期范围选择器值变化的工具函数。
 
 **参数：**
+
 - `value: [number, number] | null` - 日期范围选择器的值
 - `callback: (startTime: string | null, endTime: string | null) => void` - 回调函数
 
 **示例：**
+
 ```typescript
-import { handleDateRangeChange } from '@/utils/dateUtil'
+import {handleDateRangeChange} from '@/utils/dateUtil'
 
 // 在Vue组件中使用
 function onDateRangeChange(value: [number, number] | null) {
-  handleDateRangeChange(value, (startTime, endTime) => {
-    searchForm.startTime = startTime
-    searchForm.endTime = endTime
-  })
+    handleDateRangeChange(value, (startTime, endTime) => {
+        searchForm.startTime = startTime
+        searchForm.endTime = endTime
+    })
 }
 ```
 
@@ -97,37 +108,38 @@ function onDateRangeChange(value: [number, number] | null) {
 ### 基本用法
 
 ```vue
+
 <template>
   <n-date-picker
-    v-model:value="dateRange"
-    type="datetimerange"
-    @update:value="onDateRangeChange"
+      v-model:value="dateRange"
+      type="datetimerange"
+      @update:value="onDateRangeChange"
   />
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { handleDateRangeChange } from '@/utils/dateUtil'
+  import {ref} from 'vue'
+  import {handleDateRangeChange} from '@/utils/dateUtil'
 
-const dateRange = ref<[number, number] | null>(null)
-const searchForm = reactive({
-  startTime: null,
-  endTime: null
-})
-
-function onDateRangeChange(value: [number, number] | null) {
-  handleDateRangeChange(value, (startTime, endTime) => {
-    searchForm.startTime = startTime
-    searchForm.endTime = endTime
+  const dateRange = ref<[number, number] | null>(null)
+  const searchForm = reactive({
+    startTime: null,
+    endTime: null
   })
-}
+
+  function onDateRangeChange(value: [number, number] | null) {
+    handleDateRangeChange(value, (startTime, endTime) => {
+      searchForm.startTime = startTime
+      searchForm.endTime = endTime
+    })
+  }
 </script>
 ```
 
 ### 高级用法
 
 ```typescript
-import { formatToBeijingTime, formatToBeijingDate } from '@/utils/dateUtil'
+import {formatToBeijingTime, formatToBeijingDate} from '@/utils/dateUtil'
 
 // 获取当前北京时间
 const currentBeijingTime = formatToBeijingTime(new Date())

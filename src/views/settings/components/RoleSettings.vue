@@ -23,10 +23,10 @@
         <n-form-item :label="t('settings.role.searchForm.createTimeRange')" path="createTimeRange">
           <n-date-picker
               v-model:value="createTimeRange"
-              type="datetimerange"
               :placeholder="t('settings.role.searchForm.createTimeRangePlaceholder')"
               clearable
               style="min-width: 300px;"
+              type="datetimerange"
               @update:value="onDateRangeChange"
           />
         </n-form-item>
@@ -227,7 +227,6 @@ import Icon from '@/components/common/Icon.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {renderIcon} from '@/utils/iconUtil'
 import {handleDateRangeChange} from '@/utils/dateUtil'
-import {useThemeStore, useUserStore} from '@/store'
 
 
 const {message, dialog} = getDiscreteApi()

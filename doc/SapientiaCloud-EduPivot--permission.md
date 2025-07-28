@@ -4,7 +4,8 @@
 
 ### 功能介绍
 
-`v-hasPermission` 是一个全局自定义指令，用于根据当前用户拥有的权限控制元素的显示或隐藏。当用户没有相应权限时，元素会被从 DOM 中完全移除，而不只是隐藏。
+`v-hasPermission` 是一个全局自定义指令，用于根据当前用户拥有的权限控制元素的显示或隐藏。当用户没有相应权限时，元素会被从
+DOM 中完全移除，而不只是隐藏。
 
 ### 特性
 
@@ -29,11 +30,12 @@
 - 父权限会自动拥有其所有子权限的访问权
 - 权限码使用冒号（:）分隔层级，如 `system:user:add`
 - 父子权限关系示例：
-  - `system` 是顶层权限
-  - `system:user` 是 `system` 的子权限
-  - `system:user:add` 是 `system:user` 的子权限
+    - `system` 是顶层权限
+    - `system:user` 是 `system` 的子权限
+    - `system:user:add` 是 `system:user` 的子权限
 
 例如，如果用户拥有 `system:user` 权限，那么他也自动拥有：
+
 - `system:user:add`
 - `system:user:edit`
 - `system:user:delete`
@@ -128,6 +130,7 @@ system                  # 系统级权限
 ```
 
 对应的权限码：
+
 - `system:user:add`
 - `system:user:edit`
 - `system:user:delete`

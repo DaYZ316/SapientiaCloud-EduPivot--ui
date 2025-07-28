@@ -4,7 +4,7 @@ import type {Result} from '@/types/common/baseEntity'
 import router from '@/router'
 import {useUserStore} from '@/store'
 import i18n from '@/i18n'
-import { getDiscreteApi } from '@/utils/naiveUIHelper'
+import {getDiscreteApi} from '@/utils/naiveUIHelper'
 
 /**
  * API请求路径配置类
@@ -155,7 +155,7 @@ class HttpClient {
      */
     private handleUnauthorized(): void {
         const userStore = useUserStore()
-        const { dialog } = getDiscreteApi()
+        const {dialog} = getDiscreteApi()
 
         if (dialog) {
             dialog.warning({
@@ -172,7 +172,7 @@ class HttpClient {
                 }
             })
         } else {
-            const { message } = getDiscreteApi()
+            const {message} = getDiscreteApi()
             if (message) {
                 message.error(i18n.global.t('common.http.unauthorized'))
             }
@@ -185,7 +185,7 @@ class HttpClient {
      * 处理业务错误码
      */
     private handleErrorCode(code: number, message: string): void {
-        const { message: messageApi } = getDiscreteApi()
+        const {message: messageApi} = getDiscreteApi()
         if (!messageApi) return
 
         // 根据不同错误码处理
@@ -202,7 +202,7 @@ class HttpClient {
      * 处理HTTP错误
      */
     private handleHttpError(error: any): void {
-        const { message: messageApi } = getDiscreteApi()
+        const {message: messageApi} = getDiscreteApi()
         if (!messageApi) return
 
         const userStore = useUserStore()

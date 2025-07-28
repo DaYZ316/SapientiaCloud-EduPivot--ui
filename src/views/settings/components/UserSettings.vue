@@ -32,10 +32,10 @@
         <n-form-item :label="t('settings.user.searchForm.createTimeRange')" path="createTimeRange">
           <n-date-picker
               v-model:value="createTimeRange"
-              type="datetimerange"
               :placeholder="t('settings.user.searchForm.createTimeRangePlaceholder')"
               clearable
               style="min-width: 300px;"
+              type="datetimerange"
               @update:value="onDateRangeChange"
           />
         </n-form-item>
@@ -174,7 +174,7 @@
 
 <script lang="ts" setup>
 import {computed, h, reactive, ref} from 'vue'
-import {NSwitch, NEllipsis} from 'naive-ui'
+import {NEllipsis, NSwitch} from 'naive-ui'
 import {AddOutline, PeopleOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
 import * as userApi from '@/api/system/user'
 import {getAllRoles} from '@/api/system/role'
@@ -267,11 +267,11 @@ const columns = computed(() => [
   {title: t('settings.user.table.username'), key: 'username'},
   {title: t('settings.user.table.nickname'), key: 'nickName'},
   {
-    title: t('settings.user.table.email'), 
+    title: t('settings.user.table.email'),
     key: 'email',
     render(row: userType.SysUserVO) {
       return h(NEllipsis, {
-        style: { maxWidth: '200px' }
+        style: {maxWidth: '200px'}
       }, {
         default: () => row.email,
         tooltip: () => row.email

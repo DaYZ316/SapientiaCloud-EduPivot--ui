@@ -14,9 +14,7 @@
             <div class="user-avatar">
               <n-avatar :src="userInfo?.avatar || ''" round/>
               <span class="nickname">{{ userInfo?.nickName || $t('common.user') }}</span>
-              <n-icon>
-                <chevron-down-outline/>
-              </n-icon>
+              <Icon :component="ChevronDownOutline" />
             </div>
           </n-dropdown>
         </n-space>
@@ -46,13 +44,16 @@ import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {ChevronDownOutline, LogOutOutline, PersonOutline, SettingsOutline} from '@vicons/ionicons5'
 import {useThemeStore, useUserStore} from '@/store'
-import {NIcon} from 'naive-ui'
+import Icon from '@/components/common/Icon.vue'
+import {createIcon} from '@/utils/iconUtil'
+import {getGlobalApis} from '@/utils/naiveUIHelper'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 const theme = useThemeStore()
 const {t} = useI18n()
+const {message} = getGlobalApis()
 
 // 获取用户信息
 const userInfo = computed(() => userStore.userInfo)
@@ -84,7 +85,7 @@ const userMenuOptions = computed(() => [
 
 // 渲染图标的辅助函数
 function renderIcon(icon: Component) {
-  return () => h(NIcon, null, {default: () => h(icon)})
+  return () => createIcon(icon)
 }
 
 // 处理用户菜单选择
@@ -92,6 +93,7 @@ const handleUserMenuSelect = async (key: string) => {
   if (key === 'logout') {
     try {
       await userStore.logout();
+      message.success(t('auth.logoutSuccess'));
       router.push('/login');
     } catch (error: any) {
       router.push('/login');

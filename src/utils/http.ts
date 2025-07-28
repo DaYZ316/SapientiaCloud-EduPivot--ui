@@ -4,6 +4,7 @@ import type {Result} from '@/types/common/baseEntity'
 import router from '@/router'
 import {useUserStore} from '@/store'
 import i18n from '@/i18n'
+import { getDiscreteApi } from '@/utils/naiveUIHelper'
 
 /**
  * API请求路径配置类
@@ -37,46 +38,6 @@ class ApiConfig {
             return `http://${this.ip}:${this.port}${this.prefix}`
         }
     }
-}
-
-/**
- * 全局消息提示实例
- */
-let messageInstance: any = null
-
-/**
- * 全局对话框实例
- */
-let dialogInstance: any = null
-
-/**
- * 设置全局对话框实例
- */
-export const setDialogInstance = (instance: any) => {
-    dialogInstance = instance
-}
-
-/**
- * 获取全局消息提示实例
- */
-export const getMessageInstance = () => {
-    return messageInstance
-}
-
-/**
- * 获取全局对话框实例
- */
-export const getDialogInstance = () => {
-    return dialogInstance
-}
-
-/**
- * 重置消息和对话框实例
- * 当主题变化时调用此函数，以便下次获取实例时会使用新主题
- */
-export const resetInstances = () => {
-    messageInstance = null
-    dialogInstance = null
 }
 
 /**
@@ -194,7 +155,7 @@ class HttpClient {
      */
     private handleUnauthorized(): void {
         const userStore = useUserStore()
-        const dialog = getDialogInstance()
+        const { dialog } = getDiscreteApi()
 
         if (dialog) {
             dialog.warning({
@@ -211,7 +172,7 @@ class HttpClient {
                 }
             })
         } else {
-            const message = getMessageInstance()
+            const { message } = getDiscreteApi()
             if (message) {
                 message.error(i18n.global.t('common.http.unauthorized'))
             }
@@ -224,7 +185,7 @@ class HttpClient {
      * 处理业务错误码
      */
     private handleErrorCode(code: number, message: string): void {
-        const messageApi = getMessageInstance()
+        const { message: messageApi } = getDiscreteApi()
         if (!messageApi) return
 
         // 根据不同错误码处理
@@ -241,7 +202,7 @@ class HttpClient {
      * 处理HTTP错误
      */
     private handleHttpError(error: any): void {
-        const messageApi = getMessageInstance()
+        const { message: messageApi } = getDiscreteApi()
         if (!messageApi) return
 
         const userStore = useUserStore()

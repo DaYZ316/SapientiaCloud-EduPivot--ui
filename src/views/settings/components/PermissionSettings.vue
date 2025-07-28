@@ -1,14 +1,14 @@
 <template>
   <div class="permission-settings-container">
-    <n-card :title="$t('settings.permission.title')" size="small">
+    <n-card :title="t('settings.permission.title')" size="small">
       <!-- 搜索表单 -->
       <n-form :model="searchForm" class="search-form" inline>
-        <n-form-item :label="$t('settings.permission.searchForm.permissionName')" path="permissionName">
-          <n-input v-model:value="searchForm.permissionName" :placeholder="$t('settings.permission.searchForm.permissionNamePlaceholder')"
+        <n-form-item :label="t('settings.permission.searchForm.permissionName')" path="permissionName">
+          <n-input v-model:value="searchForm.permissionName" :placeholder="t('settings.permission.searchForm.permissionNamePlaceholder')"
                    clearable/>
         </n-form-item>
-        <n-form-item :label="$t('settings.permission.searchForm.permissionKey')" path="permissionKey">
-          <n-input v-model:value="searchForm.permissionKey" :placeholder="$t('settings.permission.searchForm.permissionKeyPlaceholder')"
+        <n-form-item :label="t('settings.permission.searchForm.permissionKey')" path="permissionKey">
+          <n-input v-model:value="searchForm.permissionKey" :placeholder="t('settings.permission.searchForm.permissionKeyPlaceholder')"
                    clearable/>
         </n-form-item>
         <n-form-item>
@@ -18,7 +18,7 @@
                 <search-outline/>
               </n-icon>
             </template>
-            {{ $t('settings.permission.searchForm.search') }}
+            {{ t('settings.permission.searchForm.search') }}
           </n-button>
           <n-button class="ml-2" @click="resetSearch">
             <template #icon>
@@ -26,7 +26,7 @@
                 <refresh-outline/>
               </n-icon>
             </template>
-            {{ $t('settings.permission.searchForm.reset') }}
+            {{ t('settings.permission.searchForm.reset') }}
           </n-button>
         </n-form-item>
       </n-form>
@@ -39,7 +39,7 @@
               <add-outline/>
             </n-icon>
           </template>
-          {{ $t('settings.permission.actions.add') }}
+          {{ t('settings.permission.actions.add') }}
         </n-button>
       </div>
 
@@ -56,7 +56,7 @@
     </n-card>
 
     <!-- 添加权限对话框 -->
-    <n-modal v-model:show="showAddModal" :title="$t('settings.permission.addPermission.title')" preset="card"
+    <n-modal v-model:show="showAddModal" :title="t('settings.permission.addPermission.title')" preset="card"
              style="width: 600px">
       <n-form
           ref="addFormRef"
@@ -64,52 +64,52 @@
           :rules="permissionFormRules"
           :style="{ maxWidth: '540px' }"
       >
-        <n-form-item :label="$t('settings.permission.addPermission.parentId')" path="parentId">
+        <n-form-item :label="t('settings.permission.addPermission.parentId')" path="parentId">
           <n-tree-select
               v-model:value="addPermissionForm.parentId"
               :loading="treeLoading"
               :options="permissionTreeOptions"
-              :placeholder="$t('settings.permission.addPermission.parentIdPlaceholder')"
+              :placeholder="t('settings.permission.addPermission.parentIdPlaceholder')"
               :virtual-scroll="true"
               clearable
               filterable
           />
         </n-form-item>
 
-        <n-form-item :label="$t('settings.permission.addPermission.permissionName')" path="permissionName">
+        <n-form-item :label="t('settings.permission.addPermission.permissionName')" path="permissionName">
           <n-input
               v-model:value="addPermissionForm.permissionName"
-              :placeholder="$t('settings.permission.addPermission.permissionNamePlaceholder')"
+              :placeholder="t('settings.permission.addPermission.permissionNamePlaceholder')"
           />
         </n-form-item>
 
-        <n-form-item :label="$t('settings.permission.addPermission.permissionKey')" path="permissionKey">
+        <n-form-item :label="t('settings.permission.addPermission.permissionKey')" path="permissionKey">
           <n-input
               v-model:value="addPermissionForm.permissionKey"
-              :placeholder="$t('settings.permission.addPermission.permissionKeyPlaceholder')"
+              :placeholder="t('settings.permission.addPermission.permissionKeyPlaceholder')"
           />
         </n-form-item>
 
-        <n-form-item :label="$t('settings.permission.addPermission.sort')" path="sort">
+        <n-form-item :label="t('settings.permission.addPermission.sort')" path="sort">
           <n-input-number
               v-model:value="addPermissionForm.sort"
-              :placeholder="$t('settings.permission.addPermission.sortPlaceholder')"
+              :placeholder="t('settings.permission.addPermission.sortPlaceholder')"
           />
         </n-form-item>
       </n-form>
 
       <template #footer>
         <n-space justify="end">
-          <n-button @click="closeAddModal">{{ $t('settings.permission.addPermission.cancel') }}</n-button>
+          <n-button @click="closeAddModal">{{ t('settings.permission.addPermission.cancel') }}</n-button>
           <n-button :loading="submitting" type="primary" @click="submitAddPermission">
-            {{ $t('settings.permission.addPermission.submit') }}
+            {{ t('settings.permission.addPermission.submit') }}
           </n-button>
         </n-space>
       </template>
     </n-modal>
 
     <!-- 编辑权限对话框 -->
-    <n-modal v-model:show="showEditModal" :title="$t('settings.permission.updatePermission.title')" preset="card"
+    <n-modal v-model:show="showEditModal" :title="t('settings.permission.updatePermission.title')" preset="card"
              style="width: 600px">
       <n-form
           ref="editFormRef"
@@ -117,44 +117,44 @@
           :rules="permissionFormRules"
           :style="{ maxWidth: '540px' }"
       >
-        <n-form-item :label="$t('settings.permission.updatePermission.parentId')" path="parentId">
+        <n-form-item :label="t('settings.permission.updatePermission.parentId')" path="parentId">
           <n-select
               v-model:value="updatePermissionForm.parentId"
               :disabled="isParentPermissionDisabled"
               :options="editParentOptions"
-              :placeholder="$t('settings.permission.updatePermission.parentIdPlaceholder')"
+              :placeholder="t('settings.permission.updatePermission.parentIdPlaceholder')"
               clearable
               filterable
           />
         </n-form-item>
 
-        <n-form-item :label="$t('settings.permission.updatePermission.permissionName')" path="permissionName">
+        <n-form-item :label="t('settings.permission.updatePermission.permissionName')" path="permissionName">
           <n-input
               v-model:value="updatePermissionForm.permissionName"
-              :placeholder="$t('settings.permission.updatePermission.permissionNamePlaceholder')"
+              :placeholder="t('settings.permission.updatePermission.permissionNamePlaceholder')"
           />
         </n-form-item>
 
-        <n-form-item :label="$t('settings.permission.updatePermission.permissionKey')" path="permissionKey">
+        <n-form-item :label="t('settings.permission.updatePermission.permissionKey')" path="permissionKey">
           <n-input
               v-model:value="updatePermissionForm.permissionKey"
-              :placeholder="$t('settings.permission.updatePermission.permissionKeyPlaceholder')"
+              :placeholder="t('settings.permission.updatePermission.permissionKeyPlaceholder')"
           />
         </n-form-item>
 
-        <n-form-item :label="$t('settings.permission.updatePermission.sort')" path="sort">
+        <n-form-item :label="t('settings.permission.updatePermission.sort')" path="sort">
           <n-input-number
               v-model:value="updatePermissionForm.sort"
-              :placeholder="$t('settings.permission.updatePermission.sortPlaceholder')"
+              :placeholder="t('settings.permission.updatePermission.sortPlaceholder')"
           />
         </n-form-item>
       </n-form>
 
       <template #footer>
         <n-space justify="end">
-          <n-button @click="closeEditModal">{{ $t('settings.permission.updatePermission.cancel') }}</n-button>
+          <n-button @click="closeEditModal">{{ t('settings.permission.updatePermission.cancel') }}</n-button>
           <n-button :loading="submitting" type="primary" @click="submitUpdatePermission">
-            {{ $t('settings.permission.updatePermission.submit') }}
+            {{ t('settings.permission.updatePermission.submit') }}
           </n-button>
         </n-space>
       </template>
@@ -164,8 +164,7 @@
 
 <script lang="ts" setup>
 import {computed, h, reactive, ref} from 'vue'
-import type {FormInst, FormRules, TreeSelectOption} from 'naive-ui'
-import {NIcon} from 'naive-ui'
+import type {FormInst, FormRules, TreeSelectOption} from '@/types/naive-ui'
 import {AddOutline, CreateOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
 import {
   addPermission,
@@ -184,10 +183,9 @@ import type {
   SysPermissionVO
 } from '@/types/system/permission'
 import {useI18n} from 'vue-i18n'
-import {getDialogInstance, getMessageInstance} from '@/utils/http'
+import {getDiscreteApi} from '@/utils/naiveUIHelper'
 
-const message = getMessageInstance()
-const dialog = getDialogInstance()
+const {message, dialog} = getDiscreteApi()
 const {t, locale} = useI18n()
 
 // 搜索表单
@@ -272,7 +270,7 @@ const columns = computed(() => [
               onClick: () => handleEdit(row)
             },
             [
-              h(NIcon, null, {default: () => h(CreateOutline)}),
+              h('div', {class: 'n-icon'}, () => h(CreateOutline)),
               ' ' + t('settings.permission.actions.edit')
             ]
         ),
@@ -283,7 +281,7 @@ const columns = computed(() => [
               onClick: () => handleDelete(row)
             },
             [
-              h(NIcon, null, {default: () => h(TrashOutline)}),
+              h('div', {class: 'n-icon'}, () => h(TrashOutline)),
               ' ' + t('settings.permission.actions.delete')
             ]
         )

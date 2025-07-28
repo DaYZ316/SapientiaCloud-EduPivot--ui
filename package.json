@@ -1,7 +1,7 @@
 {
   "name": "sapientiacloud-edupivot--ui",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,18 +14,20 @@
     "@vicons/ionicons5": "^0.13.0",
     "@vueuse/core": "^13.5.0",
     "axios": "^1.10.0",
+    "cropperjs": "1.6.2",
     "date-fns": "^4.1.0",
-    "naive-ui": "^2.42.0",
+    "naive-ui": "2.40.1",
     "pinia": "^3.0.3",
     "sass": "^1.89.2",
     "scss": "^0.2.4",
     "three": "^0.178.0",
     "vue": "^3.5.17",
-    "vue-i18n": "^9.14.5",
+    "vue-cropper": "^0.6.5",
+    "vue-i18n": "^11.1.11",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
-    "@types/node": "^24.0.15",
+    "@types/node": "24.1.0",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vue/tsconfig": "^0.7.0",
     "fdir": "^6.4.6",

@@ -3,37 +3,35 @@
     <div class="page-header">
       <n-button circle quaternary @click="goBack">
         <template #icon>
-          <n-icon>
-            <arrow-back-outline/>
-          </n-icon>
+          <Icon :component="ArrowBackOutline" />
         </template>
       </n-button>
-      <h1 class="page-title">{{ $t('menu.settings') }}</h1>
+      <h1 class="page-title">{{ t('menu.settings') }}</h1>
     </div>
 
     <n-tabs animated type="line">
       <!-- 个人设置 -->
-      <n-tab-pane :tab="$t('settings.tabs.personal')" name="personal">
+      <n-tab-pane :tab="t('settings.tabs.personal')" name="personal">
         <personal-settings/>
       </n-tab-pane>
 
       <!-- 用户设置 -->
-      <n-tab-pane :tab="$t('settings.tabs.user')" name="user">
+      <n-tab-pane :tab="t('settings.tabs.user')" name="user">
         <user-settings/>
       </n-tab-pane>
 
       <!-- 角色设置 -->
-      <n-tab-pane :tab="$t('settings.tabs.role')" name="role">
+      <n-tab-pane :tab="t('settings.tabs.role')" name="role">
         <role-settings/>
       </n-tab-pane>
 
       <!-- 权限设置 -->
-      <n-tab-pane :tab="$t('settings.tabs.permission')" name="permission">
+      <n-tab-pane :tab="t('settings.tabs.permission')" name="permission">
         <permission-settings/>
       </n-tab-pane>
 
       <!-- 系统设置 -->
-      <n-tab-pane :tab="$t('settings.tabs.system')" name="system">
+      <n-tab-pane :tab="t('settings.tabs.system')" name="system">
         <system-settings/>
       </n-tab-pane>
     </n-tabs>
@@ -43,9 +41,11 @@
 <script lang="ts" setup>
 import {defineAsyncComponent} from 'vue'
 import {useRouter} from 'vue-router'
-import {NButton, NIcon} from 'naive-ui'
 import {ArrowBackOutline} from '@vicons/ionicons5'
+import Icon from '@/components/common/Icon.vue'
+import {useI18n} from 'vue-i18n'
 
+const {t} = useI18n()
 const router = useRouter()
 
 // 使用异步组件加载各个设置模块

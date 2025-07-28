@@ -32,9 +32,9 @@ export function getDefaultSysUserAdminDTO(): SysUserAdminDTO {
         nickName: null,
         email: null,
         mobile: null,
-        gender: 0,
+        gender: null,
         avatar: null,
-        status: 0
+        status: null
     }
 }
 
@@ -45,9 +45,9 @@ export function getDefaultSysUserDTO(): SysUserDTO {
         nickName: null,
         email: null,
         mobile: null,
-        gender: 0,
+        gender: null,
         avatar: null,
-        status: 0,
+        status: null,
         lastLoginTime: null
     }
 }
@@ -70,7 +70,7 @@ export function getDefaultSysUserProfileDTO(): SysUserProfileDTO {
         nickName: null,
         email: null,
         mobile: null,
-        gender: 0,
+        gender: null,
         avatar: null
     }
 }

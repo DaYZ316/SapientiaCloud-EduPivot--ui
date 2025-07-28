@@ -3,9 +3,7 @@
     <div class="page-header">
       <n-button circle quaternary @click="goBack">
         <template #icon>
-          <n-icon>
-            <arrow-back-outline/>
-          </n-icon>
+          <Icon :component="ArrowBackOutline" />
         </template>
       </n-button>
     </div>
@@ -20,67 +18,67 @@
         />
       </div>
       <h1 class="profile-name">{{ userInfo?.nickName || userInfo?.username }}</h1>
-      <p class="profile-bio">{{ $t('profile.userBio') }}</p>
+      <p class="profile-bio">{{ t('profile.userBio') }}</p>
       <div class="profile-stats">
         <div class="stat-item">
           <span class="stat-value">{{ userRoles.length }}</span>
-          <span class="stat-label">{{ $t('profile.roles') }}</span>
+          <span class="stat-label">{{ t('profile.roles') }}</span>
         </div>
         <div class="stat-item">
           <span class="stat-value">{{ userPermissions.length }}</span>
-          <span class="stat-label">{{ $t('profile.permissions') }}</span>
+          <span class="stat-label">{{ t('profile.permissions') }}</span>
         </div>
         <div class="stat-item">
           <span class="stat-value">{{ accountAgeDays }}</span>
-          <span class="stat-label">{{ $t('profile.accountAge') }}</span>
+          <span class="stat-label">{{ t('profile.accountAge') }}</span>
         </div>
       </div>
     </div>
 
     <div class="profile-tabs">
       <n-tabs :default-value="'info'" animated class="custom-tabs" type="line">
-        <n-tab-pane :tab="$t('profile.basicInfo')" name="info">
+        <n-tab-pane :tab="t('profile.basicInfo')" name="info">
           <div class="profile-section">
             <n-card :bordered="false" class="info-card">
               <n-descriptions bordered>
-                <n-descriptions-item :label="$t('auth.username')">
+                <n-descriptions-item :label="t('auth.username')">
                   <span>{{ userInfo?.username }}</span>
                 </n-descriptions-item>
-                <n-descriptions-item :label="$t('settings.personal.email')">
+                <n-descriptions-item :label="t('settings.personal.email')">
                   <span>{{ userInfo?.email || '-' }}</span>
                 </n-descriptions-item>
-                <n-descriptions-item :label="$t('settings.personal.phone')">
+                <n-descriptions-item :label="t('settings.personal.phone')">
                   <span>{{ userInfo?.mobile || '-' }}</span>
                 </n-descriptions-item>
-                <n-descriptions-item :label="$t('settings.personal.gender')">
+                <n-descriptions-item :label="t('settings.personal.gender')">
                   <span>{{ genderLabel }}</span>
                 </n-descriptions-item>
-                <n-descriptions-item :label="$t('settings.personal.accountStatus')">
+                <n-descriptions-item :label="t('settings.personal.accountStatus')">
                   <n-tag :type="userInfo?.status === 0 ? 'success' : 'error'">
                     {{
-                      userInfo?.status === 0 ? $t('settings.personal.statusNormal') : $t('settings.personal.statusDisabled')
+                      userInfo?.status === 0 ? t('settings.personal.statusNormal') : t('settings.personal.statusDisabled')
                     }}
                   </n-tag>
                 </n-descriptions-item>
-                <n-descriptions-item :label="$t('settings.personal.lastLoginTime')">
+                <n-descriptions-item :label="t('settings.personal.lastLoginTime')">
                   <span>{{ formatDateTime(userInfo?.lastLoginTime) }}</span>
                 </n-descriptions-item>
               </n-descriptions>
               <div class="action-buttons">
                 <n-button type="primary" @click="goToSettings">
-                  {{ $t('profile.editProfile') }}
+                  {{ t('profile.editProfile') }}
                 </n-button>
               </div>
             </n-card>
           </div>
         </n-tab-pane>
 
-        <n-tab-pane :tab="$t('profile.roleInfo')" name="roles">
+        <n-tab-pane :tab="t('profile.roleInfo')" name="roles">
           <div class="profile-section">
             <n-card :bordered="false" class="roles-card" title-placement="left">
               <template #header>
                 <div class="roles-header">
-                  <h3 class="section-title">{{ $t('profile.yourRoles') }}</h3>
+                  <h3 class="section-title">{{ t('profile.yourRoles') }}</h3>
                 </div>
               </template>
               <div class="roles-grid">
@@ -95,24 +93,24 @@
                       <div class="role-item">
                         <div class="role-content">
                           <div class="role-row">
-                            <span class="role-label">{{ $t('profile.roleKey') }}:</span>
+                            <span class="role-label">{{ t('profile.roleKey') }}:</span>
                             <span class="role-value">{{ role.roleKey }}</span>
                           </div>
                           <div class="role-row">
-                            <span class="role-label">{{ $t('profile.roleStatus') }}:</span>
+                            <span class="role-label">{{ t('profile.roleStatus') }}:</span>
                             <n-tag :type="role.status === 0 ? 'success' : 'error'" size="small">
                               {{
-                                role.status === 0 ? $t('settings.personal.statusNormal') : $t('settings.personal.statusDisabled')
+                                role.status === 0 ? t('settings.personal.statusNormal') : t('settings.personal.statusDisabled')
                               }}
                             </n-tag>
                           </div>
                           <div class="role-row">
-                            <span class="role-label">{{ $t('profile.roleDescription') }}:</span>
+                            <span class="role-label">{{ t('profile.roleDescription') }}:</span>
                             <span class="role-value">{{ role.description || '-' }}</span>
                           </div>
                         </div>
                         <div v-if="role.permissions && role.permissions.length > 0" class="role-permissions">
-                          <div class="permission-title">{{ $t('profile.rolePermissions') }}:</div>
+                          <div class="permission-title">{{ t('profile.rolePermissions') }}:</div>
                           <div class="permission-tags">
                             <n-tag
                                 v-for="perm in role.permissions"
@@ -134,12 +132,12 @@
           </div>
         </n-tab-pane>
 
-        <n-tab-pane :tab="$t('profile.permissionInfo')" name="permissions">
+        <n-tab-pane :tab="t('profile.permissionInfo')" name="permissions">
           <div class="profile-section">
             <n-card :bordered="false" class="permissions-card">
               <template #header>
                 <div class="permissions-header">
-                  <h3 class="section-title">{{ $t('profile.yourPermissions') }}</h3>
+                  <h3 class="section-title">{{ t('profile.yourPermissions') }}</h3>
                 </div>
               </template>
               <n-tree
@@ -162,12 +160,11 @@
 <script lang="ts" setup>
 import {computed} from 'vue'
 import {useRouter} from 'vue-router'
-import type {TreeOption} from 'naive-ui'
-import {NIcon} from 'naive-ui'
 import {ArrowBackOutline} from '@vicons/ionicons5'
 import {useUserStore} from '@/store'
 import {useI18n} from 'vue-i18n'
 import type {SysPermissionVO} from '@/types/system'
+import Icon from '@/components/common/Icon.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -225,6 +222,14 @@ const accountAgeDays = computed(() => {
   const diffTime = today.getTime() - createDate.getTime()
   return Math.floor(diffTime / (1000 * 60 * 60 * 24))
 })
+
+// 定义TreeOption接口
+interface TreeOption {
+  id: string;
+  name: string;
+  key?: string;
+  children?: TreeOption[];
+}
 
 // 转换权限为树形结构以供渲染
 const formattedPermissions = computed<TreeOption[]>(() => {

@@ -11,6 +11,9 @@ export * from './auth'
 // 导出系统模块类型（优先）
 export * from './system'
 
+// 导出minIO模块类型
+export * from './minIO'
+
 // 导出状态管理相关类型
 export * from './store'
 

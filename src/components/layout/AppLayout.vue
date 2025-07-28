@@ -14,7 +14,7 @@
             <div class="user-avatar">
               <n-avatar :src="userInfo?.avatar || ''" round/>
               <span class="nickname">{{ userInfo?.nickName || $t('common.user') }}</span>
-              <Icon :component="ChevronDownOutline" />
+              <Icon :component="ChevronDownOutline"/>
             </div>
           </n-dropdown>
         </n-space>
@@ -39,7 +39,7 @@
 
 <script lang="ts" setup>
 import type {Component} from 'vue'
-import {computed, h, onMounted} from 'vue'
+import {computed, onMounted} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {ChevronDownOutline, LogOutOutline, PersonOutline, SettingsOutline} from '@vicons/ionicons5'

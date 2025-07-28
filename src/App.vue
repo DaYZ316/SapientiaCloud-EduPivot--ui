@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import {darkTheme} from 'naive-ui'
 import {useThemeStore, useUserStore} from '@/store'
-import {computed, onMounted, nextTick, ref} from 'vue'
-import { setGlobalApis } from '@/utils/naiveUIHelper'
+import {computed, nextTick, onMounted, ref} from 'vue'
+import {setGlobalApis} from '@/utils/naiveUIHelper'
 
 const themeStore = useThemeStore()
 const userStore = useUserStore()
@@ -38,7 +38,7 @@ const initGlobalApis = () => {
     notification: notificationProviderRef.value,
     loadingBar: loadingBarProviderRef.value
   }
-  
+
   // 使用 setGlobalApis 函数统一设置
   setGlobalApis(apis)
 }
@@ -53,11 +53,11 @@ onMounted(async () => {
       await userStore.refreshUserInfo()
     }
   }
-  
+
   // 确保DOM渲染完成后再设置全局API
   await nextTick()
   initGlobalApis()
-  
+
   // 为了确保API可用，再次延迟设置
   setTimeout(initGlobalApis, 50)
 })

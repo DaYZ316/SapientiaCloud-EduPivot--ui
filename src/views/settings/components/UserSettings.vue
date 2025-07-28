@@ -184,8 +184,7 @@ import StatusDisplay from '@/components/common/StatusDisplay.vue'
 import Icon from '@/components/common/Icon.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {renderIcon} from '@/utils/iconUtil'
-import {useUserStore} from '@/store'
-import {useThemeStore} from '@/store'
+import {useThemeStore, useUserStore} from '@/store'
 
 const {message, dialog} = getDiscreteApi()
 const {t, locale} = useI18n()

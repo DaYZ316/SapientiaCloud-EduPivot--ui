@@ -40,7 +40,6 @@ import {useI18n} from 'vue-i18n'
 import {useThemeStore} from '@/store'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {setLanguage} from '@/i18n'
-import {darkTheme} from 'naive-ui'
 
 // 国际化
 const {locale, t} = useI18n()

@@ -15,7 +15,7 @@
               @keyup.enter="handleSubmit"
           >
             <template #prefix>
-              <Icon :component="PersonOutline" />
+              <Icon :component="PersonOutline"/>
             </template>
           </n-input>
         </n-form-item>
@@ -28,7 +28,7 @@
               @keyup.enter="handleSubmit"
           >
             <template #prefix>
-              <Icon :component="LockClosedOutline" />
+              <Icon :component="LockClosedOutline"/>
             </template>
           </n-input>
         </n-form-item>
@@ -66,7 +66,7 @@ import Icon from '@/components/common/Icon.vue'
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
-const { message } = getDiscreteApi()
+const {message} = getDiscreteApi()
 const {t} = useI18n()
 
 // 表单引用

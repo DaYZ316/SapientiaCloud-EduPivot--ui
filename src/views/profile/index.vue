@@ -3,7 +3,7 @@
     <div class="page-header">
       <n-button circle quaternary @click="goBack">
         <template #icon>
-          <Icon :component="ArrowBackOutline" />
+          <Icon :component="ArrowBackOutline"/>
         </template>
       </n-button>
     </div>

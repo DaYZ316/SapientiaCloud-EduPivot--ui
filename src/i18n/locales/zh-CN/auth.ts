@@ -3,6 +3,7 @@ export default {
     logout: '退出登录',
     register: '注册',
     forgotPassword: '忘记密码？',
+    forgetPassword: '忘记密码？',
     username: '用户名',
     password: '密码',
     confirmPassword: '确认密码',
@@ -19,5 +20,9 @@ export default {
     usernameRequired: '请输入用户名',
     passwordRequired: '请输入密码',
     tryAgainLater: '登录出错，请稍后重试',
-    contactAdmin: '请联系管理员重置密码'
+    contactAdmin: '请联系管理员重置密码',
+    welcome: '欢迎回来',
+    loginToAccount: '登录到您的账户',
+    loginInProgress: '登录中...',
+    or: '或'
 } 

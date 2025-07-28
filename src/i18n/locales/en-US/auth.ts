@@ -3,6 +3,7 @@ export default {
     logout: 'Logout',
     register: 'Register',
     forgotPassword: 'Forgot Password?',
+    forgetPassword: 'Forgot Password?',
     username: 'Username',
     password: 'Password',
     confirmPassword: 'Confirm Password',
@@ -19,5 +20,9 @@ export default {
     usernameRequired: 'Please Enter Username',
     passwordRequired: 'Please Enter Password',
     tryAgainLater: 'Login Error, Please Try Again Later',
-    contactAdmin: 'Please Contact Administrator to Reset Password'
+    contactAdmin: 'Please Contact Administrator to Reset Password',
+    welcome: 'Welcome Back',
+    loginToAccount: 'Sign in to your account',
+    loginInProgress: 'Signing in...',
+    or: 'OR'
 } 

@@ -26,13 +26,28 @@ export default defineConfig({
         include: ['three']
     },
     server: {
+        host: '0.0.0.0', // 允许外部访问
+        port: 5173,
+        strictPort: true, // 端口被占用时不会自动尝试下一个可用端口
+        cors: true, // 启用CORS
         proxy: {
             // 配置代理
             '/api': {
                 target: 'http://117.72.194.197:31600',
                 changeOrigin: true,
                 secure: false,
-                rewrite: (path) => path
+                rewrite: (path) => path,
+                configure: (proxy, options) => {
+                    proxy.on('error', (err, req, res) => {
+                        console.log('proxy error', err);
+                    });
+                    proxy.on('proxyReq', (proxyReq, req, res) => {
+                        console.log('Sending Request to the Target:', req.method, req.url);
+                    });
+                    proxy.on('proxyRes', (proxyRes, req, res) => {
+                        console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+                    });
+                }
             }
         }
     }

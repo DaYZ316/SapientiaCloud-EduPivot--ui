@@ -12,30 +12,30 @@
       <!-- 头部标题 -->
       <div class="login-header">
         <div class="logo">
-          <img src="/vite.svg" alt="Vite" class="vite-logo" />
+          <img alt="Vite" class="vite-logo" src="/vite.svg"/>
         </div>
         <h1 class="title">{{ t('auth.welcome') }}</h1>
         <p class="subtitle">{{ t('auth.loginToAccount') }}</p>
       </div>
 
       <!-- 登录表单 -->
-      <n-form ref="formRef" :model="formValue" :rules="rules" size="large" class="login-form">
-        <n-form-item path="username" :show-label="false">
-          <n-input v-model:value="formValue.username" :placeholder="t('auth.username')" clearable :disabled="loading">
+      <n-form ref="formRef" :model="formValue" :rules="rules" class="login-form" size="large">
+        <n-form-item :show-label="false" path="username">
+          <n-input v-model:value="formValue.username" :disabled="loading" :placeholder="t('auth.username')" clearable>
             <template #prefix>
               <Icon>
-                <PersonOutline />
+                <PersonOutline/>
               </Icon>
             </template>
           </n-input>
         </n-form-item>
 
-        <n-form-item path="password" :show-label="false">
-          <n-input v-model:value="formValue.password" type="password" :placeholder="t('auth.password')"
-            show-password-on="click" clearable :disabled="loading" @keydown.enter="handleSubmit">
+        <n-form-item :show-label="false" path="password">
+          <n-input v-model:value="formValue.password" :disabled="loading" :placeholder="t('auth.password')"
+                   clearable show-password-on="click" type="password" @keydown.enter="handleSubmit">
             <template #prefix>
               <Icon>
-                <LockClosedOutline />
+                <LockClosedOutline/>
               </Icon>
             </template>
           </n-input>
@@ -46,13 +46,13 @@
           <n-checkbox v-model:checked="rememberMe" :disabled="loading">
             {{ t('auth.rememberMe') }}
           </n-checkbox>
-          <n-button text type="primary" :disabled="loading" @click="handleForgetPassword">
+          <n-button :disabled="loading" text type="primary" @click="handleForgetPassword">
             {{ t('auth.forgetPassword') }}
           </n-button>
         </div>
 
         <!-- 登录按钮 -->
-        <n-button type="primary" size="large" block :loading="loading" @click="handleSubmit" class="login-button">
+        <n-button :loading="loading" block class="login-button" size="large" type="primary" @click="handleSubmit">
           {{ loading ? t('auth.loginInProgress') : t('auth.login') }}
         </n-button>
       </n-form>
@@ -65,7 +65,7 @@
       <!-- 注册链接 -->
       <div class="register-section">
         <span class="register-text">{{ t('auth.noAccount') }}</span>
-        <n-button text type="primary" :disabled="loading" @click="handleRegister" class="register-button">
+        <n-button :disabled="loading" class="register-button" text type="primary" @click="handleRegister">
           {{ t('auth.register') }}
         </n-button>
       </div>
@@ -74,19 +74,19 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { useUserStore } from '@/store'
-import { getDiscreteApi } from '@/utils/naiveUIHelper'
-import { LockClosedOutline, PersonOutline } from '@vicons/ionicons5'
+import {reactive, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {useUserStore} from '@/store'
+import {getDiscreteApi} from '@/utils/naiveUIHelper'
+import {LockClosedOutline, PersonOutline} from '@vicons/ionicons5'
 import Icon from '@/components/common/Icon.vue'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
-const { message } = getDiscreteApi()
-const { t } = useI18n()
+const {message} = getDiscreteApi()
+const {t} = useI18n()
 
 // 表单引用
 const formRef = ref(null)
@@ -106,10 +106,10 @@ const formValue = reactive({
 // 表单验证规则
 const rules = {
   username: [
-    { required: true, message: t('auth.usernameRequired'), trigger: ['blur', 'input'] }
+    {required: true, message: t('auth.usernameRequired'), trigger: ['blur', 'input']}
   ],
   password: [
-    { required: true, message: t('auth.passwordRequired'), trigger: ['blur', 'input'] }
+    {required: true, message: t('auth.passwordRequired'), trigger: ['blur', 'input']}
   ]
 }
 

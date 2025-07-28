@@ -17,7 +17,7 @@ const i18n = createI18n({
     locale: defaultLocale.value,
     fallbackLocale: 'zh-CN', // 降级语言
     messages,
-    globalInjection: true, // 全局注册$t方法
+    globalInjection: true, // 全局注册t方法
 })
 
 // 提供切换语言的函数

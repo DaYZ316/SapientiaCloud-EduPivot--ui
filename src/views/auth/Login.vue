@@ -1,6 +1,6 @@
 <template>
   <div class="login-container">
-    <n-card :title="$t('app.name')" bordered class="login-card">
+    <n-card :title="t('app.name')" bordered class="login-card">
       <n-form
           ref="formRef"
           :model="formValue"
@@ -8,37 +8,33 @@
           label-placement="left"
           size="large"
       >
-        <n-form-item :label="$t('auth.username')" :path="'username'">
+        <n-form-item :label="t('auth.username')" :path="'username'">
           <n-input
               v-model:value="formValue.username"
-              :placeholder="$t('auth.username')"
+              :placeholder="t('auth.username')"
               @keyup.enter="handleSubmit"
           >
             <template #prefix>
-              <n-icon>
-                <PersonOutline/>
-              </n-icon>
+              <Icon :component="PersonOutline" />
             </template>
           </n-input>
         </n-form-item>
-        <n-form-item :label="$t('auth.password')" :path="'password'">
+        <n-form-item :label="t('auth.password')" :path="'password'">
           <n-input
               v-model:value="formValue.password"
-              :placeholder="$t('auth.password')"
+              :placeholder="t('auth.password')"
               show-password-on="click"
               type="password"
               @keyup.enter="handleSubmit"
           >
             <template #prefix>
-              <n-icon>
-                <LockClosedOutline/>
-              </n-icon>
+              <Icon :component="LockClosedOutline" />
             </template>
           </n-input>
         </n-form-item>
         <div class="login-options">
-          <n-checkbox v-model:checked="rememberMe">{{ $t('auth.rememberMe') }}</n-checkbox>
-          <a href="#" @click.prevent="handleForgetPassword">{{ $t('auth.forgotPassword') }}</a>
+          <n-checkbox v-model:checked="rememberMe">{{ t('auth.rememberMe') }}</n-checkbox>
+          <a href="#" @click.prevent="handleForgetPassword">{{ t('auth.forgotPassword') }}</a>
         </div>
         <n-button
             :loading="loading"
@@ -47,11 +43,11 @@
             type="primary"
             @click="handleSubmit"
         >
-          {{ $t('auth.login') }}
+          {{ t('auth.login') }}
         </n-button>
         <div class="login-footer">
-          <span>{{ $t('auth.noAccount') }}</span>
-          <a href="#" @click.prevent="handleRegister">{{ $t('auth.register') }}</a>
+          <span>{{ t('auth.noAccount') }}</span>
+          <a href="#" @click.prevent="handleRegister">{{ t('auth.register') }}</a>
         </div>
       </n-form>
     </n-card>
@@ -63,14 +59,14 @@ import {reactive, ref} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {useUserStore} from '@/store'
-import {getMessageInstance} from '@/utils/http'
+import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {LockClosedOutline, PersonOutline} from '@vicons/ionicons5'
-import {NIcon} from 'naive-ui'
+import Icon from '@/components/common/Icon.vue'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
-const message = getMessageInstance()
+const { message } = getDiscreteApi()
 const {t} = useI18n()
 
 // 表单引用

@@ -11,7 +11,7 @@ export function getDefaultPermissionQuery(): PermissionPageQueryDTO {
         endTime: null,
         pageNum: 1,
         pageSize: 10,
-        orderByColumn: 'create_time',
+        orderByColumn: 'sort',
         isAsc: 'asc'
     }
 }

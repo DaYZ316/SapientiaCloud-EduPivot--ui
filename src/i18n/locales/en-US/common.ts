@@ -19,6 +19,15 @@ export default {
     no: 'No',
     user: 'User',
 
+    // Avatar upload related
+    uploadAvatar: 'Upload Avatar',
+    cropAvatar: 'Crop Avatar',
+    cropPreview: 'Preview',
+    avatarTypeError: 'Invalid avatar format, only JPG and PNG are supported',
+    avatarSizeError: 'Avatar size cannot exceed 2MB',
+    avatarUploadSuccess: 'Avatar uploaded successfully',
+    avatarUploadFail: 'Avatar upload failed',
+
     // HTTP related errors
     http: {
         unknown: 'Unknown Error',

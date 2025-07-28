@@ -1,21 +1,21 @@
 <template>
   <div class="role-settings-container">
-    <n-card :title="$t('settings.role.title')" size="small">
+    <n-card :title="t('settings.role.title')" size="small">
       <!-- 搜索表单 -->
       <n-form :model="searchForm" class="search-form" inline>
-        <n-form-item :label="$t('settings.role.searchForm.roleName')" path="roleName">
-          <n-input v-model:value="searchForm.roleName" :placeholder="$t('settings.role.searchForm.roleNamePlaceholder')"
+        <n-form-item :label="t('settings.role.searchForm.roleName')" path="roleName">
+          <n-input v-model:value="searchForm.roleName" :placeholder="t('settings.role.searchForm.roleNamePlaceholder')"
                    clearable/>
         </n-form-item>
-        <n-form-item :label="$t('settings.role.searchForm.roleKey')" path="roleKey">
-          <n-input v-model:value="searchForm.roleKey" :placeholder="$t('settings.role.searchForm.roleKeyPlaceholder')"
+        <n-form-item :label="t('settings.role.searchForm.roleKey')" path="roleKey">
+          <n-input v-model:value="searchForm.roleKey" :placeholder="t('settings.role.searchForm.roleKeyPlaceholder')"
                    clearable/>
         </n-form-item>
-        <n-form-item :label="$t('settings.role.searchForm.status')" path="status">
+        <n-form-item :label="t('settings.role.searchForm.status')" path="status">
           <n-select
               v-model:value="searchForm.status"
               :options="statusOptions"
-              :placeholder="$t('settings.role.searchForm.status')"
+              :placeholder="t('settings.role.searchForm.status')"
               clearable
               style="min-width: 120px;"
           />
@@ -27,7 +27,7 @@
                 <search-outline/>
               </n-icon>
             </template>
-            {{ $t('settings.role.searchForm.search') }}
+            {{ t('settings.role.searchForm.search') }}
           </n-button>
           <n-button class="ml-2" @click="resetSearch">
             <template #icon>
@@ -35,7 +35,7 @@
                 <refresh-outline/>
               </n-icon>
             </template>
-            {{ $t('settings.role.searchForm.reset') }}
+            {{ t('settings.role.searchForm.reset') }}
           </n-button>
         </n-form-item>
       </n-form>
@@ -48,7 +48,7 @@
               <add-outline/>
             </n-icon>
           </template>
-          {{ $t('settings.role.actions.add') }}
+          {{ t('settings.role.actions.add') }}
         </n-button>
       </div>
 
@@ -65,45 +65,45 @@
     </n-card>
 
     <!-- 添加角色对话框 -->
-    <n-modal v-model:show="showAddModal" :title="$t('settings.role.addRole.title')" preset="card" style="width: 600px">
+    <n-modal v-model:show="showAddModal" :title="t('settings.role.addRole.title')" preset="card" style="width: 600px">
       <n-form
           ref="addFormRef"
           :model="addRoleForm"
           :rules="roleFormRules"
           :style="{ maxWidth: '540px' }"
       >
-        <n-form-item :label="$t('settings.role.addRole.roleName')" path="roleName">
+        <n-form-item :label="t('settings.role.addRole.roleName')" path="roleName">
           <n-input
               v-model:value="addRoleForm.roleName"
-              :placeholder="$t('settings.role.addRole.roleNamePlaceholder')"
+              :placeholder="t('settings.role.addRole.roleNamePlaceholder')"
           />
         </n-form-item>
 
-        <n-form-item :label="$t('settings.role.addRole.roleKey')" path="roleKey">
+        <n-form-item :label="t('settings.role.addRole.roleKey')" path="roleKey">
           <n-input
               v-model:value="addRoleForm.roleKey"
-              :placeholder="$t('settings.role.addRole.roleKeyPlaceholder')"
+              :placeholder="t('settings.role.addRole.roleKeyPlaceholder')"
           />
         </n-form-item>
 
-        <n-form-item :label="$t('settings.role.addRole.sort')" path="sort">
+        <n-form-item :label="t('settings.role.addRole.sort')" path="sort">
           <n-input-number
               v-model:value="addRoleForm.sort"
-              :placeholder="$t('settings.role.addRole.sortPlaceholder')"
+              :placeholder="t('settings.role.addRole.sortPlaceholder')"
           />
         </n-form-item>
 
-        <n-form-item :label="$t('settings.role.addRole.status')" path="status">
+        <n-form-item :label="t('settings.role.addRole.status')" path="status">
           <n-select
               v-model:value="addRoleForm.status"
               :options="statusOptions"
           />
         </n-form-item>
 
-        <n-form-item :label="$t('settings.role.addRole.description')" path="description">
+        <n-form-item :label="t('settings.role.addRole.description')" path="description">
           <n-input
               v-model:value="addRoleForm.description"
-              :placeholder="$t('settings.role.addRole.descriptionPlaceholder')"
+              :placeholder="t('settings.role.addRole.descriptionPlaceholder')"
               type="textarea"
           />
         </n-form-item>
@@ -111,16 +111,16 @@
 
       <template #footer>
         <n-space justify="end">
-          <n-button @click="closeAddModal">{{ $t('settings.role.addRole.cancel') }}</n-button>
+          <n-button @click="closeAddModal">{{ t('settings.role.addRole.cancel') }}</n-button>
           <n-button :loading="submitting" type="primary" @click="submitAddRole">
-            {{ $t('settings.role.addRole.submit') }}
+            {{ t('settings.role.addRole.submit') }}
           </n-button>
         </n-space>
       </template>
     </n-modal>
 
     <!-- 编辑角色对话框 -->
-    <n-modal v-model:show="showEditModal" :title="$t('settings.role.updateRole.title')" preset="card"
+    <n-modal v-model:show="showEditModal" :title="t('settings.role.updateRole.title')" preset="card"
              style="width: 600px">
       <n-form
           ref="editFormRef"
@@ -128,28 +128,28 @@
           :rules="roleFormRules"
           :style="{ maxWidth: '540px' }"
       >
-        <n-form-item :label="$t('settings.role.updateRole.roleName')" path="roleName">
+        <n-form-item :label="t('settings.role.updateRole.roleName')" path="roleName">
           <n-input
               v-model:value="updateRoleForm.roleName"
-              :placeholder="$t('settings.role.updateRole.roleNamePlaceholder')"
+              :placeholder="t('settings.role.updateRole.roleNamePlaceholder')"
           />
         </n-form-item>
 
-        <n-form-item :label="$t('settings.role.updateRole.roleKey')" path="roleKey">
+        <n-form-item :label="t('settings.role.updateRole.roleKey')" path="roleKey">
           <n-input
               v-model:value="updateRoleForm.roleKey"
-              :placeholder="$t('settings.role.updateRole.roleKeyPlaceholder')"
+              :placeholder="t('settings.role.updateRole.roleKeyPlaceholder')"
           />
         </n-form-item>
 
-        <n-form-item :label="$t('settings.role.updateRole.sort')" path="sort">
+        <n-form-item :label="t('settings.role.updateRole.sort')" path="sort">
           <n-input-number
               v-model:value="updateRoleForm.sort"
-              :placeholder="$t('settings.role.updateRole.sortPlaceholder')"
+              :placeholder="t('settings.role.updateRole.sortPlaceholder')"
           />
         </n-form-item>
 
-        <n-form-item :label="$t('settings.role.updateRole.status')" path="status">
+        <n-form-item :label="t('settings.role.updateRole.status')" path="status">
           <n-select
               v-model:value="updateRoleForm.status"
               :disabled="updateRoleForm.admin"
@@ -157,10 +157,10 @@
           />
         </n-form-item>
 
-        <n-form-item :label="$t('settings.role.updateRole.description')" path="description">
+        <n-form-item :label="t('settings.role.updateRole.description')" path="description">
           <n-input
               v-model:value="updateRoleForm.description"
-              :placeholder="$t('settings.role.updateRole.descriptionPlaceholder')"
+              :placeholder="t('settings.role.updateRole.descriptionPlaceholder')"
               type="textarea"
           />
         </n-form-item>
@@ -168,19 +168,19 @@
 
       <template #footer>
         <n-space justify="end">
-          <n-button @click="closeEditModal">{{ $t('settings.role.updateRole.cancel') }}</n-button>
+          <n-button @click="closeEditModal">{{ t('settings.role.updateRole.cancel') }}</n-button>
           <n-button :loading="submitting" type="primary" @click="submitUpdateRole">
-            {{ $t('settings.role.updateRole.submit') }}
+            {{ t('settings.role.updateRole.submit') }}
           </n-button>
         </n-space>
       </template>
     </n-modal>
 
     <!-- 分配权限对话框 -->
-    <n-modal v-model:show="showAssignModal" :title="$t('settings.role.assignPermission.title')" preset="card"
+    <n-modal v-model:show="showAssignModal" :title="t('settings.role.assignPermission.title')" preset="card"
              style="width: 600px">
       <div v-if="currentRole" class="assign-header">
-        <p>{{ $t('settings.role.assignPermission.role') }}: {{ currentRole.roleName }}</p>
+        <p>{{ t('settings.role.assignPermission.role') }}: {{ currentRole.roleName }}</p>
       </div>
 
       <n-tree
@@ -198,9 +198,9 @@
 
       <template #footer>
         <n-space justify="end">
-          <n-button @click="closeAssignModal">{{ $t('settings.role.assignPermission.cancel') }}</n-button>
+          <n-button @click="closeAssignModal">{{ t('settings.role.assignPermission.cancel') }}</n-button>
           <n-button :loading="submitting" type="primary" @click="submitAssignPermissions">
-            {{ $t('settings.role.assignPermission.submit') }}
+            {{ t('settings.role.assignPermission.submit') }}
           </n-button>
         </n-space>
       </template>
@@ -210,8 +210,7 @@
 
 <script lang="ts" setup>
 import {computed, h, reactive, ref} from 'vue'
-import type {FormInst, FormRules} from 'naive-ui'
-import {NIcon} from 'naive-ui'
+import type {FormInst, FormRules} from '@/types/naive-ui'
 import {AddOutline, CreateOutline, KeyOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
 import {
   addRole,
@@ -230,11 +229,10 @@ import type {SysPermissionVO} from '@/types/system/permission'
 import {useI18n} from 'vue-i18n'
 import {StatusEnum} from '@/enum/common'
 import StatusDisplay from '@/components/common/StatusDisplay.vue'
-import {getDialogInstance, getMessageInstance} from '@/utils/http'
+import {getDiscreteApi} from '@/utils/naiveUIHelper'
 
 
-const message = getMessageInstance()
-const dialog = getDialogInstance()
+const {message, dialog} = getDiscreteApi()
 const {t, locale} = useI18n()
 
 // 是否为英文环境
@@ -326,7 +324,7 @@ const columns = computed(() => [
               ]
             },
             [
-              h(NIcon, null, {default: () => h(CreateOutline)}),
+              h('div', {class: 'n-icon'}, () => h(CreateOutline)),
               ' ' + t('settings.role.actions.edit')
             ]
         ),
@@ -345,7 +343,7 @@ const columns = computed(() => [
               ]
             },
             [
-              h(NIcon, null, {default: () => h(KeyOutline)}),
+              h('div', {class: 'n-icon'}, () => h(KeyOutline)),
               ' ' + t('settings.role.actions.assignPermission')
             ]
         ),
@@ -363,7 +361,7 @@ const columns = computed(() => [
               ]
             },
             [
-              h(NIcon, null, {default: () => h(TrashOutline)}),
+              h('div', {class: 'n-icon'}, () => h(TrashOutline)),
               ' ' + t('settings.role.actions.delete')
             ]
         )

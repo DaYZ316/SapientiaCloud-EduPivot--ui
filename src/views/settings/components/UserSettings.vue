@@ -1,30 +1,30 @@
 <template>
   <div class="user-settings-container">
-    <n-card :title="$t('settings.user.title')" size="small">
+    <n-card :title="t('settings.user.title')" size="small">
       <!-- 搜索表单 -->
       <n-form :model="searchForm" class="search-form" inline>
-        <n-form-item :label="$t('settings.user.searchForm.username')" path="username">
-          <n-input v-model:value="searchForm.username" :placeholder="$t('settings.personal.usernamePlaceholder')"
+        <n-form-item :label="t('settings.user.searchForm.username')" path="username">
+          <n-input v-model:value="searchForm.username" :placeholder="t('settings.personal.usernamePlaceholder')"
                    clearable/>
         </n-form-item>
-        <n-form-item :label="$t('settings.user.searchForm.nickname')" path="nickName">
-          <n-input v-model:value="searchForm.nickName" :placeholder="$t('settings.personal.nicknamePlaceholder')"
+        <n-form-item :label="t('settings.user.searchForm.nickname')" path="nickName">
+          <n-input v-model:value="searchForm.nickName" :placeholder="t('settings.personal.nicknamePlaceholder')"
                    clearable/>
         </n-form-item>
-        <n-form-item :label="$t('settings.user.searchForm.gender')" path="gender">
+        <n-form-item :label="t('settings.user.searchForm.gender')" path="gender">
           <n-select
               v-model:value="searchForm.gender"
               :options="genderOptions"
-              :placeholder="$t('settings.user.searchForm.gender')"
+              :placeholder="t('settings.user.searchForm.gender')"
               clearable
               style="min-width: 120px;"
           />
         </n-form-item>
-        <n-form-item :label="$t('settings.user.searchForm.status')" path="status">
+        <n-form-item :label="t('settings.user.searchForm.status')" path="status">
           <n-select
               v-model:value="searchForm.status"
               :options="statusOptions"
-              :placeholder="$t('settings.user.searchForm.status')"
+              :placeholder="t('settings.user.searchForm.status')"
               clearable
               style="min-width: 120px;"
           />
@@ -36,7 +36,7 @@
                 <search-outline/>
               </n-icon>
             </template>
-            {{ $t('settings.user.searchForm.search') }}
+            {{ t('settings.user.searchForm.search') }}
           </n-button>
           <n-button class="ml-2" @click="resetSearch">
             <template #icon>
@@ -44,7 +44,7 @@
                 <refresh-outline/>
               </n-icon>
             </template>
-            {{ $t('settings.user.searchForm.reset') }}
+            {{ t('settings.user.searchForm.reset') }}
           </n-button>
         </n-form-item>
       </n-form>
@@ -57,7 +57,7 @@
               <add-outline/>
             </n-icon>
           </template>
-          {{ $t('settings.user.actions.add') }}
+          {{ t('settings.user.actions.add') }}
         </n-button>
       </div>
 
@@ -74,77 +74,77 @@
     </n-card>
 
     <!-- 添加用户对话框 -->
-    <n-modal v-model:show="showAddModal" :title="$t('settings.user.addUser.title')" preset="card" style="width: 600px">
+    <n-modal v-model:show="showAddModal" :title="t('settings.user.addUser.title')" preset="card" style="width: 600px">
       <n-form
           ref="addFormRef"
           :model="addUserForm"
           :style="{ maxWidth: '540px' }"
       >
-        <n-form-item :label="$t('settings.user.addUser.username')" path="username">
+        <n-form-item :label="t('settings.user.addUser.username')" path="username">
           <n-input
               v-model:value="addUserForm.username"
-              :placeholder="$t('settings.user.addUser.usernamePlaceholder')"
+              :placeholder="t('settings.user.addUser.usernamePlaceholder')"
           />
         </n-form-item>
 
-        <n-form-item :label="$t('settings.user.addUser.nickname')" path="nickName">
+        <n-form-item :label="t('settings.user.addUser.nickname')" path="nickName">
           <n-input
               v-model:value="addUserForm.nickName"
-              :placeholder="$t('settings.user.addUser.nicknamePlaceholder')"
+              :placeholder="t('settings.user.addUser.nicknamePlaceholder')"
           />
         </n-form-item>
 
-        <n-form-item :label="$t('settings.user.addUser.email')" path="email">
+        <n-form-item :label="t('settings.user.addUser.email')" path="email">
           <n-input
               v-model:value="addUserForm.email"
-              :placeholder="$t('settings.user.addUser.emailPlaceholder')"
+              :placeholder="t('settings.user.addUser.emailPlaceholder')"
           />
         </n-form-item>
 
-        <n-form-item :label="$t('settings.user.addUser.mobile')" path="mobile">
+        <n-form-item :label="t('settings.user.addUser.mobile')" path="mobile">
           <n-input
               v-model:value="addUserForm.mobile"
-              :placeholder="$t('settings.user.addUser.mobilePlaceholder')"
+              :placeholder="t('settings.user.addUser.mobilePlaceholder')"
           />
         </n-form-item>
 
-        <n-form-item :label="$t('settings.user.addUser.gender')" path="gender">
+        <n-form-item :label="t('settings.user.addUser.gender')" path="gender">
           <n-select
               v-model:value="addUserForm.gender"
               :options="genderOptions"
           />
         </n-form-item>
 
-        <n-form-item :label="$t('settings.user.addUser.status')" path="status">
+        <n-form-item :label="t('settings.user.addUser.status')" path="status">
           <n-select
               v-model:value="addUserForm.status"
               :options="statusOptions"
           />
         </n-form-item>
 
-        <n-form-item :label="$t('settings.user.addUser.avatar')" path="avatar">
+        <n-form-item :label="t('settings.user.addUser.avatar')" path="avatar">
           <n-input
               v-model:value="addUserForm.avatar"
-              :placeholder="$t('settings.user.addUser.avatarPlaceholder')"
+              :placeholder="t('settings.user.addUser.avatarPlaceholder')"
           />
         </n-form-item>
       </n-form>
 
       <template #footer>
         <n-space justify="end">
-          <n-button @click="closeAddModal">{{ $t('settings.user.addUser.cancel') }}</n-button>
+          <n-button @click="closeAddModal">{{ t('settings.user.addUser.cancel') }}</n-button>
           <n-button :loading="submitting" type="primary" @click="submitAddUser">
-            {{ $t('settings.user.addUser.submit') }}
+            {{ t('settings.user.addUser.submit') }}
           </n-button>
         </n-space>
       </template>
     </n-modal>
 
     <!-- 分配角色对话框 -->
-    <n-modal v-model:show="showAssignModal" :title="$t('settings.user.assignRole.title')" preset="card"
+    <n-modal v-model:show="showAssignModal" :title="t('settings.user.assignRole.title')" preset="card"
              style="width: 600px">
       <div v-if="currentUser" class="assign-header">
-        <p>{{ $t('settings.user.assignRole.user') }}: {{ currentUser.username }} ({{ currentUser.nickName }})</p>
+        <p>{{ t('settings.user.assignRole.user') }}: {{ currentUser.username }} ({{ currentUser.nickName }})</p>
       </div>
 
       <n-transfer
@@ -158,9 +158,9 @@
 
       <template #footer>
         <n-space justify="end">
-          <n-button @click="closeAssignModal">{{ $t('settings.user.assignRole.cancel') }}</n-button>
+          <n-button @click="closeAssignModal">{{ t('settings.user.assignRole.cancel') }}</n-button>
           <n-button :loading="submittingRoles" type="primary" @click="submitAssignRoles">
-            {{ $t('settings.user.assignRole.submit') }}
+            {{ t('settings.user.assignRole.submit') }}
           </n-button>
         </n-space>
       </template>
@@ -170,7 +170,6 @@
 
 <script lang="ts" setup>
 import {computed, h, reactive, ref} from 'vue'
-import {NIcon, NSwitch} from 'naive-ui'
 import {AddOutline, PeopleOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
 import {
   addSysUser,
@@ -188,11 +187,10 @@ import type {SysRoleVO} from '@/types/system/role'
 import {useI18n} from 'vue-i18n'
 import {GenderEnum, getGenderLabel, StatusEnum} from '@/enum/common'
 import StatusDisplay from '@/components/common/StatusDisplay.vue'
-import {getDialogInstance, getMessageInstance} from '@/utils/http'
+import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {useUserStore} from '@/store'
 
-const message = getMessageInstance()
-const dialog = getDialogInstance()
+const {message, dialog} = getDiscreteApi()
 const {t, locale} = useI18n()
 const userStore = useUserStore()
 
@@ -286,7 +284,7 @@ const columns = computed(() => [
     key: 'statusControl',
     render(row: SysUserVO) {
       return h(
-          NSwitch,
+          'n-switch',
           {
             value: row.status === StatusEnum.NORMAL,
             onUpdateValue: (value: boolean) => updateUserStatus(row, value),
@@ -309,7 +307,7 @@ const columns = computed(() => [
               onClick: () => handleAssignRole(row)
             },
             [
-              h(NIcon, null, {default: () => h(PeopleOutline)}),
+              h('div', {class: 'n-icon'}, () => h(PeopleOutline)),
               ' ' + t('settings.user.actions.assignRole')
             ]
         ),
@@ -320,7 +318,7 @@ const columns = computed(() => [
               onClick: () => handleDelete(row)
             },
             [
-              h(NIcon, null, {default: () => h(TrashOutline)}),
+              h('div', {class: 'n-icon'}, () => h(TrashOutline)),
               ' ' + t('settings.user.actions.delete')
             ]
         )

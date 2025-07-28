@@ -15,9 +15,7 @@
           <div class="stat-card">
             <n-statistic :value="userData.total" label="总用户数">
               <template #prefix>
-                <n-icon>
-                  <person-outline/>
-                </n-icon>
+                <Icon :component="PersonOutline" />
               </template>
             </n-statistic>
             <div class="stat-footer">
@@ -33,9 +31,7 @@
           <div class="stat-card">
             <n-statistic :value="systemData.uptime" label="系统运行时间">
               <template #prefix>
-                <n-icon>
-                  <time-outline/>
-                </n-icon>
+                <Icon :component="TimeOutline" />
               </template>
             </n-statistic>
             <div class="stat-footer">
@@ -52,9 +48,7 @@
           <div class="stat-card">
             <n-statistic :value="businessData.activeUsers" label="本月活跃用户">
               <template #prefix>
-                <n-icon>
-                  <trending-up-outline/>
-                </n-icon>
+                <Icon :component="TrendingUpOutline" />
               </template>
             </n-statistic>
             <div class="stat-footer">
@@ -96,8 +90,8 @@
 <script lang="ts" setup>
 import {computed, ref} from 'vue'
 import {useUserStore} from '@/store'
-import {NIcon} from 'naive-ui'
 import {PersonOutline, TimeOutline, TrendingUpOutline} from '@vicons/ionicons5'
+import Icon from '@/components/common/Icon.vue'
 
 const userStore = useUserStore()
 const userInfo = computed(() => userStore.userInfo)

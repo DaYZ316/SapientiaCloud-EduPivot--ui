@@ -19,6 +19,15 @@ export default {
     no: '否',
     user: '用户',
 
+    // 头像上传相关
+    uploadAvatar: '上传头像',
+    cropAvatar: '裁剪头像',
+    cropPreview: '预览效果',
+    avatarTypeError: '头像格式错误，仅支持 JPG、PNG 格式',
+    avatarSizeError: '头像大小不能超过 2MB',
+    avatarUploadSuccess: '头像上传成功',
+    avatarUploadFail: '头像上传失败',
+
     // HTTP 相关错误
     http: {
         unknown: '未知错误',

@@ -15,7 +15,7 @@
           <div class="stat-card">
             <n-statistic :value="userData.total" label="总用户数">
               <template #prefix>
-                <Icon :component="PersonOutline"/>
+                <Icon :component="PersonOutline" />
               </template>
             </n-statistic>
             <div class="stat-footer">
@@ -31,12 +31,11 @@
           <div class="stat-card">
             <n-statistic :value="systemData.uptime" label="系统运行时间">
               <template #prefix>
-                <Icon :component="TimeOutline"/>
+                <Icon :component="TimeOutline" />
               </template>
             </n-statistic>
             <div class="stat-footer">
-              <n-progress :color="systemData.performance > 70 ? '#18a058' : '#f0a020'" :indicator-placement="'inside'"
-                          :percentage="systemData.performance"
+              <n-progress :color="systemData.performance > 70 ? '#18a058' : '#f0a020'" :indicator-placement="'inside'" :percentage="systemData.performance"
                           type="line"/>
               <span>系统性能评分: {{ systemData.performance }}%</span>
             </div>
@@ -49,7 +48,7 @@
           <div class="stat-card">
             <n-statistic :value="businessData.activeUsers" label="本月活跃用户">
               <template #prefix>
-                <Icon :component="TrendingUpOutline"/>
+                <Icon :component="TrendingUpOutline" />
               </template>
             </n-statistic>
             <div class="stat-footer">

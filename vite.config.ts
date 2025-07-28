@@ -23,14 +23,7 @@ export default defineConfig({
         }
     },
     optimizeDeps: {
-        include: ['three'],
-        exclude: ['naive-ui']
-    },
-    ssr: {
-        noExternal: ['naive-ui', '@css-render/vue3-ssr']
-    },
-    define: {
-        __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false'
+        include: ['three']
     },
     server: {
         proxy: {

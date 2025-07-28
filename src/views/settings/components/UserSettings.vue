@@ -185,10 +185,15 @@ import Icon from '@/components/common/Icon.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {renderIcon} from '@/utils/iconUtil'
 import {useUserStore} from '@/store'
+import {useThemeStore} from '@/store'
 
 const {message, dialog} = getDiscreteApi()
 const {t, locale} = useI18n()
 const userStore = useUserStore()
+
+// Theme
+const themeStore = useThemeStore()
+const isDarkMode = computed(() => themeStore.isDarkMode)
 
 // 是否为英文环境
 const isEnglish = computed(() => locale.value === 'en-US')

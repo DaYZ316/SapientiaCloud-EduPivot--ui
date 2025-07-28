@@ -1,5 +1,5 @@
-import type {Component} from 'vue'
-import {h} from 'vue'
+import { h } from 'vue'
+import type { Component } from 'vue'
 import Icon from '@/components/common/Icon.vue'
 
 /**

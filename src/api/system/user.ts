@@ -1,10 +1,10 @@
 import http from '@/utils/http'
 import type {
-    RegisterParams,
-    SysUserAdminDTO,
-    SysUserDTO,
-    SysUserProfileDTO,
-    UserPageQueryDTO
+  RegisterParams,
+  SysUserAdminDTO,
+  SysUserDTO,
+  SysUserProfileDTO,
+  UserPageQueryDTO
 } from '@/types/system/user'
 
 // 获取默认用户查询对象

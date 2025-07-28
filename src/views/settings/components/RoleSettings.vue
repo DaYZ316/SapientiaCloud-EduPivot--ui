@@ -231,6 +231,9 @@ import {renderIcon} from '@/utils/iconUtil'
 const {message, dialog} = getDiscreteApi()
 const {t, locale} = useI18n()
 
+// 是否为英文环境
+const isEnglish = computed(() => locale.value === 'en-US')
+
 // 状态选项
 const statusOptions = [
   {label: t('settings.role.status.normal'), value: StatusEnum.NORMAL},

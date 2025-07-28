@@ -14,7 +14,7 @@
             <div class="user-avatar">
               <n-avatar :src="userInfo?.avatar || ''" round/>
               <span class="nickname">{{ userInfo?.nickName || $t('common.user') }}</span>
-              <Icon :component="ChevronDownOutline"/>
+              <Icon :component="ChevronDownOutline" />
             </div>
           </n-dropdown>
         </n-space>
@@ -39,11 +39,11 @@
 
 <script lang="ts" setup>
 import type {Component} from 'vue'
-import {computed, onMounted} from 'vue'
+import {computed, h, onMounted} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {ChevronDownOutline, LogOutOutline, PersonOutline, SettingsOutline} from '@vicons/ionicons5'
-import {useUserStore} from '@/store'
+import {useThemeStore, useUserStore} from '@/store'
 import Icon from '@/components/common/Icon.vue'
 import {createIcon} from '@/utils/iconUtil'
 import {getGlobalApis} from '@/utils/naiveUIHelper'
@@ -51,6 +51,7 @@ import {getGlobalApis} from '@/utils/naiveUIHelper'
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const theme = useThemeStore()
 const {t} = useI18n()
 const {message} = getGlobalApis()
 
@@ -106,6 +107,7 @@ const handleUserMenuSelect = async (key: string) => {
 
 // 初始化主题和用户信息
 onMounted(async () => {
+  theme.initSettings()
 
   // 如果已登录，刷新用户信息
   if (userStore.isLogin) {

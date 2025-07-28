@@ -1,9 +1,7 @@
 import {createApp} from 'vue'
 import App from '@/App.vue'
 import router from '@/router'
-
-// 导入Pinia状态管理
-import pinia from '@/store'
+import pinia, {useThemeStore} from '@/store'
 
 // 导入naive-ui的全部组件
 import naive from 'naive-ui'
@@ -25,6 +23,12 @@ const app = createApp(App)
 
 // 先注册Pinia状态管理，以便于获取主题信息
 app.use(pinia)
+
+// 获取主题信息
+const themeStore = useThemeStore()
+
+// 初始化主题设置
+themeStore.initSettings()
 
 // 注册路由
 app.use(router)

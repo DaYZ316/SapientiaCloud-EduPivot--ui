@@ -4,13 +4,11 @@
       <!-- 搜索表单 -->
       <n-form :model="searchForm" class="search-form" inline>
         <n-form-item :label="t('settings.permission.searchForm.permissionName')" path="permissionName">
-          <n-input v-model:value="searchForm.permissionName"
-                   :placeholder="t('settings.permission.searchForm.permissionNamePlaceholder')"
+          <n-input v-model:value="searchForm.permissionName" :placeholder="t('settings.permission.searchForm.permissionNamePlaceholder')"
                    clearable/>
         </n-form-item>
         <n-form-item :label="t('settings.permission.searchForm.permissionKey')" path="permissionKey">
-          <n-input v-model:value="searchForm.permissionKey"
-                   :placeholder="t('settings.permission.searchForm.permissionKeyPlaceholder')"
+          <n-input v-model:value="searchForm.permissionKey" :placeholder="t('settings.permission.searchForm.permissionKeyPlaceholder')"
                    clearable/>
         </n-form-item>
         <n-form-item>

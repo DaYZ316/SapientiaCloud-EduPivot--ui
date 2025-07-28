@@ -8,3 +8,4 @@ export default pinia
 
 // 导出各个模块的Store
 export * from './modules/user'
+export * from './modules/theme' 

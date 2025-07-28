@@ -78,6 +78,8 @@ export default {
             status: '状态',
             mobile: '手机号',
             email: '邮箱',
+            createTimeRange: '创建时间',
+            createTimeRangePlaceholder: '请选择创建时间范围（包含具体时间）',
             search: '搜索',
             reset: '重置'
         },
@@ -195,8 +197,10 @@ export default {
             roleName: '角色名称',
             roleKey: '角色标识',
             status: '状态',
+            createTimeRange: '创建时间',
             roleNamePlaceholder: '请输入角色名称',
             roleKeyPlaceholder: '请输入角色标识',
+            createTimeRangePlaceholder: '请选择创建时间范围（包含具体时间）',
             search: '搜索',
             reset: '重置'
         },
@@ -283,9 +287,11 @@ export default {
             permissionName: '权限名称',
             permissionKey: '权限标识',
             parentId: '上级权限',
+            createTimeRange: '创建时间',
             permissionNamePlaceholder: '请输入权限名称',
             permissionKeyPlaceholder: '请输入权限标识',
             parentIdPlaceholder: '请选择上级权限',
+            createTimeRangePlaceholder: '请选择创建时间范围（包含具体时间）',
             search: '搜索',
             reset: '重置'
         },

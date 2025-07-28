@@ -20,6 +20,16 @@
               style="min-width: 120px;"
           />
         </n-form-item>
+        <n-form-item :label="t('settings.role.searchForm.createTimeRange')" path="createTimeRange">
+          <n-date-picker
+              v-model:value="createTimeRange"
+              type="datetimerange"
+              :placeholder="t('settings.role.searchForm.createTimeRangePlaceholder')"
+              clearable
+              style="min-width: 300px;"
+              @update:value="onDateRangeChange"
+          />
+        </n-form-item>
         <n-form-item>
           <n-button type="primary" @click="handleSearch">
             <template #icon>
@@ -49,7 +59,7 @@
       <!-- 角色表格 -->
       <page-table
           ref="pageTableRef"
-          :api-fn="sysRoleList"
+          :api-fn="roleApi.sysRoleList"
           :auto-search="false"
           :columns="columns"
           :query-params="searchForm"
@@ -206,19 +216,9 @@
 import {computed, h, reactive, ref} from 'vue'
 import type {FormInst, FormRules} from 'naive-ui'
 import {AddOutline, CreateOutline, KeyOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
-import {
-  addRole,
-  assignRolePermissions,
-  getDefaultRoleQuery,
-  getDefaultSysRoleAddDTO,
-  getDefaultSysRoleDTO,
-  getRoleDetail,
-  removeRole,
-  sysRoleList,
-  updateRole
-} from '@/api/system/role'
+import * as roleApi from '@/api/system/role'
 import {getPermissionTree} from '@/api/system/permission'
-import type {RolePageQueryDTO, SysRoleAddDTO, SysRoleDTO, SysRoleVO} from '@/types/system/role'
+import type * as roleType from '@/types/system/role'
 import type {SysPermissionVO} from '@/types/system/permission'
 import {useI18n} from 'vue-i18n'
 import {StatusEnum} from '@/enum/common'
@@ -226,6 +226,8 @@ import StatusDisplay from '@/components/common/StatusDisplay.vue'
 import Icon from '@/components/common/Icon.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {renderIcon} from '@/utils/iconUtil'
+import {handleDateRangeChange} from '@/utils/dateUtil'
+import {useThemeStore, useUserStore} from '@/store'
 
 
 const {message, dialog} = getDiscreteApi()
@@ -241,10 +243,13 @@ const statusOptions = [
 ]
 
 // 搜索表单
-const searchForm = reactive<RolePageQueryDTO>(getDefaultRoleQuery())
+const searchForm = reactive<roleType.RolePageQueryDTO>(roleApi.getDefaultRoleQuery())
+
+// 日期范围选择器
+const createTimeRange = ref<[number, number] | null>(null)
 
 // 角色列表数据
-const roleList = ref<SysRoleVO[]>([])
+const roleList = ref<roleType.SysRoleVO[]>([])
 
 // 分页表格引用
 const pageTableRef = ref()
@@ -255,17 +260,17 @@ const submitting = ref(false)
 const addFormRef = ref<FormInst | null>(null)
 
 // 添加角色表单
-const addRoleForm = reactive<SysRoleAddDTO>(getDefaultSysRoleAddDTO())
+const addRoleForm = reactive<roleType.SysRoleAddDTO>(roleApi.getDefaultSysRoleAddDTO())
 
 // 编辑角色相关
 const showEditModal = ref(false)
 const editFormRef = ref<FormInst | null>(null)
-const updateRoleForm = reactive<SysRoleDTO>(getDefaultSysRoleDTO())
+const updateRoleForm = reactive<roleType.SysRoleDTO>(roleApi.getDefaultSysRoleDTO())
 const currentEditingRoleId = ref<string | null>(null)
 
 // 分配权限相关
 const showAssignModal = ref(false)
-const currentRole = ref<SysRoleVO | null>(null)
+const currentRole = ref<roleType.SysRoleVO | null>(null)
 const permissionTree = ref<any[]>([])
 const checkedPermissions = ref<string[]>([])
 const expandedKeys = ref<string[]>([])
@@ -294,7 +299,7 @@ const columns = computed(() => [
   {
     title: t('settings.role.table.status'),
     key: 'status',
-    render(row: SysRoleVO) {
+    render(row: roleType.SysRoleVO) {
       return h(StatusDisplay, {status: row.status, type: 'dot'})
     }
   },
@@ -304,7 +309,7 @@ const columns = computed(() => [
     title: t('settings.role.table.actions'),
     key: 'actions',
     width: 280,
-    render(row: SysRoleVO) {
+    render(row: roleType.SysRoleVO) {
       return [
         h(
             'button',
@@ -373,17 +378,26 @@ function handleSearch() {
 
 // 重置搜索
 function resetSearch() {
-  Object.assign(searchForm, getDefaultRoleQuery())
+  Object.assign(searchForm, roleApi.getDefaultRoleQuery())
+  createTimeRange.value = null
   pageTableRef.value?.reset()
 }
 
+// 处理日期范围变化
+function onDateRangeChange(value: [number, number] | null) {
+  handleDateRangeChange(value, (startTime, endTime) => {
+    searchForm.startTime = startTime
+    searchForm.endTime = endTime
+  })
+}
+
 // 数据更新处理函数
-function onDataUpdate(data: SysRoleVO[]) {
+function onDataUpdate(data: roleType.SysRoleVO[]) {
   roleList.value = data
 }
 
 // 编辑角色
-function handleEdit(row: SysRoleVO) {
+function handleEdit(row: roleType.SysRoleVO) {
   currentEditingRoleId.value = row.id
   Object.assign(updateRoleForm, {
     id: row.id,
@@ -413,7 +427,7 @@ async function submitUpdateRole() {
 
     submitting.value = true
     try {
-      await updateRole(updateRoleForm)
+      await roleApi.updateRole(updateRoleForm)
       message.success(t('settings.role.messages.editSuccess'))
       closeEditModal()
       pageTableRef.value?.fetchData()
@@ -430,7 +444,7 @@ async function submitUpdateRole() {
 }
 
 // 删除角色
-async function handleDelete(row: SysRoleVO) {
+async function handleDelete(row: roleType.SysRoleVO) {
   dialog.warning({
     title: t('settings.role.actions.delete'),
     content: t('settings.role.messages.deleteConfirm'),
@@ -438,7 +452,7 @@ async function handleDelete(row: SysRoleVO) {
     negativeText: t('common.cancel'),
     onPositiveClick: async () => {
       try {
-        await removeRole(row.id)
+        await roleApi.removeRole(row.id)
         message.success(t('settings.role.messages.deleteSuccess'))
         pageTableRef.value?.fetchData()
       } catch (error) {
@@ -451,7 +465,7 @@ async function handleDelete(row: SysRoleVO) {
 
 // 重置添加角色表单
 function resetAddRoleForm() {
-  Object.assign(addRoleForm, getDefaultSysRoleAddDTO())
+  Object.assign(addRoleForm, roleApi.getDefaultSysRoleAddDTO())
   addRoleForm.status = StatusEnum.NORMAL
   addRoleForm.sort = 0
 }
@@ -469,7 +483,7 @@ async function submitAddRole() {
 
     submitting.value = true
     try {
-      await addRole(addRoleForm)
+      await roleApi.addRole(addRoleForm)
       message.success(t('settings.role.messages.addSuccess'))
       closeAddModal()
       pageTableRef.value?.fetchData()
@@ -520,13 +534,13 @@ function buildPermissionTree(permissions: SysPermissionVO[]): TreeNode[] {
 }
 
 // 处理分配权限
-async function handleAssign(row: SysRoleVO) {
+async function handleAssign(row: roleType.SysRoleVO) {
   currentRole.value = row
   submitting.value = true
 
   try {
     // 获取角色详情，包括已分配的权限
-    const roleDetail = await getRoleDetail(row.id)
+    const roleDetail = await roleApi.getRoleDetail(row.id)
     const rolePermissions = roleDetail?.data?.permissions || []
 
     // 获取权限树结构
@@ -570,7 +584,7 @@ async function submitAssignPermissions() {
 
   submitting.value = true
   try {
-    await assignRolePermissions(currentRole.value.id, checkedPermissions.value)
+    await roleApi.assignRolePermissions(currentRole.value.id, checkedPermissions.value)
     message.success(t('settings.role.messages.assignSuccess'))
     closeAssignModal()
   } catch (error) {

@@ -88,6 +88,10 @@ export interface UserPageQueryDTO extends PageEntity {
     mobile?: string | null
     /** 邮箱 */
     email?: string | null
+    /** 开始时间 */
+    startTime?: string | null
+    /** 结束时间 */
+    endTime?: string | null
 }
 
 /**

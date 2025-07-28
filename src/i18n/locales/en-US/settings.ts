@@ -78,6 +78,8 @@ export default {
             status: 'Status',
             mobile: 'Mobile',
             email: 'Email',
+            createTimeRange: 'Create Time',
+            createTimeRangePlaceholder: 'Please select create time range (with specific time)',
             search: 'Search',
             reset: 'Reset'
         },
@@ -195,8 +197,10 @@ export default {
             roleName: 'Role Name',
             roleKey: 'Role Key',
             status: 'Status',
+            createTimeRange: 'Create Time',
             roleNamePlaceholder: 'Enter role name',
             roleKeyPlaceholder: 'Enter role key',
+            createTimeRangePlaceholder: 'Select create time range (with specific time)',
             search: 'Search',
             reset: 'Reset'
         },
@@ -284,6 +288,8 @@ export default {
             permissionNamePlaceholder: 'Enter permission name',
             permissionKey: 'Permission Key',
             permissionKeyPlaceholder: 'Enter permission key',
+            createTimeRange: 'Create Time',
+            createTimeRangePlaceholder: 'Select create time range (with specific time)',
             search: 'Search',
             reset: 'Reset'
         },

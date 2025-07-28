@@ -77,4 +77,8 @@ export interface PermissionPageQueryDTO extends PageEntity {
     permissionKey?: string | null
     /** 父级权限ID */
     parentId?: string | null
+    /** 开始时间 */
+    startTime?: string | null
+    /** 结束时间 */
+    endTime?: string | null
 } 

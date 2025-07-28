@@ -13,6 +13,16 @@
                    :placeholder="t('settings.permission.searchForm.permissionKeyPlaceholder')"
                    clearable/>
         </n-form-item>
+        <n-form-item :label="t('settings.permission.searchForm.createTimeRange')" path="createTimeRange">
+          <n-date-picker
+              v-model:value="createTimeRange"
+              type="datetimerange"
+              :placeholder="t('settings.permission.searchForm.createTimeRangePlaceholder')"
+              clearable
+              style="min-width: 300px;"
+              @update:value="onDateRangeChange"
+          />
+        </n-form-item>
         <n-form-item>
           <n-button type="primary" @click="handleSearch">
             <template #icon>
@@ -42,7 +52,7 @@
       <!-- 权限表格 -->
       <page-table
           ref="pageTableRef"
-          :api-fn="sysPermissionList"
+          :api-fn="permissionApi.sysPermissionList"
           :auto-search="false"
           :columns="columns"
           :query-params="searchForm"
@@ -162,35 +172,25 @@
 import {computed, h, reactive, ref} from 'vue'
 import type {FormInst, FormRules, TreeSelectOption} from 'naive-ui'
 import {AddOutline, CreateOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
-import {
-  addPermission,
-  getDefaultPermissionQuery,
-  getDefaultSysPermissionAddDTO,
-  getDefaultSysPermissionDTO,
-  getPermissionTree,
-  removePermission,
-  sysPermissionList,
-  updatePermission
-} from '@/api/system/permission'
-import type {
-  PermissionPageQueryDTO,
-  SysPermissionAddDTO,
-  SysPermissionDTO,
-  SysPermissionVO
-} from '@/types/system/permission'
+import * as permissionApi from '@/api/system/permission'
+import type * as permissionType from '@/types/system/permission'
 import {useI18n} from 'vue-i18n'
 import Icon from '@/components/common/Icon.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {renderIcon} from '@/utils/iconUtil'
+import {handleDateRangeChange} from '@/utils/dateUtil'
 
 const {message, dialog} = getDiscreteApi()
 const {t, locale} = useI18n()
 
 // 搜索表单
-const searchForm = reactive<PermissionPageQueryDTO>(getDefaultPermissionQuery())
+const searchForm = reactive<permissionType.PermissionPageQueryDTO>(permissionApi.getDefaultPermissionQuery())
+
+// 日期范围选择器
+const createTimeRange = ref<[number, number] | null>(null)
 
 // 权限列表数据
-const permissionList = ref<SysPermissionVO[]>([])
+const permissionList = ref<permissionType.SysPermissionVO[]>([])
 
 // 父级权限选项
 const parentPermissionOptions = ref<{ label: string; value: string }[]>([])
@@ -205,7 +205,7 @@ const permissionTreeOptions = ref<TreeSelectOption[]>([])
 const treeLoading = ref(false)
 
 // 所有权限数据
-const allPermissions = ref<SysPermissionVO[]>([])
+const allPermissions = ref<permissionType.SysPermissionVO[]>([])
 
 // 分页表格引用
 const pageTableRef = ref()
@@ -216,12 +216,12 @@ const submitting = ref(false)
 const addFormRef = ref<FormInst | null>(null)
 
 // 添加权限表单
-const addPermissionForm = reactive<SysPermissionAddDTO>(getDefaultSysPermissionAddDTO())
+const addPermissionForm = reactive<permissionType.SysPermissionAddDTO>(permissionApi.getDefaultSysPermissionAddDTO())
 
 // 编辑权限相关
 const showEditModal = ref(false)
 const editFormRef = ref<FormInst | null>(null)
-const updatePermissionForm = reactive<SysPermissionDTO>(getDefaultSysPermissionDTO())
+const updatePermissionForm = reactive<permissionType.SysPermissionDTO>(permissionApi.getDefaultSysPermissionDTO())
 const currentEditingPermissionId = ref<string | null>(null)
 const isParentPermissionDisabled = computed(() => {
   // 禁用选择自己作为父级
@@ -247,7 +247,7 @@ const columns = computed(() => [
   {
     title: t('settings.permission.table.parentId'),
     key: 'parentId',
-    render(row: SysPermissionVO) {
+    render(row: permissionType.SysPermissionVO) {
       const parent = parentPermissionOptions.value.find(item => item.value === row.parentId)
       return parent ? parent.label : '-'
     }
@@ -258,7 +258,7 @@ const columns = computed(() => [
     title: t('settings.permission.table.actions'),
     key: 'actions',
     width: 200,
-    render(row: SysPermissionVO) {
+    render(row: permissionType.SysPermissionVO) {
       return [
         h(
             'button',
@@ -295,12 +295,21 @@ function handleSearch() {
 
 // 重置搜索
 function resetSearch() {
-  Object.assign(searchForm, getDefaultPermissionQuery())
+  Object.assign(searchForm, permissionApi.getDefaultPermissionQuery())
+  createTimeRange.value = null
   pageTableRef.value?.reset()
 }
 
+// 处理日期范围变化
+function onDateRangeChange(value: [number, number] | null) {
+  handleDateRangeChange(value, (startTime, endTime) => {
+    searchForm.startTime = startTime
+    searchForm.endTime = endTime
+  })
+}
+
 // 数据更新处理函数
-function onDataUpdate(data: SysPermissionVO[]) {
+function onDataUpdate(data: permissionType.SysPermissionVO[]) {
   permissionList.value = data
   updateParentPermissionOptions()
 }
@@ -328,7 +337,7 @@ async function loadAllPermissions() {
   try {
     treeLoading.value = true
     // 使用权限树API获取所有权限
-    const response = await getPermissionTree()
+    const response = await permissionApi.getPermissionTree()
     allPermissions.value = response?.data || []
 
     // 将扁平的权限列表转为树形选项
@@ -345,7 +354,7 @@ async function loadAllPermissions() {
 }
 
 // 将权限列表转换为树形选项
-function convertToTreeSelectOptions(permissions: SysPermissionVO[]): TreeSelectOption[] {
+function convertToTreeSelectOptions(permissions: permissionType.SysPermissionVO[]): TreeSelectOption[] {
   // 简化版转换逻辑
   return permissions.map(perm => ({
     key: perm.id,
@@ -358,7 +367,7 @@ function convertToTreeSelectOptions(permissions: SysPermissionVO[]): TreeSelectO
 }
 
 // 编辑权限
-function handleEdit(row: SysPermissionVO) {
+function handleEdit(row: permissionType.SysPermissionVO) {
   currentEditingPermissionId.value = row.id
   Object.assign(updatePermissionForm, {
     id: row.id,
@@ -392,7 +401,7 @@ async function submitUpdatePermission() {
 
     submitting.value = true
     try {
-      await updatePermission(updatePermissionForm)
+      await permissionApi.updatePermission(updatePermissionForm)
       message.success(t('settings.permission.messages.editSuccess'))
       closeEditModal()
       pageTableRef.value?.fetchData()
@@ -413,7 +422,7 @@ async function submitUpdatePermission() {
 }
 
 // 删除权限
-async function handleDelete(row: SysPermissionVO) {
+async function handleDelete(row: permissionType.SysPermissionVO) {
   dialog.warning({
     title: t('settings.permission.actions.delete'),
     content: t('settings.permission.messages.deleteConfirm'),
@@ -421,7 +430,7 @@ async function handleDelete(row: SysPermissionVO) {
     negativeText: t('common.cancel'),
     onPositiveClick: async () => {
       try {
-        await removePermission(row.id)
+        await permissionApi.removePermission(row.id)
         message.success(t('settings.permission.messages.deleteSuccess'))
         pageTableRef.value?.fetchData()
 
@@ -438,7 +447,7 @@ async function handleDelete(row: SysPermissionVO) {
 
 // 重置添加权限表单
 function resetAddPermissionForm() {
-  Object.assign(addPermissionForm, getDefaultSysPermissionAddDTO())
+  Object.assign(addPermissionForm, permissionApi.getDefaultSysPermissionAddDTO())
 }
 
 // 关闭添加权限对话框
@@ -454,7 +463,7 @@ async function submitAddPermission() {
 
     submitting.value = true
     try {
-      await addPermission(addPermissionForm)
+      await permissionApi.addPermission(addPermissionForm)
       message.success(t('settings.permission.messages.addSuccess'))
       closeAddModal()
       pageTableRef.value?.fetchData()

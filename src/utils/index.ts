@@ -9,4 +9,7 @@ export * from './http'
 export {hasPermission, hasAllPermissions} from './permissionUtil'
 
 // 导出分页工具函数
-export * from './pageUtil' 
+export * from './pageUtil'
+
+// 导出日期时间工具函数
+export * from './dateUtil' 

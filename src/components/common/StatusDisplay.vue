@@ -67,5 +67,66 @@ const dotClass = computed(() => {
 .status-display {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
+}
+
+/* 文本类型样式 */
+.text-status-normal {
+  color: #18a058;
+}
+
+.text-status-disabled {
+  color: #d03050;
+}
+
+/* 标签类型样式 */
+.status-tag-normal {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  background-color: #f0f9ff;
+  color: #18a058;
+  border: 1px solid #18a058;
+}
+
+.status-tag-disabled {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  background-color: #fef2f2;
+  color: #d03050;
+  border: 1px solid #d03050;
+}
+
+/* 状态小圆点样式 */
+.status-dot-normal {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #18a058;
+  display: inline-block;
+}
+
+.status-dot-disabled {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #d03050;
+  display: inline-block;
+}
+
+/* 暗黑模式适配 */
+html[data-theme="dark"] .status-tag-normal {
+  background-color: rgba(24, 160, 88, 0.1);
+  border-color: #18a058;
+}
+
+html[data-theme="dark"] .status-tag-disabled {
+  background-color: rgba(208, 48, 80, 0.1);
+  border-color: #d03050;
 }
 </style> 

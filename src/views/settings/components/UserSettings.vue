@@ -29,6 +29,16 @@
               style="min-width: 120px;"
           />
         </n-form-item>
+        <n-form-item :label="t('settings.user.searchForm.createTimeRange')" path="createTimeRange">
+          <n-date-picker
+              v-model:value="createTimeRange"
+              type="datetimerange"
+              :placeholder="t('settings.user.searchForm.createTimeRangePlaceholder')"
+              clearable
+              style="min-width: 300px;"
+              @update:value="onDateRangeChange"
+          />
+        </n-form-item>
         <n-form-item>
           <n-button type="primary" @click="handleSearch">
             <template #icon>
@@ -58,7 +68,7 @@
       <!-- 用户表格 -->
       <page-table
           ref="pageTableRef"
-          :api-fn="sysUserList"
+          :api-fn="userApi.sysUserList"
           :auto-search="false"
           :columns="columns"
           :query-params="searchForm"
@@ -164,26 +174,18 @@
 
 <script lang="ts" setup>
 import {computed, h, reactive, ref} from 'vue'
+import {NSwitch, NEllipsis} from 'naive-ui'
 import {AddOutline, PeopleOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
-import {
-  addSysUser,
-  assignUserRoles,
-  getDefaultSysUserAdminDTO,
-  getDefaultUserQuery,
-  getUserById,
-  removeUser,
-  sysUserList,
-  updateUser
-} from '@/api/system/user'
+import * as userApi from '@/api/system/user'
 import {getAllRoles} from '@/api/system/role'
-import type {SysUserAdminDTO, SysUserVO, UserPageQueryDTO} from '@/types/system/user'
+import type * as userType from '@/types/system/user'
 import type {SysRoleVO} from '@/types/system/role'
 import {useI18n} from 'vue-i18n'
 import {GenderEnum, getGenderLabel, StatusEnum} from '@/enum/common'
-import StatusDisplay from '@/components/common/StatusDisplay.vue'
 import Icon from '@/components/common/Icon.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {renderIcon} from '@/utils/iconUtil'
+import {handleDateRangeChange} from '@/utils/dateUtil'
 import {useThemeStore, useUserStore} from '@/store'
 
 const {message, dialog} = getDiscreteApi()
@@ -211,10 +213,13 @@ const statusOptions = [
 ]
 
 // 搜索表单
-const searchForm = reactive<UserPageQueryDTO>(getDefaultUserQuery())
+const searchForm = reactive<userType.UserPageQueryDTO>(userApi.getDefaultUserQuery())
+
+// 日期范围选择器
+const createTimeRange = ref<[number, number] | null>(null)
 
 // 用户列表数据
-const userList = ref<SysUserVO[]>([])
+const userList = ref<userType.SysUserVO[]>([])
 
 // 分页表格引用
 const pageTableRef = ref()
@@ -225,23 +230,23 @@ const submitting = ref(false)
 const addFormRef = ref()
 
 // 添加用户表单
-const addUserForm = reactive<SysUserAdminDTO>(getDefaultSysUserAdminDTO())
+const addUserForm = reactive<userType.SysUserAdminDTO>(userApi.getDefaultSysUserAdminDTO())
 
 // 分配角色相关
 const showAssignModal = ref(false)
-const currentUser = ref<SysUserVO | null>(null)
+const currentUser = ref<userType.SysUserVO | null>(null)
 const availableRoles = ref<SysRoleVO[]>([])
 const selectedRoleIds = ref<string[]>([])
 const userRoles = ref<SysRoleVO[]>([])
 const submittingRoles = ref(false)
 
 // 更新用户状态
-async function updateUserStatus(row: SysUserVO, value: boolean) {
+async function updateUserStatus(row: userType.SysUserVO, value: boolean) {
   const newStatus = value ? StatusEnum.NORMAL : StatusEnum.DISABLED;
   const statusText = value ? 'enable' : 'disable';
 
   try {
-    await updateUser({
+    await userApi.updateUser({
       id: row.id,
       status: newStatus,
       nickName: null,
@@ -261,30 +266,34 @@ async function updateUserStatus(row: SysUserVO, value: boolean) {
 const columns = computed(() => [
   {title: t('settings.user.table.username'), key: 'username'},
   {title: t('settings.user.table.nickname'), key: 'nickName'},
-  {title: t('settings.user.table.email'), key: 'email'},
+  {
+    title: t('settings.user.table.email'), 
+    key: 'email',
+    render(row: userType.SysUserVO) {
+      return h(NEllipsis, {
+        style: { maxWidth: '200px' }
+      }, {
+        default: () => row.email,
+        tooltip: () => row.email
+      })
+    }
+  },
   {title: t('settings.user.table.mobile'), key: 'mobile'},
   {
     title: t('settings.user.table.gender'),
     key: 'gender',
-    render(row: SysUserVO) {
+    render(row: userType.SysUserVO) {
       return getGenderLabel(row.gender as GenderEnum, isEnglish.value);
     }
   },
-  {
-    title: t('settings.user.table.status'),
-    key: 'status',
-    render(row: SysUserVO) {
-      return h(StatusDisplay, {status: row.status, type: 'dot'})
-    }
-  },
-  {title: t('settings.user.table.createTime'), key: 'createTime'},
-  {title: t('settings.user.table.lastLoginTime'), key: 'lastLoginTime'},
+  {title: t('settings.user.table.createTime'), key: 'createTime', width: 180},
+  {title: t('settings.user.table.lastLoginTime'), key: 'lastLoginTime', width: 180},
   {
     title: t('settings.user.table.statusControl'),
     key: 'statusControl',
-    render(row: SysUserVO) {
+    render(row: userType.SysUserVO) {
       return h(
-          'n-switch',
+          NSwitch,
           {
             value: row.status === StatusEnum.NORMAL,
             onUpdateValue: (value: boolean) => updateUserStatus(row, value),
@@ -297,7 +306,7 @@ const columns = computed(() => [
     title: t('settings.user.table.actions'),
     key: 'actions',
     width: 200,
-    render(row: SysUserVO) {
+    render(row: userType.SysUserVO) {
       return [
         h(
             'button',
@@ -334,17 +343,26 @@ function handleSearch() {
 
 // 重置搜索
 function resetSearch() {
-  Object.assign(searchForm, getDefaultUserQuery())
+  Object.assign(searchForm, userApi.getDefaultUserQuery())
+  createTimeRange.value = null
   pageTableRef.value?.reset()
 }
 
+// 处理日期范围变化
+function onDateRangeChange(value: [number, number] | null) {
+  handleDateRangeChange(value, (startTime, endTime) => {
+    searchForm.startTime = startTime
+    searchForm.endTime = endTime
+  })
+}
+
 // 数据更新处理函数
-function onDataUpdate(data: SysUserVO[]) {
+function onDataUpdate(data: userType.SysUserVO[]) {
   userList.value = data
 }
 
 // 删除用户
-async function handleDelete(row: SysUserVO) {
+async function handleDelete(row: userType.SysUserVO) {
   dialog.warning({
     title: t('settings.user.actions.delete'),
     content: t('settings.user.messages.deleteConfirm'),
@@ -352,7 +370,7 @@ async function handleDelete(row: SysUserVO) {
     negativeText: t('common.cancel'),
     onPositiveClick: async () => {
       try {
-        await removeUser(row.id)
+        await userApi.removeUser(row.id)
         message.success(t('settings.user.messages.deleteSuccess'))
         pageTableRef.value?.fetchData()
       } catch (error) {
@@ -364,7 +382,7 @@ async function handleDelete(row: SysUserVO) {
 
 // 重置添加用户表单
 function resetAddUserForm() {
-  Object.assign(addUserForm, getDefaultSysUserAdminDTO())
+  Object.assign(addUserForm, userApi.getDefaultSysUserAdminDTO())
 }
 
 // 关闭添加用户对话框
@@ -377,7 +395,7 @@ function closeAddModal() {
 async function submitAddUser() {
   submitting.value = true
   try {
-    await addSysUser(addUserForm)
+    await userApi.addSysUser(addUserForm)
     message.success(t('settings.user.messages.addSuccess'))
     closeAddModal()
     pageTableRef.value?.fetchData()
@@ -395,13 +413,13 @@ function handleAdd() {
 }
 
 // 处理分配角色
-async function handleAssignRole(row: SysUserVO) {
+async function handleAssignRole(row: userType.SysUserVO) {
   currentUser.value = row
   submittingRoles.value = true
 
   try {
     // 获取用户详情，包括已分配的角色
-    const userDetail = await getUserById(row.id)
+    const userDetail = await userApi.getUserById(row.id)
     userRoles.value = userDetail?.data?.roles || []
 
     // 获取所有角色列表
@@ -434,7 +452,7 @@ async function submitAssignRoles() {
 
   submittingRoles.value = true
   try {
-    await assignUserRoles(currentUser.value.id, selectedRoleIds.value)
+    await userApi.assignUserRoles(currentUser.value.id, selectedRoleIds.value)
     message.success(t('settings.user.messages.assignSuccess'))
     closeAssignModal()
   } catch (error) {

@@ -76,4 +76,8 @@ export interface RolePageQueryDTO extends PageEntity {
     roleKey?: string | null
     /** 状态 (0=正常, 1=停用) */
     status?: number | null
+    /** 开始时间 */
+    startTime?: string | null
+    /** 结束时间 */
+    endTime?: string | null
 } 

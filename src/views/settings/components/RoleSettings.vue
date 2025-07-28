@@ -23,17 +23,13 @@
         <n-form-item>
           <n-button type="primary" @click="handleSearch">
             <template #icon>
-              <n-icon>
-                <search-outline/>
-              </n-icon>
+              <Icon :component="SearchOutline"/>
             </template>
             {{ t('settings.role.searchForm.search') }}
           </n-button>
           <n-button class="ml-2" @click="resetSearch">
             <template #icon>
-              <n-icon>
-                <refresh-outline/>
-              </n-icon>
+              <Icon :component="RefreshOutline"/>
             </template>
             {{ t('settings.role.searchForm.reset') }}
           </n-button>
@@ -44,9 +40,7 @@
       <div class="table-actions">
         <n-button v-hasPermission="'system:role:add'" type="primary" @click="handleAdd">
           <template #icon>
-            <n-icon>
-              <add-outline/>
-            </n-icon>
+            <Icon :component="AddOutline"/>
           </template>
           {{ t('settings.role.actions.add') }}
         </n-button>
@@ -210,7 +204,7 @@
 
 <script lang="ts" setup>
 import {computed, h, reactive, ref} from 'vue'
-import type {FormInst, FormRules} from '@/types/naive-ui'
+import type {FormInst, FormRules} from 'naive-ui'
 import {AddOutline, CreateOutline, KeyOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
 import {
   addRole,
@@ -229,14 +223,13 @@ import type {SysPermissionVO} from '@/types/system/permission'
 import {useI18n} from 'vue-i18n'
 import {StatusEnum} from '@/enum/common'
 import StatusDisplay from '@/components/common/StatusDisplay.vue'
+import Icon from '@/components/common/Icon.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
+import {renderIcon} from '@/utils/iconUtil'
 
 
 const {message, dialog} = getDiscreteApi()
 const {t, locale} = useI18n()
-
-// 是否为英文环境
-const isEnglish = computed(() => locale.value === 'en-US')
 
 // 状态选项
 const statusOptions = [
@@ -324,7 +317,7 @@ const columns = computed(() => [
               ]
             },
             [
-              h('div', {class: 'n-icon'}, () => h(CreateOutline)),
+              renderIcon(CreateOutline)(),
               ' ' + t('settings.role.actions.edit')
             ]
         ),
@@ -343,7 +336,7 @@ const columns = computed(() => [
               ]
             },
             [
-              h('div', {class: 'n-icon'}, () => h(KeyOutline)),
+              renderIcon(KeyOutline)(),
               ' ' + t('settings.role.actions.assignPermission')
             ]
         ),
@@ -361,7 +354,7 @@ const columns = computed(() => [
               ]
             },
             [
-              h('div', {class: 'n-icon'}, () => h(TrashOutline)),
+              renderIcon(TrashOutline)(),
               ' ' + t('settings.role.actions.delete')
             ]
         )

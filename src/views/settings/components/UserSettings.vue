@@ -32,17 +32,13 @@
         <n-form-item>
           <n-button type="primary" @click="handleSearch">
             <template #icon>
-              <n-icon>
-                <search-outline/>
-              </n-icon>
+              <Icon :component="SearchOutline"/>
             </template>
             {{ t('settings.user.searchForm.search') }}
           </n-button>
           <n-button class="ml-2" @click="resetSearch">
             <template #icon>
-              <n-icon>
-                <refresh-outline/>
-              </n-icon>
+              <Icon :component="RefreshOutline"/>
             </template>
             {{ t('settings.user.searchForm.reset') }}
           </n-button>
@@ -53,9 +49,7 @@
       <div class="table-actions">
         <n-button type="primary" @click="handleAdd">
           <template #icon>
-            <n-icon>
-              <add-outline/>
-            </n-icon>
+            <Icon :component="AddOutline"/>
           </template>
           {{ t('settings.user.actions.add') }}
         </n-button>
@@ -187,7 +181,9 @@ import type {SysRoleVO} from '@/types/system/role'
 import {useI18n} from 'vue-i18n'
 import {GenderEnum, getGenderLabel, StatusEnum} from '@/enum/common'
 import StatusDisplay from '@/components/common/StatusDisplay.vue'
+import Icon from '@/components/common/Icon.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
+import {renderIcon} from '@/utils/iconUtil'
 import {useUserStore} from '@/store'
 
 const {message, dialog} = getDiscreteApi()
@@ -307,7 +303,7 @@ const columns = computed(() => [
               onClick: () => handleAssignRole(row)
             },
             [
-              h('div', {class: 'n-icon'}, () => h(PeopleOutline)),
+              renderIcon(PeopleOutline)(),
               ' ' + t('settings.user.actions.assignRole')
             ]
         ),
@@ -318,7 +314,7 @@ const columns = computed(() => [
               onClick: () => handleDelete(row)
             },
             [
-              h('div', {class: 'n-icon'}, () => h(TrashOutline)),
+              renderIcon(TrashOutline)(),
               ' ' + t('settings.user.actions.delete')
             ]
         )

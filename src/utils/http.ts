@@ -4,7 +4,7 @@ import type {Result} from '@/types/common/baseEntity'
 import router from '@/router'
 import {useUserStore} from '@/store'
 import i18n from '@/i18n'
-import { getDiscreteApi } from '@/utils/naiveUIHelper'
+import {getDiscreteApi} from '@/utils/naiveUIHelper'
 
 /**
  * API请求路径配置类

@@ -1,27 +1,10 @@
 <template>
-  <div v-if="!isDarkMode" ref="container" class="cloud-background"></div>
+  <div ref="container" class="cloud-background"></div>
 </template>
 
 <script lang="ts" setup>
-import {onBeforeUnmount, onMounted, ref, watch} from 'vue'
+import {onBeforeUnmount, onMounted, ref} from 'vue'
 import * as THREE from 'three'
-import {useThemeStore} from '@/store'
-
-// 获取主题状态
-const themeStore = useThemeStore()
-const isDarkMode = ref(themeStore.isDarkMode)
-
-// 监听主题变化
-watch(() => themeStore.isDarkMode, (newVal) => {
-  isDarkMode.value = newVal
-  if (!newVal && container.value && !renderer) {
-    // 如果切换到浅色主题且渲染器未初始化，则初始化
-    initThreeJS()
-  } else if (newVal && renderer) {
-    // 如果切换到暗色主题且渲染器已初始化，则销毁
-    cleanupResources()
-  }
-})
 
 const container = ref<HTMLDivElement | null>(null)
 let renderer: THREE.WebGLRenderer | null = null
@@ -36,11 +19,6 @@ const deltaTime = {
 }
 
 onMounted(() => {
-  // 只在浅色主题下初始化
-  if (!isDarkMode.value) {
-    initThreeJS()
-  }
-
   // 监听窗口大小变化
   window.addEventListener('resize', onWindowResize)
 })
@@ -72,7 +50,7 @@ const cleanupResources = () => {
 
 // 初始化Three.js环境
 const initThreeJS = () => {
-  if (!container.value || isDarkMode.value) return
+  if (!container.value) return
 
   // 初始化场景
   scene = new THREE.Scene()
@@ -240,7 +218,7 @@ const createClouds = () => {
 
 // 窗口大小变化时调整
 const onWindowResize = () => {
-  if (!camera || !renderer || isDarkMode.value) return
+  if (!camera || !renderer) return
 
   const {innerWidth, innerHeight} = window
 
@@ -263,7 +241,7 @@ const onWindowResize = () => {
 
 // 动画循环
 const animate = () => {
-  if (!renderer || !scene || !camera || !clock || isDarkMode.value) return
+  if (!renderer || !scene || !camera || !clock) return
 
   // 更新时间
   deltaTime.value = clock.getElapsedTime()

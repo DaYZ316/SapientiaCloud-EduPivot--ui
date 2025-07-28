@@ -20,7 +20,6 @@ const backToHome = () => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/variables' as vars;
 
 .not-found {
   display: flex;

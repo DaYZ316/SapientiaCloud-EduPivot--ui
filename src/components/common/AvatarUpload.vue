@@ -3,11 +3,11 @@
     <n-upload
         ref="uploadRef"
         v-model:file-list="fileList"
+        :accept="accept"
         :custom-request="handleFileSelect"
+        :disabled="disabled"
         :max="1"
         :show-file-list="false"
-        :accept="accept"
-        :disabled="disabled"
         @before-upload="beforeUpload"
     >
       <n-avatar
@@ -17,15 +17,11 @@
           round
       >
         <template #fallback>
-          <n-icon :size="size * 0.4">
-            <Icon name="user" />
-          </n-icon>
+          <Icon :component="PersonOutline" :size="size * 0.95"/>
         </template>
       </n-avatar>
       <div v-if="!disabled" class="upload-overlay">
-        <n-icon :size="24">
-          <Icon name="camera" />
-        </n-icon>
+        <Icon :component="CameraOutline" :size="24"/>
         <span class="upload-text">{{ t('common.uploadAvatar') }}</span>
       </div>
     </n-upload>
@@ -33,19 +29,19 @@
     <!-- 图片裁剪对话框 -->
     <n-modal
         v-model:show="showCropModal"
+        :mask-closable="false"
+        :on-after-leave="resetCropModal"
         :title="t('common.cropAvatar')"
         preset="card"
         style="width: 800px"
-        :mask-closable="false"
-        :on-after-leave="resetCropModal"
     >
       <div class="crop-container">
         <div class="crop-preview">
           <img
+              v-show="imageUrl"
               ref="cropperImageRef"
               :src="imageUrl"
               class="cropper-image"
-              v-show="imageUrl"
           />
         </div>
         <div class="crop-controls">
@@ -55,50 +51,40 @@
                 <span>{{ t('common.cropPreview') }}</span>
               </template>
               <div class="crop-result-preview">
-                <div class="preview-container" :style="{ width: previewSize + 'px', height: previewSize + 'px' }">
-                  <canvas ref="previewCanvasRef" class="preview-canvas" />
+                <div :style="{ width: previewSize + 'px', height: previewSize + 'px' }" class="preview-container">
+                  <canvas ref="previewCanvasRef" class="preview-canvas"/>
                 </div>
               </div>
             </n-card>
-            
+
             <n-space vertical>
               <n-button-group size="small">
-                <n-button @click="rotateLeft" :disabled="!cropperInstance">
+                <n-button :disabled="!cropperInstance" @click="rotateLeft">
                   <template #icon>
-                    <n-icon>
-                      <Icon name="rotate-left" />
-                    </n-icon>
+                    <Icon :component="RefreshOutline"/>
                   </template>
                 </n-button>
-                <n-button @click="rotateRight" :disabled="!cropperInstance">
+                <n-button :disabled="!cropperInstance" @click="rotateRight">
                   <template #icon>
-                    <n-icon>
-                      <Icon name="rotate-right" />
-                    </n-icon>
+                    <Icon :component="RefreshOutline"/>
                   </template>
                 </n-button>
-                <n-button @click="flipX" :disabled="!cropperInstance">
+                <n-button :disabled="!cropperInstance" @click="flipX">
                   <template #icon>
-                    <n-icon>
-                      <Icon name="flip-horizontal" />
-                    </n-icon>
+                    <Icon :component="SwapHorizontalOutline"/>
                   </template>
                 </n-button>
-                <n-button @click="flipY" :disabled="!cropperInstance">
+                <n-button :disabled="!cropperInstance" @click="flipY">
                   <template #icon>
-                    <n-icon>
-                      <Icon name="flip-vertical" />
-                    </n-icon>
+                    <Icon :component="SwapVerticalOutline"/>
                   </template>
                 </n-button>
               </n-button-group>
-              
+
               <n-space>
-                <n-button type="primary" @click="confirmCrop" :loading="uploading" :disabled="!cropperInstance">
+                <n-button :disabled="!cropperInstance" :loading="uploading" type="primary" @click="confirmCrop">
                   <template #icon>
-                    <n-icon>
-                      <Icon name="check" />
-                    </n-icon>
+                    <Icon :component="CheckmarkOutline"/>
                   </template>
                   {{ t('common.confirm') }}
                 </n-button>
@@ -115,18 +101,23 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, nextTick, watch, onUnmounted } from 'vue'
+import {computed, nextTick, onUnmounted, ref, watch} from 'vue'
 import Cropper from 'cropperjs'
 import 'cropperjs/dist/cropper.css'
-import type { UploadFileInfo, UploadCustomRequestOptions } from '@/types/naive-ui'
-import { uploadFile } from '@/api'
-import { getDiscreteApi } from '@/utils/naiveUIHelper'
-import { useI18n } from 'vue-i18n'
+import type {UploadCustomRequestOptions, UploadFileInfo} from '@/types/naive-ui'
+import {uploadFile} from '@/api'
+import {getDiscreteApi} from '@/utils/naiveUIHelper'
+import {useI18n} from 'vue-i18n'
+import {
+  CameraOutline,
+  CheckmarkOutline,
+  PersonOutline,
+  RefreshOutline,
+  SwapHorizontalOutline,
+  SwapVerticalOutline
+} from '@vicons/ionicons5'
 import Icon from './Icon.vue'
-import type { 
-  AvatarUploadProps, 
-  AvatarUploadEmits
-} from '@/types'
+import type {AvatarUploadEmits, AvatarUploadProps} from '@/types'
 
 // Props with defaults
 const props = withDefaults(defineProps<AvatarUploadProps>(), {
@@ -142,8 +133,8 @@ const props = withDefaults(defineProps<AvatarUploadProps>(), {
 const emit = defineEmits<AvatarUploadEmits>()
 
 // Composables
-const { message } = getDiscreteApi()
-const { t } = useI18n()
+const {message} = getDiscreteApi()
+const {t} = useI18n()
 
 // Refs
 const uploadRef = ref()
@@ -167,7 +158,7 @@ const previewSize = computed(() => Math.min(props.cropSize * 0.6, 120))
 
 // Methods
 const beforeUpload = (data: { file: UploadFileInfo }): boolean => {
-  const { file } = data
+  const {file} = data
 
   // 验证文件类型
   const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg']
@@ -185,7 +176,7 @@ const beforeUpload = (data: { file: UploadFileInfo }): boolean => {
   return true
 }
 
-const handleFileSelect = ({ file }: UploadCustomRequestOptions) => {
+const handleFileSelect = ({file}: UploadCustomRequestOptions) => {
   if (!file.file) return
 
   const reader = new FileReader()
@@ -234,9 +225,6 @@ const updatePreview = () => {
   const context = canvas.getContext('2d')
   if (!context) return
 
-  const data = cropperInstance.value.getData()
-  const imageElement = cropperInstance.value.getImageData()
-  
   // 设置 canvas 尺寸
   canvas.width = previewSize.value
   canvas.height = previewSize.value
@@ -277,7 +265,7 @@ const confirmCrop = async () => {
 
   try {
     uploading.value = true
-    
+
     // 获取裁剪后的 canvas
     const croppedCanvas = cropperInstance.value.getCroppedCanvas({
       width: props.cropSize,
@@ -290,15 +278,15 @@ const confirmCrop = async () => {
       return
     }
 
-         // 转换为 blob
-     croppedCanvas.toBlob(async (blob: Blob | null) => {
-       if (!blob) {
-         message.error(t('common.avatarUploadFail'))
-         return
-       }
+    // 转换为 blob
+    croppedCanvas.toBlob(async (blob: Blob | null) => {
+      if (!blob) {
+        message.error(t('common.avatarUploadFail'))
+        return
+      }
 
-       await uploadCroppedImage(blob)
-     }, 'image/jpeg', 0.8)
+      await uploadCroppedImage(blob)
+    }, 'image/jpeg', 0.8)
   } catch (error) {
     console.error('头像裁剪失败:', error)
     emit('upload-error', error as Error)
@@ -312,9 +300,9 @@ const uploadCroppedImage = async (blob: Blob) => {
   try {
     // 创建File对象并上传
     const fileName = `avatar_${Date.now()}.jpg`
-    const file = new File([blob], fileName, { type: 'image/jpeg' })
+    const file = new File([blob], fileName, {type: 'image/jpeg'})
     const response = await uploadFile(file, 'avatars')
-    
+
     if (response.success && response.data) {
       const avatarUrl = response.data.url
       modelValue.value = avatarUrl
@@ -335,7 +323,7 @@ const uploadCroppedImage = async (blob: Blob) => {
 const resetCropModal = () => {
   imageUrl.value = ''
   fileList.value = []
-  
+
   // 销毁 cropper 实例
   if (cropperInstance.value) {
     cropperInstance.value.destroy()
@@ -409,7 +397,7 @@ onUnmounted(() => {
   .crop-preview {
     flex: 1;
     height: 400px;
-    
+
     .cropper-image {
       max-width: 100%;
       max-height: 100%;
@@ -419,14 +407,14 @@ onUnmounted(() => {
 
   .crop-controls {
     width: 240px;
-    
+
     .crop-result-preview {
       display: flex;
       justify-content: center;
       padding: 16px;
-      
+
       .preview-container {
-        border: 1px solid var(--n-border-color);
+        border: none;
         border-radius: 8px;
         overflow: hidden;
         background: var(--n-card-color);
@@ -447,11 +435,11 @@ onUnmounted(() => {
 @media (max-width: 768px) {
   .crop-container {
     flex-direction: column;
-    
+
     .crop-controls {
       width: 100%;
     }
-    
+
     .crop-preview {
       height: 300px;
     }

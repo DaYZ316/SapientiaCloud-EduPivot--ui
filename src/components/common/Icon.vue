@@ -1,13 +1,13 @@
 <template>
-  <n-icon :color="color" :size="size" :depth="depth" :component="iconComponent" v-if="component" />
-  <n-icon :color="color" :size="size" :depth="depth" v-else>
+  <n-icon v-if="component" :color="color" :component="iconComponent" :depth="depth" :size="size"/>
+  <n-icon v-else :color="color" :depth="depth" :size="size">
     <slot></slot>
   </n-icon>
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue'
-import type { Component } from 'vue'
+import type {Component} from 'vue'
+import {computed} from 'vue'
 
 const props = defineProps({
   // 图标颜色

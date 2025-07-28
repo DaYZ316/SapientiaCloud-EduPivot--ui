@@ -4,27 +4,25 @@
       <!-- 搜索表单 -->
       <n-form :model="searchForm" class="search-form" inline>
         <n-form-item :label="t('settings.permission.searchForm.permissionName')" path="permissionName">
-          <n-input v-model:value="searchForm.permissionName" :placeholder="t('settings.permission.searchForm.permissionNamePlaceholder')"
+          <n-input v-model:value="searchForm.permissionName"
+                   :placeholder="t('settings.permission.searchForm.permissionNamePlaceholder')"
                    clearable/>
         </n-form-item>
         <n-form-item :label="t('settings.permission.searchForm.permissionKey')" path="permissionKey">
-          <n-input v-model:value="searchForm.permissionKey" :placeholder="t('settings.permission.searchForm.permissionKeyPlaceholder')"
+          <n-input v-model:value="searchForm.permissionKey"
+                   :placeholder="t('settings.permission.searchForm.permissionKeyPlaceholder')"
                    clearable/>
         </n-form-item>
         <n-form-item>
           <n-button type="primary" @click="handleSearch">
             <template #icon>
-              <n-icon>
-                <search-outline/>
-              </n-icon>
+              <Icon :component="SearchOutline"/>
             </template>
             {{ t('settings.permission.searchForm.search') }}
           </n-button>
           <n-button class="ml-2" @click="resetSearch">
             <template #icon>
-              <n-icon>
-                <refresh-outline/>
-              </n-icon>
+              <Icon :component="RefreshOutline"/>
             </template>
             {{ t('settings.permission.searchForm.reset') }}
           </n-button>
@@ -35,9 +33,7 @@
       <div class="table-actions">
         <n-button type="primary" @click="handleAdd">
           <template #icon>
-            <n-icon>
-              <add-outline/>
-            </n-icon>
+            <Icon :component="AddOutline"/>
           </template>
           {{ t('settings.permission.actions.add') }}
         </n-button>
@@ -164,7 +160,7 @@
 
 <script lang="ts" setup>
 import {computed, h, reactive, ref} from 'vue'
-import type {FormInst, FormRules, TreeSelectOption} from '@/types/naive-ui'
+import type {FormInst, FormRules, TreeSelectOption} from 'naive-ui'
 import {AddOutline, CreateOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
 import {
   addPermission,
@@ -183,7 +179,9 @@ import type {
   SysPermissionVO
 } from '@/types/system/permission'
 import {useI18n} from 'vue-i18n'
+import Icon from '@/components/common/Icon.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
+import {renderIcon} from '@/utils/iconUtil'
 
 const {message, dialog} = getDiscreteApi()
 const {t, locale} = useI18n()
@@ -270,7 +268,7 @@ const columns = computed(() => [
               onClick: () => handleEdit(row)
             },
             [
-              h('div', {class: 'n-icon'}, () => h(CreateOutline)),
+              renderIcon(CreateOutline)(),
               ' ' + t('settings.permission.actions.edit')
             ]
         ),
@@ -281,7 +279,7 @@ const columns = computed(() => [
               onClick: () => handleDelete(row)
             },
             [
-              h('div', {class: 'n-icon'}, () => h(TrashOutline)),
+              renderIcon(TrashOutline)(),
               ' ' + t('settings.permission.actions.delete')
             ]
         )

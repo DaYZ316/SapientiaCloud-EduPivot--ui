@@ -2,7 +2,7 @@ import {defineStore} from 'pinia'
 
 // 主题状态类型
 interface ThemeState {
-    themeMode: 'light' | 'dark' | 'system'
+    themeMode: 'light' | 'dark'
     primaryColor: string
     defaultPrimaryColor: string
     locale: string
@@ -12,7 +12,7 @@ interface ThemeState {
 // 主题 Store
 export const useThemeStore = defineStore('theme', {
     state: (): ThemeState => ({
-        themeMode: localStorage.getItem('themeMode') as 'light' | 'dark' | 'system' || 'system',
+        themeMode: localStorage.getItem('themeMode') as 'light' | 'dark' || 'light',
         primaryColor: localStorage.getItem('primaryColor') || '#18a058',
         defaultPrimaryColor: '#18a058',
         locale: localStorage.getItem('locale') || 'zh-CN',
@@ -21,31 +21,21 @@ export const useThemeStore = defineStore('theme', {
 
     getters: {
         isDarkMode(): boolean {
-            if (this.themeMode === 'system') {
-                return window.matchMedia('(prefers-color-scheme: dark)').matches
-            }
             return this.themeMode === 'dark'
         }
     },
 
     actions: {
         // 设置主题模式
-        setThemeMode(mode: 'light' | 'dark' | 'system') {
+        setThemeMode(mode: 'light' | 'dark') {
             this.themeMode = mode
             localStorage.setItem('themeMode', mode)
 
             // 根据主题模式设置文档根元素属性
             if (mode === 'dark') {
                 document.documentElement.classList.add('dark')
-            } else if (mode === 'light') {
-                document.documentElement.classList.remove('dark')
             } else {
-                // 跟随系统
-                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                    document.documentElement.classList.add('dark')
-                } else {
-                    document.documentElement.classList.remove('dark')
-                }
+                document.documentElement.classList.remove('dark')
             }
         },
 
@@ -66,7 +56,7 @@ export const useThemeStore = defineStore('theme', {
 
         // 重置所有设置
         resetSettings() {
-            this.setThemeMode('system')
+            this.setThemeMode('light')
             this.setPrimaryColor(this.defaultPrimaryColor)
             this.setLocale(this.defaultLocale)
         },
@@ -81,17 +71,6 @@ export const useThemeStore = defineStore('theme', {
 
             // 初始化语言
             this.setLocale(this.locale)
-
-            // 监听系统主题变化
-            if (this.themeMode === 'system') {
-                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                    if (e.matches) {
-                        document.documentElement.classList.add('dark')
-                    } else {
-                        document.documentElement.classList.remove('dark')
-                    }
-                })
-            }
         }
     }
 }) 

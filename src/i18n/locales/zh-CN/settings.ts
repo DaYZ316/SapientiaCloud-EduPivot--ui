@@ -7,8 +7,7 @@ export default {
     theme: {
         title: '主题设置',
         light: '浅色模式',
-        dark: '深色模式',
-        system: '跟随系统'
+        dark: '深色模式'
     },
     tabs: {
         personal: '个人设置',

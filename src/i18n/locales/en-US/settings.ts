@@ -7,8 +7,7 @@ export default {
     theme: {
         title: 'Theme Settings',
         light: 'Light Mode',
-        dark: 'Dark Mode',
-        system: 'System Mode'
+        dark: 'Dark Mode'
     },
     tabs: {
         personal: 'Personal Settings',

@@ -6,7 +6,6 @@
         <n-radio-group v-model:value="themeMode">
           <n-radio-button value="light">{{ t('settings.theme.light') }}</n-radio-button>
           <n-radio-button value="dark">{{ t('settings.theme.dark') }}</n-radio-button>
-          <n-radio-button value="system">{{ t('settings.theme.system') }}</n-radio-button>
         </n-radio-group>
       </n-form-item>
     </n-form>
@@ -56,14 +55,11 @@ const currentLang = ref<'zh-CN' | 'en-US'>(locale.value as 'zh-CN' | 'en-US')
 const themeStore = useThemeStore()
 
 // 主题设置状态
-const themeMode = ref(themeStore.themeMode || 'system')
+const themeMode = ref(themeStore.themeMode || 'light')
 const primaryColor = ref(themeStore.primaryColor || '#18a058')
 
 // 计算暗黑模式
 const isDarkMode = computed(() => {
-  if (themeMode.value === 'system') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
-  }
   return themeMode.value === 'dark'
 })
 
@@ -115,11 +111,11 @@ const resetSettings = () => {
       ghost: false
     },
     onPositiveClick: () => {
-      themeMode.value = 'system'
+      themeMode.value = 'light'
       primaryColor.value = '#18a058'
       currentLang.value = 'zh-CN'
 
-      themeStore.setThemeMode('system')
+      themeStore.setThemeMode('light')
       themeStore.setPrimaryColor('#18a058')
       setLanguage('zh-CN')
 

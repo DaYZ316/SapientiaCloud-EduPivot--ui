@@ -18,13 +18,6 @@
             :options="languageOptions"
         />
       </n-form-item>
-    </n-form>
-
-    <h2>{{ t('settings.system.colorPrimary') }}</h2>
-    <n-form label-placement="left" label-width="120">
-      <n-form-item :label="t('settings.system.colorPrimary')">
-        <n-color-picker v-model:value="primaryColor"/>
-      </n-form-item>
       <n-form-item>
         <n-button type="primary" @click="saveSettings">{{ t('common.save') }}</n-button>
         <n-button style="margin-left: 12px" @click="resetSettings">{{ t('common.reset') }}</n-button>
@@ -56,22 +49,10 @@ const themeStore = useThemeStore()
 
 // 主题设置状态
 const themeMode = ref(themeStore.themeMode || 'light')
-const primaryColor = ref(themeStore.primaryColor || '#18a058')
 
 // 计算暗黑模式
 const isDarkMode = computed(() => {
   return themeMode.value === 'dark'
-})
-
-// 计算主题覆盖
-const themeOverrides = computed(() => {
-  return {
-    common: {
-      primaryColor: primaryColor.value,
-      primaryColorHover: primaryColor.value,
-      primaryColorPressed: primaryColor.value,
-    }
-  }
 })
 
 // 保存主题设置
@@ -79,7 +60,6 @@ const saveSettings = () => {
   try {
     // 保存主题设置
     themeStore.setThemeMode(themeMode.value)
-    themeStore.setPrimaryColor(primaryColor.value)
 
     // 保存并应用语言设置
     if (currentLang.value !== locale.value) {
@@ -112,11 +92,9 @@ const resetSettings = () => {
     },
     onPositiveClick: () => {
       themeMode.value = 'light'
-      primaryColor.value = '#18a058'
       currentLang.value = 'zh-CN'
 
       themeStore.setThemeMode('light')
-      themeStore.setPrimaryColor('#18a058')
       setLanguage('zh-CN')
 
       // 使用getDiscreteApi获取最新消息实例

@@ -1,0 +1,45 @@
+// 全局字体变量
+:root {
+  --font-family-primary: 'Microsoft YaHei', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+  --font-weight-primary: bold;
+}
+
+// 全局字体样式
+* {
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-primary);
+}
+
+body {
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-primary);
+  font-style: normal;
+}
+
+// 针对不同元素的字体设置
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-primary);
+}
+
+p, span, div, a, button, input, textarea, select {
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-primary);
+}
+
+// Naive UI 组件字体覆盖
+.n-button,
+.n-input,
+.n-checkbox__label,
+.n-select,
+.n-menu,
+.n-card,
+.n-form,
+.n-table,
+.n-modal,
+.n-data-table,
+.n-pagination,
+.n-dropdown {
+  font-family: var(--font-family-primary) !important;
+  font-weight: var(--font-weight-primary) !important;
+} 

@@ -78,4 +78,5 @@ onMounted(async () => {
 </template>
 
 <style lang="scss">
+@use './assets/styles/dark/index.scss';
 </style>

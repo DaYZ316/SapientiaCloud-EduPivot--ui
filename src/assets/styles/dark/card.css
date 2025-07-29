@@ -1,0 +1,2 @@
+.n-card{ background:rgba(0,0,0,.05) !important; border:1px solid hsla(0,0%,100%,.8) !important; color:#fff !important; transition:all .3s ease !important }
+.n-card:disabled,.n-card.disabled{ opacity:.6 !important; pointer-events:none !important; cursor:not-allowed !important }

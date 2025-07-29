@@ -4,7 +4,7 @@
     <n-layout-header bordered class="header">
       <div class="header-left">
         <div class="logo">
-          <h2>{{ $t('app.name') }}</h2>
+          <h2>{{ t('app.name') }}</h2>
         </div>
       </div>
       <div class="header-right">
@@ -13,7 +13,7 @@
           <n-dropdown :options="userMenuOptions" placement="bottom-end" @select="handleUserMenuSelect">
             <div class="user-avatar">
               <n-avatar :src="userInfo?.avatar || ''" round/>
-              <span class="nickname">{{ userInfo?.nickName || $t('common.user') }}</span>
+              <span class="nickname">{{ userInfo?.nickName || t('common.user') }}</span>
               <Icon :component="ChevronDownOutline"/>
             </div>
           </n-dropdown>

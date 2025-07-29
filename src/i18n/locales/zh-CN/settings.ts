@@ -362,7 +362,6 @@ export default {
         autoSaveInterval: '自动保存间隔',
         logLevel: '日志级别',
         themeMode: '主题模式',
-        colorPrimary: '主题色',
         updateSuccess: '系统设置已保存',
         updateFail: '系统设置保存失败',
         resetSuccess: '系统设置已重置',

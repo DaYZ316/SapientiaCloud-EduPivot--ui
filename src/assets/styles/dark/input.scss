@@ -1,0 +1,125 @@
+// Dark主题 - Input组件全局变量
+// ==========================================
+
+// 基础颜色变量
+$input-border-color: rgba(255, 255, 255, 0.5);
+$input-text-color: white;
+$input-placeholder-color: rgba(255, 255, 255, 0.8);
+
+// 重复使用较多的变量
+$input-font-weight: 500;
+
+// Input组件全局样式
+// ==========================================
+
+// 大尺寸输入框样式
+.n-input--large-size {
+  .n-input__input-el {
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .n-input-wrapper {
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .n-input__state-border {
+    display: flex !important;
+    align-items: center !important;
+  }
+}
+
+// 登录页面输入框特殊样式
+.n-input {
+  border-radius: 0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  transition: all 0s !important;
+
+  .n-input__input-el {
+    font-weight: $input-font-weight !important;
+    line-height: normal !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .n-input__state-border {
+    display: flex !important;
+    align-items: center !important;
+    transition: all 0s !important;
+  }
+
+  .n-input-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    transition: all 0s !important;
+  }
+
+  .n-input__prefix {
+    transition: all 0s !important;
+  }
+
+  .n-icon {
+    transition: all 0s !important;
+  }
+
+  .n-input__placeholder {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: $input-font-weight !important;
+  }
+
+  .n-input__input-el::placeholder {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: $input-font-weight !important;
+  }
+}
+
+// Naive UI 复选框基础样式
+.n-checkbox {
+  color: $input-text-color !important;
+  transition: all 0.3s ease !important;
+
+  .n-checkbox__label {
+    color: $input-text-color !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .n-checkbox-box {
+    border: 1px solid $input-border-color !important;
+    border-radius: 0 !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .n-checkbox-box__border {
+    border: 1px solid $input-border-color !important;
+    border-radius: 0 !important;
+    transition: all 0.3s ease !important;
+  }
+
+  &:hover .n-checkbox-box {
+    border-color: rgba(255, 255, 255, 0.8) !important;
+  }
+}
+
+// 记住我复选框特殊样式
+.n-checkbox {
+  color: white !important;
+  transition: all 0s !important;
+
+  .n-checkbox__label {
+    color: white !important;
+    transition: all 0s !important;
+  }
+
+  .n-checkbox-box {
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    border-radius: 0 !important;
+    transition: all 0s !important;
+  }
+
+  .n-checkbox-box__border {
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    border-radius: 0 !important;
+    transition: all 0s !important;
+  }
+} 

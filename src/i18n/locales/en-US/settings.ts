@@ -359,7 +359,6 @@ export default {
         autoSaveInterval: 'Auto Save Interval',
         logLevel: 'Log Level',
         themeMode: 'Theme Mode',
-        colorPrimary: 'Primary Color',
         updateSuccess: 'System settings saved successfully',
         updateFail: 'Failed to save system settings',
         resetSuccess: 'System settings have been reset',

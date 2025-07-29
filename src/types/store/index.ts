@@ -22,13 +22,11 @@ export interface UserStore {
 // 主题存储类型定义
 export interface ThemeStore {
     themeMode: 'light' | 'dark'
-    primaryColor: string
-    defaultPrimaryColor: string
     locale: string
     defaultLocale: string
     isDarkMode: boolean
+    primaryColor: string
     setThemeMode: (mode: 'light' | 'dark') => void
-    setPrimaryColor: (color: string) => void
     setLocale: (locale: string) => void
     resetSettings: () => void
     initSettings: () => void

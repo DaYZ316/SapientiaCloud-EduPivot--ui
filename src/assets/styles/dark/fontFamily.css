@@ -1,0 +1,6 @@
+:root{ --font-family-primary:"Microsoft YaHei","PingFang SC","Helvetica Neue",Arial,sans-serif; --font-weight-primary:bold }
+*{ font-family:var(--font-family-primary); font-weight:var(--font-weight-primary) }
+body{ font-family:var(--font-family-primary); font-weight:var(--font-weight-primary); font-style:normal }
+h1,h2,h3,h4,h5,h6{ font-family:var(--font-family-primary); font-weight:var(--font-weight-primary) }
+p,span,div,a,button,input,textarea,select{ font-family:var(--font-family-primary); font-weight:var(--font-weight-primary) }
+.n-button,.n-input,.n-checkbox__label,.n-select,.n-menu,.n-card,.n-form,.n-table,.n-modal,.n-data-table,.n-pagination,.n-dropdown{ font-family:var(--font-family-primary) !important; font-weight:var(--font-weight-primary) !important }

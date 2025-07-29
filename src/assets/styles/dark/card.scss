@@ -1,0 +1,32 @@
+// Dark主题 - Card组件全局变量
+// ==========================================
+
+// 基础颜色变量
+$card-background-color: rgba(0, 0, 0, 0.05);
+$card-border-color: rgba(255, 255, 255, 0.8);
+$card-text-color: white;
+
+// 过渡效果变量
+$card-transition-normal: all 0.3s ease;
+
+// 透明度变量
+$card-opacity-disabled: 0.6;
+
+// Card组件全局样式
+// ==========================================
+
+// Naive UI 卡片基础样式
+.n-card {
+  background: $card-background-color !important;
+  border: 1px solid $card-border-color !important;
+  color: $card-text-color !important;
+  transition: $card-transition-normal !important;
+}
+
+// 禁用状态的卡片
+.n-card:disabled,
+.n-card.disabled {
+  opacity: $card-opacity-disabled !important;
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+} 

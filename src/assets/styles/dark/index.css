@@ -1,0 +1,52 @@
+:root{ --font-family-primary:"Microsoft YaHei","PingFang SC","Helvetica Neue",Arial,sans-serif; --font-weight-primary:bold }
+*{ font-family:var(--font-family-primary); font-weight:var(--font-weight-primary) }
+body{ font-family:var(--font-family-primary); font-weight:var(--font-weight-primary); font-style:normal }
+h1,h2,h3,h4,h5,h6{ font-family:var(--font-family-primary); font-weight:var(--font-weight-primary) }
+p,span,div,a,button,input,textarea,select{ font-family:var(--font-family-primary); font-weight:var(--font-weight-primary) }
+.n-button,.n-input,.n-checkbox__label,.n-select,.n-menu,.n-card,.n-form,.n-table,.n-modal,.n-data-table,.n-pagination,.n-dropdown{ font-family:var(--font-family-primary) !important; font-weight:var(--font-weight-primary) !important }
+.n-button{ color:#fff !important; border-color:hsla(0,0%,100%,.8) !important; transition:all .3s ease !important }
+.n-button:hover{ background:hsla(0,0%,100%,.1) !important; border-color:#fff !important; color:#fff !important }
+.n-button:active{ background:hsla(0,0%,100%,.05) !important; transform:translateY(0) !important }
+.n-button .n-button__content{ color:#fff !important; transition:all .3s ease !important }
+.n-button:hover .n-button__content{ color:#fff !important }
+.n-button:active .n-button__content{ color:#fff !important }
+.n-button--primary-type{ background:rgba(0,0,0,0) !important; border:1.5px solid hsla(0,0%,100%,.8) !important }
+.n-button--primary-type:hover{ background:hsla(0,0%,100%,.1) !important; border-color:#fff !important }
+.n-button--primary-type:active{ background:hsla(0,0%,100%,.05) !important }
+.n-button--text-type{ background:linear-gradient(135deg,#ffffff 0%,var(--button-gradient-color,#a668ff) 100%) !important; -webkit-background-clip:text !important; -webkit-text-fill-color:rgba(0,0,0,0) !important; background-clip:text !important; font-size:.9rem !important; transition:all 0s !important }
+.n-button--text-type:hover{ background:linear-gradient(135deg,#e6cdff 0%,var(--button-gradient-hover-color,#a856fa) 100%) !important; -webkit-background-clip:text !important; -webkit-text-fill-color:rgba(0,0,0,0) !important; background-clip:text !important }
+.n-button--text-type .n-button__content{ background:linear-gradient(135deg,#ffffff 0%,var(--button-gradient-color,#a668ff) 100%) !important; -webkit-background-clip:text !important; -webkit-text-fill-color:rgba(0,0,0,0) !important; background-clip:text !important }
+.n-button--text-type:hover .n-button__content{ background:linear-gradient(135deg,#e6cdff 0%,var(--button-gradient-hover-color,#a856fa) 100%) !important; -webkit-background-clip:text !important; -webkit-text-fill-color:rgba(0,0,0,0) !important; background-clip:text !important }
+.n-button--large-size{ height:50px !important; font-size:18px !important; font-weight:600 !important; border-radius:0 !important }
+.n-button--large-size .n-button__content{ font-size:18px !important }
+.n-button.full-width{ width:100% !important }
+.n-button.text-type{ padding:10px !important; background:linear-gradient(135deg,#ffffff 0%,var(--button-gradient-color,#a668ff) 100%) !important; -webkit-background-clip:text !important; -webkit-text-fill-color:rgba(0,0,0,0) !important; background-clip:text !important; font-size:.9rem !important; transition:all 0s !important }
+.n-button.text-type:hover{ background:linear-gradient(135deg,#e6cdff 0%,var(--button-gradient-hover-color,#a856fa) 100%) !important; -webkit-background-clip:text !important; -webkit-text-fill-color:rgba(0,0,0,0) !important; background-clip:text !important }
+.n-button.primary-type{ width:100% !important; height:50px !important; margin-top:1rem !important; font-size:18px !important; font-weight:600 !important; border-radius:0 !important; background:rgba(0,0,0,0) !important; border:1.5px solid hsla(0,0%,100%,.8) !important; color:#fff !important; transition:all 0s !important }
+.n-button.primary-type:hover{ background:hsla(0,0%,100%,.1) !important; border-color:#fff !important; color:#fff !important }
+.n-button.primary-type:active{ transform:translateY(0) !important; background:hsla(0,0%,100%,.05) !important }
+.n-button.primary-type .n-button__content{ color:#fff !important; font-size:18px !important; transition:all 0s !important }
+.n-button.primary-type:hover .n-button__content{ color:#fff !important }
+.n-button.primary-type:active .n-button__content{ color:#fff !important }
+.n-input--large-size .n-input__input-el{ display:flex !important; align-items:center !important }
+.n-input--large-size .n-input-wrapper{ display:flex !important; align-items:center !important }
+.n-input--large-size .n-input__state-border{ display:flex !important; align-items:center !important }
+.n-input{ border-radius:0 !important; border:1px solid hsla(0,0%,100%,.5) !important; transition:all 0s !important }
+.n-input .n-input__input-el{ font-weight:500 !important; line-height:normal !important; display:flex !important; align-items:center !important }
+.n-input .n-input__state-border{ display:flex !important; align-items:center !important; transition:all 0s !important }
+.n-input .n-input-wrapper{ display:flex !important; align-items:center !important; transition:all 0s !important }
+.n-input .n-input__prefix{ transition:all 0s !important }
+.n-input .n-icon{ transition:all 0s !important }
+.n-input .n-input__placeholder{ color:hsla(0,0%,100%,.8) !important; font-weight:500 !important }
+.n-input .n-input__input-el::placeholder{ color:hsla(0,0%,100%,.8) !important; font-weight:500 !important }
+.n-checkbox{ color:#fff !important; transition:all .3s ease !important }
+.n-checkbox .n-checkbox__label{ color:#fff !important; transition:all .3s ease !important }
+.n-checkbox .n-checkbox-box{ border:1px solid hsla(0,0%,100%,.5) !important; border-radius:0 !important; transition:all .3s ease !important }
+.n-checkbox .n-checkbox-box__border{ border:1px solid hsla(0,0%,100%,.5) !important; border-radius:0 !important; transition:all .3s ease !important }
+.n-checkbox:hover .n-checkbox-box{ border-color:hsla(0,0%,100%,.8) !important }
+.n-checkbox{ color:#fff !important; transition:all 0s !important }
+.n-checkbox .n-checkbox__label{ color:#fff !important; transition:all 0s !important }
+.n-checkbox .n-checkbox-box{ border:1px solid hsla(0,0%,100%,.5) !important; border-radius:0 !important; transition:all 0s !important }
+.n-checkbox .n-checkbox-box__border{ border:1px solid hsla(0,0%,100%,.5) !important; border-radius:0 !important; transition:all 0s !important }
+.n-card{ background:rgba(0,0,0,.05) !important; border:1px solid hsla(0,0%,100%,.8) !important; color:#fff !important; transition:all .3s ease !important }
+.n-card:disabled,.n-card.disabled{ opacity:.6 !important; pointer-events:none !important; cursor:not-allowed !important }

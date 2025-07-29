@@ -1,0 +1,171 @@
+// Dark主题 - Button组件全局变量
+// ==========================================
+
+// 基础颜色变量
+$button-text-color: white;
+$button-border-color: rgba(255, 255, 255, 0.8);
+$button-border-color-hover: white;
+$button-background-transparent: transparent;
+$button-background-hover: rgba(255, 255, 255, 0.1);
+$button-background-active: rgba(255, 255, 255, 0.05);
+
+// 渐变色变量 - 使用CSS变量支持动态颜色
+$button-gradient-primary: linear-gradient(135deg, #ffffff 0%, var(--button-gradient-color, #a668ff) 100%);
+$button-gradient-hover: linear-gradient(135deg, #e6cdff 0%, var(--button-gradient-hover-color, #a856fa) 100%);
+
+// 重复使用较多的变量
+$button-font-size-normal: 0.9rem;
+$button-padding-normal: 10px;
+
+// Button组件全局样式
+// ==========================================
+
+// Naive UI 按钮基础样式
+.n-button {
+  color: $button-text-color !important;
+  border-color: $button-border-color !important;
+  transition: all 0.3s ease !important;
+
+  &:hover {
+    background: $button-background-hover !important;
+    border-color: $button-border-color-hover !important;
+    color: $button-text-color !important;
+  }
+
+  &:active {
+    background: $button-background-active !important;
+    transform: translateY(0) !important;
+  }
+
+  .n-button__content {
+    color: $button-text-color !important;
+    transition: all 0.3s ease !important;
+  }
+
+  &:hover .n-button__content {
+    color: $button-text-color !important;
+  }
+
+  &:active .n-button__content {
+    color: $button-text-color !important;
+  }
+}
+
+// 主要按钮样式
+.n-button--primary-type {
+  background: $button-background-transparent !important;
+  border: 1.5px solid $button-border-color !important;
+
+  &:hover {
+    background: $button-background-hover !important;
+    border-color: $button-border-color-hover !important;
+  }
+
+  &:active {
+    background: $button-background-active !important;
+  }
+}
+
+// 文本按钮样式 (用于忘记密码、注册链接等)
+.n-button--text-type {
+  background: $button-gradient-primary !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  font-size: $button-font-size-normal !important;
+  transition: all 0s !important;
+
+  &:hover {
+    background: $button-gradient-hover !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+  }
+
+  .n-button__content {
+    background: $button-gradient-primary !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+  }
+
+  &:hover .n-button__content {
+    background: $button-gradient-hover !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+  }
+}
+
+// 大尺寸按钮样式 (用于登录按钮等)
+.n-button--large-size {
+  height: 50px !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  border-radius: 0 !important;
+
+  .n-button__content {
+    font-size: 18px !important;
+  }
+}
+
+// 宽度100%的按钮
+.n-button.full-width {
+  width: 100% !important;
+}
+
+// 特殊样式按钮类
+.n-button.text-type {
+  padding: $button-padding-normal !important;
+  background: $button-gradient-primary !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  font-size: $button-font-size-normal !important;
+  transition: all 0s !important;
+
+  &:hover {
+    background: $button-gradient-hover !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+  }
+}
+
+.n-button.primary-type {
+  width: 100% !important;
+  height: 50px !important;
+  margin-top: 1rem !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.8) !important;
+  color: white !important;
+  transition: all 0s !important;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: white !important;
+    color: white !important;
+  }
+
+  &:active {
+    transform: translateY(0) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  .n-button__content {
+    color: white !important;
+    font-size: 18px !important;
+    transition: all 0s !important;
+  }
+
+  &:hover .n-button__content {
+    color: white !important;
+  }
+
+  &:active .n-button__content {
+    color: white !important;
+  }
+}

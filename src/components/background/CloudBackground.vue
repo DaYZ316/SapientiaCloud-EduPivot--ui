@@ -131,7 +131,7 @@ const createClouds = () => {
 
     "vec4 map( in vec3 p ) {",
     "float d = 0.2 - p.y;",
-    "vec3 q = p - vec3(1.0,0.1,0.0)*iGlobalTime;",
+    "vec3 q = p - vec3(0.1,0.02,0.0)*iGlobalTime;",
     "float f;",
     "f  = 0.5000*noise( q ); q = q*2.02;",
     "f += 0.2500*noise( q ); q = q*2.03;",

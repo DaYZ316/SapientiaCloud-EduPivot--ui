@@ -1,0 +1,126 @@
+.register-card {
+  background: var(--card-background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  
+  .brand-section {
+    text-align: center;
+    margin-bottom: 32px;
+    
+    .brand-title {
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: var(--text-color);
+      margin: 0;
+    }
+  }
+  
+  // 轮播图样式
+  .n-carousel {
+    margin-bottom: 24px;
+    
+    .n-form {
+      .n-form-item {
+        margin-bottom: 20px;
+        
+        .n-input {
+          border-radius: 8px;
+          
+          &:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(24, 160, 88, 0.2);
+          }
+        }
+        
+        // 验证码输入框和按钮组合
+        .n-input + .n-button {
+          border-radius: 8px;
+          background: var(--primary-color);
+          border-color: var(--primary-color);
+          
+          &:hover {
+            background: var(--primary-color);
+            opacity: 0.9;
+          }
+          
+          &:disabled {
+            background: var(--text-disabled-color);
+            border-color: var(--text-disabled-color);
+            color: var(--text-color);
+          }
+        }
+      }
+      
+      // 头像上传区域
+      .n-avatar {
+        border: 2px solid var(--border-color);
+        transition: border-color 0.3s ease;
+        
+        &:hover {
+          border-color: var(--primary-color);
+        }
+      }
+      
+      .n-button[text] {
+        color: var(--primary-color);
+        margin-top: 8px;
+        
+        &:hover {
+          color: var(--primary-color);
+          opacity: 0.8;
+        }
+      }
+    }
+  }
+  
+  .register-section {
+    text-align: center;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+    
+    span {
+      color: var(--text-secondary-color);
+      margin-right: 8px;
+    }
+    
+    .n-button {
+      color: var(--primary-color);
+      
+      &:hover {
+        color: var(--primary-color);
+        opacity: 0.8;
+      }
+    }
+  }
+}
+
+// 轮播图指示器样式
+.n-carousel__dots {
+  .n-carousel__dot {
+    background: var(--border-color);
+    
+    &.n-carousel__dot--active {
+      background: var(--primary-color);
+    }
+  }
+}
+
+// 响应式设计
+@media (max-width: 480px) {
+  .register-card {
+    padding: 24px;
+    margin: 16px;
+    
+    .brand-section .brand-title {
+      font-size: 1.5rem;
+    }
+    
+    .n-carousel .n-form .n-form-item {
+      margin-bottom: 16px;
+    }
+  }
+}

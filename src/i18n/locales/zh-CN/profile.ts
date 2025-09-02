@@ -13,5 +13,17 @@ export default {
     roleKey: '角色标识',
     roleStatus: '角色状态',
     roleDescription: '角色描述',
-    rolePermissions: '角色权限'
+    rolePermissions: '角色权限',
+    // 超级管理员相关
+    superAdmin: '超级管理员',
+    superAdminDescription: '您是拥有所有权限的超级管理员',
+    adminRole: '管理员角色',
+    adminPermissions: '管理员权限',
+    adminBadge: '管理员标识',
+    adminSection: '管理员专区',
+    adminCard: '管理员卡片',
+    adminHeader: '管理员头部',
+    adminIcon: '管理员图标',
+    adminContent: '管理员内容',
+    adminDescription: '管理员描述'
 } 

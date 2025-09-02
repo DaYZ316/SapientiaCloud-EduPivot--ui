@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@mdi/js':
+        specifier: ^7.4.47
+        version: 7.4.47
       '@types/three':
         specifier: ^0.178.1
         version: 0.178.1
@@ -395,6 +398,9 @@ packages:
 
   '@juggle/resize-observer@3.4.0':
     resolution: {integrity: sha512-dfLbk+PwWvFzSxwk3n5ySL0hfBog779o8h68wK/7/APo/7cgyWp5jcXockbxdk5kFRkbeXWm4Fbi9FrdN381sA==}
+
+  '@mdi/js@7.4.47':
+    resolution: {integrity: sha512-KPnNOtm5i2pMabqZxpUz7iQf+mfrYZyKCZ8QNz85czgEt7cuHcGorWfdzUMWYA0SD+a6Hn4FmJ+YhzzzjkTZrQ==}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -1814,6 +1820,8 @@ snapshots:
   '@jridgewell/sourcemap-codec@1.5.4': {}
 
   '@juggle/resize-observer@3.4.0': {}
+
+  '@mdi/js@7.4.47': {}
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:

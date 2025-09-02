@@ -4,7 +4,7 @@
       <h3>{{ t('settings.theme.preview') }}</h3>
       <div class="theme-mode">
         <span class="mode-label">{{ t('settings.theme.currentMode') }}:</span>
-        <span class="mode-value" :class="themeMode">
+        <span :class="themeMode" class="mode-value">
           {{ t(`settings.theme.${themeMode}`) }}
         </span>
       </div>
@@ -16,8 +16,8 @@
         <h4>{{ t('settings.theme.primaryColors') }}</h4>
         <div class="color-row">
           <div class="color-item primary">
-            <div class="color-block" :style="{ backgroundColor: colors.primary }">
-              <span class="color-text" :style="{ color: getContrastTextColor(colors.primary) }">
+            <div :style="{ backgroundColor: colors.primary }" class="color-block">
+              <span :style="{ color: getContrastTextColor(colors.primary) }" class="color-text">
                 Primary
               </span>
             </div>
@@ -27,8 +27,8 @@
             </div>
           </div>
           <div class="color-item light">
-            <div class="color-block" :style="{ backgroundColor: colors.primaryLight }">
-              <span class="color-text" :style="{ color: getContrastTextColor(colors.primaryLight) }">
+            <div :style="{ backgroundColor: colors.primaryLight }" class="color-block">
+              <span :style="{ color: getContrastTextColor(colors.primaryLight) }" class="color-text">
                 Light
               </span>
             </div>
@@ -38,8 +38,8 @@
             </div>
           </div>
           <div class="color-item dark">
-            <div class="color-block" :style="{ backgroundColor: colors.primaryDark }">
-              <span class="color-text" :style="{ color: getContrastTextColor(colors.primaryDark) }">
+            <div :style="{ backgroundColor: colors.primaryDark }" class="color-block">
+              <span :style="{ color: getContrastTextColor(colors.primaryDark) }" class="color-text">
                 Dark
               </span>
             </div>
@@ -56,8 +56,8 @@
         <h4>{{ t('settings.theme.semanticColors') }}</h4>
         <div class="color-row">
           <div class="color-item success">
-            <div class="color-block" :style="{ backgroundColor: colors.success }">
-              <span class="color-text" :style="{ color: getContrastTextColor(colors.success) }">
+            <div :style="{ backgroundColor: colors.success }" class="color-block">
+              <span :style="{ color: getContrastTextColor(colors.success) }" class="color-text">
                 Success
               </span>
             </div>
@@ -67,8 +67,8 @@
             </div>
           </div>
           <div class="color-item warning">
-            <div class="color-block" :style="{ backgroundColor: colors.warning }">
-              <span class="color-text" :style="{ color: getContrastTextColor(colors.warning) }">
+            <div :style="{ backgroundColor: colors.warning }" class="color-block">
+              <span :style="{ color: getContrastTextColor(colors.warning) }" class="color-text">
                 Warning
               </span>
             </div>
@@ -78,8 +78,8 @@
             </div>
           </div>
           <div class="color-item error">
-            <div class="color-block" :style="{ backgroundColor: colors.error }">
-              <span class="color-text" :style="{ color: getContrastTextColor(colors.error) }">
+            <div :style="{ backgroundColor: colors.error }" class="color-block">
+              <span :style="{ color: getContrastTextColor(colors.error) }" class="color-text">
                 Error
               </span>
             </div>
@@ -89,8 +89,8 @@
             </div>
           </div>
           <div class="color-item info">
-            <div class="color-block" :style="{ backgroundColor: colors.info }">
-              <span class="color-text" :style="{ color: getContrastTextColor(colors.info) }">
+            <div :style="{ backgroundColor: colors.info }" class="color-block">
+              <span :style="{ color: getContrastTextColor(colors.info) }" class="color-text">
                 Info
               </span>
             </div>
@@ -106,19 +106,21 @@
       <div class="color-section">
         <h4>{{ t('settings.theme.textAndBackground') }}</h4>
         <div class="preview-cards">
-          <div class="preview-card" :style="{ backgroundColor: colors.background }">
+          <div :style="{ backgroundColor: colors.background }" class="preview-card">
             <div class="card-content">
-              <h5 class="card-title" :style="{ color: colors.text }">
+              <h5 :style="{ color: colors.text }" class="card-title">
                 {{ t('settings.theme.sampleTitle') }}
               </h5>
-              <p class="card-text" :style="{ color: colors.textSecondary }">
+              <p :style="{ color: colors.textSecondary }" class="card-text">
                 {{ t('settings.theme.sampleText') }}
               </p>
               <div class="card-actions">
-                <button class="btn btn-primary" :style="{ backgroundColor: colors.primary, color: getContrastTextColor(colors.primary) }">
+                <button :style="{ backgroundColor: colors.primary, color: getContrastTextColor(colors.primary) }"
+                        class="btn btn-primary">
                   {{ t('common.confirm') }}
                 </button>
-                <button class="btn btn-secondary" :style="{ backgroundColor: colors.backgroundSecondary, color: colors.text, borderColor: colors.border }">
+                <button :style="{ backgroundColor: colors.backgroundSecondary, color: colors.text, borderColor: colors.border }"
+                        class="btn btn-secondary">
                   {{ t('common.cancel') }}
                 </button>
               </div>
@@ -131,12 +133,12 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useThemeStore } from '@/store'
-import { getContrastRatio } from '@/utils/colorAlgorithm'
+import {computed} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {useThemeStore} from '@/store'
+import {getContrastRatio} from '@/utils/colorAlgorithm'
 
-const { t } = useI18n()
+const {t} = useI18n()
 const themeStore = useThemeStore()
 
 // 计算属性
@@ -147,7 +149,7 @@ const colors = computed(() => themeStore.colors)
 function getContrastTextColor(backgroundColor: string): string {
   const contrastWithWhite = getContrastRatio(backgroundColor, '#ffffff')
   const contrastWithBlack = getContrastRatio(backgroundColor, '#000000')
-  
+
   return contrastWithWhite > contrastWithBlack ? '#ffffff' : '#000000'
 }
 </script>

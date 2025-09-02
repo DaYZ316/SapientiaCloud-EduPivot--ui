@@ -49,7 +49,7 @@ const {t} = useI18n()
 const router = useRouter()
 
 // 使用异步组件加载各个设置模块
-const PersonalSettings = defineAsyncComponent(() => import('./components/PersonalSettings.vue'))
+const PersonalSettings = defineAsyncComponent(() => import('./components/PersonalSettings/index.vue'))
 const UserSettings = defineAsyncComponent(() => import('./components/UserSettings.vue'))
 const RoleSettings = defineAsyncComponent(() => import('./components/RoleSettings.vue'))
 const PermissionSettings = defineAsyncComponent(() => import('./components/PermissionSettings.vue'))

@@ -107,3 +107,13 @@ export interface SysUserPasswordDTO {
     /** 确认密码 */
     confirmPassword: string | null
 }
+
+/**
+ * 手机验证码登录DTO
+ */
+export interface SysUserMobileLoginDTO {
+    /** 手机号码 */
+    mobile: string | null
+    /** 手机验证码 */
+    verificationCode: string | null
+}

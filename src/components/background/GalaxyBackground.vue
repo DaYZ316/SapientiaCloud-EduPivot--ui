@@ -47,7 +47,7 @@ const updateButtonColors = () => {
   const root = document.documentElement
   // 使用外层颜色作为button的渐变色
   root.style.setProperty('--button-gradient-color', params.outerColor)
-  
+
   // 为hover状态生成稍微不同的颜色（降低亮度）
   const hoverColor = adjustColorBrightness(params.outerColor, -20)
   root.style.setProperty('--button-gradient-hover-color', hoverColor)
@@ -61,37 +61,37 @@ const adjustColorBrightness = (hex, percent) => {
   const R = (num >> 16) + amt
   const G = (num >> 8 & 0x00FF) + amt
   const B = (num & 0x0000FF) + amt
-  
+
   return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
-    (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
-    (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1)
+      (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+      (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1)
 }
 
 // 随机化星系参数
 const randomizeParams = () => {
   params.particleCount = Math.floor(
-    Math.random() * (paramRanges.particleCount.max - paramRanges.particleCount.min) + 
-    paramRanges.particleCount.min
+      Math.random() * (paramRanges.particleCount.max - paramRanges.particleCount.min) +
+      paramRanges.particleCount.min
   )
-  params.particleSize = Math.random() * (paramRanges.particleSize.max - paramRanges.particleSize.min) + 
-    paramRanges.particleSize.min
+  params.particleSize = Math.random() * (paramRanges.particleSize.max - paramRanges.particleSize.min) +
+      paramRanges.particleSize.min
   params.branches = Math.floor(
-    Math.random() * (paramRanges.branches.max - paramRanges.branches.min) + 
-    paramRanges.branches.min
+      Math.random() * (paramRanges.branches.max - paramRanges.branches.min) +
+      paramRanges.branches.min
   )
-  params.branchRadius = Math.random() * (paramRanges.branchRadius.max - paramRanges.branchRadius.min) + 
-    paramRanges.branchRadius.min
-  params.spin = Math.random() * (paramRanges.spin.max - paramRanges.spin.min) + 
-    paramRanges.spin.min
-  params.radialRandomness = Math.random() * (paramRanges.radialRandomness.max - paramRanges.radialRandomness.min) + 
-    paramRanges.radialRandomness.min
-  params.verticalSpread = Math.random() * (paramRanges.verticalSpread.max - paramRanges.verticalSpread.min) + 
-    paramRanges.verticalSpread.min
-  params.randomParticleRatio = Math.random() * (paramRanges.randomParticleRatio.max - paramRanges.randomParticleRatio.min) + 
-    paramRanges.randomParticleRatio.min
+  params.branchRadius = Math.random() * (paramRanges.branchRadius.max - paramRanges.branchRadius.min) +
+      paramRanges.branchRadius.min
+  params.spin = Math.random() * (paramRanges.spin.max - paramRanges.spin.min) +
+      paramRanges.spin.min
+  params.radialRandomness = Math.random() * (paramRanges.radialRandomness.max - paramRanges.radialRandomness.min) +
+      paramRanges.radialRandomness.min
+  params.verticalSpread = Math.random() * (paramRanges.verticalSpread.max - paramRanges.verticalSpread.min) +
+      paramRanges.verticalSpread.min
+  params.randomParticleRatio = Math.random() * (paramRanges.randomParticleRatio.max - paramRanges.randomParticleRatio.min) +
+      paramRanges.randomParticleRatio.min
   params.innerColor = paramRanges.innerColors[Math.floor(Math.random() * paramRanges.innerColors.length)]
   params.outerColor = paramRanges.outerColors[Math.floor(Math.random() * paramRanges.outerColors.length)]
-  
+
   // 同步更新button颜色
   updateButtonColors()
 }
@@ -188,7 +188,7 @@ const generateGalaxy = () => {
   // 生成分支粒子（更随机的分布）
   for (let branchIndex = 0; branchIndex < params.branches; branchIndex++) {
     const branchAngle = (branchIndex / params.branches) * Math.PI * 2
-    
+
     // 为当前分支生成粒子
     for (let j = 0; j < particlesPerBranch && particleIndex < branchedParticleCount; j++) {
       const i3 = particleIndex * 3
@@ -213,7 +213,7 @@ const generateGalaxy = () => {
       colors[i3] = mixedColor.r
       colors[i3 + 1] = mixedColor.g
       colors[i3 + 2] = mixedColor.b
-      
+
       particleIndex++
     }
   }
@@ -223,7 +223,7 @@ const generateGalaxy = () => {
     const i3 = i * 3
     const branchIndex = i % params.branches
     const branchAngle = (branchIndex / params.branches) * Math.PI * 2
-    
+
     const radius = params.branchRadius * Math.pow(Math.random(), 0.5)
     const spinAngle = params.spin * radius * Math.PI * 2
 
@@ -246,11 +246,11 @@ const generateGalaxy = () => {
   // 生成完全随机的粒子（不遵循分支结构）
   for (let i = branchedParticleCount; i < params.particleCount; i++) {
     const i3 = i * 3
-    
+
     // 完全随机分布在球形空间内
     const randomRadius = params.branchRadius * Math.pow(Math.random(), 0.3)
     const {x: randomX, y: randomY, z: randomZ} = getRandomPolarCoordinate(randomRadius)
-    
+
     positions[i3] = randomX
     positions[i3 + 1] = randomY
     positions[i3 + 2] = randomZ
@@ -334,11 +334,11 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize)
-  
+
   if (regenerateTimer) {
     clearTimeout(regenerateTimer)
   }
-  
+
   if (animationFrameId !== null) {
     cancelAnimationFrame(animationFrameId)
   }

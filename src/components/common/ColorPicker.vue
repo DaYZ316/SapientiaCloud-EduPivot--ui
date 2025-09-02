@@ -5,20 +5,20 @@
       <div class="preset-title">{{ t('settings.theme.presetColors') }}</div>
       <div class="color-grid">
         <div
-          v-for="colorOption in presetColors"
-          :key="colorOption.value"
-          class="color-item"
-          :class="{ active: modelValue === colorOption.value }"
-          :style="{ backgroundColor: colorOption.value }"
-          @click="selectPresetColor(colorOption)"
+            v-for="colorOption in presetColors"
+            :key="colorOption.value"
+            :class="{ active: modelValue === colorOption.value }"
+            :style="{ backgroundColor: colorOption.value }"
+            class="color-item"
+            @click="selectPresetColor(colorOption)"
         >
-          <div class="color-variants" v-if="showVariants">
+          <div v-if="showVariants" class="color-variants">
             <div
-              v-for="(shade, key) in colorOption.colors"
-              :key="key"
-              class="color-shade"
-              :style="{ backgroundColor: shade }"
-              :title="`${colorOption.label} ${key}`"
+                v-for="(shade, key) in colorOption.colors"
+                :key="key"
+                :style="{ backgroundColor: shade }"
+                :title="`${colorOption.label} ${key}`"
+                class="color-shade"
             ></div>
           </div>
           <div class="color-name">{{ colorOption.label }}</div>
@@ -31,45 +31,45 @@
       <div class="custom-title">{{ t('settings.theme.customColor') }}</div>
       <div class="custom-input">
         <n-color-picker
-          v-model:value="customColor"
-          :show-alpha="false"
-          :modes="['hex']"
-          :swatches="customSwatches"
-          @update:value="handleCustomColorChange"
+            v-model:value="customColor"
+            :modes="['hex']"
+            :show-alpha="false"
+            :swatches="customSwatches"
+            @update:value="handleCustomColorChange"
         />
         <n-input
-          v-model:value="customColor"
-          placeholder="#000000"
-          class="color-input"
-          @blur="validateAndApplyColor"
+            v-model:value="customColor"
+            class="color-input"
+            placeholder="#000000"
+            @blur="validateAndApplyColor"
         />
       </div>
     </div>
 
     <!-- 颜色预览 -->
-    <div class="color-preview" v-if="showPreview">
+    <div v-if="showPreview" class="color-preview">
       <div class="preview-title">{{ t('settings.theme.colorPreview') }}</div>
       <div class="preview-content">
         <div class="preview-item">
           <div class="preview-label">主色</div>
-          <div class="preview-color" :style="{ backgroundColor: modelValue }">
-            <span class="preview-text" :style="{ color: getContrastTextColor(modelValue) }">
+          <div :style="{ backgroundColor: modelValue }" class="preview-color">
+            <span :style="{ color: getContrastTextColor(modelValue) }" class="preview-text">
               {{ modelValue }}
             </span>
           </div>
         </div>
         <div class="preview-item">
           <div class="preview-label">浅色</div>
-          <div class="preview-color" :style="{ backgroundColor: lightColor }">
-            <span class="preview-text" :style="{ color: getContrastTextColor(lightColor) }">
+          <div :style="{ backgroundColor: lightColor }" class="preview-color">
+            <span :style="{ color: getContrastTextColor(lightColor) }" class="preview-text">
               {{ lightColor }}
             </span>
           </div>
         </div>
         <div class="preview-item">
           <div class="preview-label">深色</div>
-          <div class="preview-color" :style="{ backgroundColor: darkColor }">
-            <span class="preview-text" :style="{ color: getContrastTextColor(darkColor) }">
+          <div :style="{ backgroundColor: darkColor }" class="preview-color">
+            <span :style="{ color: getContrastTextColor(darkColor) }" class="preview-text">
               {{ darkColor }}
             </span>
           </div>
@@ -78,7 +78,7 @@
     </div>
 
     <!-- 颜色信息 -->
-    <div class="color-info" v-if="showInfo">
+    <div v-if="showInfo" class="color-info">
       <div class="info-title">{{ t('settings.theme.colorInfo') }}</div>
       <div class="info-content">
         <div class="info-item">
@@ -91,7 +91,7 @@
         </div>
         <div class="info-item">
           <span class="info-label">{{ t('settings.theme.contrastRatio') }}:</span>
-          <span class="info-value" :class="{ 'good': contrastRatio >= 4.5, 'poor': contrastRatio < 4.5 }">
+          <span :class="{ 'good': contrastRatio >= 4.5, 'poor': contrastRatio < 4.5 }" class="info-value">
             {{ contrastRatio.toFixed(2) }}
           </span>
         </div>
@@ -101,14 +101,14 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { 
-  getPresetColorOptions, 
-  generateColorVariants, 
+import {computed, ref, watch} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {
+  ColorUtils,
+  generateColorVariants,
   getContrastRatio,
-  isValidColor,
-  ColorUtils
+  getPresetColorOptions,
+  isValidColor
 } from '@/utils/colorAlgorithm'
 
 interface Props {
@@ -120,6 +120,7 @@ interface Props {
 
 interface Emits {
   (e: 'update:modelValue', value: string): void
+
   (e: 'change', value: string): void
 }
 
@@ -131,7 +132,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
-const { t } = useI18n()
+const {t} = useI18n()
 
 // 响应式数据
 const customColor = ref(props.modelValue)
@@ -185,7 +186,7 @@ function validateAndApplyColor() {
 function getContrastTextColor(backgroundColor: string): string {
   const contrastWithWhite = getContrastRatio(backgroundColor, '#ffffff')
   const contrastWithBlack = getContrastRatio(backgroundColor, '#000000')
-  
+
   return contrastWithWhite > contrastWithBlack ? '#ffffff' : '#000000'
 }
 
@@ -200,7 +201,7 @@ watch(() => props.modelValue, (newValue) => {
     const variants = generateColorVariants(newValue)
     customSwatches.value = Object.values(variants)
   }
-}, { immediate: true })
+}, {immediate: true})
 </script>
 
 <style lang="scss" scoped>

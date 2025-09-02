@@ -109,7 +109,7 @@ export const useUserStore = defineStore('user', () => {
             registerDTO.username = username;
             registerDTO.password = password;
             registerDTO.confirmPassword = confirmPassword;
-            registerDTO.nickName='默认用户'
+            registerDTO.nickName = '默认用户'
 
             const res = await AuthApi.register(registerDTO)
             if (res.success && res.data) {

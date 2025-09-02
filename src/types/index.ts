@@ -14,6 +14,12 @@ export * from './system'
 // 导出minIO模块类型
 export * from './minIO'
 
+// 导出教师模块类型
+export * from './teacher'
+
+// 导出学生模块类型
+export * from './student'
+
 // 导出状态管理相关类型
 export * from './store'
 

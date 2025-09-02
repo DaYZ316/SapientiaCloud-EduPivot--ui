@@ -4,55 +4,56 @@
     <div class="brand-section">
       <h1 class="brand-title">{{ $t('auth.register') }}</h1>
     </div>
-    
+
     <n-carousel show-arrow>
       <!-- 第一页：基本信息 -->
       <n-form ref="registerFormRef" :model="registerForm" :rules="registerRules" size="large"
-        @keyup.enter="handleRegister">
-        <n-form-item path="username" :show-label="false">
+              @keyup.enter="handleRegister">
+        <n-form-item :show-label="false" path="username">
           <n-input v-model:value="registerForm.username" :placeholder="$t('auth.username')"
-            clearable>
+                   clearable>
             <template #prefix>
               <n-icon>
-                <Icon :component="PersonOutline" />
+                <Icon :component="PersonOutline"/>
               </n-icon>
             </template>
           </n-input>
         </n-form-item>
 
-        <n-form-item path="password" :show-label="false">
-          <n-input v-model:value="registerForm.password" type="password" :placeholder="$t('auth.password')"
-            show-password-on="click" clearable>
+        <n-form-item :show-label="false" path="password">
+          <n-input v-model:value="registerForm.password" :placeholder="$t('auth.password')" clearable
+                   show-password-on="click" type="password">
             <template #prefix>
               <n-icon>
-                <Icon :component="LockClosedOutline" />
+                <Icon :component="LockClosedOutline"/>
               </n-icon>
             </template>
           </n-input>
         </n-form-item>
 
-        <n-form-item path="confirmPassword" :show-label="false">
-          <n-input v-model:value="registerForm.confirmPassword" type="password" :placeholder="$t('auth.confirmPassword')"
-            show-password-on="click" clearable>
+        <n-form-item :show-label="false" path="confirmPassword">
+          <n-input v-model:value="registerForm.confirmPassword" :placeholder="$t('auth.confirmPassword')"
+                   clearable
+                   show-password-on="click" type="password">
             <template #prefix>
               <n-icon>
-                <Icon :component="LockClosedOutline" />
+                <Icon :component="LockClosedOutline"/>
               </n-icon>
             </template>
           </n-input>
         </n-form-item>
 
-        <n-form-item path="verificationCode" :show-label="false">
+        <n-form-item :show-label="false" path="verificationCode">
           <div style="display: flex; gap: 8px;">
             <n-input v-model:value="registerForm.verificationCode" :placeholder="$t('auth.verificationCode')"
-              clearable>
+                     clearable>
               <template #prefix>
                 <n-icon>
-                  <Icon :component="PersonOutline" />
+                  <Icon :component="PersonOutline"/>
                 </n-icon>
               </template>
             </n-input>
-            <n-button type="primary" @click="handleVerificationCodeSent" :disabled="captchaDisabled">
+            <n-button :disabled="captchaDisabled" type="primary" @click="handleVerificationCodeSent">
               {{ captchaText }}
             </n-button>
           </div>
@@ -61,27 +62,27 @@
 
       <!-- 第二页：个人信息 -->
       <n-form ref="registerFormRef" :model="registerForm" :rules="registerRules" size="large"
-        @keyup.enter="handleRegister">
-        <n-form-item path="nickName" :show-label="false">
+              @keyup.enter="handleRegister">
+        <n-form-item :show-label="false" path="nickName">
           <n-input v-model:value="registerForm.nickName" :placeholder="$t('auth.nickName')"
-            clearable>
+                   clearable>
             <template #prefix>
               <n-icon>
-                <Icon :component="PersonOutline" />
+                <Icon :component="PersonOutline"/>
               </n-icon>
             </template>
           </n-input>
         </n-form-item>
 
-        <n-form-item path="avatar" :show-label="false">
+        <n-form-item :show-label="false" path="avatar">
           <div style="text-align: center;">
             <n-avatar
-              round
-              :size="80"
-              src="https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg"
+                :size="80"
+                round
+                src="https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg"
             />
             <div style="margin-top: 8px;">
-              <n-button text>上传头像</n-button>
+              <n-button text>{{ $t('auth.uploadAvatar') }}</n-button>
             </div>
           </div>
         </n-form-item>
@@ -99,11 +100,11 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useMessage, type FormInst, type FormRules } from 'naive-ui'
+import {ref} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {type FormInst, type FormRules, useMessage} from 'naive-ui'
 import Icon from '@/components/common/Icon.vue'
-import { PersonOutline, LockClosedOutline } from '@vicons/ionicons5'
+import {LockClosedOutline, PersonOutline} from '@vicons/ionicons5'
 
 // 定义事件
 const emit = defineEmits<{
@@ -112,7 +113,7 @@ const emit = defineEmits<{
 
 // 获取必要的实例
 const message = useMessage()
-const { t } = useI18n()
+const {t} = useI18n()
 
 // 表单引用和状态
 const registerFormRef = ref<FormInst | null>(null)
@@ -144,29 +145,29 @@ const validatePasswordSame = (rule: any, value: string) => {
 
 const registerRules: FormRules = {
   username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, max: 20, message: '用户名长度在 3 到 20 个字符', trigger: 'blur' }
+    {required: true, message: t('auth.usernameRequired'), trigger: 'blur'},
+    {min: 3, max: 20, message: t('auth.usernameLengthError'), trigger: 'blur'}
   ],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码长度在 6 到 20 个字符', trigger: 'blur' }
+    {required: true, message: t('auth.passwordRequired'), trigger: 'blur'},
+    {min: 6, max: 20, message: t('auth.passwordLengthError'), trigger: 'blur'}
   ],
   confirmPassword: [
-    { required: true, message: '请再次输入密码', trigger: 'blur' },
-    { validator: validatePasswordSame, message: '两次输入密码不一致', trigger: 'blur' }
+    {required: true, message: t('auth.confirmPasswordRequired'), trigger: 'blur'},
+    {validator: validatePasswordSame, message: t('auth.passwordMismatch'), trigger: 'blur'}
   ],
   verificationCode: [
-    { required: true, message: '请输入验证码', trigger: 'blur' },
-    { len: 6, message: '验证码长度为 6 位', trigger: 'blur' }
+    {required: true, message: t('auth.verificationCodeRequired'), trigger: 'blur'},
+    {len: 6, message: t('auth.verificationCodeLengthError'), trigger: 'blur'}
   ],
   nickName: [
-    { required: true, message: '请输入昵称', trigger: 'blur' }
+    {required: true, message: t('auth.nickNameRequired'), trigger: 'blur'}
   ]
 }
 
 // 验证码相关
 const captchaDisabled = ref(false)
-const captchaText = ref('发送验证码')
+const captchaText = ref(t('auth.sendVerificationCode'))
 
 // 处理注册
 const handleRegister = async () => {
@@ -178,13 +179,13 @@ const handleRegister = async () => {
 
     // 这里调用注册API
     // const success = await userStore.register(registerForm.value)
-    
+
     // 模拟注册成功
-    message.success('注册成功')
+    message.success(t('auth.registerSuccess'))
     // 注册成功后切换到登录页面
     emit('switchToLogin')
   } catch (error: any) {
-    message.error('注册失败')
+    message.error(t('auth.registerFailed'))
   } finally {
     loading.value = false
   }
@@ -194,20 +195,20 @@ const handleRegister = async () => {
 const handleVerificationCodeSent = async () => {
   captchaDisabled.value = true
   captchaText.value = '60s'
-  
+
   let countdown = 60
   const timer = setInterval(() => {
     countdown--
     captchaText.value = `${countdown}s`
-    
+
     if (countdown <= 0) {
       clearInterval(timer)
       captchaDisabled.value = false
-      captchaText.value = '发送验证码'
+      captchaText.value = t('auth.sendVerificationCode')
     }
   }, 1000)
 
-  message.success('验证码已发送')
+  message.success(t('auth.verificationCodeSent'))
 }
 </script>
 

@@ -87,7 +87,57 @@ export default {
         avatarTypeError: 'Avatar must be JPG or PNG format',
         avatarSizeError: 'Avatar size cannot exceed 2MB',
         avatarUploadSuccess: 'Avatar uploaded successfully',
-        avatarUploadFail: 'Failed to upload avatar'
+        avatarUploadFail: 'Failed to upload avatar',
+        // Binding related
+        binding: 'Binding Settings',
+        noBinding: 'No role information bound yet',
+        bindTeacher: 'Bind Teacher',
+        bindStudent: 'Bind Student',
+        teacherInfo: 'Teacher Information',
+        studentInfo: 'Student Information',
+        teacherCode: 'Teacher Code',
+        studentCode: 'Student ID',
+        realName: 'Real Name',
+        department: 'Department',
+        education: 'Education',
+        specialization: 'Specialization',
+        admissionYear: 'Admission Year',
+        major: 'Major',
+        academicStatus: 'Academic Status',
+        description: 'Description',
+        // Placeholders
+        teacherCodePlaceholder: 'Please enter teacher code',
+        realNamePlaceholder: 'Please enter real name',
+        departmentPlaceholder: 'Please enter department',
+        educationPlaceholder: 'Please select education level',
+        specializationPlaceholder: 'Please enter specialization',
+        descriptionPlaceholder: 'Please enter description',
+        studentCodePlaceholder: 'Please enter student ID',
+        admissionYearPlaceholder: 'Please enter admission year',
+        majorPlaceholder: 'Please enter major',
+        academicStatusPlaceholder: 'Please select academic status',
+        // Education options
+        educationOptions: {
+            college: 'College',
+            bachelor: 'Bachelor',
+            master: 'Master',
+            doctor: 'Doctor'
+        },
+        // Academic status options
+        academicStatusOptions: {
+            studying: 'Studying',
+            suspension: 'Suspension',
+            dropout: 'Dropout',
+            graduated: 'Graduated'
+        },
+        // Validation rules
+        teacherCodeRequired: 'Teacher code is required',
+        realNameRequired: 'Real name is required',
+        studentCodeRequired: 'Student ID is required',
+        academicStatusRequired: 'Academic status is required',
+        // Operation results
+        bindSuccess: 'Binding successful',
+        bindFail: 'Binding failed'
     },
     user: {
         title: 'User Management',

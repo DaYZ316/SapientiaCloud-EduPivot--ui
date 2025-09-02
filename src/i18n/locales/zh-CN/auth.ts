@@ -8,7 +8,7 @@ export default {
     password: '密码',
     confirmPassword: '确认密码',
     nickName: '昵称',
-    avatar: '头像', 
+    avatar: '头像',
     email: '邮箱',
     phone: '手机号',
     verificationCode: '验证码',

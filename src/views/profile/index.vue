@@ -21,9 +21,9 @@
       <p class="profile-bio">{{ t('profile.userBio') }}</p>
       <!-- Admin角色特殊标识 -->
       <div v-if="isAdmin" class="admin-badge">
-        <n-tag type="success" size="large" round>
+        <n-tag round size="large" type="success">
           <template #icon>
-            <Icon :component="ShieldCheckmarkOutline" />
+            <Icon :component="ShieldCheckmarkOutline"/>
           </template>
           {{ t('profile.superAdmin') }}
         </n-tag>
@@ -89,7 +89,7 @@
               <n-card :bordered="false" class="admin-role-card" title-placement="left">
                 <template #header>
                   <div class="admin-role-header">
-                    <Icon :component="ShieldCheckmarkOutline" class="admin-icon" />
+                    <Icon :component="ShieldCheckmarkOutline" class="admin-icon"/>
                     <h3 class="section-title">{{ t('profile.superAdmin') }}</h3>
                   </div>
                 </template>
@@ -163,7 +163,7 @@
               <n-card :bordered="false" class="admin-permissions-card" title-placement="left">
                 <template #header>
                   <div class="admin-permissions-header">
-                    <Icon :component="ShieldCheckmarkOutline" class="admin-icon" />
+                    <Icon :component="ShieldCheckmarkOutline" class="admin-icon"/>
                     <h3 class="section-title">{{ t('profile.superAdmin') }}</h3>
                   </div>
                 </template>

@@ -1,79 +1,79 @@
 <template>
   <div class="settings-module">
     <n-card :title="$t('settings.notification.title')" size="small">
-      <n-space vertical size="large">
+      <n-space size="large" vertical>
         <!-- 通知类型设置 -->
         <div class="notification-section">
           <h3>通知类型</h3>
-          <n-grid cols="1" :x-gap="16" :y-gap="16">
+          <n-grid :x-gap="16" :y-gap="16" cols="1">
             <n-gi>
               <div class="notification-item">
                 <div class="notification-content">
                   <strong>{{ $t('settings.notification.emailNotifications') }}</strong>
                   <p class="description">通过邮件接收重要通知</p>
                 </div>
-                <n-switch v-model:value="emailNotifications" />
+                <n-switch v-model:value="emailNotifications"/>
               </div>
             </n-gi>
-            
+
             <n-gi>
               <div class="notification-item">
                 <div class="notification-content">
                   <strong>{{ $t('settings.notification.pushNotifications') }}</strong>
                   <p class="description">通过浏览器推送接收通知</p>
                 </div>
-                <n-switch v-model:value="pushNotifications" />
+                <n-switch v-model:value="pushNotifications"/>
               </div>
             </n-gi>
-            
+
             <n-gi>
               <div class="notification-item">
                 <div class="notification-content">
                   <strong>{{ $t('settings.notification.soundEffect') }}</strong>
                   <p class="description">收到通知时播放提示音</p>
                 </div>
-                <n-switch v-model:value="soundEffects" />
+                <n-switch v-model:value="soundEffects"/>
               </div>
             </n-gi>
           </n-grid>
         </div>
-        
+
         <!-- 通知内容设置 -->
         <div class="notification-section">
           <h3>接收内容</h3>
-          <n-grid cols="1" :x-gap="16" :y-gap="16">
+          <n-grid :x-gap="16" :y-gap="16" cols="1">
             <n-gi>
               <div class="notification-item">
                 <div class="notification-content">
                   <strong>{{ $t('settings.notification.systemMessages') }}</strong>
                   <p class="description">系统消息、警告和错误</p>
                 </div>
-                <n-switch v-model:value="systemMessages" />
+                <n-switch v-model:value="systemMessages"/>
               </div>
             </n-gi>
-            
+
             <n-gi>
               <div class="notification-item">
                 <div class="notification-content">
                   <strong>{{ $t('settings.notification.updates') }}</strong>
                   <p class="description">系统更新和新功能通知</p>
                 </div>
-                <n-switch v-model:value="systemUpdates" />
+                <n-switch v-model:value="systemUpdates"/>
               </div>
             </n-gi>
-            
+
             <n-gi>
               <div class="notification-item">
                 <div class="notification-content">
                   <strong>{{ $t('settings.notification.marketing') }}</strong>
                   <p class="description">产品推广和营销信息</p>
                 </div>
-                <n-switch v-model:value="marketingInfo" />
+                <n-switch v-model:value="marketingInfo"/>
               </div>
             </n-gi>
           </n-grid>
         </div>
-        
+
         <!-- 通知频率设置 -->
         <div class="notification-section">
           <h3>{{ $t('settings.notification.notificationFrequency') }}</h3>
@@ -100,12 +100,14 @@
             </n-space>
           </n-radio-group>
         </div>
-        
+
         <!-- 通知权限检查 -->
-        <n-alert v-if="!hasNotificationPermission" type="warning" closable>
+        <n-alert v-if="!hasNotificationPermission" closable type="warning">
           <template #header>需要通知权限</template>
           <template #icon>
-            <n-icon><warning-outline /></n-icon>
+            <n-icon>
+              <warning-outline/>
+            </n-icon>
           </template>
           您需要授予浏览器通知权限以接收实时通知
           <div style="margin-top: 8px;">
@@ -114,13 +116,13 @@
             </n-button>
           </div>
         </n-alert>
-        
+
         <!-- 保存按钮 -->
         <div class="action-buttons">
           <n-button type="primary" @click="saveSettings">
             {{ $t('common.save') }}
           </n-button>
-          <n-button @click="resetSettings" class="reset-button">
+          <n-button class="reset-button" @click="resetSettings">
             {{ $t('common.reset') }}
           </n-button>
         </div>
@@ -129,7 +131,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import {onMounted, ref} from 'vue'
 import {NIcon} from 'naive-ui'
 import {WarningOutline} from '@vicons/ionicons5'
@@ -159,7 +161,7 @@ onMounted(() => {
   if ('Notification' in window) {
     hasNotificationPermission.value = Notification.permission === 'granted'
   }
-  
+
   // 从本地存储或API获取已保存的设置
   const savedSettings = localStorage.getItem('notificationSettings')
   if (savedSettings) {
@@ -184,7 +186,7 @@ const requestNotificationPermission = async () => {
     try {
       const permission = await Notification.requestPermission()
       hasNotificationPermission.value = permission === 'granted'
-      
+
       if (permission === 'granted') {
         message.success('已获得通知权限')
       } else {
@@ -210,9 +212,9 @@ const saveSettings = () => {
     marketingInfo: marketingInfo.value,
     notificationFrequency: notificationFrequency.value
   }
-  
+
   localStorage.setItem('notificationSettings', JSON.stringify(settings))
-  
+
   message.success('通知设置已保存')
 }
 
@@ -225,22 +227,22 @@ const resetSettings = () => {
   systemUpdates.value = true
   marketingInfo.value = false
   notificationFrequency.value = 'immediate'
-  
+
   // 清除本地存储
   localStorage.removeItem('notificationSettings')
-  
+
   message.success('已重置为默认设置')
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .settings-module {
   margin-bottom: 20px;
 }
 
 .notification-section {
   margin-bottom: 24px;
-  
+
   h3 {
     font-size: 16px;
     font-weight: 500;
@@ -248,7 +250,7 @@ const resetSettings = () => {
     margin-bottom: 16px;
     color: var(--text-color-primary);
   }
-  
+
   .notification-item {
     display: flex;
     align-items: center;
@@ -256,16 +258,16 @@ const resetSettings = () => {
     padding: 12px 16px;
     background-color: var(--card-color);
     border-radius: 4px;
-    
+
     .notification-content {
       flex: 1;
-      
+
       strong {
         font-size: 14px;
         display: block;
         margin-bottom: 4px;
       }
-      
+
       .description {
         margin: 0;
         font-size: 12px;
@@ -273,13 +275,13 @@ const resetSettings = () => {
       }
     }
   }
-  
+
   .radio-label {
     strong {
       font-size: 14px;
       display: block;
     }
-    
+
     .description {
       margin: 4px 0 0;
       font-size: 12px;
@@ -292,7 +294,7 @@ const resetSettings = () => {
   display: flex;
   justify-content: flex-end;
   margin-top: 16px;
-  
+
   .reset-button {
     margin-left: 12px;
   }

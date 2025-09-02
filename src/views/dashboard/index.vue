@@ -35,7 +35,8 @@
               </template>
             </n-statistic>
             <div class="stat-footer">
-              <n-progress :color="systemData.performance > 70 ? 'var(--success-color)' : 'var(--warning-color)'" :indicator-placement="'inside'"
+              <n-progress :color="systemData.performance > 70 ? 'var(--success-color)' : 'var(--warning-color)'"
+                          :indicator-placement="'inside'"
                           :percentage="systemData.performance"
                           type="line"/>
               <span>系统性能评分: {{ systemData.performance }}%</span>
@@ -88,7 +89,7 @@
       <!-- 主题测试区域 -->
       <n-grid-item :span="24">
         <n-card :bordered="false" title="主题系统测试">
-          <n-space vertical size="large">
+          <n-space size="large" vertical>
             <div class="theme-test-section">
               <h4>当前主题状态</h4>
               <n-space>
@@ -110,13 +111,14 @@
             <div class="theme-test-section">
               <h4>主题切换测试</h4>
               <n-space>
-                <n-button @click="testTheme('light')" :type="themeStore.themeMode === 'light' ? 'primary' : 'default'">
+                <n-button :type="themeStore.themeMode === 'light' ? 'primary' : 'default'" @click="testTheme('light')">
                   切换到浅色
                 </n-button>
-                <n-button @click="testTheme('dark')" :type="themeStore.themeMode === 'dark' ? 'primary' : 'default'">
+                <n-button :type="themeStore.themeMode === 'dark' ? 'primary' : 'default'" @click="testTheme('dark')">
                   切换到深色
                 </n-button>
-                <n-button @click="testTheme('system')" :type="themeStore.themeMode === 'system' ? 'primary' : 'default'">
+                <n-button :type="themeStore.themeMode === 'system' ? 'primary' : 'default'"
+                          @click="testTheme('system')">
                   切换到系统
                 </n-button>
               </n-space>
@@ -152,7 +154,7 @@
 
 <script lang="ts" setup>
 import {computed, ref} from 'vue'
-import {useUserStore, useThemeStore} from '@/store'
+import {useThemeStore, useUserStore} from '@/store'
 import {PersonOutline, TimeOutline, TrendingUpOutline} from '@vicons/ionicons5'
 import Icon from '@/components/common/Icon.vue'
 

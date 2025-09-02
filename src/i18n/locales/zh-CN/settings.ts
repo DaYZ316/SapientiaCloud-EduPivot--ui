@@ -87,7 +87,57 @@ export default {
         avatarTypeError: '头像必须是JPG或PNG格式',
         avatarSizeError: '头像大小不能超过2MB',
         avatarUploadSuccess: '头像上传成功',
-        avatarUploadFail: '头像上传失败'
+        avatarUploadFail: '头像上传失败',
+        // 绑定相关
+        binding: '绑定设置',
+        noBinding: '暂未绑定任何角色信息',
+        bindTeacher: '绑定教师',
+        bindStudent: '绑定学生',
+        teacherInfo: '教师信息',
+        studentInfo: '学生信息',
+        teacherCode: '教师工号',
+        studentCode: '学号',
+        realName: '真实姓名',
+        department: '所属部门',
+        education: '学历',
+        specialization: '专业特长',
+        admissionYear: '入学年份',
+        major: '专业',
+        academicStatus: '学籍状态',
+        description: '个人描述',
+        // 占位符
+        teacherCodePlaceholder: '请输入教师工号',
+        realNamePlaceholder: '请输入真实姓名',
+        departmentPlaceholder: '请输入所属部门',
+        educationPlaceholder: '请选择学历',
+        specializationPlaceholder: '请输入专业特长',
+        descriptionPlaceholder: '请输入个人描述',
+        studentCodePlaceholder: '请输入学号',
+        admissionYearPlaceholder: '请输入入学年份',
+        majorPlaceholder: '请输入专业',
+        academicStatusPlaceholder: '请选择学籍状态',
+        // 学历选项
+        educationOptions: {
+            college: '大专',
+            bachelor: '本科',
+            master: '硕士',
+            doctor: '博士'
+        },
+        // 学籍状态选项
+        academicStatusOptions: {
+            studying: '在读',
+            suspension: '休学',
+            dropout: '退学',
+            graduated: '毕业'
+        },
+        // 验证规则
+        teacherCodeRequired: '教师工号不能为空',
+        realNameRequired: '真实姓名不能为空',
+        studentCodeRequired: '学号不能为空',
+        academicStatusRequired: '学籍状态不能为空',
+        // 操作结果
+        bindSuccess: '绑定成功',
+        bindFail: '绑定失败'
     },
     user: {
         title: '用户管理',

@@ -2,7 +2,7 @@
 
 **简介**:SapientiaCloud-EduPivot - MinIO API
 
-**HOST**:http://172.16.0.10:31603
+**HOST**:http://192.168.77.249:31603
 
 **联系人**:DaYZ
 

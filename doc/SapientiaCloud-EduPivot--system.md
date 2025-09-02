@@ -2,7 +2,7 @@
 
 **简介**:SapientiaCloud-EduPivot--system API
 
-**HOST**:http://172.16.0.10:31601
+**HOST**:http://192.168.77.249:31601
 
 **联系人**:DaYZ
 
@@ -40,14 +40,14 @@
 
 **请求参数**:
 
-| 参数名称                    | 参数说明             | 请求类型 | 是否必须  | 数据类型           | schema        |
-|-------------------------|------------------|------|-------|----------------|---------------|
-| sysRoleAddDTO           | 系统角色数据传输对象 (DTO) | body | true  | SysRoleAddDTO  | SysRoleAddDTO |
-| &emsp;&emsp;roleName    | 角色名称             |      | true  | string         |               |
-| &emsp;&emsp;roleKey     | 角色标识             |      | true  | string         |               |
-| &emsp;&emsp;sort        | 排序               |      | false | integer(int32) |               |
-| &emsp;&emsp;status      | 状态 (0=正常, 1=停用)  |      | false | integer(int32) |               |
-| &emsp;&emsp;description | 描述               |      | false | string         |               |
+| 参数名称                    | 参数说明               | 请求类型 | 是否必须  | 数据类型           | schema        |
+|-------------------------|--------------------|------|-------|----------------|---------------|
+| sysRoleAddDTO           | 系统角色添加数据传输对象 (DTO) | body | true  | SysRoleAddDTO  | SysRoleAddDTO |
+| &emsp;&emsp;roleName    | 角色名称               |      | true  | string         |               |
+| &emsp;&emsp;roleKey     | 角色标识               |      | true  | string         |               |
+| &emsp;&emsp;sort        | 排序                 |      | false | integer(int32) |               |
+| &emsp;&emsp;status      | 状态 (0=正常, 1=停用)    |      | false | integer(int32) |               |
+| &emsp;&emsp;description | 描述                 |      | false | string         |               |
 
 **响应状态**:
 
@@ -915,6 +915,339 @@
 }
 ```
 
+# 角色内部接口
+
+## 内部接口 - 根据角色标识获取角色信息
+
+**接口地址**:`/api/system/role/internal/key/{roleKey}`
+
+**请求方式**:`GET`
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+**响应数据类型**:`*/*`
+
+**接口描述**:<p>通过角色标识获取角色详细信息，包含权限列表</p>
+
+**请求参数**:
+
+| 参数名称    | 参数说明 | 请求类型 | 是否必须 | 数据类型   | schema |
+|---------|------|------|------|--------|--------|
+| roleKey | 角色标识 | path | true | string |        |
+
+**响应状态**:
+
+| 状态码 | 说明          | schema                |
+|-----|-------------|-----------------------| 
+| 200 | OK          | ResultSysRoleVO       |
+| 400 | Bad Request | ResultMapStringString |
+| 403 | Forbidden   | ResultString          |
+
+**响应状态码-200**:
+
+**响应参数**:
+
+| 参数名称                                   | 参数说明            | 类型                | schema          |
+|----------------------------------------|-----------------|-------------------|-----------------| 
+| success                                | 请求是否成功          | boolean           |                 |
+| code                                   | 业务状态码 (200表示成功) | integer(int32)    | integer(int32)  |
+| message                                | 响应消息            | string            |                 |
+| data                                   |                 | SysRoleVO         | SysRoleVO       |
+| &emsp;&emsp;id                         | 角色ID            | string(uuid)      |                 |
+| &emsp;&emsp;roleName                   | 角色名称            | string            |                 |
+| &emsp;&emsp;roleKey                    | 角色标识            | string            |                 |
+| &emsp;&emsp;permissions                | 系统权限视图对象 (VO)   | array             | SysPermissionVO |
+| &emsp;&emsp;&emsp;&emsp;id             | 权限ID            | string            |                 |
+| &emsp;&emsp;&emsp;&emsp;parentId       | 父级权限ID          | string            |                 |
+| &emsp;&emsp;&emsp;&emsp;permissionName | 权限名称            | string            |                 |
+| &emsp;&emsp;&emsp;&emsp;permissionKey  | 权限标识            | string            |                 |
+| &emsp;&emsp;&emsp;&emsp;children       | 子权限列表           | array             | SysPermissionVO |
+| &emsp;&emsp;&emsp;&emsp;sort           | 排序              | integer           |                 |
+| &emsp;&emsp;&emsp;&emsp;createTime     | 创建时间            | string            |                 |
+| &emsp;&emsp;&emsp;&emsp;updateTime     | 更新时间            | string            |                 |
+| &emsp;&emsp;sort                       | 排序              | integer(int32)    |                 |
+| &emsp;&emsp;status                     | 状态 (0=正常, 1=停用) | integer(int32)    |                 |
+| &emsp;&emsp;description                | 描述              | string            |                 |
+| &emsp;&emsp;createTime                 | 创建时间            | string(date-time) |                 |
+| &emsp;&emsp;updateTime                 | 更新时间            | string(date-time) |                 |
+| &emsp;&emsp;admin                      |                 | boolean           |                 |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"id": "",
+		"roleName": "",
+		"roleKey": "",
+		"permissions": [
+			{
+				"id": "",
+				"parentId": "",
+				"permissionName": "",
+				"permissionKey": "",
+				"children": [
+					{
+						"id": "",
+						"parentId": "",
+						"permissionName": "",
+						"permissionKey": "",
+						"children": [
+							{}
+						],
+						"sort": 0,
+						"createTime": "",
+						"updateTime": ""
+					}
+				],
+				"sort": 0,
+				"createTime": "",
+				"updateTime": ""
+			}
+		],
+		"sort": 0,
+		"status": 0,
+		"description": "",
+		"createTime": "",
+		"updateTime": "",
+		"admin": true
+	}
+}
+```
+
+**响应状态码-400**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | object         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+**响应状态码-403**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | string         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+## 内部接口 - 为指定用户添加指定角色
+
+**接口地址**:`/api/system/role/internal/user/{userId}/role`
+
+**请求方式**:`POST`
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+**响应数据类型**:`*/*`
+
+**接口描述**:<p>通过用户ID和角色标识为用户分配角色</p>
+
+**请求参数**:
+
+| 参数名称    | 参数说明 | 请求类型  | 是否必须 | 数据类型         | schema |
+|---------|------|-------|------|--------------|--------|
+| userId  | 用户ID | path  | true | string(uuid) |        |
+| roleKey | 角色标识 | query | true | string       |        |
+
+**响应状态**:
+
+| 状态码 | 说明          | schema                |
+|-----|-------------|-----------------------| 
+| 200 | OK          | ResultBoolean         |
+| 400 | Bad Request | ResultMapStringString |
+| 403 | Forbidden   | ResultString          |
+
+**响应状态码-200**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | boolean        |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
+}
+```
+
+**响应状态码-400**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | object         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+**响应状态码-403**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | string         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+## 内部接口 - 从指定用户中删除指定角色
+
+**接口地址**:`/api/system/role/internal/user/{userId}/role`
+
+**请求方式**:`DELETE`
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+**响应数据类型**:`*/*`
+
+**接口描述**:<p>通过用户ID和角色标识从用户中移除角色</p>
+
+**请求参数**:
+
+| 参数名称    | 参数说明 | 请求类型  | 是否必须 | 数据类型         | schema |
+|---------|------|-------|------|--------------|--------|
+| userId  | 用户ID | path  | true | string(uuid) |        |
+| roleKey | 角色标识 | query | true | string       |        |
+
+**响应状态**:
+
+| 状态码 | 说明          | schema                |
+|-----|-------------|-----------------------| 
+| 200 | OK          | ResultBoolean         |
+| 400 | Bad Request | ResultMapStringString |
+| 403 | Forbidden   | ResultString          |
+
+**响应状态码-200**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | boolean        |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
+}
+```
+
+**响应状态码-400**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | object         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+**响应状态码-403**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | string         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
 # 权限管理
 
 ## 添加新权限
@@ -942,13 +1275,13 @@
 
 **请求参数**:
 
-| 参数名称                       | 参数说明             | 请求类型 | 是否必须  | 数据类型                | schema              |
-|----------------------------|------------------|------|-------|---------------------|---------------------|
-| sysPermissionAddDTO        | 系统权限数据传输对象 (DTO) | body | true  | SysPermissionAddDTO | SysPermissionAddDTO |
-| &emsp;&emsp;parentId       | 父级权限ID           |      | false | string(uuid)        |                     |
-| &emsp;&emsp;permissionName | 权限名称             |      | true  | string              |                     |
-| &emsp;&emsp;permissionKey  | 权限标识             |      | true  | string              |                     |
-| &emsp;&emsp;sort           | 排序               |      | false | integer(int32)      |                     |
+| 参数名称                       | 参数说明               | 请求类型 | 是否必须  | 数据类型                | schema              |
+|----------------------------|--------------------|------|-------|---------------------|---------------------|
+| sysPermissionAddDTO        | 系统权限添加数据传输对象 (DTO) | body | true  | SysPermissionAddDTO | SysPermissionAddDTO |
+| &emsp;&emsp;parentId       | 父级权限ID             |      | false | string(uuid)        |                     |
+| &emsp;&emsp;permissionName | 权限名称               |      | true  | string              |                     |
+| &emsp;&emsp;permissionKey  | 权限标识               |      | true  | string              |                     |
+| &emsp;&emsp;sort           | 排序                 |      | false | integer(int32)      |                     |
 
 **响应状态**:
 
@@ -1621,6 +1954,570 @@
 			"updateTime": ""
 		}
 	]
+}
+```
+
+**响应状态码-400**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | object         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+**响应状态码-403**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | string         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+# 权限验证内部接口
+
+## 内部接口 - 清除用户权限缓存
+
+**接口地址**:`/api/system/permission/internal/{userId}/cache`
+
+**请求方式**:`DELETE`
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+**响应数据类型**:`*/*`
+
+**接口描述**:<p>清除指定用户的权限缓存</p>
+
+**请求参数**:
+
+| 参数名称   | 参数说明 | 请求类型 | 是否必须 | 数据类型         | schema |
+|--------|------|------|------|--------------|--------|
+| userId | 用户ID | path | true | string(uuid) |        |
+
+**响应状态**:
+
+| 状态码 | 说明          | schema                |
+|-----|-------------|-----------------------| 
+| 200 | OK          | ResultBoolean         |
+| 400 | Bad Request | ResultMapStringString |
+| 403 | Forbidden   | ResultString          |
+
+**响应状态码-200**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | boolean        |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
+}
+```
+
+**响应状态码-400**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | object         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+**响应状态码-403**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | string         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+## 内部接口 - 获取用户权限列表
+
+**接口地址**:`/api/system/permission/internal/{userId}/permissions`
+
+**请求方式**:`GET`
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+**响应数据类型**:`*/*`
+
+**接口描述**:<p>获取指定用户的所有权限标识列表</p>
+
+**请求参数**:
+
+| 参数名称   | 参数说明 | 请求类型 | 是否必须 | 数据类型         | schema |
+|--------|------|------|------|--------------|--------|
+| userId | 用户ID | path | true | string(uuid) |        |
+
+**响应状态**:
+
+| 状态码 | 说明          | schema                |
+|-----|-------------|-----------------------| 
+| 200 | OK          | ResultListString      |
+| 400 | Bad Request | ResultMapStringString |
+| 403 | Forbidden   | ResultString          |
+
+**响应状态码-200**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | array          |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": []
+}
+```
+
+**响应状态码-400**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | object         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+**响应状态码-403**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | string         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+## 内部接口 - 清除所有权限缓存
+
+**接口地址**:`/api/system/permission/internal/cache/all`
+
+**请求方式**:`DELETE`
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+**响应数据类型**:`*/*`
+
+**接口描述**:<p>清除所有用户的权限缓存</p>
+
+**请求参数**:
+
+暂无
+
+**响应状态**:
+
+| 状态码 | 说明          | schema                |
+|-----|-------------|-----------------------| 
+| 200 | OK          | ResultBoolean         |
+| 400 | Bad Request | ResultMapStringString |
+| 403 | Forbidden   | ResultString          |
+
+**响应状态码-200**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | boolean        |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
+}
+```
+
+**响应状态码-400**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | object         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+**响应状态码-403**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | string         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+## 内部接口 - 验证用户权限
+
+**接口地址**:`/api/system/permission/internal/check/{permission}`
+
+**请求方式**:`GET`
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+**响应数据类型**:`*/*`
+
+**接口描述**:<p>验证当前用户是否有指定权限</p>
+
+**请求参数**:
+
+| 参数名称       | 参数说明 | 请求类型 | 是否必须 | 数据类型   | schema |
+|------------|------|------|------|--------|--------|
+| permission | 权限标识 | path | true | string |        |
+
+**响应状态**:
+
+| 状态码 | 说明          | schema                |
+|-----|-------------|-----------------------| 
+| 200 | OK          | ResultBoolean         |
+| 400 | Bad Request | ResultMapStringString |
+| 403 | Forbidden   | ResultString          |
+
+**响应状态码-200**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | boolean        |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
+}
+```
+
+**响应状态码-400**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | object         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+**响应状态码-403**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | string         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+## 内部接口 - 验证用户所有权限
+
+**接口地址**:`/api/system/permission/internal/check/all`
+
+**请求方式**:`POST`
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+**响应数据类型**:`*/*`
+
+**接口描述**:<p>验证当前用户是否有所有指定权限</p>
+
+**请求示例**:
+
+```javascript
+[]
+```
+
+**请求参数**:
+
+| 参数名称    | 参数说明   | 请求类型 | 是否必须 | 数据类型  | schema |
+|---------|--------|------|------|-------|--------|
+| strings | string | body | true | array |        |
+
+**响应状态**:
+
+| 状态码 | 说明          | schema                |
+|-----|-------------|-----------------------| 
+| 200 | OK          | ResultBoolean         |
+| 400 | Bad Request | ResultMapStringString |
+| 403 | Forbidden   | ResultString          |
+
+**响应状态码-200**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | boolean        |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
+}
+```
+
+**响应状态码-400**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | object         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+**响应状态码-403**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | string         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+## 内部接口 - 验证用户任一权限
+
+**接口地址**:`/api/system/permission/internal/check/any`
+
+**请求方式**:`POST`
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+**响应数据类型**:`*/*`
+
+**接口描述**:<p>验证当前用户是否有任一指定权限</p>
+
+**请求示例**:
+
+```javascript
+[]
+```
+
+**请求参数**:
+
+| 参数名称    | 参数说明   | 请求类型 | 是否必须 | 数据类型  | schema |
+|---------|--------|------|------|-------|--------|
+| strings | string | body | true | array |        |
+
+**响应状态**:
+
+| 状态码 | 说明          | schema                |
+|-----|-------------|-----------------------| 
+| 200 | OK          | ResultBoolean         |
+| 400 | Bad Request | ResultMapStringString |
+| 403 | Forbidden   | ResultString          |
+
+**响应状态码-200**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | boolean        |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
 }
 ```
 
@@ -2715,6 +3612,221 @@
 }
 ```
 
+## 手机验证码登录
+
+**接口地址**:`/api/system/user/mobile-login`
+
+**请求方式**:`POST`
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+**响应数据类型**:`*/*`
+
+**接口描述**:<p>通过手机号码和验证码进行登录验证</p>
+
+**请求示例**:
+
+```javascript
+{
+  "mobile": "13812345678",
+  "verificationCode": "123456"
+}
+```
+
+**请求参数**:
+
+| 参数名称                         | 参数说明           | 请求类型 | 是否必须 | 数据类型                  | schema                |
+|------------------------------|----------------|------|------|-----------------------|-----------------------|
+| sysUserMobileLoginDTO        | 手机验证码登录请求的数据模型 | body | true | SysUserMobileLoginDTO | SysUserMobileLoginDTO |
+| &emsp;&emsp;mobile           | 手机号码           |      | true | string                |                       |
+| &emsp;&emsp;verificationCode | 手机验证码          |      | true | string                |                       |
+
+**响应状态**:
+
+| 状态码 | 说明          | schema                  |
+|-----|-------------|-------------------------| 
+| 200 | OK          | ResultSysUserInternalVO |
+| 400 | Bad Request | ResultMapStringString   |
+| 403 | Forbidden   | ResultString            |
+
+**响应状态码-200**:
+
+**响应参数**:
+
+| 参数名称                                               | 参数说明                | 类型                | schema            |
+|----------------------------------------------------|---------------------|-------------------|-------------------| 
+| success                                            | 请求是否成功              | boolean           |                   |
+| code                                               | 业务状态码 (200表示成功)     | integer(int32)    | integer(int32)    |
+| message                                            | 响应消息                | string            |                   |
+| data                                               |                     | SysUserInternalVO | SysUserInternalVO |
+| &emsp;&emsp;createTime                             | 创建时间 (系统自动生成)       | string(date-time) |                   |
+| &emsp;&emsp;updateTime                             | 更新时间 (系统自动生成)       | string(date-time) |                   |
+| &emsp;&emsp;id                                     | 用户ID                | string(uuid)      |                   |
+| &emsp;&emsp;username                               | 用户名                 | string            |                   |
+| &emsp;&emsp;nickName                               | 用户昵称                | string            |                   |
+| &emsp;&emsp;email                                  | 邮箱                  | string            |                   |
+| &emsp;&emsp;mobile                                 | 手机号                 | string            |                   |
+| &emsp;&emsp;gender                                 | 性别 (0=未知, 1=男, 2=女) | integer(int32)    |                   |
+| &emsp;&emsp;avatar                                 | 用户头像URL             | string            |                   |
+| &emsp;&emsp;status                                 | 状态 (0=正常, 1=停用)     | integer(int32)    |                   |
+| &emsp;&emsp;last_login_time                        | 最后登录时间              | string(date-time) |                   |
+| &emsp;&emsp;roles                                  | 系统角色视图对象 (VO)       | array             | SysRoleVO         |
+| &emsp;&emsp;&emsp;&emsp;id                         | 角色ID                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;roleName                   | 角色名称                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;roleKey                    | 角色标识                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;permissions                | 系统权限视图对象 (VO)       | array             | SysPermissionVO   |
+| &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;id             | 权限ID                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;parentId       | 父级权限ID              | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permissionName | 权限名称                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permissionKey  | 权限标识                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;children       | 子权限列表               | array             | SysPermissionVO   |
+| &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;sort           | 排序                  | integer           |                   |
+| &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;createTime     | 创建时间                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;updateTime     | 更新时间                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;sort                       | 排序                  | integer           |                   |
+| &emsp;&emsp;&emsp;&emsp;status                     | 状态 (0=正常, 1=停用)     | integer           |                   |
+| &emsp;&emsp;&emsp;&emsp;description                | 描述                  | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;createTime                 | 创建时间                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;updateTime                 | 更新时间                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;admin                      |                     | boolean           |                   |
+| &emsp;&emsp;permissions                            | 系统权限视图对象 (VO)       | array             | SysPermissionVO   |
+| &emsp;&emsp;&emsp;&emsp;id                         | 权限ID                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;parentId                   | 父级权限ID              | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;permissionName             | 权限名称                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;permissionKey              | 权限标识                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;children                   | 子权限列表               | array             | SysPermissionVO   |
+| &emsp;&emsp;&emsp;&emsp;sort                       | 排序                  | integer           |                   |
+| &emsp;&emsp;&emsp;&emsp;createTime                 | 创建时间                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;updateTime                 | 更新时间                | string            |                   |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"id": "",
+		"username": "",
+		"nickName": "",
+		"email": "",
+		"mobile": "",
+		"gender": 0,
+		"avatar": "",
+		"status": 0,
+		"last_login_time": "",
+		"roles": [
+			{
+				"id": "",
+				"roleName": "",
+				"roleKey": "",
+				"permissions": [
+					{
+						"id": "",
+						"parentId": "",
+						"permissionName": "",
+						"permissionKey": "",
+						"children": [
+							{
+								"id": "",
+								"parentId": "",
+								"permissionName": "",
+								"permissionKey": "",
+								"children": [
+									{}
+								],
+								"sort": 0,
+								"createTime": "",
+								"updateTime": ""
+							}
+						],
+						"sort": 0,
+						"createTime": "",
+						"updateTime": ""
+					}
+				],
+				"sort": 0,
+				"status": 0,
+				"description": "",
+				"createTime": "",
+				"updateTime": "",
+				"admin": true
+			}
+		],
+		"permissions": [
+			{
+				"id": "",
+				"parentId": "",
+				"permissionName": "",
+				"permissionKey": "",
+				"children": [
+					{
+						"id": "",
+						"parentId": "",
+						"permissionName": "",
+						"permissionKey": "",
+						"children": [
+							{}
+						],
+						"sort": 0,
+						"createTime": "",
+						"updateTime": ""
+					}
+				],
+				"sort": 0,
+				"createTime": "",
+				"updateTime": ""
+			}
+		]
+	}
+}
+```
+
+**响应状态码-400**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | object         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+**响应状态码-403**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | string         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
 ## 修改个人信息
 
 **接口地址**:`/api/system/user/profile`
@@ -3508,20 +4620,24 @@
   "password": "MyP@ssw0rd123",
   "confirmPassword": "MyP@ssw0rd123",
   "avatar": "",
-  "nickName": ""
+  "nickName": "",
+  "mobile": "13812345678",
+  "verificationCode": "123456"
 }
 ```
 
 **请求参数**:
 
-| 参数名称                        | 参数说明                   | 请求类型 | 是否必须  | 数据类型               | schema             |
-|-----------------------------|------------------------|------|-------|--------------------|--------------------|
-| sysUserRegisterDTO          | 用户注册请求的数据模型            | body | true  | SysUserRegisterDTO | SysUserRegisterDTO |
-| &emsp;&emsp;username        | 用户名，必须是4-20位的字母、数字或下划线 |      | true  | string             |                    |
-| &emsp;&emsp;password        | 用户密码，必须是6-20位的任意字符     |      | true  | string             |                    |
-| &emsp;&emsp;confirmPassword | 确认密码，必须与密码字段一致         |      | true  | string             |                    |
-| &emsp;&emsp;avatar          | 用户头像URL                |      | false | string             |                    |
-| &emsp;&emsp;nickName        | 用户昵称                   |      | true  | string             |                    |
+| 参数名称                         | 参数说明                   | 请求类型 | 是否必须  | 数据类型               | schema             |
+|------------------------------|------------------------|------|-------|--------------------|--------------------|
+| sysUserRegisterDTO           | 用户注册请求的数据模型            | body | true  | SysUserRegisterDTO | SysUserRegisterDTO |
+| &emsp;&emsp;username         | 用户名，必须是4-20位的字母、数字或下划线 |      | true  | string             |                    |
+| &emsp;&emsp;password         | 用户密码，必须是6-20位的任意字符     |      | true  | string             |                    |
+| &emsp;&emsp;confirmPassword  | 确认密码，必须与密码字段一致         |      | true  | string             |                    |
+| &emsp;&emsp;avatar           | 用户头像URL                |      | false | string             |                    |
+| &emsp;&emsp;nickName         | 用户昵称                   |      | false | string             |                    |
+| &emsp;&emsp;mobile           | 手机号码，用于接收短信验证码         |      | true  | string             |                    |
+| &emsp;&emsp;verificationCode | 注册验证码（短信或邮件验证码）        |      | true  | string             |                    |
 
 **响应状态**:
 

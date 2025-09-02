@@ -15,5 +15,15 @@ export default {
     roleDescription: 'Role Description',
     rolePermissions: 'Role Permissions',
     superAdmin: 'Super Administrator',
-    superAdminDescription: 'You are a super administrator with all permissions'
+    superAdminDescription: 'You are a super administrator with all permissions',
+    // 超级管理员相关
+    adminRole: 'Admin Role',
+    adminPermissions: 'Admin Permissions',
+    adminBadge: 'Admin Badge',
+    adminSection: 'Admin Section',
+    adminCard: 'Admin Card',
+    adminHeader: 'Admin Header',
+    adminIcon: 'Admin Icon',
+    adminContent: 'Admin Content',
+    adminDescription: 'Admin Description'
 } 

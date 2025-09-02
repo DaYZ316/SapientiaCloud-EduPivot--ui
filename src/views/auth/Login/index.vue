@@ -8,24 +8,24 @@
 
     <!-- 登录表单 -->
     <n-form ref="formRef" :model="loginForm" :rules="rules" class="login-form" size="large"
-      @keyup.enter="handleLogin">
-      <n-form-item path="username" :show-label="false">
+            @keyup.enter="handleLogin">
+      <n-form-item :show-label="false" path="username">
         <n-input v-model:value="loginForm.username" :placeholder="$t('auth.username')"
-          clearable>
+                 clearable>
           <template #prefix>
             <n-icon>
-              <Icon :component="PersonOutline" />
+              <Icon :component="PersonOutline"/>
             </n-icon>
           </template>
         </n-input>
       </n-form-item>
 
-      <n-form-item path="password" :show-label="false">
-        <n-input v-model:value="loginForm.password" type="password" :placeholder="$t('auth.password')"
-          show-password-on="click" clearable>
+      <n-form-item :show-label="false" path="password">
+        <n-input v-model:value="loginForm.password" :placeholder="$t('auth.password')" clearable
+                 show-password-on="click" type="password">
           <template #prefix>
             <n-icon>
-              <Icon :component="LockClosedOutline" />
+              <Icon :component="LockClosedOutline"/>
             </n-icon>
           </template>
         </n-input>
@@ -42,7 +42,7 @@
       </div>
 
       <!-- 登录按钮 -->
-      <n-button type="primary" size="large" :loading="loading" @click="handleLogin">
+      <n-button :loading="loading" size="large" style="width: 100%;" type="primary" @click="handleLogin">
         {{ loading ? $t('auth.loginInProgress') : $t('auth.login') }}
       </n-button>
     </n-form>
@@ -58,15 +58,15 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
-import { useMessage, type FormInst, type FormRules } from 'naive-ui'
+import {reactive, ref} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {useRouter} from 'vue-router'
+import {type FormInst, type FormRules, useMessage} from 'naive-ui'
 import Icon from '@/components/common/Icon.vue'
-import { PersonOutline, LockClosedOutline } from '@vicons/ionicons5'
-import { useUserStore } from '@/store'
-import { getDefaultSysUserLoginDTO } from '@/api/auth'
-import type { SysUserLoginDTO } from '@/types/auth'
+import {LockClosedOutline, PersonOutline} from '@vicons/ionicons5'
+import {useUserStore} from '@/store'
+import {getDefaultSysUserLoginDTO} from '@/api/auth'
+import type {SysUserLoginDTO} from '@/types/auth'
 
 // 定义事件
 defineEmits<{
@@ -77,7 +77,7 @@ defineEmits<{
 const userStore = useUserStore()
 const router = useRouter()
 const message = useMessage()
-const { t } = useI18n()
+const {t} = useI18n()
 
 // 表单引用和状态
 const formRef = ref<FormInst | null>(null)
@@ -114,8 +114,8 @@ const handleLogin = async () => {
     loading.value = true
 
     const success = await userStore.login(
-      loginForm.username || '',
-      loginForm.password || ''
+        loginForm.username || '',
+        loginForm.password || ''
     )
 
     if (success) {

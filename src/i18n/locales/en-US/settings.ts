@@ -427,6 +427,9 @@ export default {
         globalColors: 'Global Colors',
         primaryColor: 'Primary Color',
         primaryColorDesc: 'Select the primary color for the system, other colors will adapt automatically',
+        layoutSettings: 'Layout Settings',
+        sidebarCollapsed: 'Collapse Sidebar',
+        sidebarCollapsedDesc: 'When enabled, the sidebar will be collapsed by default',
 
         updateSuccess: 'System settings saved successfully',
         updateFail: 'Failed to save system settings',

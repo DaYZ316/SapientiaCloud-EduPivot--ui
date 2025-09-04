@@ -89,6 +89,19 @@
       </n-form>
     </n-carousel>
 
+    <!-- 注册按钮 -->
+    <div class="register-button-section">
+      <n-button
+          :loading="loading"
+          size="large"
+          style="width: 100%;"
+          type="primary"
+          @click="handleRegister"
+      >
+        {{ loading ? $t('auth.registerInProgress') : $t('auth.registerButton') }}
+      </n-button>
+    </div>
+
     <!-- 返回登录链接 -->
     <div class="register-section">
       <span>{{ $t('auth.haveAccount') }}</span>
@@ -208,8 +221,10 @@ const handleVerificationCodeSent = async () => {
     }
   }, 1000)
 
-  message.success(t('auth.verificationCodeSent'))
+  message.success(t('auth.verificationCodeSentSuccess'))
 }
+
+// 移除验证码默认值，让用户手动输入
 </script>
 
 <style lang="scss" scoped>

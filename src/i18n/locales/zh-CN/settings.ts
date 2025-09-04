@@ -430,6 +430,9 @@ export default {
         globalColors: '全局颜色',
         primaryColor: '主要颜色',
         primaryColorDesc: '选择系统的主要颜色，其他颜色将自动适配',
+        layoutSettings: '布局设置',
+        sidebarCollapsed: '侧边栏收起',
+        sidebarCollapsedDesc: '开启后侧边栏将默认收起状态',
 
         updateSuccess: '系统设置已保存',
         updateFail: '系统设置保存失败',

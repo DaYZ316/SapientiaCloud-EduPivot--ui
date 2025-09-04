@@ -119,8 +119,9 @@
                         class="btn btn-primary">
                   {{ t('common.confirm') }}
                 </button>
-                <button :style="{ backgroundColor: colors.backgroundSecondary, color: colors.text, borderColor: colors.border }"
-                        class="btn btn-secondary">
+                <button
+                    :style="{ backgroundColor: colors.backgroundSecondary, color: colors.text, borderColor: colors.border }"
+                    class="btn btn-secondary">
                   {{ t('common.cancel') }}
                 </button>
               </div>

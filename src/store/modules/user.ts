@@ -131,6 +131,39 @@ export const useUserStore = defineStore('user', () => {
     }
 
     /**
+     * 验证码登录
+     */
+    const loginWithVerificationCode = async (mobile: string, verificationCode: string): Promise<boolean> => {
+        try {
+            // 使用getDefaultSysUserMobileLoginDTO函数创建DTO对象
+            const mobileLoginDTO = AuthApi.getDefaultSysUserMobileLoginDTO();
+            mobileLoginDTO.mobile = mobile;
+            mobileLoginDTO.verificationCode = verificationCode;
+
+            const res = await AuthApi.mobileLogin(mobileLoginDTO)
+            if (res.success && res.data) {
+                const userData = res.data
+
+                // 仅保存token
+                token.value = userData.accessToken
+                localStorage.setItem(TOKEN_KEY, userData.accessToken)
+
+                // 设置登录状态
+                isLogin.value = true
+
+                // 获取用户信息
+                await refreshUserInfo()
+
+                return true
+            }
+            return false
+        } catch (error) {
+            // HTTP错误已经在HTTP模块中处理，不需要在这里重复处理
+            return false
+        }
+    }
+
+    /**
      * 登出
      */
     const logout = async (): Promise<void> => {
@@ -230,6 +263,7 @@ export const useUserStore = defineStore('user', () => {
         // 方法
         login,
         register,
+        loginWithVerificationCode,
         logout,
         resetUserState,
         validateToken,

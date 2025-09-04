@@ -11,6 +11,7 @@ export interface UserStore {
     roles: SysRoleVO[]
     isLogin: any
     login: (username: string, password: string) => Promise<boolean>
+    loginWithVerificationCode: (mobile: string, verificationCode: string) => Promise<boolean>
     logout: () => Promise<void>
     resetUserState: () => void
     validateToken: () => Promise<boolean>

@@ -5,13 +5,15 @@ import {generateColorVariants, generateSemanticColors} from '@/utils/colorAlgori
 interface ThemeState {
     themeMode: 'light' | 'dark' | 'system'
     primaryColor: string
+    sidebarCollapsed: boolean
 }
 
 // 主题 Store
 export const useThemeStore = defineStore('theme', {
     state: (): ThemeState => ({
         themeMode: localStorage.getItem('themeMode') as 'light' | 'dark' | 'system' || 'light',
-        primaryColor: localStorage.getItem('primaryColor') || '#1890ff'
+        primaryColor: localStorage.getItem('primaryColor') || '#1890ff',
+        sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true' || false
     }),
 
     getters: {
@@ -89,6 +91,12 @@ export const useThemeStore = defineStore('theme', {
             this.applyColors()
         },
 
+        // 设置侧边栏收起状态
+        setSidebarCollapsed(collapsed: boolean) {
+            this.sidebarCollapsed = collapsed
+            localStorage.setItem('sidebarCollapsed', collapsed.toString())
+        },
+
         // 应用主题到文档根元素
         applyTheme() {
             const isDark = this.isDarkMode
@@ -127,6 +135,7 @@ export const useThemeStore = defineStore('theme', {
         resetSettings() {
             this.setThemeMode('system')
             this.setPrimaryColor('#1890ff')
+            this.setSidebarCollapsed(false)
         },
 
         // 初始化设置

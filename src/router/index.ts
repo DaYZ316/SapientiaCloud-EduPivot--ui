@@ -47,6 +47,33 @@ const routes: RouteRecordRaw[] = [
                     title: '设置',
                     requiresAuth: true
                 }
+            },
+            {
+                path: 'system/user',
+                name: 'User',
+                component: () => import('@/views/system/user/index.vue'),
+                meta: {
+                    title: '用户管理',
+                    requiresAuth: true
+                }
+            },
+            {
+                path: 'system/role',
+                name: 'Role',
+                component: () => import('@/views/system/role/index.vue'),
+                meta: {
+                    title: '角色管理',
+                    requiresAuth: true
+                }
+            },
+            {
+                path: 'system/permission',
+                name: 'Permission',
+                component: () => import('@/views/system/permission/index.vue'),
+                meta: {
+                    title: '权限管理',
+                    requiresAuth: true
+                }
             }
         ]
     },

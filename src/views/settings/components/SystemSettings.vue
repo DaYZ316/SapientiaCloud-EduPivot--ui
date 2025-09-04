@@ -19,7 +19,7 @@
           <div
               v-for="color in systemColors"
               :key="color"
-              :class="{ active: tempPrimaryColor === color }"
+              :class="{ active: primaryColor === color }"
               :style="{ backgroundColor: color }"
               class="color-option"
               @click="handleColorSelect(color)"
@@ -28,6 +28,14 @@
       </n-form-item>
     </n-form>
 
+
+    <h2>{{ t('settings.system.layoutSettings') }}</h2>
+    <n-form label-placement="left" label-width="120">
+      <n-form-item :label="t('settings.system.sidebarCollapsed')">
+        <n-switch v-model:value="sidebarCollapsed" @update:value="handleSidebarCollapsedChange"/>
+        <span class="setting-description">{{ t('settings.system.sidebarCollapsedDesc') }}</span>
+      </n-form-item>
+    </n-form>
 
     <h2>{{ t('settings.languageSettings') }}</h2>
     <n-form label-placement="left" label-width="120">
@@ -38,10 +46,6 @@
             @update:value="handleLanguageChange"
         />
       </n-form-item>
-      <n-form-item>
-        <n-button type="primary" @click="saveSettings">{{ t('common.save') }}</n-button>
-        <n-button style="margin-left: 12px" @click="resetSettings">{{ t('common.reset') }}</n-button>
-      </n-form-item>
     </n-form>
   </div>
 </template>
@@ -50,7 +54,6 @@
 import {ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useThemeStore} from '@/store'
-import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {setLanguage} from '@/i18n'
 
 // 国际化
@@ -59,12 +62,11 @@ const {t, locale} = useI18n()
 // 主题存储
 const themeStore = useThemeStore()
 
-// 响应式数据
+// 响应式数据 - 直接使用 store 的值
 const themeMode = ref(themeStore.themeMode)
 const currentLang = ref(locale.value)
-
-// 临时存储用户选择的颜色，不立即应用
-const tempPrimaryColor = ref(themeStore.primaryColor)
+const sidebarCollapsed = ref(themeStore.sidebarCollapsed)
+const primaryColor = ref(themeStore.primaryColor)
 
 // 系统预设颜色
 const systemColors = [
@@ -89,45 +91,22 @@ watch(themeMode, (newMode) => {
   themeStore.setThemeMode(newMode)
 })
 
-// 处理主要颜色变化
-const handlePrimaryColorChange = (color: string) => {
-  tempPrimaryColor.value = color
-}
-
-// 处理颜色选择
+// 处理函数 - 简化并统一命名
 const handleColorSelect = (color: string) => {
-  tempPrimaryColor.value = color
+  primaryColor.value = color
+  themeStore.setPrimaryColor(color)
 }
 
-// 处理语言变化
 const handleLanguageChange = (lang: 'zh-CN' | 'en-US') => {
   currentLang.value = lang
   setLanguage(lang)
 }
 
-// 保存设置
-const saveSettings = () => {
-  // 应用临时存储的颜色
-  themeStore.setPrimaryColor(tempPrimaryColor.value)
-
-  const {message} = getDiscreteApi()
-  message.success(t('common.saveSuccess'))
+const handleSidebarCollapsedChange = (collapsed: boolean) => {
+  sidebarCollapsed.value = collapsed
+  themeStore.setSidebarCollapsed(collapsed)
 }
 
-// 重置设置
-const resetSettings = () => {
-  themeStore.resetSettings()
-  themeMode.value = themeStore.themeMode
-  tempPrimaryColor.value = themeStore.primaryColor
-
-  // 重置语言到默认值
-  const defaultLang = 'zh-CN'
-  currentLang.value = defaultLang
-  setLanguage(defaultLang)
-
-  const {message} = getDiscreteApi()
-  message.success(t('common.resetSuccess'))
-}
 </script>
 
 <style lang="scss" scoped>
@@ -162,8 +141,14 @@ const resetSettings = () => {
 
     &.active {
       border-color: var(--primary-color);
-      box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+      box-shadow: 0 0 0 2px var(--primary-color-light, rgba(24, 144, 255, 0.2));
     }
+  }
+
+  .setting-description {
+    margin-left: 12px;
+    font-size: 14px;
+    color: var(--text-secondary-color);
   }
 }
 </style> 

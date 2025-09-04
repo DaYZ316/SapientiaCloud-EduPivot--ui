@@ -1,191 +1,399 @@
 <template>
-  <n-layout class="app-layout">
-    <!-- 顶部导航栏 -->
-    <n-layout-header bordered class="header">
-      <div class="header-left">
+  <div class="app-layout">
+    <!-- 侧边栏 -->
+    <div
+        :class="{ 'sidebar-collapsed': collapsed }"
+        class="sidebar"
+    >
+      <!-- Logo区域 -->
+      <div class="sidebar-header">
         <div class="logo">
-          <h2>{{ t('app.name') }}</h2>
+          <img
+              alt="SapientiaCloud EduPivot"
+              class="logo-image"
+              src="/SapientiaCloud EduPivot Logo.svg"
+          />
+          <span v-if="!collapsed" :lang="locale" class="logo-text" v-html="displayAppName"></span>
         </div>
       </div>
-      <div class="header-right">
-        <n-space align="center">
-          <!-- 用户头像下拉菜单 -->
-          <n-dropdown :options="userMenuOptions" placement="bottom-end" @select="handleUserMenuSelect">
-            <div class="user-avatar">
-              <n-avatar :src="userInfo?.avatar || ''" round/>
-              <span class="nickname">{{ userInfo?.nickName || t('common.user') }}</span>
-              <Icon :component="ChevronDownOutline"/>
-            </div>
-          </n-dropdown>
-        </n-space>
-      </div>
-    </n-layout-header>
 
-    <!-- 主体布局 -->
-    <n-layout position="absolute" style="top: 64px">
-      <!-- 内容区域 -->
-      <n-layout-content content-style="padding: 16px;">
-        <n-card class="content-card">
-          <router-view v-slot="{ Component }">
-            <transition mode="out-in" name="fade">
-              <component :is="Component"/>
-            </transition>
-          </router-view>
-        </n-card>
-      </n-layout-content>
-    </n-layout>
-  </n-layout>
+      <!-- 菜单区域 -->
+      <div class="sidebar-menu">
+        <n-menu
+            :collapsed="collapsed"
+            :collapsed-icon-size="22"
+            :collapsed-width="64"
+            :options="menuOptions"
+            :value="currentRoute"
+            @update:value="handleMenuSelect"
+        />
+      </div>
+
+      <!-- 用户头像区域 -->
+      <div class="sidebar-footer">
+        <n-dropdown
+            :options="userMenuOptions"
+            :placement="collapsed ? 'top' : 'top-end'"
+            trigger="click"
+            @select="handleUserMenuSelect"
+        >
+          <div :class="{ 'user-info-collapsed': collapsed }" class="user-info">
+            <n-avatar
+                :fallback-src="defaultAvatar"
+                :size="collapsed ? 'medium' : 'small'"
+                :src="userStore.userInfo?.avatar"
+                class="user-avatar"
+                round
+            />
+            <div v-if="!collapsed" class="user-details">
+              <span class="username">
+                {{ userStore.userInfo?.nickName || userStore.userInfo?.username }}
+              </span>
+              <n-icon class="dropdown-icon">
+                <component :is="ChevronDownOutline"/>
+              </n-icon>
+            </div>
+          </div>
+        </n-dropdown>
+      </div>
+    </div>
+
+    <!-- 主内容区域 -->
+    <div :class="{ 'main-content-expanded': collapsed }" class="main-content">
+
+      <!-- 页面内容 -->
+      <div class="content">
+        <router-view v-slot="{ Component }">
+          <transition mode="out-in" name="fade">
+            <component :is="Component"/>
+          </transition>
+        </router-view>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
-import type {Component} from 'vue'
-import {computed, onMounted} from 'vue'
+import {computed, onMounted, onUnmounted} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
-import {ChevronDownOutline, LogOutOutline, PersonOutline, SettingsOutline} from '@vicons/ionicons5'
 import {useThemeStore, useUserStore} from '@/store'
-import Icon from '@/components/common/Icon.vue'
-import {createIcon} from '@/utils/iconUtil'
-import {getGlobalApis} from '@/utils/naiveUIHelper'
+import {getMenuOptions, getUserMenuOptions, menuRouteMap} from '@/config/menu'
+import {ChevronDownOutline} from '@vicons/ionicons5'
+import {NAvatar, NDropdown, NIcon, NMenu} from 'naive-ui'
+import defaultAvatar from '@/assets/image/default-avatar.png'
 
-const router = useRouter()
+// 路由和国际化
 const route = useRoute()
+const router = useRouter()
+const {t, locale} = useI18n()
+
+// 计算属性：处理项目名显示
+const displayAppName = computed(() => {
+  const appName = t('app.name')
+  // 如果是英文，分成两行显示
+  if (locale.value === 'en-US') {
+    return appName.replace(' ', '<br>')
+  }
+  return appName
+})
+
+// 状态管理
 const userStore = useUserStore()
-const theme = useThemeStore()
-const {t} = useI18n()
-const {message} = getGlobalApis()
+const themeStore = useThemeStore()
 
-// 获取用户信息
-const userInfo = computed(() => userStore.userInfo)
+// 响应式状态
+const collapsed = computed(() => themeStore.sidebarCollapsed)
 
-// 当前激活的菜单项
-const activeKey = computed(() => route.name as string)
+// 计算属性
+const currentRoute = computed(() => route.name as string)
 
-// 用户下拉菜单选项
-const userMenuOptions = computed(() => [
-  {
-    key: 'profile',
-    label: t('menu.profile'),
-    icon: renderIcon(PersonOutline)
-  },
-  {
-    key: 'settings',
-    label: t('menu.settings'),
-    icon: renderIcon(SettingsOutline)
-  },
-  {
-    type: 'divider'
-  },
-  {
-    key: 'logout',
-    label: t('auth.logout'),
-    icon: renderIcon(LogOutOutline)
-  }
-])
+// 菜单选项
+const menuOptions = computed(() => getMenuOptions(t) as any[])
+const userMenuOptions = computed(() => getUserMenuOptions(t) as any[])
 
-// 渲染图标的辅助函数
-function renderIcon(icon: Component) {
-  return () => createIcon(icon)
-}
 
-// 处理用户菜单选择
-const handleUserMenuSelect = async (key: string) => {
-  if (key === 'logout') {
-    try {
-      await userStore.logout();
-      message.success(t('auth.logoutSuccess'));
-      router.push('/login');
-    } catch (error: any) {
-      router.push('/login');
-    }
-  } else if (key === 'profile') {
-    router.push('/profile');
-  } else if (key === 'settings') {
-    router.push('/settings');
+// 方法
+
+const handleMenuSelect = (key: string) => {
+  const routePath = menuRouteMap[key]
+  if (routePath) {
+    router.push(routePath)
   }
 }
 
-// 初始化主题和用户信息
-onMounted(async () => {
-  theme.initSettings()
-
-  // 如果已登录，刷新用户信息
-  if (userStore.isLogin) {
-    await userStore.refreshUserInfo()
+const handleUserMenuSelect = (key: string) => {
+  switch (key) {
+    case 'profile':
+      router.push('/profile')
+      break
+    case 'logout':
+      handleLogout()
+      break
   }
+}
+
+
+const handleLogout = async () => {
+  try {
+    await userStore.logout()
+    router.push('/login')
+  } catch (error) {
+    console.error('登出失败:', error)
+  }
+}
+
+// 检查屏幕尺寸并自动收起侧边栏
+const checkScreenSize = () => {
+  if (window.innerWidth < 768) {
+    themeStore.setSidebarCollapsed(true)
+  }
+}
+
+// 生命周期
+onMounted(() => {
+  checkScreenSize()
+  window.addEventListener('resize', checkScreenSize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkScreenSize)
 })
 </script>
 
 <style lang="scss" scoped>
-
 .app-layout {
+  display: flex;
   height: 100vh;
-  width: 100%;
+  background-color: var(--background-color);
 }
 
-.header {
-  height: 64px;
-  padding: 0 16px;
+// 侧边栏样式
+.sidebar {
+  width: 240px;
+  background-color: var(--background-secondary-color);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  position: relative;
+  z-index: 1000;
+
+  &.sidebar-collapsed {
+    width: 64px;
+  }
+}
+
+.sidebar-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  background-color: var(--card-background-color);
-  border-bottom: 1px solid var(--border-color);
-  z-index: 100;
+  justify-content: center;
+  min-height: 64px;
+}
 
-  .header-left {
-    display: flex;
-    align-items: center;
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-color);
+  font-weight: 600;
+  font-size: 18px;
+}
 
-    .logo {
-      display: flex;
-      align-items: center;
-      margin-right: 24px;
+.logo-image {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
 
-      h2 {
-        margin: 0;
-        color: var(--primary-color);
-        font-size: 20px;
-      }
-    }
+.logo-text {
+  white-space: nowrap;
+  transition: opacity 0.3s ease;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.sidebar-collapsed .logo-text {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+// 英文版本允许换行
+.logo-text[lang="en-US"] {
+  white-space: normal;
+}
+
+.sidebar-menu {
+  flex: 1;
+  padding: 8px 0;
+  overflow-y: auto;
+}
+
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: center;
+  min-height: 80px;
+  align-items: center;
+}
+
+// 主内容区域样式
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 0;
+  transition: margin-left 0.3s ease;
+  overflow: hidden;
+}
+
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  justify-content: center;
+  min-height: 48px;
+
+  &:hover {
+    background-color: var(--background-secondary-color);
   }
 
-  .header-right {
-    display: flex;
-    align-items: center;
-  }
+  &.user-info-collapsed {
+    padding: 8px;
+    justify-content: center;
+    min-height: 48px;
 
-  .user-avatar {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: background-color 0.3s;
-
-    &:hover {
-      background-color: var(--panel-background-color);
-    }
-
-    .nickname {
-      margin: 0 8px;
-      font-size: 14px;
+    .user-avatar {
+      margin: 0;
     }
   }
 }
 
-.content-card {
-  min-height: calc(100vh - 96px);
-  background-color: var(--card-background-color);
+.user-details {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
 }
 
+.username {
+  font-size: 14px;
+  color: var(--text-color);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.user-avatar {
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.dropdown-icon {
+  font-size: 12px;
+  color: var(--text-secondary-color);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+// 内容区域样式
+.content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  background-color: var(--background-color);
+}
+
+// 过渡动画
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity 0.3s ease;
 }
 
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
 }
-</style> 
+
+// 响应式设计
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1001;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+
+    &:not(.sidebar-collapsed) {
+      transform: translateX(0);
+    }
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+  }
+
+
+  .content {
+    padding: 16px;
+  }
+
+  .user-details {
+    display: none;
+  }
+
+  .user-info {
+    padding: 8px;
+    min-height: 48px;
+  }
+
+  .user-avatar {
+    margin: 0;
+  }
+}
+
+// 暗色主题适配
+.dark {
+  .sidebar {
+    background-color: var(--background-secondary-color);
+    border-right-color: var(--border-color);
+  }
+
+  .content {
+    background-color: var(--background-color);
+  }
+}
+
+// 滚动条样式
+.sidebar-menu::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 2px;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary-color);
+}
+</style>

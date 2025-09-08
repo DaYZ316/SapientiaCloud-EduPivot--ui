@@ -25,5 +25,29 @@ export default {
     adminHeader: '管理员头部',
     adminIcon: '管理员图标',
     adminContent: '管理员内容',
-    adminDescription: '管理员描述'
+    adminDescription: '管理员描述',
+    // 学生信息相关
+    studentInfo: '学生信息',
+    studentCode: '学号',
+    realName: '真实姓名',
+    birthDate: '出生日期',
+    admissionYear: '入学年份',
+    major: '专业',
+    academicStatus: '学业状态',
+    academicStatusStudying: '在读',
+    academicStatusSuspended: '休学',
+    academicStatusDropped: '退学',
+    academicStatusGraduated: '毕业',
+    // 教师信息相关
+    teacherInfo: '教师信息',
+    teacherCode: '工号',
+    department: '部门',
+    education: '学历',
+    educationAssociate: '专科',
+    educationBachelor: '本科',
+    educationMaster: '硕士',
+    educationDoctor: '博士',
+    specialization: '专业方向',
+    description: '描述',
+    createTime: '创建时间'
 } 

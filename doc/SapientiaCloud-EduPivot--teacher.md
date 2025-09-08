@@ -2,7 +2,7 @@
 
 **简介**:SapientiaCloud-EduPivot--teacher API
 
-**HOST**:http://192.168.77.249:31604
+**HOST**:http://192.168.37.249:31604
 
 **联系人**:DaYZ
 
@@ -16,7 +16,7 @@
 
 ## 添加新教师
 
-**接口地址**:`/api/teacher/teacher`
+**接口地址**:`/api/teacher/`
 
 **请求方式**:`POST`
 
@@ -131,7 +131,7 @@
 
 ## 更新教师信息
 
-**接口地址**:`/api/teacher/teacher`
+**接口地址**:`/api/teacher/`
 
 **请求方式**:`PUT`
 
@@ -248,7 +248,7 @@
 
 ## 批量删除教师
 
-**接口地址**:`/api/teacher/teacher`
+**接口地址**:`/api/teacher/`
 
 **请求方式**:`DELETE`
 
@@ -346,7 +346,7 @@
 
 ## 根据ID获取教师信息
 
-**接口地址**:`/api/teacher/teacher/{id}`
+**接口地址**:`/api/teacher/{id}`
 
 **请求方式**:`GET`
 
@@ -389,6 +389,13 @@
 | &emsp;&emsp;specialization | 专业特长/研究方向                   | string            |                |
 | &emsp;&emsp;description    | 自我描述                        | string            |                |
 | &emsp;&emsp;sysUserId      | 系统用户ID                      | string(uuid)      |                |
+| &emsp;&emsp;avatar         | 用户头像URL                     | string            |                |
+| &emsp;&emsp;username       | 用户名                         | string            |                |
+| &emsp;&emsp;nickName       | 用户昵称                        | string            |                |
+| &emsp;&emsp;email          | 邮箱                          | string            |                |
+| &emsp;&emsp;mobile         | 手机号                         | string            |                |
+| &emsp;&emsp;gender         | 性别 (0=未知, 1=男, 2=女)         | integer(int32)    |                |
+| &emsp;&emsp;status         | 状态 (0=正常, 1=停用)             | integer(int32)    |                |
 | &emsp;&emsp;createTime     | 创建时间                        | string(date-time) |                |
 | &emsp;&emsp;updateTime     | 更新时间                        | string(date-time) |                |
 
@@ -409,6 +416,13 @@
 		"specialization": "",
 		"description": "",
 		"sysUserId": "",
+		"avatar": "",
+		"username": "",
+		"nickName": "",
+		"email": "",
+		"mobile": "",
+		"gender": 0,
+		"status": 0,
 		"createTime": "",
 		"updateTime": ""
 	}
@@ -461,7 +475,7 @@
 
 ## 根据ID删除教师
 
-**接口地址**:`/api/teacher/teacher/{id}`
+**接口地址**:`/api/teacher/{id}`
 
 **请求方式**:`DELETE`
 
@@ -553,7 +567,7 @@
 
 ## 获取所有教师
 
-**接口地址**:`/api/teacher/teacher/all`
+**接口地址**:`/api/teacher/all`
 
 **请求方式**:`GET`
 
@@ -594,6 +608,13 @@
 | &emsp;&emsp;specialization | 专业特长/研究方向                   | string            |                |
 | &emsp;&emsp;description    | 自我描述                        | string            |                |
 | &emsp;&emsp;sysUserId      | 系统用户ID                      | string(uuid)      |                |
+| &emsp;&emsp;avatar         | 用户头像URL                     | string            |                |
+| &emsp;&emsp;username       | 用户名                         | string            |                |
+| &emsp;&emsp;nickName       | 用户昵称                        | string            |                |
+| &emsp;&emsp;email          | 邮箱                          | string            |                |
+| &emsp;&emsp;mobile         | 手机号                         | string            |                |
+| &emsp;&emsp;gender         | 性别 (0=未知, 1=男, 2=女)         | integer(int32)    |                |
+| &emsp;&emsp;status         | 状态 (0=正常, 1=停用)             | integer(int32)    |                |
 | &emsp;&emsp;createTime     | 创建时间                        | string(date-time) |                |
 | &emsp;&emsp;updateTime     | 更新时间                        | string(date-time) |                |
 
@@ -615,6 +636,13 @@
 			"specialization": "",
 			"description": "",
 			"sysUserId": "",
+			"avatar": "",
+			"username": "",
+			"nickName": "",
+			"email": "",
+			"mobile": "",
+			"gender": 0,
+			"status": 0,
 			"createTime": "",
 			"updateTime": ""
 		}
@@ -668,7 +696,7 @@
 
 ## 分页查询教师列表
 
-**接口地址**:`/api/teacher/teacher/list`
+**接口地址**:`/api/teacher/list`
 
 **请求方式**:`GET`
 
@@ -771,7 +799,7 @@
 
 ## 根据用户ID获取教师信息
 
-**接口地址**:`/api/teacher/teacher/user/{id}`
+**接口地址**:`/api/teacher/user/{id}`
 
 **请求方式**:`GET`
 
@@ -814,6 +842,13 @@
 | &emsp;&emsp;specialization | 专业特长/研究方向                   | string            |                |
 | &emsp;&emsp;description    | 自我描述                        | string            |                |
 | &emsp;&emsp;sysUserId      | 系统用户ID                      | string(uuid)      |                |
+| &emsp;&emsp;avatar         | 用户头像URL                     | string            |                |
+| &emsp;&emsp;username       | 用户名                         | string            |                |
+| &emsp;&emsp;nickName       | 用户昵称                        | string            |                |
+| &emsp;&emsp;email          | 邮箱                          | string            |                |
+| &emsp;&emsp;mobile         | 手机号                         | string            |                |
+| &emsp;&emsp;gender         | 性别 (0=未知, 1=男, 2=女)         | integer(int32)    |                |
+| &emsp;&emsp;status         | 状态 (0=正常, 1=停用)             | integer(int32)    |                |
 | &emsp;&emsp;createTime     | 创建时间                        | string(date-time) |                |
 | &emsp;&emsp;updateTime     | 更新时间                        | string(date-time) |                |
 
@@ -834,6 +869,13 @@
 		"specialization": "",
 		"description": "",
 		"sysUserId": "",
+		"avatar": "",
+		"username": "",
+		"nickName": "",
+		"email": "",
+		"mobile": "",
+		"gender": 0,
+		"status": 0,
 		"createTime": "",
 		"updateTime": ""
 	}

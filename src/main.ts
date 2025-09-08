@@ -12,6 +12,9 @@ import naive from 'naive-ui'
 // 导入i18n
 import i18n from '@/i18n'
 
+// 导入标题工具
+import {TitleUtil} from '@/utils'
+
 // 导入自定义组件
 import PageTable from '@/components/common/PageTable.vue'
 
@@ -29,6 +32,9 @@ app.use(pinia)
 
 // 先注册i18n，确保语言设置正确
 app.use(i18n)
+
+// 初始化标题工具
+TitleUtil.init(i18n)
 
 // 获取主题信息
 const themeStore = useThemeStore()

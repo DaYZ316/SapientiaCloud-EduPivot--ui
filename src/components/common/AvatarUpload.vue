@@ -12,7 +12,7 @@
     >
       <n-avatar
           :size="size"
-          :src="modelValue || placeholder"
+          :src="modelValue || (showDefaultAvatar ? placeholder : null)"
           class="avatar-trigger"
           round
       >
@@ -126,7 +126,8 @@ const props = withDefaults(defineProps<AvatarUploadProps>(), {
   maxFileSize: 2 * 1024 * 1024, // 2MB
   accept: '.jpg,.jpeg,.png',
   disabled: false,
-  placeholder: '/default-avatar.png'
+  placeholder: '/src/assets/image/default-userAvatar.png',
+  showDefaultAvatar: false
 })
 
 // Emits

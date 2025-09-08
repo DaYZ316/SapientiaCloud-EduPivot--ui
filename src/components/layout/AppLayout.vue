@@ -81,7 +81,7 @@ import {useThemeStore, useUserStore} from '@/store'
 import {getMenuOptions, getUserMenuOptions, menuRouteMap} from '@/config/menu'
 import {ChevronDownOutline} from '@vicons/ionicons5'
 import {NAvatar, NDropdown, NIcon, NMenu} from 'naive-ui'
-import defaultAvatar from '@/assets/image/default-avatar.png'
+import defaultAvatar from '@/assets/image/default-userAvatar.png'
 
 // 路由和国际化
 const route = useRoute()
@@ -186,7 +186,6 @@ onUnmounted(() => {
 
 .sidebar-header {
   padding: 16px;
-  border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -197,7 +196,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: var(--text-color);
+  color: var(--primary-color);
   font-weight: 600;
   font-size: 18px;
 }
@@ -234,7 +233,6 @@ onUnmounted(() => {
 
 .sidebar-footer {
   padding: 16px;
-  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: center;
   min-height: 80px;

@@ -25,5 +25,29 @@ export default {
     adminHeader: 'Admin Header',
     adminIcon: 'Admin Icon',
     adminContent: 'Admin Content',
-    adminDescription: 'Admin Description'
+    adminDescription: 'Admin Description',
+    // Student information related
+    studentInfo: 'Student Information',
+    studentCode: 'Student ID',
+    realName: 'Real Name',
+    birthDate: 'Birth Date',
+    admissionYear: 'Admission Year',
+    major: 'Major',
+    academicStatus: 'Academic Status',
+    academicStatusStudying: 'Studying',
+    academicStatusSuspended: 'Suspended',
+    academicStatusDropped: 'Dropped',
+    academicStatusGraduated: 'Graduated',
+    // Teacher information related
+    teacherInfo: 'Teacher Information',
+    teacherCode: 'Teacher ID',
+    department: 'Department',
+    education: 'Education',
+    educationAssociate: 'Associate',
+    educationBachelor: 'Bachelor',
+    educationMaster: 'Master',
+    educationDoctor: 'Doctor',
+    specialization: 'Specialization',
+    description: 'Description',
+    createTime: 'Create Time'
 } 

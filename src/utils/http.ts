@@ -5,22 +5,17 @@ import router from '@/router'
 import {useUserStore} from '@/store'
 import i18n from '@/i18n'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
+import {defaultServerConfig, getApiBaseUrl, type ServerConfig} from '@/config/server'
 
 /**
  * API请求路径配置类
  */
 class ApiConfig {
-    // 服务器IP
-    private ip: string
-    // 服务器端口
-    private port: number
-    // API前缀
-    private prefix: string
+    // 服务器配置
+    private serverConfig: ServerConfig
 
-    constructor(ip: string = '117.72.194.197', port: number = 31600, prefix: string = '/api') {
-        this.ip = ip
-        this.port = port
-        this.prefix = prefix
+    constructor(serverConfig: ServerConfig = defaultServerConfig) {
+        this.serverConfig = serverConfig
     }
 
     /**
@@ -32,11 +27,25 @@ class ApiConfig {
 
         if (isDev) {
             // 开发环境使用相对路径，由Vite代理处理
-            return this.prefix
+            return this.serverConfig.prefix
         } else {
             // 生产环境使用完整URL
-            return `http://${this.ip}:${this.port}${this.prefix}`
+            return getApiBaseUrl(this.serverConfig)
         }
+    }
+
+    /**
+     * 获取服务器配置
+     */
+    public getServerConfig(): ServerConfig {
+        return this.serverConfig
+    }
+
+    /**
+     * 更新服务器配置
+     */
+    public updateServerConfig(newConfig: Partial<ServerConfig>): void {
+        this.serverConfig = {...this.serverConfig, ...newConfig}
     }
 }
 
@@ -204,8 +213,6 @@ class HttpClient {
     private handleHttpError(error: any): void {
         const {message: messageApi} = getDiscreteApi()
         if (!messageApi) return
-
-        const userStore = useUserStore()
 
         if (error.response) {
             const status = error.response.status

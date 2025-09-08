@@ -1,6 +1,7 @@
 import type {RouteRecordRaw} from 'vue-router'
 import {createRouter, createWebHistory} from 'vue-router'
 import {useUserStore} from '@/store'
+import {TitleUtil} from '@/utils'
 
 /**
  * 路由配置
@@ -74,6 +75,33 @@ const routes: RouteRecordRaw[] = [
                     title: '权限管理',
                     requiresAuth: true
                 }
+            },
+            {
+                path: 'info/teacher',
+                name: 'Teacher',
+                component: () => import('@/views/info/teacher/index.vue'),
+                meta: {
+                    title: '教师管理',
+                    requiresAuth: true
+                }
+            },
+            {
+                path: 'info/student',
+                name: 'Student',
+                component: () => import('@/views/info/student/index.vue'),
+                meta: {
+                    title: '学生管理',
+                    requiresAuth: true
+                }
+            },
+            {
+                path: 'course',
+                name: 'Course',
+                component: () => import('@/views/course/index.vue'),
+                meta: {
+                    title: '课程管理',
+                    requiresAuth: true
+                }
             }
         ]
     },
@@ -99,9 +127,9 @@ const router = createRouter({
 /**
  * 路由守卫
  */
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, _from, next) => {
     // 设置页面标题
-    document.title = to.meta.title ? `${to.meta.title} - SapientiaCloud` : 'SapientiaCloud'
+    TitleUtil.setTitleByPath(to.path)
 
     // 检查是否需要登录权限
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth)

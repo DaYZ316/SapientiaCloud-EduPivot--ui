@@ -1,6 +1,67 @@
 import http from '@/utils/http'
 import type {TeacherAddDTO, TeacherDTO, TeacherQueryParams} from '@/types/teacher'
 
+// 获取默认教师查询对象
+export function getDefaultTeacherQuery(): TeacherQueryParams {
+    return {
+        teacherCode: null,
+        realName: null,
+        department: null,
+        education: null,
+        specialization: null,
+        startTime: null,
+        endTime: null,
+        pageNum: 1,
+        pageSize: 10,
+        orderByColumn: 'create_time',
+        isAsc: 'asc'
+    }
+}
+
+// 获取默认教师添加DTO
+export function getDefaultTeacherAddDTO(): TeacherAddDTO {
+    return {
+        teacherCode: null,
+        realName: null,
+        birthDate: null,
+        department: null,
+        education: null,
+        specialization: null,
+        description: null,
+        sysUserId: null
+    }
+}
+
+// 获取默认教师更新DTO
+export function getDefaultTeacherDTO(): TeacherDTO {
+    return {
+        id: null,
+        teacherCode: null,
+        realName: null,
+        birthDate: null,
+        department: null,
+        education: null,
+        specialization: null,
+        description: null,
+        sysUserId: null
+    }
+}
+
+// 分页查询教师列表
+export function getTeacherList(params: TeacherQueryParams) {
+    return http.get('/teacher/list', params)
+}
+
+// 获取所有教师
+export function getAllTeachers() {
+    return http.get('/teacher/all')
+}
+
+// 根据ID获取教师信息
+export function getTeacherById(id: string) {
+    return http.get(`/teacher/${id}`)
+}
+
 // 添加新教师
 export function addTeacher(teacherData: TeacherAddDTO) {
     return http.post('/teacher', teacherData)
@@ -11,29 +72,14 @@ export function updateTeacher(teacherData: TeacherDTO) {
     return http.put('/teacher', teacherData)
 }
 
-// 批量删除教师
-export function batchDeleteTeachers(teacherIds: string[]) {
-    return http.delete('/teacher', {data: teacherIds})
-}
-
-// 根据ID获取教师信息
-export function getTeacherById(id: string) {
-    return http.get(`/teacher/${id}`)
-}
-
 // 根据ID删除教师
 export function deleteTeacherById(id: string) {
     return http.delete(`/teacher/${id}`)
 }
 
-// 获取所有教师
-export function getAllTeachers() {
-    return http.get('/teacher/all')
-}
-
-// 分页查询教师列表
-export function getTeacherList(params: TeacherQueryParams) {
-    return http.get('/teacher/list', {params})
+// 批量删除教师
+export function batchDeleteTeachers(teacherIds: string[]) {
+    return http.delete('/teacher', {data: teacherIds})
 }
 
 // 根据用户ID获取教师信息

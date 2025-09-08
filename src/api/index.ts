@@ -12,3 +12,6 @@ export * from './teacher/index'
 
 // 导出student模块API
 export * from './student/index'
+
+// 导出course模块API
+export * from './course/index'

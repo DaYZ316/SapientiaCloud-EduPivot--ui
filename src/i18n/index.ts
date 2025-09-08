@@ -26,6 +26,11 @@ export function setLanguage(locale: "zh-CN" | "en-US") {
     defaultLocale.value = locale
     // 设置HTML的lang属性
     document.querySelector('html')?.setAttribute('lang', locale)
+
+    // 更新页面标题
+    import('@/utils').then(({TitleUtil}) => {
+        TitleUtil.updateTitle()
+    })
 }
 
 // 初始化HTML的lang属性

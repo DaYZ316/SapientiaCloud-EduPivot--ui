@@ -106,31 +106,4 @@ const toggleTheme = () => {
 <style lang="scss" scoped>
 @use './index.scss';
 
-.login-methods-toggle {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 24px;
-
-  .n-button-group {
-    .n-button {
-      min-width: 120px;
-      border-radius: 8px;
-      font-weight: 500;
-    }
-  }
-}
-
-// 响应式设计
-@media (max-width: 480px) {
-  .login-methods-toggle {
-    margin-bottom: 16px;
-
-    .n-button-group {
-      .n-button {
-        min-width: 100px;
-        font-size: 14px;
-      }
-    }
-  }
-}
 </style>

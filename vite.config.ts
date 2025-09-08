@@ -1,6 +1,7 @@
 import {defineConfig} from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
+import {defaultServerConfig, getProxyTarget} from './src/config/server'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -31,9 +32,9 @@ export default defineConfig({
         strictPort: true, // 端口被占用时不会自动尝试下一个可用端口
         cors: true, // 启用CORS
         proxy: {
-            // 配置代理
-            '/api': {
-                target: 'http://localhost:31600',
+            // 配置代理 - 使用统一配置
+            [defaultServerConfig.prefix]: {
+                target: getProxyTarget(defaultServerConfig),
                 changeOrigin: true,
                 secure: false,
                 rewrite: (path) => path,

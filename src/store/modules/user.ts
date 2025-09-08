@@ -1,7 +1,9 @@
 import {defineStore} from 'pinia'
 import {ref} from 'vue'
-import type {SysPermissionVO, SysRoleVO, SysUserLoginVO} from '@/types'
+import type {StudentDTO, SysPermissionVO, SysRoleVO, SysUserLoginVO, TeacherDTO} from '@/types'
 import * as AuthApi from '@/api/auth/auth'
+import * as StudentApi from '@/api/student'
+import * as TeacherApi from '@/api/teacher'
 
 // 用于本地存储的键名
 const TOKEN_KEY = 'token'
@@ -15,6 +17,8 @@ export const useUserStore = defineStore('user', () => {
     const userInfo = ref<SysUserLoginVO | null>(null)
     const permissions = ref<SysPermissionVO[]>([])
     const roles = ref<SysRoleVO[]>([])
+    const studentInfo = ref<StudentDTO | null>(null)
+    const teacherInfo = ref<TeacherDTO | null>(null)
 
     // 计算属性
     const isLogin = ref<boolean>(!!token.value)
@@ -187,6 +191,8 @@ export const useUserStore = defineStore('user', () => {
         userInfo.value = null
         permissions.value = []
         roles.value = []
+        studentInfo.value = null
+        teacherInfo.value = null
         isLogin.value = false
 
         // 清除本地存储中的token
@@ -206,6 +212,38 @@ export const useUserStore = defineStore('user', () => {
         } catch (error) {
             resetUserState()
             return false
+        }
+    }
+
+    /**
+     * 根据用户ID查询学生和教师信息
+     * @param sysUserId 系统用户ID
+     */
+    const fetchUserRoleInfo = async (sysUserId: string): Promise<void> => {
+        try {
+            // 并行查询学生和教师信息
+            const [studentRes, teacherRes] = await Promise.allSettled([
+                StudentApi.getStudentByUserId(sysUserId),
+                TeacherApi.getTeacherByUserId(sysUserId)
+            ])
+
+            // 处理学生信息
+            if (studentRes.status === 'fulfilled' && studentRes.value.success && studentRes.value.data) {
+                studentInfo.value = studentRes.value.data
+            } else {
+                studentInfo.value = null
+            }
+
+            // 处理教师信息
+            if (teacherRes.status === 'fulfilled' && teacherRes.value.success && teacherRes.value.data) {
+                teacherInfo.value = teacherRes.value.data
+            } else {
+                teacherInfo.value = null
+            }
+        } catch (error) {
+            // 如果查询失败，清空角色信息
+            studentInfo.value = null
+            teacherInfo.value = null
         }
     }
 
@@ -244,6 +282,10 @@ export const useUserStore = defineStore('user', () => {
                 }
 
                 permissions.value = userPermissions
+
+                // 查询学生和教师信息
+                await fetchUserRoleInfo(userData.id)
+
                 return true
             }
             return false
@@ -258,6 +300,8 @@ export const useUserStore = defineStore('user', () => {
         userInfo,
         permissions,
         roles,
+        studentInfo,
+        teacherInfo,
         isLogin,
 
         // 方法
@@ -268,6 +312,7 @@ export const useUserStore = defineStore('user', () => {
         resetUserState,
         validateToken,
         refreshUserInfo,
+        fetchUserRoleInfo,
         hasRole,
         hasPermission
     }

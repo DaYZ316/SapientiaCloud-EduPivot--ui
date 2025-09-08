@@ -30,6 +30,16 @@ export default {
     avatarUploadSuccess: 'Avatar uploaded successfully',
     avatarUploadFail: 'Avatar upload failed',
 
+    // General image upload related
+    uploadImage: 'Upload Image',
+    selectImage: 'Select Image',
+    imagePreview: 'Image Preview',
+    cropImage: 'Crop Image',
+    imageTypeError: 'Invalid image format, only JPG, PNG, GIF, WebP are supported',
+    imageSizeError: 'Image size cannot exceed 5MB',
+    imageUploadSuccess: 'Image uploaded successfully',
+    imageUploadFail: 'Image upload failed',
+
     // HTTP related errors
     http: {
         unknown: 'Unknown Error',

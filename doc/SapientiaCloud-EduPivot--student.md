@@ -2,7 +2,7 @@
 
 **简介**:SapientiaCloud-EduPivot--student API
 
-**HOST**:http://192.168.77.249:31605
+**HOST**:http://192.168.37.249:31605
 
 **联系人**:DaYZ
 
@@ -16,7 +16,7 @@
 
 ## 添加新学生
 
-**接口地址**:`/api/student/student`
+**接口地址**:`/api/student/`
 
 **请求方式**:`POST`
 
@@ -131,7 +131,7 @@
 
 ## 更新学生信息
 
-**接口地址**:`/api/student/student`
+**接口地址**:`/api/student/`
 
 **请求方式**:`PUT`
 
@@ -248,7 +248,7 @@
 
 ## 批量删除学生
 
-**接口地址**:`/api/student/student`
+**接口地址**:`/api/student/`
 
 **请求方式**:`DELETE`
 
@@ -346,7 +346,7 @@
 
 ## 根据ID获取学生信息
 
-**接口地址**:`/api/student/student/{id}`
+**接口地址**:`/api/student/{id}`
 
 **请求方式**:`GET`
 
@@ -389,6 +389,13 @@
 | &emsp;&emsp;academicStatus | 学籍状态 (0=在读, 1=休学, 2=退学, 3=毕业) | integer(int32)    |                |
 | &emsp;&emsp;description    | 自我描述                          | string            |                |
 | &emsp;&emsp;sysUserId      | 系统用户ID                        | string(uuid)      |                |
+| &emsp;&emsp;avatar         | 用户头像URL                       | string            |                |
+| &emsp;&emsp;username       | 用户名                           | string            |                |
+| &emsp;&emsp;nickName       | 用户昵称                          | string            |                |
+| &emsp;&emsp;email          | 邮箱                            | string            |                |
+| &emsp;&emsp;mobile         | 手机号                           | string            |                |
+| &emsp;&emsp;gender         | 性别 (0=未知, 1=男, 2=女)           | integer(int32)    |                |
+| &emsp;&emsp;status         | 状态 (0=正常, 1=停用)               | integer(int32)    |                |
 | &emsp;&emsp;createTime     | 创建时间                          | string(date-time) |                |
 | &emsp;&emsp;updateTime     | 更新时间                          | string(date-time) |                |
 
@@ -409,6 +416,13 @@
 		"academicStatus": 0,
 		"description": "",
 		"sysUserId": "",
+		"avatar": "",
+		"username": "",
+		"nickName": "",
+		"email": "",
+		"mobile": "",
+		"gender": 0,
+		"status": 0,
 		"createTime": "",
 		"updateTime": ""
 	}
@@ -461,7 +475,7 @@
 
 ## 根据ID删除学生
 
-**接口地址**:`/api/student/student/{id}`
+**接口地址**:`/api/student/{id}`
 
 **请求方式**:`DELETE`
 
@@ -553,7 +567,7 @@
 
 ## 获取所有学生
 
-**接口地址**:`/api/student/student/all`
+**接口地址**:`/api/student/all`
 
 **请求方式**:`GET`
 
@@ -594,6 +608,13 @@
 | &emsp;&emsp;academicStatus | 学籍状态 (0=在读, 1=休学, 2=退学, 3=毕业) | integer(int32)    |                |
 | &emsp;&emsp;description    | 自我描述                          | string            |                |
 | &emsp;&emsp;sysUserId      | 系统用户ID                        | string(uuid)      |                |
+| &emsp;&emsp;avatar         | 用户头像URL                       | string            |                |
+| &emsp;&emsp;username       | 用户名                           | string            |                |
+| &emsp;&emsp;nickName       | 用户昵称                          | string            |                |
+| &emsp;&emsp;email          | 邮箱                            | string            |                |
+| &emsp;&emsp;mobile         | 手机号                           | string            |                |
+| &emsp;&emsp;gender         | 性别 (0=未知, 1=男, 2=女)           | integer(int32)    |                |
+| &emsp;&emsp;status         | 状态 (0=正常, 1=停用)               | integer(int32)    |                |
 | &emsp;&emsp;createTime     | 创建时间                          | string(date-time) |                |
 | &emsp;&emsp;updateTime     | 更新时间                          | string(date-time) |                |
 
@@ -615,6 +636,13 @@
 			"academicStatus": 0,
 			"description": "",
 			"sysUserId": "",
+			"avatar": "",
+			"username": "",
+			"nickName": "",
+			"email": "",
+			"mobile": "",
+			"gender": 0,
+			"status": 0,
 			"createTime": "",
 			"updateTime": ""
 		}
@@ -668,7 +696,7 @@
 
 ## 分页查询学生列表
 
-**接口地址**:`/api/student/student/list`
+**接口地址**:`/api/student/list`
 
 **请求方式**:`GET`
 
@@ -771,7 +799,7 @@
 
 ## 根据用户ID获取学生信息
 
-**接口地址**:`/api/student/student/user/{id}`
+**接口地址**:`/api/student/user/{id}`
 
 **请求方式**:`GET`
 
@@ -814,6 +842,13 @@
 | &emsp;&emsp;academicStatus | 学籍状态 (0=在读, 1=休学, 2=退学, 3=毕业) | integer(int32)    |                |
 | &emsp;&emsp;description    | 自我描述                          | string            |                |
 | &emsp;&emsp;sysUserId      | 系统用户ID                        | string(uuid)      |                |
+| &emsp;&emsp;avatar         | 用户头像URL                       | string            |                |
+| &emsp;&emsp;username       | 用户名                           | string            |                |
+| &emsp;&emsp;nickName       | 用户昵称                          | string            |                |
+| &emsp;&emsp;email          | 邮箱                            | string            |                |
+| &emsp;&emsp;mobile         | 手机号                           | string            |                |
+| &emsp;&emsp;gender         | 性别 (0=未知, 1=男, 2=女)           | integer(int32)    |                |
+| &emsp;&emsp;status         | 状态 (0=正常, 1=停用)               | integer(int32)    |                |
 | &emsp;&emsp;createTime     | 创建时间                          | string(date-time) |                |
 | &emsp;&emsp;updateTime     | 更新时间                          | string(date-time) |                |
 
@@ -834,6 +869,13 @@
 		"academicStatus": 0,
 		"description": "",
 		"sysUserId": "",
+		"avatar": "",
+		"username": "",
+		"nickName": "",
+		"email": "",
+		"mobile": "",
+		"gender": 0,
+		"status": 0,
 		"createTime": "",
 		"updateTime": ""
 	}

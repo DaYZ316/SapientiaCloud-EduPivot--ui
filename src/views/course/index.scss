@@ -1,0 +1,42 @@
+.course-management-container {
+  .page-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+
+    .page-title {
+      margin: 0 0 0 12px;
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text-color);
+    }
+  }
+
+  .search-form {
+    margin-bottom: 16px;
+  }
+
+  .table-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 8px;
+
+    .actions-left {
+      display: flex;
+      gap: 8px;
+    }
+
+    .actions-right {
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  .pagination-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+  }
+}

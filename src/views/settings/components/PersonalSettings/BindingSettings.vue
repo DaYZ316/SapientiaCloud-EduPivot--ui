@@ -255,10 +255,12 @@ import type {FormInst, FormRules} from 'naive-ui'
 import {useUserStore} from '@/store'
 import {useI18n} from 'vue-i18n'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
-import type {TeacherVO} from '@/types/teacher'
-import type {StudentVO} from '@/types/student'
-import {addTeacher, getTeacherByUserId, updateTeacher} from '@/api/teacher'
-import {addStudent, getStudentByUserId, updateStudent} from '@/api/student'
+// import type {TeacherDTO} from '@/types'
+// import type {StudentDTO} from '@/types'
+import {addTeacher, updateTeacher} from '@/api/teacher'
+import {addStudent, updateStudent} from '@/api/student'
+import {getAcademicStatusLabel, getAcademicStatusOptions} from '@/enum/student'
+import {getEducationLabel, getEducationOptions} from '@/enum/teacher'
 
 const userStore = useUserStore()
 const {message} = getDiscreteApi()
@@ -271,9 +273,9 @@ const showStudentModal = ref(false)
 // 使用计算属性获取用户信息
 const userInfo = computed(() => userStore.userInfo)
 
-// 教师和学生信息
-const teacherInfo = ref<TeacherVO | null>(null)
-const studentInfo = ref<StudentVO | null>(null)
+// 从store获取教师和学生信息
+const teacherInfo = computed(() => userStore.teacherInfo)
+const studentInfo = computed(() => userStore.studentInfo)
 
 // 教师表单数据
 const teacherForm = reactive({
@@ -300,20 +302,10 @@ const studentForm = reactive({
 })
 
 // 学历选项
-const educationOptions = [
-  {label: t('settings.personal.educationOptions.college'), value: 0},
-  {label: t('settings.personal.educationOptions.bachelor'), value: 1},
-  {label: t('settings.personal.educationOptions.master'), value: 2},
-  {label: t('settings.personal.educationOptions.doctor'), value: 3}
-]
+const educationOptions = computed(() => getEducationOptions(false))
 
 // 学籍状态选项
-const academicStatusOptions = [
-  {label: t('settings.personal.academicStatusOptions.studying'), value: 0},
-  {label: t('settings.personal.academicStatusOptions.suspension'), value: 1},
-  {label: t('settings.personal.academicStatusOptions.dropout'), value: 2},
-  {label: t('settings.personal.academicStatusOptions.graduated'), value: 3}
-]
+const academicStatusOptions = computed(() => getAcademicStatusOptions(false))
 
 // 监听教师弹窗显示事件
 watch(showTeacherModal, (newVal: boolean) => {
@@ -348,49 +340,37 @@ const studentRules: FormRules = {
     {required: true, message: t('settings.personal.realNameRequired'), trigger: 'blur'}
   ],
   academicStatus: [
-    {required: true, message: t('settings.personal.academicStatusRequired'), trigger: 'change'}
+    {
+      required: true,
+      message: t('settings.personal.academicStatusRequired'),
+      trigger: ['change', 'blur'],
+      validator: (_rule: any, value: any) => {
+        // 明确检查值是否为数字类型且不为 undefined 或 null
+        if (value === undefined || value === null || value === '') {
+          return new Error(t('settings.personal.academicStatusRequired'))
+        }
+        // 检查值是否在有效范围内 (0-3)
+        if (typeof value !== 'number' || value < 0 || value > 3) {
+          return new Error(t('settings.personal.academicStatusRequired'))
+        }
+        return true
+      }
+    }
   ]
 }
 
 // 获取学历文本
 function getEducationText(education?: number): string {
   if (education === null || education === undefined) return '-'
-  const option = educationOptions.find(opt => opt.value === education)
-  return option ? option.label : '-'
+  return getEducationLabel(education, false)
 }
 
 // 获取学籍状态文本
 function getAcademicStatusText(status?: number): string {
   if (status === null || status === undefined) return '-'
-  const option = academicStatusOptions.find(opt => opt.value === status)
-  return option ? option.label : '-'
+  return getAcademicStatusLabel(status, false)
 }
 
-// 查询教师和学生信息
-const fetchBindingInfo = async () => {
-  if (!userInfo.value?.id) return
-
-  try {
-    // 并行查询教师和学生信息
-    const [teacherRes, studentRes] = await Promise.all([
-      getTeacherByUserId(userInfo.value.id),
-      getStudentByUserId(userInfo.value.id)
-    ])
-
-    if (teacherRes.success && teacherRes.data) {
-      teacherInfo.value = teacherRes.data
-      console.log('教师信息获取成功:', teacherRes.data)
-    }
-
-    if (studentRes.success && studentRes.data) {
-      studentInfo.value = studentRes.data
-      console.log('学生信息获取成功:', studentRes.data)
-      console.log('学籍状态原始值:', studentRes.data.academicStatus)
-    }
-  } catch (error) {
-    console.error('查询绑定信息失败:', error)
-  }
-}
 
 // 初始化教师表单
 const initTeacherForm = () => {
@@ -423,7 +403,8 @@ const initStudentForm = () => {
     studentForm.birthDate = studentInfo.value.birthDate || ''
     studentForm.admissionYear = studentInfo.value.admissionYear
     studentForm.major = studentInfo.value.major || ''
-    studentForm.academicStatus = studentInfo.value.academicStatus
+    // 确保学籍状态正确设置，即使是 0 也要保留
+    studentForm.academicStatus = studentInfo.value.academicStatus !== undefined ? studentInfo.value.academicStatus : undefined
     studentForm.description = studentInfo.value.description || ''
     studentForm.sysUserId = studentInfo.value.sysUserId || ''
   } else {
@@ -439,8 +420,8 @@ const initStudentForm = () => {
 
   // 调试日志
   console.log('学生信息:', studentInfo.value)
-  console.log('学籍状态值:', studentInfo.value?.academicStatus)
-  console.log('表单学籍状态:', studentForm.academicStatus)
+  console.log('学籍状态值:', studentInfo.value?.academicStatus, typeof studentInfo.value?.academicStatus)
+  console.log('表单学籍状态:', studentForm.academicStatus, typeof studentForm.academicStatus)
 }
 
 // 保存教师信息
@@ -457,7 +438,8 @@ const saveTeacherInfo = () => {
           if (res.success && res.data) {
             message.success(t('settings.personal.updateSuccess'))
             showTeacherModal.value = false
-            await fetchBindingInfo()
+            // 刷新store中的用户角色信息
+            await userStore.fetchUserRoleInfo(userInfo.value?.id || '')
           } else {
             message.error(res.message || t('settings.personal.updateFail'))
           }
@@ -467,7 +449,8 @@ const saveTeacherInfo = () => {
           if (res.success && res.data) {
             message.success(t('settings.personal.bindSuccess'))
             showTeacherModal.value = false
-            await fetchBindingInfo()
+            // 刷新store中的用户角色信息
+            await userStore.fetchUserRoleInfo(userInfo.value?.id || '')
           } else {
             message.error(res.message || t('settings.personal.bindFail'))
           }
@@ -482,29 +465,43 @@ const saveTeacherInfo = () => {
 
 // 保存学生信息
 const saveStudentInfo = () => {
+  // 在验证前先检查学籍状态
+  console.log('保存前检查 - 学籍状态:', studentForm.academicStatus, typeof studentForm.academicStatus)
+
   studentFormRef.value?.validate(async (errors: any) => {
     if (!errors) {
       try {
+        // 确保学籍状态数据正确传递
+        const formData = {
+          ...studentForm,
+          // 确保学籍状态是数字类型
+          academicStatus: typeof studentForm.academicStatus === 'number' ? studentForm.academicStatus : undefined
+        }
+
+        console.log('准备保存的数据:', formData)
+
         if (studentInfo.value) {
           // 更新学生信息
           const res = await updateStudent({
-            ...studentForm,
+            ...formData,
             id: studentInfo.value.id
           })
           if (res.success && res.data) {
             message.success(t('settings.personal.updateSuccess'))
             showStudentModal.value = false
-            await fetchBindingInfo()
+            // 刷新store中的用户角色信息
+            await userStore.fetchUserRoleInfo(userInfo.value?.id || '')
           } else {
             message.error(res.message || t('settings.personal.updateFail'))
           }
         } else {
           // 添加学生信息
-          const res = await addStudent(studentForm)
+          const res = await addStudent(formData)
           if (res.success && res.data) {
             message.success(t('settings.personal.bindSuccess'))
             showStudentModal.value = false
-            await fetchBindingInfo()
+            // 刷新store中的用户角色信息
+            await userStore.fetchUserRoleInfo(userInfo.value?.id || '')
           } else {
             message.error(res.message || t('settings.personal.bindFail'))
           }
@@ -513,46 +510,16 @@ const saveStudentInfo = () => {
         console.error('保存学生信息失败:', error)
         message.error(t('settings.personal.bindFail'))
       }
+    } else {
+      console.log('表单验证失败:', errors)
     }
   })
 }
 
 // 暴露方法给父组件
-defineExpose({
-  fetchBindingInfo
-})
-
-// 初始化时查询绑定信息
-fetchBindingInfo()
+defineExpose({})
 </script>
 
 <style lang="scss" scoped>
-.flex-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.mt-4 {
-  margin-top: 16px;
-}
-
-.no-binding {
-  text-align: center;
-  padding: 40px 0;
-}
-
-.info-display {
-  margin-bottom: 24px;
-
-  .info-card {
-    border-radius: 8px;
-  }
-}
+@use './BindingSettings.scss';
 </style>

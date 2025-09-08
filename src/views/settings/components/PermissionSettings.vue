@@ -497,25 +497,5 @@ async function handleAdd() {
 </script>
 
 <style lang="scss" scoped>
-.permission-settings-container {
-  .search-form {
-    margin-bottom: 16px;
-  }
-
-  .table-actions {
-    display: flex;
-    justify-content: flex-start;
-    margin-bottom: 8px;
-  }
-
-  .ml-2 {
-    margin-left: 8px;
-  }
-
-  .pagination-container {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 16px;
-  }
-}
+@use './PermissionSettings.scss';
 </style> 

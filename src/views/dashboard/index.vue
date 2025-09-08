@@ -9,7 +9,5 @@
 </script>
 
 <style lang="scss" scoped>
-.dashboard-container {
-  padding: 16px;
-}
+@use './index.scss';
 </style>

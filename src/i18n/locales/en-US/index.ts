@@ -4,6 +4,9 @@ import auth from './auth'
 import menu from './menu'
 import profile from './profile'
 import settings from './settings'
+import teacher from './teacher'
+import student from './student'
+import course from './course'
 
 export default {
     app,
@@ -11,5 +14,8 @@ export default {
     auth,
     menu,
     profile,
-    settings
+    settings,
+    teacher,
+    student,
+    course
 } 

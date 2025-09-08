@@ -7,6 +7,7 @@
         :data="dataList"
         :loading="loading"
         :max-height="maxHeight"
+        :row-key="processedRowKey"
         :single-line="singleLine"
         :size="size"
         :striped="striped"
@@ -99,6 +100,11 @@ const props = defineProps({
   showQuickJumper: {
     type: Boolean,
     default: true
+  },
+  // 行键字段名
+  rowKey: {
+    type: [String, Function],
+    default: 'id'
   }
 })
 
@@ -119,6 +125,15 @@ const processedColumns = computed(() => {
     }
     return column
   })
+})
+
+// 处理行键，将字符串转换为函数
+const processedRowKey = computed(() => {
+  if (typeof props.rowKey === 'function') {
+    return props.rowKey
+  }
+  // 如果是字符串，返回一个函数
+  return (row: any) => row[props.rowKey as string]
 })
 
 // 分页状态

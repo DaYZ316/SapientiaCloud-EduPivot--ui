@@ -185,23 +185,5 @@ const changePassword = () => {
 </script>
 
 <style lang="scss" scoped>
-.flex-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.mt-4 {
-  margin-top: 16px;
-}
-
-.password-card, .security-card {
-  margin-bottom: 16px;
-}
+@use './SecuritySettings.scss';
 </style>

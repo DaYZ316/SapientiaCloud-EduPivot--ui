@@ -30,6 +30,16 @@ export default {
     avatarUploadSuccess: '头像上传成功',
     avatarUploadFail: '头像上传失败',
 
+    // 通用图片上传相关
+    uploadImage: '上传图片',
+    selectImage: '选择图片',
+    imagePreview: '图片预览',
+    cropImage: '裁剪图片',
+    imageTypeError: '图片格式错误，仅支持 JPG、PNG、GIF、WebP 格式',
+    imageSizeError: '图片大小不能超过 5MB',
+    imageUploadSuccess: '图片上传成功',
+    imageUploadFail: '图片上传失败',
+
     // HTTP 相关错误
     http: {
         unknown: '未知错误',

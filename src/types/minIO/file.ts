@@ -29,6 +29,7 @@ export interface AvatarUploadProps {
     accept?: string;
     disabled?: boolean;
     placeholder?: string;
+    showDefaultAvatar?: boolean;
 }
 
 // 头像上传组件Emits接口

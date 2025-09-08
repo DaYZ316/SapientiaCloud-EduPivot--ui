@@ -26,12 +26,12 @@
           <BasicInfo ref="basicInfoRef"/>
         </n-tab-pane>
 
-        <n-tab-pane :tab="t('settings.personal.security')" name="security">
-          <SecuritySettings/>
-        </n-tab-pane>
-
         <n-tab-pane :tab="t('settings.personal.binding')" name="binding">
           <BindingSettings ref="bindingSettingsRef"/>
+        </n-tab-pane>
+
+        <n-tab-pane :tab="t('settings.personal.security')" name="security">
+          <SecuritySettings/>
         </n-tab-pane>
       </n-tabs>
     </n-card>
@@ -93,52 +93,5 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
-.personal-settings {
-  .profile-card {
-    border-radius: 8px;
-    background-image: linear-gradient(135deg, var(--primary-color) 0%, var(--info-color) 100%);
-
-    .profile-header {
-      display: flex;
-      align-items: center;
-
-      .avatar-section {
-        position: relative;
-        margin-right: 24px;
-
-        .avatar-upload {
-          cursor: pointer;
-          transition: opacity 0.3s, transform 0.2s;
-
-          &:hover {
-            opacity: 0.8;
-            transform: scale(1.05);
-          }
-        }
-      }
-
-      .user-info-brief {
-        color: white;
-
-        h3 {
-          font-size: 1.5rem;
-          margin-bottom: 8px;
-        }
-
-        .role-tag {
-          margin-right: 8px;
-          margin-bottom: 8px;
-        }
-      }
-    }
-  }
-
-  .info-card {
-    border-radius: 8px;
-  }
-}
-
-.mt-4 {
-  margin-top: 16px;
-}
+@use './index.scss';
 </style>

@@ -44,18 +44,5 @@ function goBack() {
 </script>
 
 <style lang="scss" scoped>
-.settings-container {
-  .page-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 24px;
-
-    .page-title {
-      margin: 0 0 0 12px;
-      font-weight: 500;
-      font-size: 24px;
-      color: var(--text-color-primary);
-    }
-  }
-}
+@use './index.scss';
 </style> 

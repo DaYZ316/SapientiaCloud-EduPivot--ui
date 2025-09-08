@@ -1,10 +1,13 @@
 import type {Component} from 'vue'
 import {
+    BookOutline,
     HomeOutline,
     KeyOutline,
     LogOutOutline,
     PeopleOutline,
+    PersonCircleOutline,
     PersonOutline,
+    SchoolOutline,
     SettingsOutline,
     ShieldCheckmarkOutline
 } from '@vicons/ionicons5'
@@ -36,6 +39,28 @@ export const getMenuOptions = (t: (key: string) => string): MenuOption[] => [
         key: 'Dashboard',
         label: t('menu.dashboard'),
         icon: renderIcon(HomeOutline)
+    },
+    {
+        key: 'Course',
+        label: t('menu.course'),
+        icon: renderIcon(BookOutline)
+    },
+    {
+        key: 'InfoManagement',
+        label: t('menu.infoManagement'),
+        icon: renderIcon(PeopleOutline),
+        children: [
+            {
+                key: 'Teacher',
+                label: t('menu.teacher'),
+                icon: renderIcon(SchoolOutline)
+            },
+            {
+                key: 'Student',
+                label: t('menu.student'),
+                icon: renderIcon(PersonCircleOutline)
+            }
+        ]
     },
     {
         key: 'system',
@@ -87,5 +112,8 @@ export const menuRouteMap: Record<string, string> = {
     'Settings': '/settings',
     'User': '/system/user',
     'Role': '/system/role',
-    'Permission': '/system/permission'
+    'Permission': '/system/permission',
+    'Teacher': '/info/teacher',
+    'Student': '/info/student',
+    'Course': '/course'
 }

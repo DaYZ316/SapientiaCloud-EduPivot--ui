@@ -12,7 +12,7 @@
       <div class="profile-avatar-container">
         <n-avatar
             :size="120"
-            :src="userInfo?.avatar || '/default-avatar.png'"
+            :src="userInfo?.avatar || '/src/assets/image/default-userAvatar.png'"
             class="profile-avatar"
             round
         />
@@ -192,6 +192,89 @@
             </n-card>
           </div>
         </n-tab-pane>
+
+        <!-- 学生信息标签页 -->
+        <n-tab-pane v-if="studentInfo" :tab="t('profile.studentInfo')" name="student">
+          <div class="profile-section">
+            <n-card :bordered="false" class="info-card">
+              <template #header>
+                <div class="section-header">
+                  <h3 class="section-title">{{ t('profile.studentInfo') }}</h3>
+                </div>
+              </template>
+              <n-descriptions bordered>
+                <n-descriptions-item :label="t('profile.studentCode')">
+                  <span>{{ studentInfo.studentCode }}</span>
+                </n-descriptions-item>
+                <n-descriptions-item :label="t('profile.realName')">
+                  <span>{{ studentInfo.realName }}</span>
+                </n-descriptions-item>
+                <n-descriptions-item :label="t('profile.birthDate')">
+                  <span>{{ formatDate(studentInfo.birthDate) }}</span>
+                </n-descriptions-item>
+                <n-descriptions-item :label="t('profile.admissionYear')">
+                  <span>{{ studentInfo.admissionYear || '-' }}</span>
+                </n-descriptions-item>
+                <n-descriptions-item :label="t('profile.major')">
+                  <span>{{ studentInfo.major || '-' }}</span>
+                </n-descriptions-item>
+                <n-descriptions-item :label="t('profile.academicStatus')">
+                  <n-tag :type="getAcademicStatusType(studentInfo.academicStatus)">
+                    {{ getAcademicStatusText(studentInfo.academicStatus) }}
+                  </n-tag>
+                </n-descriptions-item>
+                <n-descriptions-item v-if="studentInfo.description" :label="t('profile.description')">
+                  <span>{{ studentInfo.description }}</span>
+                </n-descriptions-item>
+                <n-descriptions-item :label="t('profile.createTime')">
+                  <span>{{ formatDateTime(studentInfo.createTime) }}</span>
+                </n-descriptions-item>
+              </n-descriptions>
+            </n-card>
+          </div>
+        </n-tab-pane>
+
+        <!-- 教师信息标签页 -->
+        <n-tab-pane v-if="teacherInfo" :tab="t('profile.teacherInfo')" name="teacher">
+          <div class="profile-section">
+            <n-card :bordered="false" class="teacher-info-card">
+              <template #header>
+                <div class="teacher-info-header">
+                  <Icon :component="PersonOutline" class="teacher-icon"/>
+                  <h3 class="section-title">{{ t('profile.teacherInfo') }}</h3>
+                </div>
+              </template>
+              <n-descriptions bordered>
+                <n-descriptions-item :label="t('profile.teacherCode')">
+                  <span>{{ teacherInfo.teacherCode }}</span>
+                </n-descriptions-item>
+                <n-descriptions-item :label="t('profile.realName')">
+                  <span>{{ teacherInfo.realName }}</span>
+                </n-descriptions-item>
+                <n-descriptions-item :label="t('profile.birthDate')">
+                  <span>{{ formatDate(teacherInfo.birthDate) }}</span>
+                </n-descriptions-item>
+                <n-descriptions-item :label="t('profile.department')">
+                  <span>{{ teacherInfo.department || '-' }}</span>
+                </n-descriptions-item>
+                <n-descriptions-item :label="t('profile.education')">
+                  <n-tag :type="getEducationType(teacherInfo.education)">
+                    {{ getEducationLabel(teacherInfo.education) }}
+                  </n-tag>
+                </n-descriptions-item>
+                <n-descriptions-item :label="t('profile.specialization')">
+                  <span>{{ teacherInfo.specialization || '-' }}</span>
+                </n-descriptions-item>
+                <n-descriptions-item v-if="teacherInfo.description" :label="t('profile.description')">
+                  <span>{{ teacherInfo.description }}</span>
+                </n-descriptions-item>
+                <n-descriptions-item :label="t('profile.createTime')">
+                  <span>{{ formatDateTime(teacherInfo.createTime) }}</span>
+                </n-descriptions-item>
+              </n-descriptions>
+            </n-card>
+          </div>
+        </n-tab-pane>
       </n-tabs>
     </div>
   </div>
@@ -200,7 +283,7 @@
 <script lang="ts" setup>
 import {computed} from 'vue'
 import {useRouter} from 'vue-router'
-import {ArrowBackOutline, ShieldCheckmarkOutline} from '@vicons/ionicons5'
+import {ArrowBackOutline, PersonOutline, ShieldCheckmarkOutline} from '@vicons/ionicons5'
 import {useUserStore} from '@/store'
 import {useI18n} from 'vue-i18n'
 import type {SysPermissionVO} from '@/types/system'
@@ -211,6 +294,8 @@ const userStore = useUserStore()
 const {t} = useI18n()
 const userInfo = computed(() => userStore.userInfo)
 const userRoles = computed(() => userStore.userInfo?.roles || [])
+const studentInfo = computed(() => userStore.studentInfo)
+const teacherInfo = computed(() => userStore.teacherInfo)
 const userPermissions = computed(() => {
   // 如果userStore.permissions已经存在，则直接使用
   if (userStore.permissions && userStore.permissions.length > 0) {
@@ -335,6 +420,81 @@ function formatDateTime(dateStr?: string): string {
   }
 }
 
+// 格式化日期
+function formatDate(dateStr?: string): string {
+  if (!dateStr) return '-'
+  try {
+    const date = new Date(dateStr)
+    return date.toLocaleDateString()
+  } catch (e) {
+    return dateStr
+  }
+}
+
+// 获取学业状态标签
+function getAcademicStatusText(status?: number): string {
+  switch (status) {
+    case 0:
+      return t('profile.academicStatusStudying')
+    case 1:
+      return t('profile.academicStatusSuspended')
+    case 2:
+      return t('profile.academicStatusDropped')
+    case 3:
+      return t('profile.academicStatusGraduated')
+    default:
+      return '-'
+  }
+}
+
+// 获取学业状态类型
+function getAcademicStatusType(status?: number): string {
+  switch (status) {
+    case 0:
+      return 'success'
+    case 1:
+      return 'warning'
+    case 2:
+      return 'error'
+    case 3:
+      return 'info'
+    default:
+      return 'default'
+  }
+}
+
+// 获取学历标签
+function getEducationLabel(education?: number): string {
+  switch (education) {
+    case 0:
+      return t('profile.educationAssociate')
+    case 1:
+      return t('profile.educationBachelor')
+    case 2:
+      return t('profile.educationMaster')
+    case 3:
+      return t('profile.educationDoctor')
+    default:
+      return '-'
+  }
+}
+
+// 获取学历类型
+function getEducationType(education?: number): string {
+  switch (education) {
+    case 0:
+      return 'default'
+    case 1:
+      return 'info'
+    case 2:
+      return 'warning'
+    case 3:
+      return 'success'
+    default:
+      return 'default'
+  }
+}
+
 // 跳转到设置页面
 function goToSettings() {
   router.push('/settings')
@@ -347,252 +507,5 @@ function goBack() {
 </script>
 
 <style lang="scss" scoped>
-.profile-container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-
-  .page-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 16px;
-  }
-
-  .profile-header {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 60px;
-    padding-bottom: 40px;
-    margin-bottom: 30px;
-    overflow: hidden;
-    border-radius: 12px;
-    text-align: center;
-
-    .profile-bg {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 180px;
-      background: linear-gradient(135deg, var(--primary-color) 0%, var(--info-color) 100%);
-      z-index: 0;
-    }
-
-    .profile-avatar-container {
-      position: relative;
-      z-index: 2;
-      margin-bottom: 16px;
-
-      .profile-avatar {
-        border: 4px solid white;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      }
-    }
-
-    .profile-name {
-      font-size: 28px;
-      font-weight: 600;
-      margin: 0 0 8px 0;
-      position: relative;
-      z-index: 2;
-    }
-
-    .profile-bio {
-      color: var(--text-secondary-color);
-      margin: 0 0 20px 0;
-      position: relative;
-      z-index: 2;
-    }
-
-    .admin-badge {
-      position: relative;
-      z-index: 2;
-      margin-bottom: 20px;
-
-      .n-tag {
-        font-weight: 600;
-        font-size: 16px;
-        padding: 8px 16px;
-      }
-    }
-
-    .profile-stats {
-      display: flex;
-      justify-content: center;
-      gap: 48px;
-      position: relative;
-      z-index: 2;
-
-      .stat-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-
-        .stat-value {
-          font-size: 24px;
-          font-weight: 600;
-          color: var(--text-color);
-          margin-bottom: 4px;
-        }
-
-        .stat-label {
-          font-size: 14px;
-          color: var(--text-secondary-color);
-        }
-      }
-    }
-  }
-
-  .profile-tabs {
-    .custom-tabs {
-      margin-bottom: 24px;
-    }
-
-    .profile-section {
-      margin-bottom: 30px;
-    }
-
-    .info-card {
-      .action-buttons {
-        display: flex;
-        justify-content: flex-end;
-        margin-top: 24px;
-      }
-    }
-
-    .section-title {
-      font-size: 18px;
-      font-weight: 500;
-      margin: 0 0 16px 0;
-      color: var(--text-color);
-    }
-
-    // Admin角色特殊样式
-    .admin-role-section {
-      margin-bottom: 24px;
-
-      .admin-role-card {
-        border: 2px solid var(--success-color);
-        background: linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, rgba(76, 175, 80, 0.1) 100%);
-
-        .admin-role-header {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-
-          .admin-icon {
-            color: var(--success-color);
-            font-size: 24px;
-          }
-        }
-
-        .admin-role-content {
-          .admin-description {
-            color: var(--text-secondary-color);
-            font-size: 16px;
-            line-height: 1.6;
-            margin: 0;
-          }
-        }
-      }
-    }
-
-    // Admin权限特殊样式
-    .admin-permissions-section {
-      margin-bottom: 24px;
-
-      .admin-permissions-card {
-        border: 2px solid var(--success-color);
-        background: linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, rgba(76, 175, 80, 0.1) 100%);
-
-        .admin-permissions-header {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-
-          .admin-icon {
-            color: var(--success-color);
-            font-size: 24px;
-          }
-        }
-
-        .admin-permissions-content {
-          .admin-description {
-            color: var(--text-secondary-color);
-            font-size: 16px;
-            line-height: 1.6;
-            margin: 0;
-          }
-        }
-      }
-    }
-
-    .roles-card {
-      .roles-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 16px;
-
-        .role-item {
-          padding: 16px;
-
-          .role-content {
-            margin-bottom: 16px;
-
-            .role-row {
-              display: flex;
-              align-items: center;
-              margin-bottom: 8px;
-
-              .role-label {
-                font-weight: 500;
-                width: 120px;
-                flex-shrink: 0;
-              }
-
-              .role-value {
-                color: var(--text-secondary-color);
-              }
-            }
-          }
-
-          .role-permissions {
-            .permission-title {
-              font-weight: 500;
-              margin-bottom: 12px;
-            }
-
-            .permission-tags {
-              display: flex;
-              flex-wrap: wrap;
-              gap: 8px;
-            }
-          }
-        }
-      }
-    }
-
-    .permissions-card {
-      .permissions-tree {
-        max-height: 600px;
-        overflow-y: auto;
-      }
-    }
-  }
-}
-
-@media (max-width: 768px) {
-  .profile-container {
-    padding: 12px;
-
-    .profile-header {
-      .profile-stats {
-        gap: 24px;
-      }
-    }
-  }
-}
+@use './index.scss';
 </style> 

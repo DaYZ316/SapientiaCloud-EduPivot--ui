@@ -12,4 +12,7 @@ export {hasPermission, hasAllPermissions} from './permissionUtil'
 export * from './pageUtil'
 
 // 导出日期时间工具函数
-export * from './dateUtil' 
+export * from './dateUtil'
+
+// 导出标题工具函数
+export * from './titleUtil' 

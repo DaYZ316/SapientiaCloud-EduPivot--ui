@@ -1,0 +1,28 @@
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mt-4 {
+  margin-top: 16px;
+}
+
+.no-binding {
+  text-align: center;
+  padding: 40px 0;
+}
+
+.info-display {
+  margin-bottom: 24px;
+
+  .info-card {
+    border-radius: 8px;
+  }
+}

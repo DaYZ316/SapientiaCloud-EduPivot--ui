@@ -33,18 +33,16 @@
     <n-form label-placement="left" label-width="120">
       <n-form-item :label="t('settings.system.sidebarCollapsed')">
         <n-switch v-model:value="sidebarCollapsed" @update:value="handleSidebarCollapsedChange"/>
-        <span class="setting-description">{{ t('settings.system.sidebarCollapsedDesc') }}</span>
       </n-form-item>
     </n-form>
 
     <h2>{{ t('settings.languageSettings') }}</h2>
     <n-form label-placement="left" label-width="120">
       <n-form-item :label="t('settings.system.defaultLanguage')">
-        <n-select
-            v-model:value="currentLang"
-            :options="languageOptions"
-            @update:value="handleLanguageChange"
-        />
+        <n-radio-group v-model:value="currentLang" @update:value="handleLanguageChange">
+          <n-radio-button value="zh-CN">中文</n-radio-button>
+          <n-radio-button value="en-US">English</n-radio-button>
+        </n-radio-group>
       </n-form-item>
     </n-form>
   </div>
@@ -80,11 +78,6 @@ const systemColors = [
   '#fa8c16'  // 深橙色
 ]
 
-// 语言选项
-const languageOptions = [
-  {label: '中文', value: 'zh-CN'},
-  {label: 'English', value: 'en-US'}
-]
 
 // 监听主题模式变化
 watch(themeMode, (newMode) => {
@@ -110,45 +103,5 @@ const handleSidebarCollapsedChange = (collapsed: boolean) => {
 </script>
 
 <style lang="scss" scoped>
-.system-settings {
-  padding: 20px;
-
-  h2 {
-    margin: 24px 0 16px 0;
-    color: var(--text-color);
-    font-size: 18px;
-    font-weight: 600;
-  }
-
-  .color-options {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-
-  .color-option {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: all 0.2s ease;
-
-    &:hover {
-      transform: scale(1.1);
-      border-color: var(--border-color);
-    }
-
-    &.active {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 2px var(--primary-color-light, rgba(24, 144, 255, 0.2));
-    }
-  }
-
-  .setting-description {
-    margin-left: 12px;
-    font-size: 14px;
-    color: var(--text-secondary-color);
-  }
-}
+@use './SystemSettings.scss';
 </style> 

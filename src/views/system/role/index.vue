@@ -619,43 +619,5 @@ async function submitAssignPermissions() {
 </script>
 
 <style lang="scss" scoped>
-.role-management-container {
-  .page-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 16px;
-
-    .page-title {
-      margin: 0 0 0 12px;
-      font-size: 24px;
-      font-weight: 600;
-      color: var(--text-color);
-    }
-  }
-
-  .search-form {
-    margin-bottom: 16px;
-  }
-
-  .table-actions {
-    display: flex;
-    justify-content: flex-start;
-    margin-bottom: 8px;
-  }
-
-  .ml-2 {
-    margin-left: 8px;
-  }
-
-  .pagination-container {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 16px;
-  }
-
-  .assign-header {
-    margin-bottom: 16px;
-    font-weight: bold;
-  }
-}
+@use './index.scss';
 </style>

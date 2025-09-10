@@ -120,7 +120,7 @@ import {
   SwapVerticalOutline
 } from '@vicons/ionicons5'
 import Icon from './Icon.vue'
-import type {ImageUploadEmits, ImageUploadProps} from '@/types'
+import type {ImageUploadEmits, ImageUploadProps} from '@/types/components/imageUpload'
 
 // Props with defaults
 const props = withDefaults(defineProps<ImageUploadProps>(), {

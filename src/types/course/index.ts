@@ -90,9 +90,9 @@ export interface CourseQueryParams {
     /** 排序列 */
     orderByColumn?: string | null
     /** 排序的方向,可用值:asc,desc */
-    isAsc?: string | null
+    isAsc?: 'asc' | 'desc' | null
     /** 分页参数合理化 */
-    reasonable?: string | null
+    reasonable?: boolean | null
 }
 
 /**
@@ -153,8 +153,8 @@ export interface CourseStudentQueryParams {
     /** 排序列 */
     orderByColumn?: string | null
     /** 排序的方向,可用值:asc,desc */
-    isAsc?: string | null
+    isAsc?: 'asc' | 'desc' | null
     /** 分页参数合理化 */
-    reasonable?: string | null
+    reasonable?: boolean | null
 }
 

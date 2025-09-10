@@ -1,6 +1,6 @@
 import {defineStore} from 'pinia'
 import {ref} from 'vue'
-import type {StudentDTO, SysPermissionVO, SysRoleVO, SysUserLoginVO, TeacherDTO} from '@/types'
+import type {StudentVO, SysPermissionVO, SysRoleVO, SysUserLoginVO, TeacherVO} from '@/types'
 import * as AuthApi from '@/api/auth/auth'
 import * as StudentApi from '@/api/student'
 import * as TeacherApi from '@/api/teacher'
@@ -17,8 +17,8 @@ export const useUserStore = defineStore('user', () => {
     const userInfo = ref<SysUserLoginVO | null>(null)
     const permissions = ref<SysPermissionVO[]>([])
     const roles = ref<SysRoleVO[]>([])
-    const studentInfo = ref<StudentDTO | null>(null)
-    const teacherInfo = ref<TeacherDTO | null>(null)
+    const studentInfo = ref<StudentVO | null>(null)
+    const teacherInfo = ref<TeacherVO | null>(null)
 
     // 计算属性
     const isLogin = ref<boolean>(!!token.value)
@@ -57,21 +57,23 @@ export const useUserStore = defineStore('user', () => {
     // 检查用户是否具有指定权限
     const hasPermission = (permissionKey: string): boolean => {
         // 如果是ADMIN角色，直接放行
-        for (let i = 0; i < roles.value.length; i++) {
-            if (roles.value[i].roleKey === 'ADMIN') {
-                return true
-            }
+        if (roles.value.some(role => role.roleKey === 'ADMIN')) {
+            return true
         }
 
         // 检查是否有匹配的权限（包括父权限）
-        for (let i = 0; i < permissions.value.length; i++) {
-            const userPerm = permissions.value[i].permissionKey
-            if (isParentPermission(userPerm, permissionKey)) {
-                return true
-            }
-        }
+        return permissions.value.some(perm =>
+            isParentPermission(perm.permissionKey, permissionKey)
+        )
+    }
 
-        return false
+    /**
+     * 设置登录状态和token
+     */
+    const setLoginState = (accessToken: string): void => {
+        token.value = accessToken
+        localStorage.setItem(TOKEN_KEY, accessToken)
+        isLogin.value = true
     }
 
     /**
@@ -79,53 +81,34 @@ export const useUserStore = defineStore('user', () => {
      */
     const login = async (username: string, password: string): Promise<boolean> => {
         try {
-            // 使用getDefaultSysUserLoginDTO函数创建DTO对象
-            const loginDTO = AuthApi.getDefaultSysUserLoginDTO();
-            loginDTO.username = username;
-            loginDTO.password = password;
+            const loginDTO = AuthApi.getDefaultSysUserLoginDTO()
+            loginDTO.username = username
+            loginDTO.password = password
 
             const res = await AuthApi.login(loginDTO)
             if (res.success && res.data) {
-                const userData = res.data
-
-                // 仅保存token
-                token.value = userData.accessToken
-                localStorage.setItem(TOKEN_KEY, userData.accessToken)
-
-                // 设置登录状态
-                isLogin.value = true
-
-                // 获取用户信息
+                setLoginState(res.data.accessToken)
                 await refreshUserInfo()
-
                 return true
             }
             return false
         } catch (error) {
-            // HTTP错误已经在HTTP模块中处理，不需要在这里重复处理
             return false
         }
     }
 
     const register = async (username: string, password: string, confirmPassword: string): Promise<boolean> => {
         try {
-            const registerDTO = AuthApi.getDefaultSysUserRegisterDTO();
-            registerDTO.username = username;
-            registerDTO.password = password;
-            registerDTO.confirmPassword = confirmPassword;
+            const registerDTO = AuthApi.getDefaultSysUserRegisterDTO()
+            registerDTO.username = username
+            registerDTO.password = password
+            registerDTO.confirmPassword = confirmPassword
             registerDTO.nickName = '默认用户'
 
             const res = await AuthApi.register(registerDTO)
             if (res.success && res.data) {
-                const userData = res.data
-
-                // 仅保存token
-                token.value = userData.accessToken
-                localStorage.setItem(TOKEN_KEY, userData.accessToken)
-
-                // 获取用户信息
+                setLoginState(res.data.accessToken)
                 await refreshUserInfo()
-
                 return true
             }
             return false
@@ -139,30 +122,18 @@ export const useUserStore = defineStore('user', () => {
      */
     const loginWithVerificationCode = async (mobile: string, verificationCode: string): Promise<boolean> => {
         try {
-            // 使用getDefaultSysUserMobileLoginDTO函数创建DTO对象
-            const mobileLoginDTO = AuthApi.getDefaultSysUserMobileLoginDTO();
-            mobileLoginDTO.mobile = mobile;
-            mobileLoginDTO.verificationCode = verificationCode;
+            const mobileLoginDTO = AuthApi.getDefaultSysUserMobileLoginDTO()
+            mobileLoginDTO.mobile = mobile
+            mobileLoginDTO.verificationCode = verificationCode
 
             const res = await AuthApi.mobileLogin(mobileLoginDTO)
             if (res.success && res.data) {
-                const userData = res.data
-
-                // 仅保存token
-                token.value = userData.accessToken
-                localStorage.setItem(TOKEN_KEY, userData.accessToken)
-
-                // 设置登录状态
-                isLogin.value = true
-
-                // 获取用户信息
+                setLoginState(res.data.accessToken)
                 await refreshUserInfo()
-
                 return true
             }
             return false
         } catch (error) {
-            // HTTP错误已经在HTTP模块中处理，不需要在这里重复处理
             return false
         }
     }
@@ -207,7 +178,7 @@ export const useUserStore = defineStore('user', () => {
         if (!token.value) return false
 
         try {
-            const res = await AuthApi.validate(token.value)
+            const res = await AuthApi.validateToken(token.value)
             return (res.success && res.data)
         } catch (error) {
             resetUserState()
@@ -221,27 +192,41 @@ export const useUserStore = defineStore('user', () => {
      */
     const fetchUserRoleInfo = async (sysUserId: string): Promise<void> => {
         try {
-            // 并行查询学生和教师信息
-            const [studentRes, teacherRes] = await Promise.allSettled([
-                StudentApi.getStudentByUserId(sysUserId),
-                TeacherApi.getTeacherByUserId(sysUserId)
-            ])
+            const hasStudentRole = hasRole('STUDENT')
+            const hasTeacherRole = hasRole('TEACHER')
 
-            // 处理学生信息
-            if (studentRes.status === 'fulfilled' && studentRes.value.success && studentRes.value.data) {
-                studentInfo.value = studentRes.value.data
+            // 构建查询任务
+            const tasks = []
+            if (hasStudentRole) {
+                tasks.push(StudentApi.getStudentByUserId(sysUserId))
+            }
+            if (hasTeacherRole) {
+                tasks.push(TeacherApi.getTeacherByUserId(sysUserId))
+            }
+
+            // 并行查询
+            const results = await Promise.allSettled(tasks)
+
+            // 处理结果
+            let resultIndex = 0
+            if (hasStudentRole) {
+                const studentRes = results[resultIndex++]
+                studentInfo.value = studentRes.status === 'fulfilled' &&
+                studentRes.value.success && studentRes.value.data ?
+                    studentRes.value.data : null
             } else {
                 studentInfo.value = null
             }
 
-            // 处理教师信息
-            if (teacherRes.status === 'fulfilled' && teacherRes.value.success && teacherRes.value.data) {
-                teacherInfo.value = teacherRes.value.data
+            if (hasTeacherRole) {
+                const teacherRes = results[resultIndex++]
+                teacherInfo.value = teacherRes.status === 'fulfilled' &&
+                teacherRes.value.success && teacherRes.value.data ?
+                    teacherRes.value.data : null
             } else {
                 teacherInfo.value = null
             }
         } catch (error) {
-            // 如果查询失败，清空角色信息
             studentInfo.value = null
             teacherInfo.value = null
         }
@@ -255,7 +240,7 @@ export const useUserStore = defineStore('user', () => {
         if (!token.value) return false
 
         try {
-            const res = await AuthApi.getCurrentUser()
+            const res = await AuthApi.getUserInfo()
             if (res.success && res.data) {
                 const userData = res.data
 
@@ -265,21 +250,11 @@ export const useUserStore = defineStore('user', () => {
                 // 更新角色和权限
                 roles.value = userData.roles || []
 
-                const userPermissions: SysPermissionVO[] = []
-
                 // 合并所有权限
-                if (userData.permissions && userData.permissions.length > 0) {
-                    userPermissions.push(...userData.permissions)
-                }
-
-                // 合并角色中的权限
-                if (userData.roles && userData.roles.length > 0) {
-                    userData.roles.forEach((role: SysRoleVO) => {
-                        if (role.permissions && role.permissions.length > 0) {
-                            userPermissions.push(...role.permissions)
-                        }
-                    })
-                }
+                const userPermissions: SysPermissionVO[] = [
+                    ...(userData.permissions || []),
+                    ...(userData.roles || []).flatMap((role: SysRoleVO) => role.permissions || [])
+                ]
 
                 permissions.value = userPermissions
 

@@ -20,6 +20,7 @@ export default {
     yes: '是',
     no: '否',
     user: '用户',
+    back: '返回',
 
     // 头像上传相关
     uploadAvatar: '上传头像',
@@ -53,6 +54,7 @@ export default {
         serverError: '服务器内部错误',
         requestFailed: '请求失败',
         statusCode: '请求失败({0})',
-        notInitialized: '对话框实例未初始化'
+        notInitialized: '对话框实例未初始化',
+        confirm: '确认'
     }
 } 

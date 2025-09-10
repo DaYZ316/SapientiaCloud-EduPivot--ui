@@ -27,9 +27,9 @@ export interface StudentAddDTO {
 
 // 学生视图对象
 export interface StudentVO {
-    id: string
-    studentCode: string
-    realName: string
+    id: string | null
+    studentCode: string | null
+    realName: string | null
     birthDate?: string | null
     admissionYear?: number | null
     major?: string | null
@@ -43,8 +43,9 @@ export interface StudentVO {
     mobile?: string | null
     gender?: number | null // 0=未知, 1=男, 2=女
     status?: number | null // 0=正常, 1=停用
-    createTime: string
-    updateTime: string
+    createTime: string | null
+    updateTime: string | null
+    lastLoginTime?: string | null
 }
 
 // 学生查询参数

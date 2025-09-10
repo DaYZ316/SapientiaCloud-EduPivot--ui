@@ -136,9 +136,13 @@
         </n-form-item>
 
         <n-form-item :label="t('settings.user.addUser.avatar')" path="avatar">
-          <n-input
-              v-model:value="addUserForm.avatar"
-              :placeholder="t('settings.user.addUser.avatarPlaceholder')"
+          <ImageUpload
+              v-model:model-value="addUserForm.avatar"
+              :aspect-ratio="1"
+              :round="true"
+              :show-crop="true"
+              :size="100"
+              upload-dir="avatars"
           />
         </n-form-item>
       </n-form>
@@ -153,31 +157,65 @@
       </template>
     </n-modal>
 
-    <!-- 分配角色对话框 -->
-    <n-modal v-model:show="showAssignModal" :title="t('settings.user.assignRole.title')" preset="card"
-             style="width: 600px">
-      <div v-if="currentUser" class="assign-header">
-        <p>{{ t('settings.user.assignRole.user') }}: {{ currentUser.username }} ({{ currentUser.nickName }})</p>
-      </div>
+    <!-- 角色分配对话框 -->
+    <RoleAssignmentModal
+        v-model:selected-role-ids="roleAssignment.selectedRoleIds.value"
+        v-model:show="roleAssignment.showAssignModal.value"
+        :available-roles="roleAssignment.availableRoles.value"
+        :current-user="roleAssignment.currentUser.value"
+        :submitting="roleAssignment.submittingRoles.value"
+        :user-roles="roleAssignment.userRoles.value"
+        @cancel="roleAssignment.closeAssignModal"
+        @submit="(roleIds) => roleAssignment.submitAssignRoles(roleIds)"
+    />
 
-      <n-transfer
-          v-model:value="selectedRoleIds"
-          :options="availableRoles.map(role => ({
-          label: role.roleName,
-          value: role.id,
-          disabled: role.admin && !selectedRoleIds.includes(role.id)
-        }))"
-      />
+    <!-- 学生信息对话框 -->
+    <InfoModal
+        v-model:show="roleAssignment.showStudentInfoModal.value"
+        :academic-status-options="academicStatusOptions"
+        :form-data="roleAssignment.studentInfoForm"
+        :submitting="roleAssignment.submittingStudent.value"
+        mode="input"
+        type="student"
+        @cancel="() => roleAssignment.closeInfoModal('student')"
+        @submit="handleInfoSubmit.student"
+    />
 
-      <template #footer>
-        <n-space justify="end">
-          <n-button @click="closeAssignModal">{{ t('settings.user.assignRole.cancel') }}</n-button>
-          <n-button :loading="submittingRoles" type="primary" @click="submitAssignRoles">
-            {{ t('settings.user.assignRole.submit') }}
-          </n-button>
-        </n-space>
-      </template>
-    </n-modal>
+    <!-- 学生信息展示对话框 -->
+    <InfoModal
+        v-model:show="roleAssignment.showStudentInfoDisplayModal.value"
+        :academic-status-options="academicStatusOptions"
+        :form-data="roleAssignment.studentInfoForm"
+        :submitting="roleAssignment.submittingStudentUpdate.value"
+        mode="display"
+        type="student"
+        @cancel="() => roleAssignment.closeInfoModal('student')"
+        @submit="() => roleAssignment.confirmRoleAssignment('student')"
+    />
+
+    <!-- 教师信息对话框 -->
+    <InfoModal
+        v-model:show="roleAssignment.showTeacherInfoModal.value"
+        :education-options="educationOptions"
+        :form-data="roleAssignment.teacherInfoForm"
+        :submitting="roleAssignment.submittingTeacher.value"
+        mode="input"
+        type="teacher"
+        @cancel="() => roleAssignment.closeInfoModal('teacher')"
+        @submit="handleInfoSubmit.teacher"
+    />
+
+    <!-- 教师信息展示对话框 -->
+    <InfoModal
+        v-model:show="roleAssignment.showTeacherInfoDisplayModal.value"
+        :education-options="educationOptions"
+        :form-data="roleAssignment.teacherInfoForm"
+        :submitting="roleAssignment.submittingTeacherUpdate.value"
+        mode="display"
+        type="teacher"
+        @cancel="() => roleAssignment.closeInfoModal('teacher')"
+        @submit="() => roleAssignment.confirmRoleAssignment('teacher')"
+    />
   </div>
 </template>
 
@@ -193,42 +231,50 @@ import {
   TrashOutline
 } from '@vicons/ionicons5'
 import * as userApi from '@/api/system/user'
-import {getAllRoles} from '@/api/system/role'
 import type * as userType from '@/types/system/user'
-import type {SysRoleVO} from '@/types/system/role'
 import {useI18n} from 'vue-i18n'
 import {useRouter} from 'vue-router'
 import {GenderEnum, getGenderLabel, StatusEnum} from '@/enum/common'
+import {getAcademicStatusOptions} from '@/enum/student'
+import {getEducationOptions} from '@/enum/teacher'
 import Icon from '@/components/common/Icon.vue'
+import ImageUpload from '@/components/common/ImageUpload.vue'
+import RoleAssignmentModal from './components/RoleAssignmentModal.vue'
+import InfoModal from './components/InfoModal.vue'
+import {useRoleAssignment} from './composables/useRoleAssignment'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {renderIcon} from '@/utils/iconUtil'
 import {handleDateRangeChange} from '@/utils/dateUtil'
-import {useThemeStore, useUserStore} from '@/store'
+import {useUserStore} from '@/store'
 
 const {message, dialog} = getDiscreteApi()
 const {t, locale} = useI18n()
 const router = useRouter()
 const userStore = useUserStore()
 
-// Theme
-const themeStore = useThemeStore()
-const isDarkMode = computed(() => themeStore.isDarkMode)
-
 // 是否为英文环境
 const isEnglish = computed(() => locale.value === 'en-US')
 
-// 性别选项
-const genderOptions = [
-  {label: t('settings.user.gender.unknown'), value: GenderEnum.UNKNOWN},
-  {label: t('settings.user.gender.male'), value: GenderEnum.MALE},
-  {label: t('settings.user.gender.female'), value: GenderEnum.FEMALE}
-]
+// 选项配置
+const options = computed(() => ({
+  gender: [
+    {label: t('settings.user.gender.unknown'), value: GenderEnum.UNKNOWN},
+    {label: t('settings.user.gender.male'), value: GenderEnum.MALE},
+    {label: t('settings.user.gender.female'), value: GenderEnum.FEMALE}
+  ],
+  status: [
+    {label: t('settings.user.status.normal'), value: StatusEnum.NORMAL},
+    {label: t('settings.user.status.disabled'), value: StatusEnum.DISABLED}
+  ],
+  academicStatus: getAcademicStatusOptions(isEnglish.value),
+  education: getEducationOptions(isEnglish.value)
+}))
 
-// 状态选项
-const statusOptions = [
-  {label: t('settings.user.status.normal'), value: StatusEnum.NORMAL},
-  {label: t('settings.user.status.disabled'), value: StatusEnum.DISABLED}
-]
+// 向后兼容的别名
+const genderOptions = computed(() => options.value.gender)
+const statusOptions = computed(() => options.value.status)
+const academicStatusOptions = computed(() => options.value.academicStatus)
+const educationOptions = computed(() => options.value.education)
 
 // 搜索表单
 const searchForm = reactive<userType.UserPageQueryDTO>(userApi.getDefaultUserQuery())
@@ -250,13 +296,8 @@ const addFormRef = ref()
 // 添加用户表单
 const addUserForm = reactive<userType.SysUserAdminDTO>(userApi.getDefaultSysUserAdminDTO())
 
-// 分配角色相关
-const showAssignModal = ref(false)
-const currentUser = ref<userType.SysUserVO | null>(null)
-const availableRoles = ref<SysRoleVO[]>([])
-const selectedRoleIds = ref<string[]>([])
-const userRoles = ref<SysRoleVO[]>([])
-const submittingRoles = ref(false)
+// 使用角色分配 composable
+const roleAssignment = useRoleAssignment()
 
 // 返回上一页
 function goBack() {
@@ -285,78 +326,59 @@ async function updateUserStatus(row: userType.SysUserVO, value: boolean) {
   }
 }
 
+// 表格渲染函数
+const renderEmail = (row: userType.SysUserVO) => {
+  return h(NEllipsis, {
+    style: {maxWidth: '200px'}
+  }, {
+    default: () => row.email,
+    tooltip: () => row.email
+  })
+}
+
+const renderGender = (row: userType.SysUserVO) => {
+  return getGenderLabel(row.gender as GenderEnum, isEnglish.value)
+}
+
+const renderStatusControl = (row: userType.SysUserVO) => {
+  return h(NSwitch, {
+    value: row.status === StatusEnum.NORMAL,
+    onUpdateValue: (value: boolean) => updateUserStatus(row, value),
+    disabled: row.id === userStore.userInfo?.id
+  })
+}
+
+const renderActions = (row: userType.SysUserVO) => {
+  return [
+    h('button', {
+      class: 'n-button n-button--text',
+      style: {marginRight: '8px'},
+      onClick: () => roleAssignment.handleAssignRole(row)
+    }, [
+      renderIcon(PeopleOutline)(),
+      ' ' + t('settings.user.actions.assignRole')
+    ]),
+    h('button', {
+      class: 'n-button n-button--text',
+      onClick: () => handleDelete(row)
+    }, [
+      renderIcon(TrashOutline)(),
+      ' ' + t('settings.user.actions.delete')
+    ])
+  ]
+}
+
 // 表格列定义
 const columns = computed(() => [
   {title: t('settings.user.table.username'), key: 'username'},
   {title: t('settings.user.table.nickname'), key: 'nickName'},
-  {
-    title: t('settings.user.table.email'),
-    key: 'email',
-    render(row: userType.SysUserVO) {
-      return h(NEllipsis, {
-        style: {maxWidth: '200px'}
-      }, {
-        default: () => row.email,
-        tooltip: () => row.email
-      })
-    }
-  },
+  {title: t('settings.user.table.email'), key: 'email', render: renderEmail},
   {title: t('settings.user.table.mobile'), key: 'mobile'},
-  {
-    title: t('settings.user.table.gender'),
-    key: 'gender',
-    render(row: userType.SysUserVO) {
-      return getGenderLabel(row.gender as GenderEnum, isEnglish.value);
-    }
-  },
+  {title: t('settings.user.table.gender'), key: 'gender', render: renderGender},
   {title: t('settings.user.table.createTime'), key: 'createTime', width: 180},
   {title: t('settings.user.table.lastLoginTime'), key: 'lastLoginTime', width: 180},
-  {
-    title: t('settings.user.table.statusControl'),
-    key: 'statusControl',
-    render(row: userType.SysUserVO) {
-      return h(
-          NSwitch,
-          {
-            value: row.status === StatusEnum.NORMAL,
-            onUpdateValue: (value: boolean) => updateUserStatus(row, value),
-            disabled: row.id === userStore.userInfo?.id
-          }
-      );
-    }
-  },
-  {
-    title: t('settings.user.table.actions'),
-    key: 'actions',
-    width: 200,
-    render(row: userType.SysUserVO) {
-      return [
-        h(
-            'button',
-            {
-              class: 'n-button n-button--tertiary n-button--small',
-              style: {marginRight: '8px'},
-              onClick: () => handleAssignRole(row)
-            },
-            [
-              renderIcon(PeopleOutline)(),
-              ' ' + t('settings.user.actions.assignRole')
-            ]
-        ),
-        h(
-            'button',
-            {
-              class: 'n-button n-button--error n-button--small',
-              onClick: () => handleDelete(row)
-            },
-            [
-              renderIcon(TrashOutline)(),
-              ' ' + t('settings.user.actions.delete')
-            ]
-        )
-      ]
-    }
-  }
+  {title: t('settings.user.table.statusControl'), key: 'statusControl', render: renderStatusControl},
+  {title: t('settings.user.table.actions'), key: 'actions', width: 200, render: renderActions}
 ])
 
 // 搜索处理
@@ -403,18 +425,16 @@ async function handleDelete(row: userType.SysUserVO) {
   })
 }
 
-// 重置添加用户表单
+// 添加用户相关函数
 function resetAddUserForm() {
   Object.assign(addUserForm, userApi.getDefaultSysUserAdminDTO())
 }
 
-// 关闭添加用户对话框
 function closeAddModal() {
   showAddModal.value = false
   resetAddUserForm()
 }
 
-// 提交添加用户
 async function submitAddUser() {
   submitting.value = true
   try {
@@ -429,60 +449,15 @@ async function submitAddUser() {
   }
 }
 
-// 新增用户
 function handleAdd() {
   resetAddUserForm()
   showAddModal.value = true
 }
 
-// 处理分配角色
-async function handleAssignRole(row: userType.SysUserVO) {
-  currentUser.value = row
-  submittingRoles.value = true
-
-  try {
-    // 获取用户详情，包括已分配的角色
-    const userDetail = await userApi.getUserById(row.id)
-    userRoles.value = userDetail?.data?.roles || []
-
-    // 获取所有角色列表
-    const roleResult = await getAllRoles()
-    availableRoles.value = roleResult?.data || []
-
-    // 设置已选中的角色
-    selectedRoleIds.value = userRoles.value.map((r: SysRoleVO) => r.id)
-
-    // 显示分配角色对话框
-    showAssignModal.value = true
-  } catch (error) {
-    console.error('获取角色数据失败:', error)
-    message.error(t('settings.user.messages.getRoleFail'))
-  } finally {
-    submittingRoles.value = false
-  }
-}
-
-// 关闭分配角色对话框
-function closeAssignModal() {
-  showAssignModal.value = false
-  currentUser.value = null
-  selectedRoleIds.value = []
-}
-
-// 提交分配角色
-async function submitAssignRoles() {
-  if (!currentUser.value) return
-
-  submittingRoles.value = true
-  try {
-    await userApi.assignUserRoles(currentUser.value.id, selectedRoleIds.value)
-    message.success(t('settings.user.messages.assignSuccess'))
-    closeAssignModal()
-  } catch (error) {
-    message.error(t('settings.user.messages.assignFail'))
-  } finally {
-    submittingRoles.value = false
-  }
+// 通用信息提交处理
+const handleInfoSubmit = {
+  student: () => roleAssignment.submitInfo('student'),
+  teacher: () => roleAssignment.submitInfo('teacher')
 }
 </script>
 

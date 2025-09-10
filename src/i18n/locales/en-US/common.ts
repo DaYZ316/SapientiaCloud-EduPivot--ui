@@ -20,6 +20,7 @@ export default {
     yes: 'Yes',
     no: 'No',
     user: 'User',
+    back: 'Back',
 
     // Avatar upload related
     uploadAvatar: 'Upload Avatar',
@@ -53,6 +54,7 @@ export default {
         serverError: 'Internal server error',
         requestFailed: 'Request failed',
         statusCode: 'Request failed ({0})',
-        notInitialized: 'Dialog instance not initialized'
+        notInitialized: 'Dialog instance not initialized',
+        confirm: 'Confirm'
     }
 } 

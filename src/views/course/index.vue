@@ -55,7 +55,7 @@
             </template>
             {{ t('common.search') }}
           </n-button>
-          <n-button class="ml-2" @click="handleResetSearch">
+          <n-button class="search-reset-btn" @click="handleResetSearch">
             <template #icon>
               <Icon :component="RefreshOutline"/>
             </template>
@@ -147,6 +147,7 @@ import CourseCardView from './components/CourseCardView.vue'
 import CourseFormModal from './components/CourseFormModal.vue'
 import {useCourseData} from './composables/useCourseData'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
+import * as courseApi from '@/api/course'
 
 const {t} = useI18n()
 const router = useRouter()
@@ -237,8 +238,20 @@ const handleEditWithRefresh = (course: courseType.CourseVO) => {
 }
 
 // 删除课程
-const handleDeleteWithRefresh = (_course: courseType.CourseVO) => {
-  // TODO: 实现删除课程功能
+const handleDeleteWithRefresh = async (course: courseType.CourseVO) => {
+  try {
+    await courseApi.removeCourseById(course.id)
+    message.success('课程删除成功')
+
+    // 刷新数据
+    if (viewMode.value === 'table') {
+      tableViewRef.value?.fetchData()
+    } else {
+      loadCourseData()
+    }
+  } catch (error) {
+    message.error('删除课程失败')
+  }
 }
 
 // 处理课程卡片点击
@@ -252,10 +265,19 @@ function handleContinueCourse(_course: courseType.CourseVO) {
 }
 
 // 表单提交成功处理
-const handleFormSubmit = async (_courseData: courseType.CourseDTO) => {
+const handleFormSubmit = async (courseData: courseType.CourseDTO) => {
   submitting.value = true
   try {
-    message.success(isEditMode.value ? '课程更新成功' : '课程创建成功')
+    if (isEditMode.value) {
+      // 编辑模式：更新课程
+      await courseApi.updateCourse(courseData)
+      message.success('课程更新成功')
+    } else {
+      // 新增模式：创建课程
+      await courseApi.addCourse(courseData)
+      message.success('课程创建成功')
+    }
+
     showFormModal.value = false
 
     // 刷新数据
@@ -265,7 +287,7 @@ const handleFormSubmit = async (_courseData: courseType.CourseDTO) => {
       loadCourseData()
     }
   } catch (error) {
-    message.error('提交课程失败')
+    message.error(isEditMode.value ? '更新课程失败' : '创建课程失败')
   } finally {
     submitting.value = false
   }

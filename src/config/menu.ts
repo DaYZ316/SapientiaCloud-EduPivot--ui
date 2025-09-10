@@ -43,7 +43,19 @@ export const getMenuOptions = (t: (key: string) => string): MenuOption[] => [
     {
         key: 'Course',
         label: t('menu.course'),
-        icon: renderIcon(BookOutline)
+        icon: renderIcon(BookOutline),
+        children: [
+            {
+                key: 'CourseManagement',
+                label: t('menu.courseManagement'),
+                icon: renderIcon(BookOutline)
+            },
+            {
+                key: 'StudentEnrollment',
+                label: t('menu.studentEnrollment'),
+                icon: renderIcon(BookOutline)
+            }
+        ]
     },
     {
         key: 'InfoManagement',
@@ -115,5 +127,6 @@ export const menuRouteMap: Record<string, string> = {
     'Permission': '/system/permission',
     'Teacher': '/info/teacher',
     'Student': '/info/student',
-    'Course': '/course'
+    'CourseManagement': '/course',
+    'StudentEnrollment': '/course/enrollment'
 }

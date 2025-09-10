@@ -9,5 +9,7 @@ export default {
     infoManagement: 'Information Management',
     teacher: 'Teacher Management',
     student: 'Student Management',
-    course: 'Course Management'
+    course: 'Course',
+    courseManagement: 'Course Management',
+    studentEnrollment: 'Student Enrollment'
 } 

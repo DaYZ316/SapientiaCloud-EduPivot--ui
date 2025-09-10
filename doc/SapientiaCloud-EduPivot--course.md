@@ -14,7 +14,7 @@
 
 # 课程管理
 
-## 更新现有课程
+## updateCourse
 
 **接口地址**:`/api/course/`
 
@@ -133,7 +133,7 @@
 }
 ```
 
-## 批量删除课程
+## removeCourseByIds
 
 **接口地址**:`/api/course/`
 
@@ -231,7 +231,7 @@
 }
 ```
 
-## 学生加入课程
+## enrollStudentToCourse
 
 **接口地址**:`/api/course/{courseId}/enroll`
 
@@ -324,7 +324,7 @@
 }
 ```
 
-## 分配课程教师
+## assignTeacher
 
 **接口地址**:`/api/course/{courseId}/teacher`
 
@@ -417,7 +417,7 @@
 }
 ```
 
-## 分配课程教师团队
+## assignCourseTeacherTeam
 
 **接口地址**:`/api/course/{courseId}/teachers`
 
@@ -516,7 +516,7 @@
 }
 ```
 
-## 批量分配课程教师团队
+## assignCourseTeachers
 
 **接口地址**:`/api/course/{courseId}/teachers/assign`
 
@@ -615,7 +615,7 @@
 }
 ```
 
-## 根据ID获取课程
+## getCourseById
 
 **接口地址**:`/api/course/{id}`
 
@@ -734,7 +734,7 @@
 }
 ```
 
-## 删除课程
+## removeCourseById
 
 **接口地址**:`/api/course/{id}`
 
@@ -826,7 +826,7 @@
 }
 ```
 
-## 管理员添加新课程
+## addCourse
 
 **接口地址**:`/api/course/add`
 
@@ -972,7 +972,7 @@
 }
 ```
 
-## 获取所有课程
+## listAllCourse
 
 **接口地址**:`/api/course/all`
 
@@ -1091,7 +1091,7 @@
 }
 ```
 
-## 分页查找课程
+## listCourse
 
 **接口地址**:`/api/course/list`
 
@@ -1196,7 +1196,7 @@
 }
 ```
 
-## 根据学生ID查询课程
+## listAllCourseByStudentId
 
 **接口地址**:`/api/course/student/{studentId}/all`
 
@@ -1317,7 +1317,7 @@
 }
 ```
 
-## 根据学生ID分页查询课程
+## listCourseByStudentId
 
 **接口地址**:`/api/course/student/page`
 
@@ -1417,7 +1417,7 @@
 }
 ```
 
-## 根据教师ID查询课程
+## listAllCourseByTeacherId
 
 **接口地址**:`/api/course/teacher/{teacherId}/all`
 
@@ -1538,7 +1538,7 @@
 }
 ```
 
-## 根据教师ID分页查询课程
+## listCourseByTeacherId
 
 **接口地址**:`/api/course/teacher/page`
 
@@ -1639,7 +1639,7 @@
 
 # 课程学生管理
 
-## 检查学生是否已选某门课程
+## isEnrolled
 
 **接口地址**:`/api/course/course-student/check-enrolled`
 
@@ -1732,7 +1732,7 @@
 }
 ```
 
-## 获取课程所有选课学生
+## listAllCourseStudentByCourseId
 
 **接口地址**:`/api/course/course-student/course/{courseId}/all`
 
@@ -1841,7 +1841,7 @@
 }
 ```
 
-## 分页查询课程选课学生
+## listCourseStudentByCourseId
 
 **接口地址**:`/api/course/course-student/course/page`
 
@@ -1941,7 +1941,7 @@
 }
 ```
 
-## 学生退课
+## dropCourse
 
 **接口地址**:`/api/course/course-student/drop`
 
@@ -2034,7 +2034,7 @@
 }
 ```
 
-## 学生选课
+## enrollCourse
 
 **接口地址**:`/api/course/course-student/enroll`
 
@@ -2143,7 +2143,7 @@
 }
 ```
 
-## 获取学生某门课程的成绩
+## getStudentGrade
 
 **接口地址**:`/api/course/course-student/grade`
 
@@ -2236,7 +2236,7 @@
 }
 ```
 
-## 更新学生成绩
+## updateGrade
 
 **接口地址**:`/api/course/course-student/grade`
 
@@ -2330,7 +2330,7 @@
 }
 ```
 
-## 批量更新学生成绩
+## batchUpdateGrade
 
 **接口地址**:`/api/course/course-student/grade/batch`
 
@@ -2441,7 +2441,7 @@
 }
 ```
 
-## 获取学生所有选课记录
+## listCourseStudentByStudentId
 
 **接口地址**:`/api/course/course-student/student/{studentId}/all`
 
@@ -2550,7 +2550,7 @@
 }
 ```
 
-## 分页查询学生选课记录
+## listCourseStudentByStudentId
 
 **接口地址**:`/api/course/course-student/student/page`
 

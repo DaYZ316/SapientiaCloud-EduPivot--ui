@@ -6,7 +6,7 @@ export function batchDeleteFiles(fileNames: string[]) {
 }
 
 // 获取所有存储桶
-export function getAllBuckets() {
+export function listBuckets() {
     return http.get('/minIO/file/buckets')
 }
 

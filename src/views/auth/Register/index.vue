@@ -2,7 +2,7 @@
   <!-- 注册卡片 -->
   <div class="register-card">
     <div class="brand-section">
-      <h1 class="brand-title">{{ $t('auth.register') }}</h1>
+      <h1 class="brand-title">{{ t('auth.register') }}</h1>
     </div>
 
     <n-carousel show-arrow>
@@ -10,7 +10,7 @@
       <n-form ref="registerFormRef" :model="registerForm" :rules="registerRules" size="large"
               @keyup.enter="handleRegister">
         <n-form-item :show-label="false" path="username">
-          <n-input v-model:value="registerForm.username" :placeholder="$t('auth.username')"
+          <n-input v-model:value="registerForm.username" :placeholder="t('auth.username')"
                    clearable>
             <template #prefix>
               <n-icon>
@@ -21,7 +21,7 @@
         </n-form-item>
 
         <n-form-item :show-label="false" path="password">
-          <n-input v-model:value="registerForm.password" :placeholder="$t('auth.password')" clearable
+          <n-input v-model:value="registerForm.password" :placeholder="t('auth.password')" clearable
                    show-password-on="click" type="password">
             <template #prefix>
               <n-icon>
@@ -32,7 +32,7 @@
         </n-form-item>
 
         <n-form-item :show-label="false" path="confirmPassword">
-          <n-input v-model:value="registerForm.confirmPassword" :placeholder="$t('auth.confirmPassword')"
+          <n-input v-model:value="registerForm.confirmPassword" :placeholder="t('auth.confirmPassword')"
                    clearable
                    show-password-on="click" type="password">
             <template #prefix>
@@ -45,7 +45,7 @@
 
         <n-form-item :show-label="false" path="verificationCode">
           <div style="display: flex; gap: 8px;">
-            <n-input v-model:value="registerForm.verificationCode" :placeholder="$t('auth.verificationCode')"
+            <n-input v-model:value="registerForm.verificationCode" :placeholder="t('auth.verificationCode')"
                      clearable>
               <template #prefix>
                 <n-icon>
@@ -64,7 +64,7 @@
       <n-form ref="registerFormRef" :model="registerForm" :rules="registerRules" size="large"
               @keyup.enter="handleRegister">
         <n-form-item :show-label="false" path="nickName">
-          <n-input v-model:value="registerForm.nickName" :placeholder="$t('auth.nickName')"
+          <n-input v-model:value="registerForm.nickName" :placeholder="t('auth.nickName')"
                    clearable>
             <template #prefix>
               <n-icon>
@@ -82,7 +82,7 @@
                 src="https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg"
             />
             <div style="margin-top: 8px;">
-              <n-button text>{{ $t('auth.uploadAvatar') }}</n-button>
+              <n-button text>{{ t('auth.uploadAvatar') }}</n-button>
             </div>
           </div>
         </n-form-item>
@@ -98,15 +98,15 @@
           type="primary"
           @click="handleRegister"
       >
-        {{ loading ? $t('auth.registerInProgress') : $t('auth.registerButton') }}
+        {{ loading ? t('auth.registerInProgress') : t('auth.registerButton') }}
       </n-button>
     </div>
 
     <!-- 返回登录链接 -->
     <div class="register-section">
-      <span>{{ $t('auth.haveAccount') }}</span>
+      <span>{{ t('auth.haveAccount') }}</span>
       <n-button text @click="$emit('switchToLogin')">
-        {{ $t('auth.backToLogin') }}
+        {{ t('auth.backToLogin') }}
       </n-button>
     </div>
   </div>

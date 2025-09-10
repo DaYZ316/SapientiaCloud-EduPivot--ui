@@ -1,94 +1,7 @@
 <template>
   <div>
-    <div v-if="!teacherInfo && !studentInfo" class="no-binding">
-      <n-empty :description="t('settings.personal.noBinding')" size="large">
-        <template #extra>
-          <n-space>
-            <n-button type="primary" @click="showTeacherModal = true">
-              {{ t('settings.personal.bindTeacher') }}
-            </n-button>
-            <n-button type="info" @click="showStudentModal = true">
-              {{ t('settings.personal.bindStudent') }}
-            </n-button>
-          </n-space>
-        </template>
-      </n-empty>
-    </div>
-
-    <div v-else>
-      <!-- 教师信息展示 -->
-      <div v-if="teacherInfo" class="info-display">
-        <n-card :bordered="false" class="info-card" size="small">
-          <template #header>
-            <div class="flex-between">
-              <span>{{ t('settings.personal.teacherInfo') }}</span>
-              <n-button text type="primary" @click="showTeacherModal = true">
-                {{ t('common.edit') }}
-              </n-button>
-            </div>
-          </template>
-          <n-descriptions :column="2" bordered>
-            <n-descriptions-item :label="t('settings.personal.teacherCode')">
-              {{ teacherInfo.teacherCode }}
-            </n-descriptions-item>
-            <n-descriptions-item :label="t('settings.personal.realName')">
-              {{ teacherInfo.realName }}
-            </n-descriptions-item>
-            <n-descriptions-item :label="t('settings.personal.department')">
-              {{ teacherInfo.department || '-' }}
-            </n-descriptions-item>
-            <n-descriptions-item :label="t('settings.personal.education')">
-              {{ getEducationText(teacherInfo.education) }}
-            </n-descriptions-item>
-            <n-descriptions-item :label="t('settings.personal.specialization')" :span="2">
-              {{ teacherInfo.specialization || '-' }}
-            </n-descriptions-item>
-            <n-descriptions-item :label="t('settings.personal.description')" :span="2">
-              {{ teacherInfo.description || '-' }}
-            </n-descriptions-item>
-          </n-descriptions>
-        </n-card>
-      </div>
-
-      <!-- 学生信息展示 -->
-      <div v-if="studentInfo" class="info-display">
-        <n-card :bordered="false" class="info-card" size="small">
-          <template #header>
-            <div class="flex-between">
-              <span>{{ t('settings.personal.studentInfo') }}</span>
-              <n-button text type="primary" @click="showStudentModal = true">
-                {{ t('common.edit') }}
-              </n-button>
-            </div>
-          </template>
-          <n-descriptions :column="2" bordered>
-            <n-descriptions-item :label="t('settings.personal.studentCode')">
-              {{ studentInfo.studentCode }}
-            </n-descriptions-item>
-            <n-descriptions-item :label="t('settings.personal.realName')">
-              {{ studentInfo.realName }}
-            </n-descriptions-item>
-            <n-descriptions-item :label="t('settings.personal.admissionYear')">
-              {{ studentInfo.admissionYear || '-' }}
-            </n-descriptions-item>
-            <n-descriptions-item :label="t('settings.personal.major')">
-              {{ studentInfo.major || '-' }}
-            </n-descriptions-item>
-            <n-descriptions-item :label="t('settings.personal.academicStatus')">
-              {{ getAcademicStatusText(studentInfo.academicStatus) }}
-            </n-descriptions-item>
-            <n-descriptions-item :label="t('settings.personal.description')" :span="2">
-              {{ studentInfo.description || '-' }}
-            </n-descriptions-item>
-          </n-descriptions>
-        </n-card>
-      </div>
-    </div>
-
-    <!-- 绑定教师信息的弹窗 -->
-    <n-modal v-model:show="showTeacherModal"
-             :title="teacherInfo ? t('common.edit') : t('settings.personal.bindTeacher')" preset="card"
-             style="width: 600px;">
+    <!-- 教师信息表单 -->
+    <div v-if="teacherInfo || showTeacherForm" class="form-section">
       <n-form
           ref="teacherFormRef"
           :model="teacherForm"
@@ -117,6 +30,17 @@
 
         <n-grid :cols="24" :x-gap="24">
           <n-grid-item :span="12">
+            <n-form-item :label="t('settings.personal.birthDate')" path="birthDate">
+              <n-date-picker
+                  v-model:value="teacherBirthDate"
+                  :is-date-disabled="(date: number) => date > Date.now()"
+                  :placeholder="t('settings.personal.birthDatePlaceholder')"
+                  style="width: 100%"
+                  type="date"
+              />
+            </n-form-item>
+          </n-grid-item>
+          <n-grid-item :span="12">
             <n-form-item :label="t('settings.personal.department')" path="department">
               <n-input
                   v-model:value="teacherForm.department"
@@ -124,6 +48,9 @@
               />
             </n-form-item>
           </n-grid-item>
+        </n-grid>
+
+        <n-grid :cols="24" :x-gap="24">
           <n-grid-item :span="12">
             <n-form-item :label="t('settings.personal.education')" path="education">
               <n-select
@@ -132,6 +59,9 @@
                   :placeholder="t('settings.personal.educationPlaceholder')"
               />
             </n-form-item>
+          </n-grid-item>
+          <n-grid-item :span="12">
+            <!-- 空占位，保持布局平衡 -->
           </n-grid-item>
         </n-grid>
 
@@ -153,23 +83,24 @@
           />
         </n-form-item>
 
-        <div class="flex-center mt-4">
+        <n-form-item>
           <n-space>
-            <n-button type="primary" @click="saveTeacherInfo">
-              {{ t('common.confirm') }}
+            <n-button :loading="loading" type="primary" @click="saveTeacherInfo">
+              {{ teacherInfo ? t('common.save') : t('settings.personal.bindTeacher') }}
             </n-button>
-            <n-button @click="showTeacherModal = false">
+            <n-button :disabled="loading" @click="resetTeacherForm">
+              {{ t('common.reset') }}
+            </n-button>
+            <n-button v-if="!teacherInfo" @click="showTeacherForm = false">
               {{ t('common.cancel') }}
             </n-button>
           </n-space>
-        </div>
+        </n-form-item>
       </n-form>
-    </n-modal>
+    </div>
 
-    <!-- 绑定学生信息的弹窗 -->
-    <n-modal v-model:show="showStudentModal"
-             :title="studentInfo ? t('common.edit') : t('settings.personal.bindStudent')" preset="card"
-             style="width: 600px;">
+    <!-- 学生信息表单 -->
+    <div v-if="studentInfo || showStudentForm" class="form-section">
       <n-form
           ref="studentFormRef"
           :model="studentForm"
@@ -198,15 +129,30 @@
 
         <n-grid :cols="24" :x-gap="24">
           <n-grid-item :span="12">
+            <n-form-item :label="t('settings.personal.birthDate')" path="birthDate">
+              <n-date-picker
+                  v-model:value="studentBirthDate"
+                  :is-date-disabled="(date: number) => date > Date.now()"
+                  :placeholder="t('settings.personal.birthDatePlaceholder')"
+                  style="width: 100%"
+                  type="date"
+              />
+            </n-form-item>
+          </n-grid-item>
+          <n-grid-item :span="12">
             <n-form-item :label="t('settings.personal.admissionYear')" path="admissionYear">
               <n-input-number
                   v-model:value="studentForm.admissionYear"
                   :max="2030"
                   :min="2000"
                   :placeholder="t('settings.personal.admissionYearPlaceholder')"
+                  style="width: 100%"
               />
             </n-form-item>
           </n-grid-item>
+        </n-grid>
+
+        <n-grid :cols="24" :x-gap="24">
           <n-grid-item :span="12">
             <n-form-item :label="t('settings.personal.major')" path="major">
               <n-input
@@ -215,15 +161,16 @@
               />
             </n-form-item>
           </n-grid-item>
+          <n-grid-item :span="12">
+            <n-form-item :label="t('settings.personal.academicStatus')" path="academicStatus">
+              <n-select
+                  v-model:value="studentForm.academicStatus"
+                  :options="academicStatusOptions"
+                  :placeholder="t('settings.personal.academicStatusPlaceholder')"
+              />
+            </n-form-item>
+          </n-grid-item>
         </n-grid>
-
-        <n-form-item :label="t('settings.personal.academicStatus')" path="academicStatus">
-          <n-select
-              v-model:value="studentForm.academicStatus"
-              :options="academicStatusOptions"
-              :placeholder="t('settings.personal.academicStatusPlaceholder')"
-          />
-        </n-form-item>
 
         <n-form-item :label="t('settings.personal.description')" path="description">
           <n-input
@@ -234,41 +181,61 @@
           />
         </n-form-item>
 
-        <div class="flex-center mt-4">
+        <n-form-item>
           <n-space>
-            <n-button type="primary" @click="saveStudentInfo">
-              {{ t('common.confirm') }}
+            <n-button :loading="loading" type="primary" @click="saveStudentInfo">
+              {{ studentInfo ? t('common.save') : t('settings.personal.bindStudent') }}
             </n-button>
-            <n-button @click="showStudentModal = false">
+            <n-button :disabled="loading" @click="resetStudentForm">
+              {{ t('common.reset') }}
+            </n-button>
+            <n-button v-if="!studentInfo" @click="showStudentForm = false">
               {{ t('common.cancel') }}
             </n-button>
           </n-space>
-        </div>
+        </n-form-item>
       </n-form>
-    </n-modal>
+    </div>
+
+    <!-- 无绑定信息时的提示 -->
+    <div v-if="!teacherInfo && !studentInfo && !showTeacherForm && !showStudentForm" class="no-binding">
+      <n-empty :description="t('settings.personal.noBinding')" size="large">
+        <template #extra>
+          <n-space>
+            <n-button type="primary" @click="showTeacherForm = true">
+              {{ t('settings.personal.bindTeacher') }}
+            </n-button>
+            <n-button type="info" @click="showStudentForm = true">
+              {{ t('settings.personal.bindStudent') }}
+            </n-button>
+          </n-space>
+        </template>
+      </n-empty>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import {computed, reactive, ref, watch} from 'vue'
+import {computed, onMounted, reactive, ref, watch} from 'vue'
 import type {FormInst, FormRules} from 'naive-ui'
 import {useUserStore} from '@/store'
 import {useI18n} from 'vue-i18n'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
-// import type {TeacherDTO} from '@/types'
-// import type {StudentDTO} from '@/types'
-import {addTeacher, updateTeacher} from '@/api/teacher'
-import {addStudent, updateStudent} from '@/api/student'
-import {getAcademicStatusLabel, getAcademicStatusOptions} from '@/enum/student'
-import {getEducationLabel, getEducationOptions} from '@/enum/teacher'
+import type {TeacherAddDTO} from '@/types/teacher'
+import type {StudentAddDTO} from '@/types/student'
+import {addTeacher, getDefaultTeacherAddDTO, getDefaultTeacherDTO, updateTeacher} from '@/api/teacher'
+import {addStudent, getDefaultStudentAddDTO, getDefaultStudentDTO, updateStudent} from '@/api/student'
+import {getAcademicStatusOptions} from '@/enum/student'
+import {getEducationOptions} from '@/enum/teacher'
 
 const userStore = useUserStore()
 const {message} = getDiscreteApi()
 const {t} = useI18n()
 const teacherFormRef = ref<FormInst | null>(null)
 const studentFormRef = ref<FormInst | null>(null)
-const showTeacherModal = ref(false)
-const showStudentModal = ref(false)
+const showTeacherForm = ref(false)
+const showStudentForm = ref(false)
+const loading = ref(false)
 
 // 使用计算属性获取用户信息
 const userInfo = computed(() => userStore.userInfo)
@@ -278,28 +245,10 @@ const teacherInfo = computed(() => userStore.teacherInfo)
 const studentInfo = computed(() => userStore.studentInfo)
 
 // 教师表单数据
-const teacherForm = reactive({
-  teacherCode: '',
-  realName: '',
-  birthDate: '',
-  department: '',
-  education: undefined as number | undefined,
-  specialization: '',
-  description: '',
-  sysUserId: ''
-})
+const teacherForm = reactive<TeacherAddDTO>(getDefaultTeacherAddDTO())
 
 // 学生表单数据
-const studentForm = reactive({
-  studentCode: '',
-  realName: '',
-  birthDate: '',
-  admissionYear: undefined as number | undefined,
-  major: '',
-  academicStatus: undefined as number | undefined,
-  description: '',
-  sysUserId: ''
-})
+const studentForm = reactive<StudentAddDTO>(getDefaultStudentAddDTO())
 
 // 学历选项
 const educationOptions = computed(() => getEducationOptions(false))
@@ -307,219 +256,249 @@ const educationOptions = computed(() => getEducationOptions(false))
 // 学籍状态选项
 const academicStatusOptions = computed(() => getAcademicStatusOptions(false))
 
-// 监听教师弹窗显示事件
-watch(showTeacherModal, (newVal: boolean) => {
-  if (newVal) {
-    initTeacherForm()
-  }
-})
+// 将日期转换为API需要的格式 (YYYY-MM-DD)
+function formatDateForAPI(date: number | string | null | undefined): string | null {
+  if (!date) return null
 
-// 监听学生弹窗显示事件
-watch(showStudentModal, (newVal: boolean) => {
-  if (newVal) {
-    initStudentForm()
-  }
-})
+  try {
+    let dateObj: Date
+    if (typeof date === 'number') {
+      // 时间戳
+      dateObj = new Date(date)
+    } else if (typeof date === 'string') {
+      // 字符串日期
+      dateObj = new Date(date)
+    } else {
+      return null
+    }
 
-// 教师表单验证规则
-const teacherRules: FormRules = {
-  teacherCode: [
-    {required: true, message: t('settings.personal.teacherCodeRequired'), trigger: 'blur'}
-  ],
-  realName: [
-    {required: true, message: t('settings.personal.realNameRequired'), trigger: 'blur'}
-  ]
+    if (isNaN(dateObj.getTime())) {
+      return null
+    }
+
+    // 格式化为 YYYY-MM-DD
+    const year = dateObj.getFullYear()
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0')
+    const day = String(dateObj.getDate()).padStart(2, '0')
+
+    return `${year}-${month}-${day}`
+  } catch (error) {
+    return null
+  }
 }
 
-// 学生表单验证规则
-const studentRules: FormRules = {
-  studentCode: [
-    {required: true, message: t('settings.personal.studentCodeRequired'), trigger: 'blur'}
+// 将API返回的日期字符串转换为DatePicker需要的时间戳
+function parseDateForPicker(date: string | null | undefined): number | null {
+  if (!date) return null
+
+  try {
+    const dateObj = new Date(date)
+    if (isNaN(dateObj.getTime())) {
+      return null
+    }
+    return dateObj.getTime()
+  } catch (error) {
+    return null
+  }
+}
+
+// 创建日期计算属性的通用函数
+const createDateComputed = (form: any) => computed({
+  get: () => parseDateForPicker(form.birthDate),
+  set: (value: number | null) => {
+    form.birthDate = value ? formatDateForAPI(value) : null
+  }
+})
+
+// 教师和学生出生日期的计算属性
+const teacherBirthDate = createDateComputed(teacherForm)
+const studentBirthDate = createDateComputed(studentForm)
+
+// 创建通用验证规则的函数
+const createCommonRules = (codeField: string, codeMessage: string): FormRules => ({
+  [codeField]: [
+    {required: true, message: codeMessage, trigger: 'blur'}
   ],
   realName: [
     {required: true, message: t('settings.personal.realNameRequired'), trigger: 'blur'}
   ],
-  academicStatus: [
+  birthDate: [
     {
       required: true,
-      message: t('settings.personal.academicStatusRequired'),
-      trigger: ['change', 'blur'],
+      message: t('settings.personal.birthDateRequired'),
+      trigger: 'change',
       validator: (_rule: any, value: any) => {
-        // 明确检查值是否为数字类型且不为 undefined 或 null
-        if (value === undefined || value === null || value === '') {
-          return new Error(t('settings.personal.academicStatusRequired'))
-        }
-        // 检查值是否在有效范围内 (0-3)
-        if (typeof value !== 'number' || value < 0 || value > 3) {
-          return new Error(t('settings.personal.academicStatusRequired'))
+        if (!value) {
+          return new Error(t('settings.personal.birthDateRequired'))
         }
         return true
       }
     }
   ]
+})
+
+// 教师和学生表单验证规则
+const teacherRules: FormRules = createCommonRules('teacherCode', t('settings.personal.teacherCodeRequired'))
+const studentRules: FormRules = {
+  ...createCommonRules('studentCode', t('settings.personal.studentCodeRequired')),
+  academicStatus: [
+    {
+      required: true,
+      message: t('settings.personal.academicStatusRequired'),
+      trigger: ['change', 'blur'],
+      type: 'number'
+    }
+  ]
 }
 
-// 获取学历文本
-function getEducationText(education?: number): string {
-  if (education === null || education === undefined) return '-'
-  return getEducationLabel(education, false)
-}
-
-// 获取学籍状态文本
-function getAcademicStatusText(status?: number): string {
-  if (status === null || status === undefined) return '-'
-  return getAcademicStatusLabel(status, false)
-}
-
-
-// 初始化教师表单
-const initTeacherForm = () => {
-  if (teacherInfo.value) {
-    teacherForm.teacherCode = teacherInfo.value.teacherCode
-    teacherForm.realName = teacherInfo.value.realName
-    teacherForm.birthDate = teacherInfo.value.birthDate || ''
-    teacherForm.department = teacherInfo.value.department || ''
-    teacherForm.education = teacherInfo.value.education
-    teacherForm.specialization = teacherInfo.value.specialization || ''
-    teacherForm.description = teacherInfo.value.description || ''
-    teacherForm.sysUserId = teacherInfo.value.sysUserId || ''
+// 通用的表单初始化函数
+const initForm = (form: any, info: any, getDefaultDTO: () => any) => {
+  if (info.value) {
+    // 编辑模式：从现有信息填充表单
+    Object.assign(form, {
+      ...info.value,
+      sysUserId: info.value.sysUserId
+    })
   } else {
-    teacherForm.teacherCode = ''
-    teacherForm.realName = ''
-    teacherForm.birthDate = ''
-    teacherForm.department = ''
-    teacherForm.education = undefined
-    teacherForm.specialization = ''
-    teacherForm.description = ''
-    teacherForm.sysUserId = userInfo.value?.id || ''
+    // 新增模式：使用默认值并设置用户ID
+    Object.assign(form, getDefaultDTO())
+    form.sysUserId = userInfo.value?.id || null
   }
 }
 
-// 初始化学生表单
-const initStudentForm = () => {
-  if (studentInfo.value) {
-    studentForm.studentCode = studentInfo.value.studentCode
-    studentForm.realName = studentInfo.value.realName
-    studentForm.birthDate = studentInfo.value.birthDate || ''
-    studentForm.admissionYear = studentInfo.value.admissionYear
-    studentForm.major = studentInfo.value.major || ''
-    // 确保学籍状态正确设置，即使是 0 也要保留
-    studentForm.academicStatus = studentInfo.value.academicStatus !== undefined ? studentInfo.value.academicStatus : undefined
-    studentForm.description = studentInfo.value.description || ''
-    studentForm.sysUserId = studentInfo.value.sysUserId || ''
-  } else {
-    studentForm.studentCode = ''
-    studentForm.realName = ''
-    studentForm.birthDate = ''
-    studentForm.admissionYear = undefined
-    studentForm.major = ''
-    studentForm.academicStatus = undefined
-    studentForm.description = ''
-    studentForm.sysUserId = userInfo.value?.id || ''
-  }
+// 初始化教师和学生表单
+const initTeacherForm = () => initForm(teacherForm, teacherInfo, getDefaultTeacherAddDTO)
+const initStudentForm = () => initForm(studentForm, studentInfo, getDefaultStudentAddDTO)
 
-  // 调试日志
-  console.log('学生信息:', studentInfo.value)
-  console.log('学籍状态值:', studentInfo.value?.academicStatus, typeof studentInfo.value?.academicStatus)
-  console.log('表单学籍状态:', studentForm.academicStatus, typeof studentForm.academicStatus)
+// 监听表单显示事件的通用函数
+const watchFormShow = (showRef: any, initFn: () => void) => {
+  watch(showRef, (newVal: boolean) => {
+    if (newVal) {
+      initFn()
+    }
+  })
 }
 
-// 保存教师信息
-const saveTeacherInfo = () => {
-  teacherFormRef.value?.validate(async (errors: any) => {
+// 监听教师和学生表单显示事件
+watchFormShow(showTeacherForm, initTeacherForm)
+watchFormShow(showStudentForm, initStudentForm)
+
+// 监听信息变化的通用函数
+const watchInfoChange = (info: any, showRef: any, initFn: () => void) => {
+  watch(info, (newVal) => {
+    if (newVal) {
+      showRef.value = true
+      initFn()
+    }
+  }, {immediate: true})
+}
+
+// 监听教师和学生信息变化
+watchInfoChange(teacherInfo, showTeacherForm, initTeacherForm)
+watchInfoChange(studentInfo, showStudentForm, initStudentForm)
+
+// 通用的保存信息函数
+const saveInfo = async (
+    formRef: any,
+    form: any,
+    info: any,
+    showRef: any,
+    updateFn: (data: any) => Promise<any>,
+    addFn: (data: any) => Promise<any>,
+    getDefaultDTO: () => any
+) => {
+  formRef.value?.validate(async (errors: any) => {
     if (!errors) {
+      loading.value = true
       try {
-        if (teacherInfo.value) {
-          // 更新教师信息
-          const res = await updateTeacher({
-            ...teacherForm,
-            id: teacherInfo.value.id
-          })
+        const formattedForm = {
+          ...form,
+          birthDate: formatDateForAPI(form.birthDate)
+        }
+
+        let res
+        if (info.value) {
+          // 更新信息
+          const updateData = {
+            ...getDefaultDTO(),
+            ...formattedForm,
+            id: info.value.id
+          }
+          res = await updateFn(updateData)
           if (res.success && res.data) {
             message.success(t('settings.personal.updateSuccess'))
-            showTeacherModal.value = false
-            // 刷新store中的用户角色信息
-            await userStore.fetchUserRoleInfo(userInfo.value?.id || '')
           } else {
             message.error(res.message || t('settings.personal.updateFail'))
           }
         } else {
-          // 添加教师信息
-          const res = await addTeacher(teacherForm)
+          // 添加信息
+          res = await addFn(formattedForm)
           if (res.success && res.data) {
             message.success(t('settings.personal.bindSuccess'))
-            showTeacherModal.value = false
-            // 刷新store中的用户角色信息
-            await userStore.fetchUserRoleInfo(userInfo.value?.id || '')
+            showRef.value = false
           } else {
             message.error(res.message || t('settings.personal.bindFail'))
           }
         }
+
+        if (res.success) {
+          await userStore.fetchUserRoleInfo(userInfo.value?.id || '')
+        }
       } catch (error) {
-        console.error('保存教师信息失败:', error)
         message.error(t('settings.personal.bindFail'))
+      } finally {
+        loading.value = false
       }
     }
   })
 }
 
-// 保存学生信息
-const saveStudentInfo = () => {
-  // 在验证前先检查学籍状态
-  console.log('保存前检查 - 学籍状态:', studentForm.academicStatus, typeof studentForm.academicStatus)
+// 保存教师和学生信息
+const saveTeacherInfo = () => saveInfo(
+    teacherFormRef,
+    teacherForm,
+    teacherInfo,
+    showTeacherForm,
+    updateTeacher,
+    addTeacher,
+    getDefaultTeacherDTO
+)
 
-  studentFormRef.value?.validate(async (errors: any) => {
-    if (!errors) {
-      try {
-        // 确保学籍状态数据正确传递
-        const formData = {
-          ...studentForm,
-          // 确保学籍状态是数字类型
-          academicStatus: typeof studentForm.academicStatus === 'number' ? studentForm.academicStatus : undefined
-        }
+const saveStudentInfo = () => saveInfo(
+    studentFormRef,
+    studentForm,
+    studentInfo,
+    showStudentForm,
+    updateStudent,
+    addStudent,
+    getDefaultStudentDTO
+)
 
-        console.log('准备保存的数据:', formData)
+// 重置表单
+const resetTeacherForm = () => initTeacherForm()
+const resetStudentForm = () => initStudentForm()
 
-        if (studentInfo.value) {
-          // 更新学生信息
-          const res = await updateStudent({
-            ...formData,
-            id: studentInfo.value.id
-          })
-          if (res.success && res.data) {
-            message.success(t('settings.personal.updateSuccess'))
-            showStudentModal.value = false
-            // 刷新store中的用户角色信息
-            await userStore.fetchUserRoleInfo(userInfo.value?.id || '')
-          } else {
-            message.error(res.message || t('settings.personal.updateFail'))
-          }
-        } else {
-          // 添加学生信息
-          const res = await addStudent(formData)
-          if (res.success && res.data) {
-            message.success(t('settings.personal.bindSuccess'))
-            showStudentModal.value = false
-            // 刷新store中的用户角色信息
-            await userStore.fetchUserRoleInfo(userInfo.value?.id || '')
-          } else {
-            message.error(res.message || t('settings.personal.bindFail'))
-          }
-        }
-      } catch (error) {
-        console.error('保存学生信息失败:', error)
-        message.error(t('settings.personal.bindFail'))
-      }
-    } else {
-      console.log('表单验证失败:', errors)
-    }
-  })
-}
+// 组件挂载时加载角色信息
+onMounted(async () => {
+  if (userInfo.value?.id) {
+    await userStore.fetchUserRoleInfo(userInfo.value.id)
+  }
+})
 
 // 暴露方法给父组件
-defineExpose({})
+defineExpose({
+  resetTeacherForm,
+  resetStudentForm
+})
 </script>
 
 <style lang="scss" scoped>
-@use './BindingSettings.scss';
+.no-binding {
+  text-align: center;
+  padding: 40px 0;
+}
+
+.form-section {
+  margin-bottom: 24px;
+}
 </style>

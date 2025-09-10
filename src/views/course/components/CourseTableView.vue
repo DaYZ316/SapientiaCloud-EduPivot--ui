@@ -12,14 +12,18 @@
 
 <script lang="ts" setup>
 import {computed, h, ref} from 'vue'
-import {NEllipsis} from 'naive-ui'
+import type {DataTableColumns} from 'naive-ui'
+import {NEllipsis, useDialog, useMessage} from 'naive-ui'
 import {CreateOutline, TrashOutline} from '@vicons/ionicons5'
 import type * as courseType from '@/types/course'
 import {getCourseStatusLabel, getCourseTypeLabel} from '@/enum/course'
 import {useI18n} from 'vue-i18n'
 import {renderIcon} from '@/utils/iconUtil'
+import PageTable from '@/components/common/PageTable.vue'
 
 const {t} = useI18n()
+const dialog = useDialog()
+const message = useMessage()
 
 // Props
 interface Props {
@@ -47,22 +51,22 @@ const emit = defineEmits<Emits>()
 const pageTableRef = ref()
 
 // 表格列定义
-const columns = computed(() => [
+const columns = computed((): DataTableColumns => [
   {title: t('course.table.courseName'), key: 'courseName'},
   {
     title: t('course.table.courseType'),
     key: 'courseType',
-    render(row: courseType.CourseVO) {
-      if (row.courseType === null || row.courseType === undefined) return '-'
-      return getCourseTypeLabel(row.courseType, false)
+    render(rowData: any) {
+      if (rowData.courseType === null || rowData.courseType === undefined) return '-'
+      return getCourseTypeLabel(rowData.courseType, false)
     }
   },
   {
     title: t('course.table.courseStatus'),
     key: 'status',
-    render(row: courseType.CourseVO) {
-      if (row.status === null || row.status === undefined) return '-'
-      return getCourseStatusLabel(row.status, false)
+    render(rowData: any) {
+      if (rowData.status === null || rowData.status === undefined) return '-'
+      return getCourseStatusLabel(rowData.status, false)
     }
   },
   {title: t('course.table.teacherName'), key: 'teacherName'},
@@ -71,12 +75,12 @@ const columns = computed(() => [
   {
     title: t('course.table.description'),
     key: 'description',
-    render(row: courseType.CourseVO) {
+    render(rowData: any) {
       return h(NEllipsis, {
         style: {maxWidth: '200px'}
       }, {
-        default: () => row.description || '-',
-        tooltip: () => row.description || '-'
+        default: () => rowData.description || '-',
+        tooltip: () => rowData.description || '-'
       })
     }
   },
@@ -85,7 +89,7 @@ const columns = computed(() => [
     title: t('course.table.operation'),
     key: 'actions',
     width: 200,
-    render(row: courseType.CourseVO) {
+    render(rowData: any) {
       const actions = []
 
       // 只有管理员才能编辑和删除课程
@@ -94,9 +98,9 @@ const columns = computed(() => [
             h(
                 'button',
                 {
-                  class: 'n-button n-button--primary n-button--small',
+                  class: 'n-button n-button--text',
                   style: {marginRight: '8px'},
-                  onClick: () => handleEdit(row)
+                  onClick: () => handleEdit(rowData)
                 },
                 [
                   renderIcon(CreateOutline)(),
@@ -106,8 +110,8 @@ const columns = computed(() => [
             h(
                 'button',
                 {
-                  class: 'n-button n-button--error n-button--small',
-                  onClick: () => handleDelete(row)
+                  class: 'n-button n-button--text',
+                  onClick: () => handleDelete(rowData)
                 },
                 [
                   renderIcon(TrashOutline)(),
@@ -134,7 +138,16 @@ function handleEdit(course: courseType.CourseVO) {
 
 // 删除课程
 function handleDelete(course: courseType.CourseVO) {
-  emit('delete', course)
+  dialog.warning({
+    title: t('course.actions.deleteConfirm'),
+    content: t('course.actions.deleteConfirmContent', {courseName: course.courseName}),
+    positiveText: t('common.confirm'),
+    negativeText: t('common.cancel'),
+    onPositiveClick: () => {
+      emit('delete', course)
+      message.success(t('course.actions.deleteSuccess'))
+    }
+  })
 }
 
 // 刷新数据

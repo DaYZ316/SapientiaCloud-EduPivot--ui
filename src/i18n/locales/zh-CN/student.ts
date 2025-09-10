@@ -156,7 +156,8 @@ export default {
         getDetailFail: '获取学生详情失败',
         studentCodeExists: '学号已存在',
         invalidStudentCode: '学号格式不正确',
-        invalidEnrollmentYear: '入学年份格式不正确'
+        invalidEnrollmentYear: '入学年份格式不正确',
+        invalidId: '学生ID无效'
     },
 
     // 验证规则

@@ -80,7 +80,7 @@
       <!-- 学生表格 -->
       <page-table
           ref="pageTableRef"
-          :api-fn="studentApi.getStudentList"
+          :api-fn="studentApi.listStudent"
           :auto-search="false"
           :columns="columns"
           :query-params="searchForm"
@@ -330,7 +330,7 @@ const columns = computed(() => [
         h(
             'button',
             {
-              class: 'n-button n-button--primary n-button--small',
+              class: 'n-button n-button--text',
               style: {marginRight: '8px'},
               onClick: () => handleEdit(row)
             },
@@ -342,7 +342,7 @@ const columns = computed(() => [
         h(
             'button',
             {
-              class: 'n-button n-button--error n-button--small',
+              class: 'n-button n-button--text',
               onClick: () => handleDelete(row)
             },
             [
@@ -382,6 +382,11 @@ function onDataUpdate(data: studentType.StudentVO[]) {
 
 // 删除学生
 async function handleDelete(row: studentType.StudentVO) {
+  if (!row.id) {
+    message.error(t('student.messages.invalidId'))
+    return
+  }
+
   dialog.warning({
     title: t('student.actions.delete'),
     content: t('student.messages.deleteConfirm'),
@@ -389,7 +394,7 @@ async function handleDelete(row: studentType.StudentVO) {
     negativeText: t('common.cancel'),
     onPositiveClick: async () => {
       try {
-        await studentApi.deleteStudentById(row.id)
+        await studentApi.removeStudentById(row.id!)
         message.success(t('student.messages.deleteSuccess'))
         pageTableRef.value?.fetchData()
       } catch (error) {
@@ -433,8 +438,13 @@ function handleAdd() {
 
 // 编辑学生
 async function handleEdit(row: studentType.StudentVO) {
+  if (!row.id) {
+    message.error(t('student.messages.invalidId'))
+    return
+  }
+
   try {
-    const studentDetail = await studentApi.getStudentById(row.id)
+    const studentDetail = await studentApi.getStudentById(row.id!)
     Object.assign(editStudentForm, studentDetail?.data)
     showEditModal.value = true
   } catch (error) {

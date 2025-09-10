@@ -1,6 +1,6 @@
 <template>
   <div class="settings-module">
-    <n-card :title="$t('settings.notification.title')" size="small">
+    <n-card :title="t('settings.notification.title')" size="small">
       <n-space size="large" vertical>
         <!-- 通知类型设置 -->
         <div class="notification-section">
@@ -9,7 +9,7 @@
             <n-gi>
               <div class="notification-item">
                 <div class="notification-content">
-                  <strong>{{ $t('settings.notification.emailNotifications') }}</strong>
+                  <strong>{{ t('settings.notification.emailNotifications') }}</strong>
                   <p class="description">通过邮件接收重要通知</p>
                 </div>
                 <n-switch v-model:value="emailNotifications"/>
@@ -19,7 +19,7 @@
             <n-gi>
               <div class="notification-item">
                 <div class="notification-content">
-                  <strong>{{ $t('settings.notification.pushNotifications') }}</strong>
+                  <strong>{{ t('settings.notification.pushNotifications') }}</strong>
                   <p class="description">通过浏览器推送接收通知</p>
                 </div>
                 <n-switch v-model:value="pushNotifications"/>
@@ -29,7 +29,7 @@
             <n-gi>
               <div class="notification-item">
                 <div class="notification-content">
-                  <strong>{{ $t('settings.notification.soundEffect') }}</strong>
+                  <strong>{{ t('settings.notification.soundEffect') }}</strong>
                   <p class="description">收到通知时播放提示音</p>
                 </div>
                 <n-switch v-model:value="soundEffects"/>
@@ -45,7 +45,7 @@
             <n-gi>
               <div class="notification-item">
                 <div class="notification-content">
-                  <strong>{{ $t('settings.notification.systemMessages') }}</strong>
+                  <strong>{{ t('settings.notification.systemMessages') }}</strong>
                   <p class="description">系统消息、警告和错误</p>
                 </div>
                 <n-switch v-model:value="systemMessages"/>
@@ -55,7 +55,7 @@
             <n-gi>
               <div class="notification-item">
                 <div class="notification-content">
-                  <strong>{{ $t('settings.notification.updates') }}</strong>
+                  <strong>{{ t('settings.notification.updates') }}</strong>
                   <p class="description">系统更新和新功能通知</p>
                 </div>
                 <n-switch v-model:value="systemUpdates"/>
@@ -65,7 +65,7 @@
             <n-gi>
               <div class="notification-item">
                 <div class="notification-content">
-                  <strong>{{ $t('settings.notification.marketing') }}</strong>
+                  <strong>{{ t('settings.notification.marketing') }}</strong>
                   <p class="description">产品推广和营销信息</p>
                 </div>
                 <n-switch v-model:value="marketingInfo"/>
@@ -76,7 +76,7 @@
 
         <!-- 通知频率设置 -->
         <div class="notification-section">
-          <h3>{{ $t('settings.notification.notificationFrequency') }}</h3>
+          <h3>{{ t('settings.notification.notificationFrequency') }}</h3>
           <n-radio-group v-model:value="notificationFrequency">
             <n-space vertical>
               <n-radio value="immediate">
@@ -120,10 +120,10 @@
         <!-- 保存按钮 -->
         <div class="action-buttons">
           <n-button type="primary" @click="saveSettings">
-            {{ $t('common.save') }}
+            {{ t('common.save') }}
           </n-button>
           <n-button class="reset-button" @click="resetSettings">
-            {{ $t('common.reset') }}
+            {{ t('common.reset') }}
           </n-button>
         </div>
       </n-space>
@@ -175,7 +175,6 @@ onMounted(() => {
       marketingInfo.value = settings.marketingInfo ?? marketingInfo.value
       notificationFrequency.value = settings.notificationFrequency || notificationFrequency.value
     } catch (e) {
-      console.error('Failed to parse saved settings')
     }
   }
 })

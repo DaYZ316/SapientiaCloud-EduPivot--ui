@@ -40,12 +40,12 @@ export function useCourseData() {
     // 分页状态
     const pagination = reactive({
         pageNum: 1,
-        pageSize: 8,
+        pageSize: 12,
         total: 0
     })
 
     // 课程API函数
-    const courseApiFunction = computed(() => courseApi.getCourseList)
+    const courseApiFunction = computed(() => courseApi.listCourse)
 
     // 初始化搜索表单
     function initializeSearchForm() {
@@ -64,8 +64,8 @@ export function useCourseData() {
         try {
             const queryParams = {
                 ...searchForm,
-                pageNum: pagination.pageNum.toString(),
-                pageSize: pagination.pageSize.toString()
+                pageNum: pagination.pageNum,
+                pageSize: pagination.pageSize
             }
 
             const result = await courseApiFunction.value(queryParams)

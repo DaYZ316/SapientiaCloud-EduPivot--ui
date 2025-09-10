@@ -96,5 +96,14 @@ export default {
         departmentRequired: '请输入所属部门',
         departmentLength: '部门名称长度不能超过100个字符',
         educationRequired: '请选择学历'
+    },
+
+    // 教师个人主页
+    profile: {
+        notFound: '未找到教师信息',
+        teacherCode: '教师编号',
+        description: '个人简介',
+        specialization: '专业领域',
+        contactInfo: '联系信息'
     }
 }

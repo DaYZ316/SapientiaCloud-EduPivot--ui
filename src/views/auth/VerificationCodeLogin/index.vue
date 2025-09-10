@@ -3,14 +3,14 @@
   <div class="verification-login-card">
     <!-- 登录标题 -->
     <div class="brand-section">
-      <h1 class="brand-title">{{ $t('auth.verificationCodeLogin') }}</h1>
+      <h1 class="brand-title">{{ t('auth.verificationCodeLogin') }}</h1>
     </div>
 
     <!-- 验证码登录表单 -->
     <n-form ref="formRef" :model="loginForm" :rules="rules" class="login-form" size="large"
             @keyup.enter="handleLogin">
       <n-form-item :show-label="false" path="mobile">
-        <n-input v-model:value="loginForm.mobile" :placeholder="$t('auth.phone')"
+        <n-input v-model:value="loginForm.mobile" :placeholder="t('auth.phone')"
                  clearable maxlength="11">
           <template #prefix>
             <n-icon>
@@ -22,7 +22,7 @@
 
       <n-form-item :show-label="false" path="verificationCode">
         <div class="verification-code-input">
-          <n-input v-model:value="loginForm.verificationCode" :placeholder="$t('auth.verificationCode')"
+          <n-input v-model:value="loginForm.verificationCode" :placeholder="t('auth.verificationCode')"
                    clearable maxlength="6">
             <template #prefix>
               <n-icon>
@@ -36,7 +36,7 @@
               size="large"
               @click="sendVerificationCode"
           >
-            {{ countdown > 0 ? `${countdown}s` : $t('auth.sendVerificationCode') }}
+            {{ countdown > 0 ? `${countdown}s` : t('auth.sendVerificationCode') }}
           </n-button>
         </div>
       </n-form-item>
@@ -44,24 +44,24 @@
       <!-- 记住我和忘记密码 -->
       <div class="form-options">
         <n-checkbox v-model:checked="rememberMe">
-          {{ $t('auth.rememberMe') }}
+          {{ t('auth.rememberMe') }}
         </n-checkbox>
         <n-button text>
-          {{ $t('auth.forgotPassword') }}
+          {{ t('auth.forgotPassword') }}
         </n-button>
       </div>
 
       <!-- 登录按钮 -->
       <n-button :loading="loading" size="large" style="width: 100%;" type="primary" @click="handleLogin">
-        {{ loading ? $t('auth.loginInProgress') : $t('auth.login') }}
+        {{ loading ? t('auth.loginInProgress') : t('auth.login') }}
       </n-button>
     </n-form>
 
     <!-- 注册链接 -->
     <div class="register-section">
-      <span>{{ $t('auth.noAccount') }}</span>
+      <span>{{ t('auth.noAccount') }}</span>
       <n-button text @click="$emit('switchToRegister')">
-        {{ $t('auth.register') }}
+        {{ t('auth.register') }}
       </n-button>
     </div>
   </div>

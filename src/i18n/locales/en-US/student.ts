@@ -156,7 +156,8 @@ export default {
         getDetailFail: 'Failed to get student details',
         studentCodeExists: 'Student code already exists',
         invalidStudentCode: 'Invalid student code format',
-        invalidEnrollmentYear: 'Invalid enrollment year format'
+        invalidEnrollmentYear: 'Invalid enrollment year format',
+        invalidId: 'Invalid student ID'
     },
 
     // Validation rules

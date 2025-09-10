@@ -19,7 +19,6 @@ export class TitleUtil {
      */
     static setTitle(titleKey: string = 'default') {
         if (!this.i18n) {
-            console.warn('TitleUtil not initialized')
             return
         }
 
@@ -37,14 +36,12 @@ export class TitleUtil {
                 document.title = `${defaultTitle} - ${projectName}`
             }
         } catch (error) {
-            console.error('Error setting page title:', error)
             // 降级处理：使用默认标题
             try {
                 const defaultTitle = this.i18n.global.t('app.title.default')
                 const projectName = this.i18n.global.t('app.name')
                 document.title = `${defaultTitle} - ${projectName}`
             } catch (fallbackError) {
-                console.error('Error setting fallback title:', fallbackError)
                 document.title = 'SapientiaCloud EduPivot'
             }
         }
@@ -110,7 +107,6 @@ export function useTitle() {
                 document.title = `${defaultTitle} - ${projectName}`
             }
         } catch (error) {
-            console.error('Error setting page title:', error)
             document.title = 'SapientiaCloud EduPivot'
         }
     }

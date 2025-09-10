@@ -39,6 +39,9 @@ export default {
         add: 'Add Course',
         edit: 'Edit',
         delete: 'Delete',
+        deleteConfirm: 'Confirm Delete',
+        deleteConfirmContent: 'Are you sure you want to delete course "{courseName}"? This action cannot be undone.',
+        deleteSuccess: 'Course deleted successfully',
         batchDelete: 'Batch Delete',
         assignTeacher: 'Assign Teacher',
         assignTeachers: 'Assign Teachers',
@@ -183,5 +186,16 @@ export default {
         assignTeachers: 'Assign Teachers',
         mainTeacher: 'Main Instructor',
         assistantTeachers: 'Assistant Teachers'
+    },
+
+    // Teacher profile
+    profile: {
+        notFound: 'Teacher information not found',
+        noName: 'Name not set',
+        noCode: 'Teacher code not set',
+        teacherCode: 'Teacher Code',
+        description: 'Personal Introduction',
+        specialization: 'Specialization',
+        contactInfo: 'Contact Information'
     }
 }

@@ -96,5 +96,14 @@ export default {
         departmentRequired: 'Please enter department',
         departmentLength: 'Department name cannot exceed 100 characters',
         educationRequired: 'Please select education level'
+    },
+
+    // Teacher profile page
+    profile: {
+        notFound: 'Teacher information not found',
+        teacherCode: 'Teacher Code',
+        description: 'Personal Description',
+        specialization: 'Specialization',
+        contactInfo: 'Contact Information'
     }
 }

@@ -368,7 +368,7 @@ async function handleSubmit() {
 async function loadTeachers() {
   try {
     teacherLoading.value = true
-    const response = await teacherApi.getAllTeachers()
+    const response = await teacherApi.listAllTeacher()
     if (response.data) {
       teacherOptions.value = response.data.map((teacher: teacherType.TeacherVO) => ({
         label: teacher.realName || teacher.teacherCode || '',

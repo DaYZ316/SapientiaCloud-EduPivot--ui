@@ -27,9 +27,9 @@ export interface TeacherAddDTO {
 
 // 教师视图对象
 export interface TeacherVO {
-    id: string
-    teacherCode: string
-    realName: string
+    id: string | null
+    teacherCode: string | null
+    realName: string | null
     birthDate?: string | null
     department?: string | null
     education?: number | null // 0=专科, 1=本科, 2=硕士, 3=博士
@@ -43,8 +43,9 @@ export interface TeacherVO {
     mobile?: string | null
     gender?: number | null // 0=未知, 1=男, 2=女
     status?: number | null // 0=正常, 1=停用
-    createTime: string
-    updateTime: string
+    createTime: string | null
+    updateTime: string | null
+    lastLoginTime?: string | null
 }
 
 // 教师查询参数

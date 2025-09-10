@@ -9,5 +9,7 @@ export default {
     infoManagement: '信息管理',
     teacher: '教师管理',
     student: '学生管理',
-    course: '课程管理'
+    course: '课程',
+    courseManagement: '课程管理',
+    studentEnrollment: '学生选课'
 } 

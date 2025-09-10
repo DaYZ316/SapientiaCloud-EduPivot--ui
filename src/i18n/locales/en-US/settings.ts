@@ -137,7 +137,11 @@ export default {
         academicStatusRequired: 'Academic status is required',
         // Operation results
         bindSuccess: 'Binding successful',
-        bindFail: 'Binding failed'
+        bindFail: 'Binding failed',
+        // Birth date related
+        birthDate: 'Birth Date',
+        birthDatePlaceholder: 'Please select birth date',
+        birthDateRequired: 'Birth date is required'
     },
     user: {
         title: 'User Management',
@@ -199,7 +203,14 @@ export default {
             enableSuccess: 'User enabled successfully',
             enableFail: 'Failed to enable user',
             disableSuccess: 'User disabled successfully',
-            disableFail: 'Failed to disable user'
+            disableFail: 'Failed to disable user',
+            cannotAssignBothRoles: 'Cannot assign both student and teacher roles',
+            studentInfoSuccess: 'Student information added successfully',
+            studentInfoFail: 'Failed to add student information',
+            teacherInfoSuccess: 'Teacher information added successfully',
+            teacherInfoFail: 'Failed to add teacher information',
+            studentInfoExists: 'User already has student information, completing role assignment',
+            teacherInfoExists: 'User already has teacher information, completing role assignment'
         },
         addUser: {
             title: 'Add User',
@@ -209,12 +220,12 @@ export default {
             mobile: 'Mobile',
             gender: 'Gender',
             status: 'Status',
-            avatar: 'Avatar URL',
+            avatar: 'Avatar',
             usernamePlaceholder: 'Enter username',
             nicknamePlaceholder: 'Enter nickname',
             emailPlaceholder: 'Enter email',
             mobilePlaceholder: 'Enter mobile number',
-            avatarPlaceholder: 'Enter avatar URL',
+            avatarPlaceholder: 'Upload avatar',
             cancel: 'Cancel',
             submit: 'Submit',
             usernameRequired: 'Username is required',
@@ -235,12 +246,12 @@ export default {
             mobile: 'Mobile',
             gender: 'Gender',
             status: 'Status',
-            avatar: 'Avatar URL',
+            avatar: 'Avatar',
             usernamePlaceholder: 'Enter username',
             nicknamePlaceholder: 'Enter nickname',
             emailPlaceholder: 'Enter email',
             mobilePlaceholder: 'Enter mobile number',
-            avatarPlaceholder: 'Enter avatar URL',
+            avatarPlaceholder: 'Upload avatar',
             cancel: 'Cancel',
             submit: 'Submit',
             usernameRequired: 'Username is required',
@@ -259,6 +270,89 @@ export default {
             roles: 'Role List',
             cancel: 'Cancel',
             submit: 'Save'
+        },
+        studentInfo: {
+            title: 'Enter Student Information',
+            studentCode: 'Student Code',
+            studentCodePlaceholder: 'Enter student code',
+            studentCodeRequired: 'Student code is required',
+            realName: 'Real Name',
+            realNamePlaceholder: 'Enter real name',
+            realNameRequired: 'Real name is required',
+            birthDate: 'Birth Date',
+            birthDatePlaceholder: 'Select birth date',
+            admissionYear: 'Admission Year',
+            admissionYearPlaceholder: 'Enter admission year',
+            major: 'Major',
+            majorPlaceholder: 'Enter major',
+            academicStatus: 'Academic Status',
+            academicStatusPlaceholder: 'Select academic status',
+            academicStatusRequired: 'Academic status is required',
+            description: 'Description',
+            descriptionPlaceholder: 'Enter description',
+            cancel: 'Cancel',
+            submit: 'Submit'
+        },
+        teacherInfo: {
+            title: 'Enter Teacher Information',
+            teacherCode: 'Teacher Code',
+            teacherCodePlaceholder: 'Enter teacher code',
+            teacherCodeRequired: 'Teacher code is required',
+            realName: 'Real Name',
+            realNamePlaceholder: 'Enter real name',
+            realNameRequired: 'Real name is required',
+            birthDate: 'Birth Date',
+            birthDatePlaceholder: 'Select birth date',
+            department: 'Department',
+            departmentPlaceholder: 'Enter department',
+            departmentRequired: 'Department is required',
+            education: 'Education',
+            educationPlaceholder: 'Select education level',
+            educationRequired: 'Education level is required',
+            specialization: 'Specialization',
+            specializationPlaceholder: 'Enter specialization',
+            description: 'Description',
+            descriptionPlaceholder: 'Enter description',
+            cancel: 'Cancel',
+            submit: 'Submit'
+        },
+        studentInfoDisplay: {
+            title: 'Student Information Confirmation',
+            confirmMessage: 'User already has student information, please confirm the information is correct and complete role assignment, modifications are allowed',
+            cancel: 'Cancel',
+            confirm: 'Confirm Assignment'
+        },
+        teacherInfoDisplay: {
+            title: 'Teacher Information Confirmation',
+            confirmMessage: 'User already has teacher information, please confirm the information is correct and complete role assignment, modifications are allowed',
+            cancel: 'Cancel',
+            confirm: 'Confirm Assignment'
+        },
+        // Form validation rules
+        rules: {
+            usernameRequired: 'Username is required',
+            usernameLength: 'Username must be 2-20 characters',
+            nicknameRequired: 'Nickname is required',
+            emailRequired: 'Email is required',
+            emailFormat: 'Invalid email format',
+            mobileRequired: 'Mobile number is required',
+            mobileFormat: 'Invalid mobile number format',
+            genderRequired: 'Please select gender',
+            statusRequired: 'Please select status',
+            studentCodeRequired: 'Student code is required',
+            realNameRequired: 'Real name is required',
+            academicStatusRequired: 'Academic status is required',
+            teacherCodeRequired: 'Teacher code is required',
+            departmentRequired: 'Department is required',
+            educationRequired: 'Education level is required'
+        },
+        // Console log messages
+        console: {
+            getRoleDataFail: 'Failed to get role data',
+            addStudentInfoFail: 'Failed to add student information',
+            addTeacherInfoFail: 'Failed to add teacher information',
+            updateStudentInfoFail: 'Failed to update student information',
+            updateTeacherInfoFail: 'Failed to update teacher information'
         }
     },
     role: {

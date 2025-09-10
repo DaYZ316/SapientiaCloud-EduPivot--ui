@@ -161,7 +161,6 @@ const savePersonalSettings = () => {
           message.error(res.message || t('settings.personal.updateFail'))
         }
       } catch (error) {
-        console.error('更新用户信息失败:', error)
         message.error(t('settings.personal.updateFail'))
       }
     }
@@ -173,10 +172,16 @@ const resetForm = () => {
   initFormData()
 }
 
+// 更新头像
+const updateAvatar = (avatarUrl: string) => {
+  personalForm.avatar = avatarUrl
+}
+
 // 暴露方法给父组件
 defineExpose({
   initFormData,
-  resetForm
+  resetForm,
+  updateAvatar
 })
 
 // 初始化表单数据

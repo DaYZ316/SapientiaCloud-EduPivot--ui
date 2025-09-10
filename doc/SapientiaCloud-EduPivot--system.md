@@ -2,7 +2,7 @@
 
 **简介**:SapientiaCloud-EduPivot--system API
 
-**HOST**:http://192.168.77.249:31601
+**HOST**:http://192.168.37.249:31601
 
 **联系人**:DaYZ
 
@@ -14,7 +14,7 @@
 
 # 角色管理
 
-## 添加新角色
+## addRole
 
 **接口地址**:`/api/system/role`
 
@@ -123,7 +123,7 @@
 }
 ```
 
-## 更新现有角色
+## updateRole
 
 **接口地址**:`/api/system/role`
 
@@ -236,7 +236,7 @@
 }
 ```
 
-## 批量删除角色
+## removeRoleByIds
 
 **接口地址**:`/api/system/role`
 
@@ -334,7 +334,7 @@
 }
 ```
 
-## 根据ID获取角色
+## getRoleById
 
 **接口地址**:`/api/system/role/{id}`
 
@@ -479,7 +479,7 @@
 }
 ```
 
-## 删除角色
+## removeRoleById
 
 **接口地址**:`/api/system/role/{id}`
 
@@ -571,7 +571,7 @@
 }
 ```
 
-## 分配角色权限
+## assignRolePermissions
 
 **接口地址**:`/api/system/role/{roleId}/permission`
 
@@ -670,7 +670,7 @@
 }
 ```
 
-## 获取所有角色
+## listAllSysRole
 
 **接口地址**:`/api/system/role/all`
 
@@ -815,7 +815,7 @@
 }
 ```
 
-## 分页查询角色
+## listSysRole
 
 **接口地址**:`/api/system/role/list`
 
@@ -917,7 +917,7 @@
 
 # 角色内部接口
 
-## 内部接口 - 根据角色标识获取角色信息
+## getRoleByKey
 
 **接口地址**:`/api/system/role/internal/key/{roleKey}`
 
@@ -1062,7 +1062,7 @@
 }
 ```
 
-## 内部接口 - 为指定用户添加指定角色
+## addRoleToUser
 
 **接口地址**:`/api/system/role/internal/user/{userId}/role`
 
@@ -1155,7 +1155,7 @@
 }
 ```
 
-## 内部接口 - 从指定用户中删除指定角色
+## removeRoleFromUser
 
 **接口地址**:`/api/system/role/internal/user/{userId}/role`
 
@@ -1250,7 +1250,7 @@
 
 # 权限管理
 
-## 添加新权限
+## addPermission
 
 **接口地址**:`/api/system/permission`
 
@@ -1357,7 +1357,7 @@
 }
 ```
 
-## 更新现有权限
+## updatePermission
 
 **接口地址**:`/api/system/permission`
 
@@ -1466,7 +1466,7 @@
 }
 ```
 
-## 批量删除权限
+## removePermissionByIds
 
 **接口地址**:`/api/system/permission`
 
@@ -1564,7 +1564,7 @@
 }
 ```
 
-## 根据ID获取权限
+## getPermissionById
 
 **接口地址**:`/api/system/permission/{id}`
 
@@ -1686,7 +1686,7 @@
 }
 ```
 
-## 删除权限
+## removePermissionById
 
 **接口地址**:`/api/system/permission/{id}`
 
@@ -1778,7 +1778,7 @@
 }
 ```
 
-## 分页查询权限
+## listSysPermission
 
 **接口地址**:`/api/system/permission/list`
 
@@ -1879,7 +1879,7 @@
 }
 ```
 
-## 查询权限树
+## listSysPermissionTree
 
 **接口地址**:`/api/system/permission/tree`
 
@@ -2003,7 +2003,7 @@
 
 # 权限验证内部接口
 
-## 内部接口 - 清除用户权限缓存
+## clearUserPermissionCache
 
 **接口地址**:`/api/system/permission/internal/{userId}/cache`
 
@@ -2095,7 +2095,7 @@
 }
 ```
 
-## 内部接口 - 获取用户权限列表
+## getUserPermissions
 
 **接口地址**:`/api/system/permission/internal/{userId}/permissions`
 
@@ -2187,7 +2187,7 @@
 }
 ```
 
-## 内部接口 - 清除所有权限缓存
+## clearAllPermissionCache
 
 **接口地址**:`/api/system/permission/internal/cache/all`
 
@@ -2277,7 +2277,7 @@
 }
 ```
 
-## 内部接口 - 验证用户权限
+## hasPermission
 
 **接口地址**:`/api/system/permission/internal/check/{permission}`
 
@@ -2369,7 +2369,7 @@
 }
 ```
 
-## 内部接口 - 验证用户所有权限
+## hasAllPermissions
 
 **接口地址**:`/api/system/permission/internal/check/all`
 
@@ -2467,7 +2467,7 @@
 }
 ```
 
-## 内部接口 - 验证用户任一权限
+## hasAnyPermission
 
 **接口地址**:`/api/system/permission/internal/check/any`
 
@@ -2567,7 +2567,7 @@
 
 # 用户管理
 
-## 更新现有用户
+## updateUser
 
 **接口地址**:`/api/system/user`
 
@@ -2682,7 +2682,7 @@
 }
 ```
 
-## 批量删除用户
+## removeUserByIds
 
 **接口地址**:`/api/system/user`
 
@@ -2780,7 +2780,7 @@
 }
 ```
 
-## 根据ID获取用户
+## getUserById
 
 **接口地址**:`/api/system/user/{id}`
 
@@ -2952,7 +2952,7 @@
 }
 ```
 
-## 删除用户
+## removeUserById
 
 **接口地址**:`/api/system/user/{id}`
 
@@ -3044,7 +3044,7 @@
 }
 ```
 
-## 分配用户角色
+## assignRoles
 
 **接口地址**:`/api/system/user/{userId}/role`
 
@@ -3143,7 +3143,7 @@
 }
 ```
 
-## 管理员添加新用户
+## addSysUser
 
 **接口地址**:`/api/system/user/add`
 
@@ -3336,7 +3336,7 @@
 }
 ```
 
-## 获取所有用户
+## listAllSysUser
 
 **接口地址**:`/api/system/user/all`
 
@@ -3508,7 +3508,7 @@
 }
 ```
 
-## 分页查找用户
+## listSysUser
 
 **接口地址**:`/api/system/user/list`
 
@@ -3612,7 +3612,7 @@
 }
 ```
 
-## 手机验证码登录
+## mobileLogin
 
 **接口地址**:`/api/system/user/mobile-login`
 
@@ -3827,7 +3827,7 @@
 }
 ```
 
-## 修改个人信息
+## updateProfile
 
 **接口地址**:`/api/system/user/profile`
 
@@ -4020,7 +4020,7 @@
 
 # 用户内部接口
 
-## 内部接口 - 获取用户权限列表
+## getUserPermissions
 
 **接口地址**:`/api/system/user/internal/{userId}/permission`
 
@@ -4144,7 +4144,7 @@
 }
 ```
 
-## 内部接口 - 获取用户角色列表
+## getUserRoles
 
 **接口地址**:`/api/system/user/internal/{userId}/role`
 
@@ -4291,7 +4291,7 @@
 }
 ```
 
-## 内部接口 - 根据用户名获取用户信息
+## getUserInfoByUsername
 
 **接口地址**:`/api/system/user/internal/info/{username}`
 
@@ -4495,7 +4495,211 @@
 }
 ```
 
-## 内部接口 - 更新密码
+## getUserInfoById
+
+**接口地址**:`/api/system/user/internal/info/id/{userId}`
+
+**请求方式**:`GET`
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+**响应数据类型**:`*/*`
+
+**接口描述**:<p>通过用户ID获取用户详细信息</p>
+
+**请求参数**:
+
+| 参数名称   | 参数说明 | 请求类型 | 是否必须 | 数据类型         | schema |
+|--------|------|------|------|--------------|--------|
+| userId |      | path | true | string(uuid) |        |
+
+**响应状态**:
+
+| 状态码 | 说明          | schema                  |
+|-----|-------------|-------------------------| 
+| 200 | OK          | ResultSysUserInternalVO |
+| 400 | Bad Request | ResultMapStringString   |
+| 403 | Forbidden   | ResultString            |
+
+**响应状态码-200**:
+
+**响应参数**:
+
+| 参数名称                                               | 参数说明                | 类型                | schema            |
+|----------------------------------------------------|---------------------|-------------------|-------------------| 
+| success                                            | 请求是否成功              | boolean           |                   |
+| code                                               | 业务状态码 (200表示成功)     | integer(int32)    | integer(int32)    |
+| message                                            | 响应消息                | string            |                   |
+| data                                               |                     | SysUserInternalVO | SysUserInternalVO |
+| &emsp;&emsp;createTime                             | 创建时间 (系统自动生成)       | string(date-time) |                   |
+| &emsp;&emsp;updateTime                             | 更新时间 (系统自动生成)       | string(date-time) |                   |
+| &emsp;&emsp;id                                     | 用户ID                | string(uuid)      |                   |
+| &emsp;&emsp;username                               | 用户名                 | string            |                   |
+| &emsp;&emsp;nickName                               | 用户昵称                | string            |                   |
+| &emsp;&emsp;email                                  | 邮箱                  | string            |                   |
+| &emsp;&emsp;mobile                                 | 手机号                 | string            |                   |
+| &emsp;&emsp;gender                                 | 性别 (0=未知, 1=男, 2=女) | integer(int32)    |                   |
+| &emsp;&emsp;avatar                                 | 用户头像URL             | string            |                   |
+| &emsp;&emsp;status                                 | 状态 (0=正常, 1=停用)     | integer(int32)    |                   |
+| &emsp;&emsp;last_login_time                        | 最后登录时间              | string(date-time) |                   |
+| &emsp;&emsp;roles                                  | 系统角色视图对象 (VO)       | array             | SysRoleVO         |
+| &emsp;&emsp;&emsp;&emsp;id                         | 角色ID                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;roleName                   | 角色名称                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;roleKey                    | 角色标识                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;permissions                | 系统权限视图对象 (VO)       | array             | SysPermissionVO   |
+| &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;id             | 权限ID                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;parentId       | 父级权限ID              | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permissionName | 权限名称                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permissionKey  | 权限标识                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;children       | 子权限列表               | array             | SysPermissionVO   |
+| &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;sort           | 排序                  | integer           |                   |
+| &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;createTime     | 创建时间                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;updateTime     | 更新时间                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;sort                       | 排序                  | integer           |                   |
+| &emsp;&emsp;&emsp;&emsp;status                     | 状态 (0=正常, 1=停用)     | integer           |                   |
+| &emsp;&emsp;&emsp;&emsp;description                | 描述                  | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;createTime                 | 创建时间                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;updateTime                 | 更新时间                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;admin                      |                     | boolean           |                   |
+| &emsp;&emsp;permissions                            | 系统权限视图对象 (VO)       | array             | SysPermissionVO   |
+| &emsp;&emsp;&emsp;&emsp;id                         | 权限ID                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;parentId                   | 父级权限ID              | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;permissionName             | 权限名称                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;permissionKey              | 权限标识                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;children                   | 子权限列表               | array             | SysPermissionVO   |
+| &emsp;&emsp;&emsp;&emsp;sort                       | 排序                  | integer           |                   |
+| &emsp;&emsp;&emsp;&emsp;createTime                 | 创建时间                | string            |                   |
+| &emsp;&emsp;&emsp;&emsp;updateTime                 | 更新时间                | string            |                   |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"id": "",
+		"username": "",
+		"nickName": "",
+		"email": "",
+		"mobile": "",
+		"gender": 0,
+		"avatar": "",
+		"status": 0,
+		"last_login_time": "",
+		"roles": [
+			{
+				"id": "",
+				"roleName": "",
+				"roleKey": "",
+				"permissions": [
+					{
+						"id": "",
+						"parentId": "",
+						"permissionName": "",
+						"permissionKey": "",
+						"children": [
+							{
+								"id": "",
+								"parentId": "",
+								"permissionName": "",
+								"permissionKey": "",
+								"children": [
+									{}
+								],
+								"sort": 0,
+								"createTime": "",
+								"updateTime": ""
+							}
+						],
+						"sort": 0,
+						"createTime": "",
+						"updateTime": ""
+					}
+				],
+				"sort": 0,
+				"status": 0,
+				"description": "",
+				"createTime": "",
+				"updateTime": "",
+				"admin": true
+			}
+		],
+		"permissions": [
+			{
+				"id": "",
+				"parentId": "",
+				"permissionName": "",
+				"permissionKey": "",
+				"children": [
+					{
+						"id": "",
+						"parentId": "",
+						"permissionName": "",
+						"permissionKey": "",
+						"children": [
+							{}
+						],
+						"sort": 0,
+						"createTime": "",
+						"updateTime": ""
+					}
+				],
+				"sort": 0,
+				"createTime": "",
+				"updateTime": ""
+			}
+		]
+	}
+}
+```
+
+**响应状态码-400**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | object         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+**响应状态码-403**:
+
+**响应参数**:
+
+| 参数名称    | 参数说明            | 类型             | schema         |
+|---------|-----------------|----------------|----------------| 
+| success | 请求是否成功          | boolean        |                |
+| code    | 业务状态码 (200表示成功) | integer(int32) | integer(int32) |
+| message | 响应消息            | string         |                |
+| data    | 响应数据体 (泛型)      | string         |                |
+
+**响应示例**:
+
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+## updatePassword
 
 **接口地址**:`/api/system/user/internal/password`
 
@@ -4600,7 +4804,7 @@
 }
 ```
 
-## 内部接口 - 注册用户
+## registerUser
 
 **接口地址**:`/api/system/user/internal/register`
 
@@ -4713,7 +4917,7 @@
 }
 ```
 
-## 内部接口 - 更新用户信息
+## updateUserInternal
 
 **接口地址**:`/api/system/user/internal/update`
 

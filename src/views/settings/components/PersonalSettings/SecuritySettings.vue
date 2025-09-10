@@ -166,7 +166,6 @@ const changePassword = () => {
                 // 跳转到登录页
                 router.push('/login')
               } catch (error) {
-                console.error('登出失败:', error)
                 // 即使登出失败也跳转到登录页
                 router.push('/login')
               }
@@ -176,7 +175,6 @@ const changePassword = () => {
           message.error(res.message || t('settings.personal.passwordChangeFail'))
         }
       } catch (error) {
-        console.error('修改密码失败:', error)
         message.error(t('settings.personal.passwordChangeFail'))
       }
     }

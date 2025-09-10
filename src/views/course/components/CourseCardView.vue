@@ -38,7 +38,12 @@
 
             <!-- 教师信息 -->
             <div v-if="course.teacherName" class="instructor">
-              <n-tag :bordered="false" class="teacher-tag" round>
+              <n-tag
+                  :bordered="false"
+                  class="teacher-tag"
+                  round
+                  @click.stop="handleTeacherClick(course.teacherId)"
+              >
                 <span class="teacher-name">{{ course.teacherName }}</span>
                 <template #avatar>
                   <n-avatar
@@ -109,6 +114,7 @@ import type * as courseType from '@/types/course'
 import type {TeacherVO} from '@/types/teacher'
 import type {SysUserVO} from '@/types/system/user'
 import {useI18n} from 'vue-i18n'
+import {useRouter} from 'vue-router'
 import {FingerPrintOutline, LocationOutline} from '@vicons/ionicons5'
 import {CourseStatusEnum} from '@/enum/course'
 import {getTeacherById} from '@/api/teacher'
@@ -116,6 +122,7 @@ import {getUserById} from '@/api/system/user'
 import {computed, ref, watch} from 'vue'
 
 const {t} = useI18n()
+const router = useRouter()
 
 // Props
 interface Props {
@@ -133,7 +140,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  pageSizes: () => [8, 16, 24, 32],
+  pageSizes: () => [12, 16, 24, 32],
   showQuickJumper: true,
   showSizePicker: true
 })
@@ -244,6 +251,13 @@ const onPageChange = (page: number) => emit('page-change', {pageNum: page, pageS
 
 // 处理页大小变化
 const onSizeChange = (size: number) => emit('page-change', {pageNum: 1, pageSize: size})
+
+// 处理教师标签点击
+const handleTeacherClick = (teacherId: string) => {
+  if (teacherId) {
+    router.push({name: 'TeacherProfile', params: {teacherId}})
+  }
+}
 </script>
 
 <style lang="scss" scoped>

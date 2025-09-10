@@ -286,7 +286,7 @@ const columns = computed(() => [
         h(
             'button',
             {
-              class: 'n-button n-button--tertiary n-button--small',
+              class: 'n-button n-button--text',
               style: {marginRight: '8px'},
               onClick: () => handleEdit(row)
             },
@@ -298,7 +298,7 @@ const columns = computed(() => [
         h(
             'button',
             {
-              class: 'n-button n-button--error n-button--small',
+              class: 'n-button n-button--text',
               onClick: () => handleDelete(row)
             },
             [
@@ -369,7 +369,6 @@ async function loadAllPermissions() {
     // 更新父级权限选项
     updateParentPermissionOptions()
   } catch (error) {
-    console.error('加载权限数据失败:', error)
     message.error(t('settings.permission.messages.loadFail'))
   } finally {
     treeLoading.value = false
@@ -433,7 +432,6 @@ async function submitUpdatePermission() {
       allPermissions.value = []
       permissionTreeOptions.value = []
     } catch (error) {
-      console.error('更新权限失败:', error)
       message.error(t('settings.permission.messages.editFail'))
     } finally {
       submitting.value = false
@@ -461,7 +459,6 @@ async function handleDelete(row: permissionType.SysPermissionVO) {
         allPermissions.value = []
         permissionTreeOptions.value = []
       } catch (error) {
-        console.error('删除权限出错:', error)
         message.error(t('settings.permission.messages.deleteFail'))
       }
     }
@@ -495,7 +492,6 @@ async function submitAddPermission() {
       allPermissions.value = []
       permissionTreeOptions.value = []
     } catch (error) {
-      console.error('添加权限失败:', error)
       message.error(t('settings.permission.messages.addFail'))
     } finally {
       submitting.value = false

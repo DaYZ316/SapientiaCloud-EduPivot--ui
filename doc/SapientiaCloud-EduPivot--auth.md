@@ -2,7 +2,7 @@
 
 **简介**:SapientiaCloud-EduPivot--auth API
 
-**HOST**:http://192.168.77.249:31602
+**HOST**:http://192.168.37.249:31602
 
 **联系人**:DaYZ
 
@@ -14,7 +14,7 @@
 
 # 认证接口
 
-## 获取用户信息
+## getUserInfo
 
 **接口地址**:`/api/auth/info`
 
@@ -148,7 +148,7 @@
 }
 ```
 
-## 用户登录
+## login
 
 **接口地址**:`/api/auth/login`
 
@@ -321,7 +321,7 @@
 }
 ```
 
-## 用户登出
+## logout
 
 **接口地址**:`/api/auth/logout`
 
@@ -363,7 +363,7 @@
 }
 ```
 
-## 手机验证码登录
+## mobileLogin
 
 **接口地址**:`/api/auth/mobile-login`
 
@@ -536,7 +536,7 @@
 }
 ```
 
-## 更新密码
+## updatePassword
 
 **接口地址**:`/api/auth/password`
 
@@ -593,7 +593,7 @@
 }
 ```
 
-## 用户注册
+## register
 
 **接口地址**:`/api/auth/register`
 
@@ -658,7 +658,7 @@
 }
 ```
 
-## 验证令牌
+## validateToken
 
 **接口地址**:`/api/auth/validate`
 

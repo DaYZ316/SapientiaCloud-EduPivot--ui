@@ -14,9 +14,9 @@ export interface PageEntity {
     /** 排序列 */
     orderByColumn?: string | null;
     /** 排序的方向, 可用值: asc, desc */
-    isAsc?: 'asc' | 'desc';
+    isAsc?: 'asc' | 'desc' | null;
     /** 分页参数合理化 */
-    reasonable?: boolean;
+    reasonable?: boolean | null;
 }
 
 /**

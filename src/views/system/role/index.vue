@@ -247,11 +247,9 @@ import {renderIcon} from '@/utils/iconUtil'
 import {handleDateRangeChange} from '@/utils/dateUtil'
 
 const {message, dialog} = getDiscreteApi()
-const {t, locale} = useI18n()
+const {t} = useI18n()
 const router = useRouter()
 
-// 是否为英文环境
-const isEnglish = computed(() => locale.value === 'en-US')
 
 // 状态选项
 const statusOptions = [
@@ -336,8 +334,9 @@ const columns = computed(() => [
         h(
             'button',
             {
-              class: 'n-button n-button--tertiary n-button--small',
+              class: 'n-button n-button--text',
               style: {marginRight: '8px'},
+              disabled: row.admin || row.roleKey === 'TEACHER' || row.roleKey === 'STUDENT',
               onClick: () => handleEdit(row),
               directive: [
                 {
@@ -354,7 +353,7 @@ const columns = computed(() => [
         h(
             'button',
             {
-              class: 'n-button n-button--tertiary n-button--small',
+              class: 'n-button n-button--text',
               style: {marginRight: '8px'},
               disabled: row.admin,
               onClick: () => handleAssign(row),
@@ -373,8 +372,8 @@ const columns = computed(() => [
         h(
             'button',
             {
-              class: 'n-button n-button--error n-button--small',
-              disabled: row.admin,
+              class: 'n-button n-button--text',
+              disabled: row.admin || row.roleKey === 'TEACHER' || row.roleKey === 'STUDENT',
               onClick: () => handleDelete(row),
               directive: [
                 {
@@ -454,7 +453,6 @@ async function submitUpdateRole() {
       closeEditModal()
       pageTableRef.value?.fetchData()
     } catch (error) {
-      console.error('更新角色失败:', error)
       message.error(t('settings.role.messages.editFail'))
     } finally {
       submitting.value = false
@@ -478,7 +476,6 @@ async function handleDelete(row: roleType.SysRoleVO) {
         message.success(t('settings.role.messages.deleteSuccess'))
         pageTableRef.value?.fetchData()
       } catch (error) {
-        console.error('删除角色出错:', error)
         message.error(t('settings.role.messages.deleteFail'))
       }
     }
@@ -510,7 +507,6 @@ async function submitAddRole() {
       closeAddModal()
       pageTableRef.value?.fetchData()
     } catch (error) {
-      console.error('添加角色失败:', error)
       message.error(t('settings.role.messages.addFail'))
     } finally {
       submitting.value = false
@@ -581,7 +577,6 @@ async function handleAssign(row: roleType.SysRoleVO) {
     // 显示分配权限对话框
     showAssignModal.value = true
   } catch (error) {
-    console.error('获取权限数据失败:', error)
     message.error(t('settings.role.messages.getPermissionFail'))
   } finally {
     submitting.value = false
@@ -610,7 +605,6 @@ async function submitAssignPermissions() {
     message.success(t('settings.role.messages.assignSuccess'))
     closeAssignModal()
   } catch (error) {
-    console.error('分配权限失败:', error)
     message.error(t('settings.role.messages.assignFail'))
   } finally {
     submitting.value = false

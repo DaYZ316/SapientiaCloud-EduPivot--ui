@@ -315,6 +315,7 @@ const columns = computed(() => [
             {
               class: 'n-button n-button--tertiary n-button--small',
               style: {marginRight: '8px'},
+              disabled: row.admin || row.roleKey === 'TEACHER' || row.roleKey === 'STUDENT',
               onClick: () => handleEdit(row),
               directive: [
                 {
@@ -351,7 +352,7 @@ const columns = computed(() => [
             'button',
             {
               class: 'n-button n-button--error n-button--small',
-              disabled: row.admin,
+              disabled: row.admin || row.roleKey === 'TEACHER' || row.roleKey === 'STUDENT',
               onClick: () => handleDelete(row),
               directive: [
                 {
@@ -431,7 +432,6 @@ async function submitUpdateRole() {
       closeEditModal()
       pageTableRef.value?.fetchData()
     } catch (error) {
-      console.error('更新角色失败:', error)
       message.error(t('settings.role.messages.editFail'))
     } finally {
       submitting.value = false
@@ -455,7 +455,6 @@ async function handleDelete(row: roleType.SysRoleVO) {
         message.success(t('settings.role.messages.deleteSuccess'))
         pageTableRef.value?.fetchData()
       } catch (error) {
-        console.error('删除角色出错:', error)
         message.error(t('settings.role.messages.deleteFail'))
       }
     }
@@ -487,7 +486,6 @@ async function submitAddRole() {
       closeAddModal()
       pageTableRef.value?.fetchData()
     } catch (error) {
-      console.error('添加角色失败:', error)
       message.error(t('settings.role.messages.addFail'))
     } finally {
       submitting.value = false
@@ -558,7 +556,6 @@ async function handleAssign(row: roleType.SysRoleVO) {
     // 显示分配权限对话框
     showAssignModal.value = true
   } catch (error) {
-    console.error('获取权限数据失败:', error)
     message.error(t('settings.role.messages.getPermissionFail'))
   } finally {
     submitting.value = false
@@ -587,7 +584,6 @@ async function submitAssignPermissions() {
     message.success(t('settings.role.messages.assignSuccess'))
     closeAssignModal()
   } catch (error) {
-    console.error('分配权限失败:', error)
     message.error(t('settings.role.messages.assignFail'))
   } finally {
     submitting.value = false

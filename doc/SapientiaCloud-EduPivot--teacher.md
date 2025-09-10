@@ -14,7 +14,7 @@
 
 # 教师管理
 
-## 添加新教师
+## addTeacher
 
 **接口地址**:`/api/teacher/`
 
@@ -129,7 +129,7 @@
 }
 ```
 
-## 更新教师信息
+## updateTeacher
 
 **接口地址**:`/api/teacher/`
 
@@ -246,7 +246,7 @@
 }
 ```
 
-## 批量删除教师
+## removeTeacherByIds
 
 **接口地址**:`/api/teacher/`
 
@@ -344,7 +344,7 @@
 }
 ```
 
-## 根据ID获取教师信息
+## getTeacherById
 
 **接口地址**:`/api/teacher/{id}`
 
@@ -398,6 +398,7 @@
 | &emsp;&emsp;status         | 状态 (0=正常, 1=停用)             | integer(int32)    |                |
 | &emsp;&emsp;createTime     | 创建时间                        | string(date-time) |                |
 | &emsp;&emsp;updateTime     | 更新时间                        | string(date-time) |                |
+| &emsp;&emsp;lastLoginTime  | 最后登录时间                      | string(date-time) |                |
 
 **响应示例**:
 
@@ -424,7 +425,8 @@
 		"gender": 0,
 		"status": 0,
 		"createTime": "",
-		"updateTime": ""
+		"updateTime": "",
+		"lastLoginTime": ""
 	}
 }
 ```
@@ -473,7 +475,7 @@
 }
 ```
 
-## 根据ID删除教师
+## removeTeacherById
 
 **接口地址**:`/api/teacher/{id}`
 
@@ -565,7 +567,7 @@
 }
 ```
 
-## 获取所有教师
+## listAllTeacher
 
 **接口地址**:`/api/teacher/all`
 
@@ -617,6 +619,7 @@
 | &emsp;&emsp;status         | 状态 (0=正常, 1=停用)             | integer(int32)    |                |
 | &emsp;&emsp;createTime     | 创建时间                        | string(date-time) |                |
 | &emsp;&emsp;updateTime     | 更新时间                        | string(date-time) |                |
+| &emsp;&emsp;lastLoginTime  | 最后登录时间                      | string(date-time) |                |
 
 **响应示例**:
 
@@ -644,7 +647,8 @@
 			"gender": 0,
 			"status": 0,
 			"createTime": "",
-			"updateTime": ""
+			"updateTime": "",
+			"lastLoginTime": ""
 		}
 	]
 }
@@ -694,7 +698,7 @@
 }
 ```
 
-## 分页查询教师列表
+## listTeacher
 
 **接口地址**:`/api/teacher/list`
 
@@ -797,7 +801,7 @@
 }
 ```
 
-## 根据用户ID获取教师信息
+## getTeacherByUserId
 
 **接口地址**:`/api/teacher/user/{id}`
 
@@ -851,6 +855,7 @@
 | &emsp;&emsp;status         | 状态 (0=正常, 1=停用)             | integer(int32)    |                |
 | &emsp;&emsp;createTime     | 创建时间                        | string(date-time) |                |
 | &emsp;&emsp;updateTime     | 更新时间                        | string(date-time) |                |
+| &emsp;&emsp;lastLoginTime  | 最后登录时间                      | string(date-time) |                |
 
 **响应示例**:
 
@@ -877,7 +882,8 @@
 		"gender": 0,
 		"status": 0,
 		"createTime": "",
-		"updateTime": ""
+		"updateTime": "",
+		"lastLoginTime": ""
 	}
 }
 ```

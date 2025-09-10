@@ -80,7 +80,7 @@ import {useI18n} from 'vue-i18n'
 import {useThemeStore, useUserStore} from '@/store'
 import {getMenuOptions, getUserMenuOptions, menuRouteMap} from '@/config/menu'
 import {ChevronDownOutline} from '@vicons/ionicons5'
-import {NAvatar, NDropdown, NIcon, NMenu} from 'naive-ui'
+import {NAvatar, NDropdown, NIcon, NMenu, useDialog, useMessage} from 'naive-ui'
 import defaultAvatar from '@/assets/image/default-userAvatar.png'
 
 // 路由和国际化
@@ -88,15 +88,14 @@ const route = useRoute()
 const router = useRouter()
 const {t, locale} = useI18n()
 
+// 对话框和消息提示
+const dialog = useDialog()
+const message = useMessage()
+
 // 计算属性：处理项目名显示
-const displayAppName = computed(() => {
-  const appName = t('app.name')
-  // 如果是英文，分成两行显示
-  if (locale.value === 'en-US') {
-    return appName.replace(' ', '<br>')
-  }
-  return appName
-})
+const displayAppName = computed(() =>
+    locale.value === 'en-US' ? t('app.name').replace(' ', '<br>') : t('app.name')
+)
 
 // 状态管理
 const userStore = useUserStore()
@@ -123,24 +122,30 @@ const handleMenuSelect = (key: string) => {
 }
 
 const handleUserMenuSelect = (key: string) => {
-  switch (key) {
-    case 'profile':
-      router.push('/profile')
-      break
-    case 'logout':
-      handleLogout()
-      break
+  const actions = {
+    profile: () => router.push('/profile'),
+    logout: handleLogout
   }
+  actions[key as keyof typeof actions]?.()
 }
 
 
 const handleLogout = async () => {
-  try {
-    await userStore.logout()
-    router.push('/login')
-  } catch (error) {
-    console.error('登出失败:', error)
-  }
+  dialog.warning({
+    title: t('auth.logoutConfirm'),
+    content: t('auth.logoutConfirmMessage'),
+    positiveText: t('common.confirm'),
+    negativeText: t('common.cancel'),
+    onPositiveClick: async () => {
+      try {
+        await userStore.logout()
+        message.success(t('auth.logoutSuccess'))
+        router.push('/login')
+      } catch (error) {
+        message.error(t('auth.logoutFail'))
+      }
+    }
+  })
 }
 
 // 检查屏幕尺寸并自动收起侧边栏
@@ -244,8 +249,6 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin-left: 0;
-  transition: margin-left 0.3s ease;
   overflow: hidden;
 }
 
@@ -342,10 +345,6 @@ onUnmounted(() => {
     }
   }
 
-  .main-content {
-    margin-left: 0 !important;
-  }
-
 
   .content {
     padding: 16px;
@@ -358,24 +357,13 @@ onUnmounted(() => {
   .user-info {
     padding: 8px;
     min-height: 48px;
-  }
 
-  .user-avatar {
-    margin: 0;
+    .user-avatar {
+      margin: 0;
+    }
   }
 }
 
-// 暗色主题适配
-.dark {
-  .sidebar {
-    background-color: var(--background-secondary-color);
-    border-right-color: var(--border-color);
-  }
-
-  .content {
-    background-color: var(--background-color);
-  }
-}
 
 // 滚动条样式
 .sidebar-menu::-webkit-scrollbar {

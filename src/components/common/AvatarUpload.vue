@@ -289,7 +289,6 @@ const confirmCrop = async () => {
       await uploadCroppedImage(blob)
     }, 'image/jpeg', 0.8)
   } catch (error) {
-    console.error('头像裁剪失败:', error)
     emit('upload-error', error as Error)
     message.error(t('common.avatarUploadFail'))
   } finally {
@@ -315,7 +314,6 @@ const uploadCroppedImage = async (blob: Blob) => {
       message.error(response.message || t('common.avatarUploadFail'))
     }
   } catch (error) {
-    console.error('头像上传失败:', error)
     emit('upload-error', error as Error)
     message.error(t('common.avatarUploadFail'))
   }

@@ -102,6 +102,24 @@ const routes: RouteRecordRaw[] = [
                     title: '课程管理',
                     requiresAuth: true
                 }
+            },
+            {
+                path: 'course/enrollment',
+                name: 'StudentEnrollment',
+                component: () => import('@/views/course/StudentEnrollment/index.vue'),
+                meta: {
+                    title: '学生选课',
+                    requiresAuth: true
+                }
+            },
+            {
+                path: 'teacher/profile/:teacherId',
+                name: 'TeacherProfile',
+                component: () => import('@/components/common/TeacherProfile.vue'),
+                meta: {
+                    title: '教师主页',
+                    requiresAuth: true
+                }
             }
         ]
     },

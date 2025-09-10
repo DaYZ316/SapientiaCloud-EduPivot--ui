@@ -2,7 +2,7 @@
 
 **简介**:SapientiaCloud-EduPivot - MinIO API
 
-**HOST**:http://192.168.77.249:31603
+**HOST**:http://192.168.37.249:31603
 
 **联系人**:DaYZ
 
@@ -14,7 +14,7 @@
 
 # 文件操作
 
-## 批量删除文件
+## batchDeleteFiles
 
 **接口地址**:`/api/minIO/file/batch-delete`
 
@@ -90,7 +90,7 @@
 }
 ```
 
-## 获取所有存储桶
+## listBuckets
 
 **接口地址**:`/api/minIO/file/buckets`
 
@@ -158,7 +158,7 @@
 }
 ```
 
-## 删除文件
+## deleteFile
 
 **接口地址**:`/api/minIO/file/delete`
 
@@ -228,7 +228,7 @@
 }
 ```
 
-## 下载文件
+## downloadFile
 
 **接口地址**:`/api/minIO/file/download`
 
@@ -274,7 +274,7 @@
 }
 ```
 
-## 列出指定前缀的文件
+## listFiles
 
 **接口地址**:`/api/minIO/file/list`
 
@@ -344,7 +344,7 @@
 }
 ```
 
-## 上传文件
+## uploadFile
 
 **接口地址**:`/api/minIO/file/upload`
 
@@ -415,7 +415,7 @@
 }
 ```
 
-## 获取文件URL
+## getFileUrl
 
 **接口地址**:`/api/minIO/file/url`
 

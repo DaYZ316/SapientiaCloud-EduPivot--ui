@@ -16,7 +16,7 @@
     <main class="main-content">
       <!-- 项目名称 -->
       <div class="project-name">
-        <h1 class="project-title">{{ $t('app.name') }}</h1>
+        <h1 class="project-title">{{ t('app.name') }}</h1>
       </div>
 
       <!-- 登录方式切换 -->
@@ -26,13 +26,13 @@
               :type="currentLoginMethod === 'password' ? 'primary' : 'default'"
               @click="currentLoginMethod = 'password'"
           >
-            {{ $t('auth.passwordLogin') }}
+            {{ t('auth.passwordLogin') }}
           </n-button>
           <n-button
               :type="currentLoginMethod === 'verificationCode' ? 'primary' : 'default'"
               @click="currentLoginMethod = 'verificationCode'"
           >
-            {{ $t('auth.verificationCodeLogin') }}
+            {{ t('auth.verificationCodeLogin') }}
           </n-button>
         </n-button-group>
       </div>

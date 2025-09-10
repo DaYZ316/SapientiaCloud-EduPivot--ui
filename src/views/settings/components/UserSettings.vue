@@ -127,9 +127,13 @@
         </n-form-item>
 
         <n-form-item :label="t('settings.user.addUser.avatar')" path="avatar">
-          <n-input
-              v-model:value="addUserForm.avatar"
-              :placeholder="t('settings.user.addUser.avatarPlaceholder')"
+          <ImageUpload
+              v-model:model-value="addUserForm.avatar"
+              :aspect-ratio="1"
+              :round="true"
+              :show-crop="true"
+              :size="100"
+              upload-dir="avatars"
           />
         </n-form-item>
       </n-form>
@@ -183,18 +187,16 @@ import type {SysRoleVO} from '@/types/system/role'
 import {useI18n} from 'vue-i18n'
 import {GenderEnum, getGenderLabel, StatusEnum} from '@/enum/common'
 import Icon from '@/components/common/Icon.vue'
+import ImageUpload from '@/components/common/ImageUpload.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {renderIcon} from '@/utils/iconUtil'
 import {handleDateRangeChange} from '@/utils/dateUtil'
-import {useThemeStore, useUserStore} from '@/store'
+import {useUserStore} from '@/store'
 
 const {message, dialog} = getDiscreteApi()
 const {t, locale} = useI18n()
 const userStore = useUserStore()
 
-// Theme
-const themeStore = useThemeStore()
-const isDarkMode = computed(() => themeStore.isDarkMode)
 
 // 是否为英文环境
 const isEnglish = computed(() => locale.value === 'en-US')
@@ -432,7 +434,6 @@ async function handleAssignRole(row: userType.SysUserVO) {
     // 显示分配角色对话框
     showAssignModal.value = true
   } catch (error) {
-    console.error('获取角色数据失败:', error)
     message.error(t('settings.user.messages.getRoleFail'))
   } finally {
     submittingRoles.value = false

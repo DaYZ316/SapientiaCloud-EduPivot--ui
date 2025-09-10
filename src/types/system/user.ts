@@ -59,7 +59,7 @@ export interface SysUserDTO {
 /**
  * 用户注册参数（兼容旧版API）
  */
-export interface RegisterParams {
+export interface SysUserRegisterDTO {
     /** 用户名 */
     username: string | null
     /** 密码 */

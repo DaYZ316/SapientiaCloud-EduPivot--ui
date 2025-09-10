@@ -137,7 +137,11 @@ export default {
         academicStatusRequired: '学籍状态不能为空',
         // 操作结果
         bindSuccess: '绑定成功',
-        bindFail: '绑定失败'
+        bindFail: '绑定失败',
+        // 生日相关
+        birthDate: '出生日期',
+        birthDatePlaceholder: '请选择出生日期',
+        birthDateRequired: '出生日期不能为空'
     },
     user: {
         title: '用户管理',
@@ -199,7 +203,18 @@ export default {
             enableSuccess: '启用用户成功',
             enableFail: '启用用户失败',
             disableSuccess: '禁用用户成功',
-            disableFail: '禁用用户失败'
+            disableFail: '禁用用户失败',
+            cannotAssignBothRoles: '不能同时分配学生和教师角色',
+            studentInfoSuccess: '学生信息添加成功',
+            studentInfoFail: '学生信息添加失败',
+            teacherInfoSuccess: '教师信息添加成功',
+            teacherInfoFail: '教师信息添加失败',
+            studentInfoExists: '用户已有学生信息，直接完成角色分配',
+            teacherInfoExists: '用户已有教师信息，直接完成角色分配',
+            studentRoleAssignSuccess: '学生角色分配成功',
+            studentRoleAssignFail: '学生角色分配失败',
+            teacherRoleAssignSuccess: '教师角色分配成功',
+            teacherRoleAssignFail: '教师角色分配失败'
         },
         addUser: {
             title: '添加用户',
@@ -209,12 +224,12 @@ export default {
             mobile: '手机号',
             gender: '性别',
             status: '状态',
-            avatar: '头像链接',
+            avatar: '头像',
             usernamePlaceholder: '请输入用户名',
             nicknamePlaceholder: '请输入昵称',
             emailPlaceholder: '请输入邮箱',
             mobilePlaceholder: '请输入手机号',
-            avatarPlaceholder: '请输入头像链接',
+            avatarPlaceholder: '请上传头像',
             cancel: '取消',
             submit: '提交',
             usernameRequired: '用户名不能为空',
@@ -235,12 +250,12 @@ export default {
             mobile: '手机号',
             gender: '性别',
             status: '状态',
-            avatar: '头像链接',
+            avatar: '头像',
             usernamePlaceholder: '请输入用户名',
             nicknamePlaceholder: '请输入昵称',
             emailPlaceholder: '请输入邮箱',
             mobilePlaceholder: '请输入手机号',
-            avatarPlaceholder: '请输入头像链接',
+            avatarPlaceholder: '请上传头像',
             cancel: '取消',
             submit: '提交',
             usernameRequired: '用户名不能为空',
@@ -259,6 +274,89 @@ export default {
             roles: '角色列表',
             cancel: '取消',
             submit: '保存'
+        },
+        studentInfo: {
+            title: '输入学生信息',
+            studentCode: '学号',
+            studentCodePlaceholder: '请输入学号',
+            studentCodeRequired: '学号不能为空',
+            realName: '真实姓名',
+            realNamePlaceholder: '请输入真实姓名',
+            realNameRequired: '真实姓名不能为空',
+            birthDate: '出生日期',
+            birthDatePlaceholder: '请选择出生日期',
+            admissionYear: '入学年份',
+            admissionYearPlaceholder: '请输入入学年份',
+            major: '专业',
+            majorPlaceholder: '请输入专业',
+            academicStatus: '学籍状态',
+            academicStatusPlaceholder: '请选择学籍状态',
+            academicStatusRequired: '学籍状态不能为空',
+            description: '个人描述',
+            descriptionPlaceholder: '请输入个人描述',
+            cancel: '取消',
+            submit: '提交'
+        },
+        teacherInfo: {
+            title: '输入教师信息',
+            teacherCode: '教师工号',
+            teacherCodePlaceholder: '请输入教师工号',
+            teacherCodeRequired: '教师工号不能为空',
+            realName: '真实姓名',
+            realNamePlaceholder: '请输入真实姓名',
+            realNameRequired: '真实姓名不能为空',
+            birthDate: '出生日期',
+            birthDatePlaceholder: '请选择出生日期',
+            department: '所属部门',
+            departmentPlaceholder: '请输入所属部门',
+            departmentRequired: '所属部门不能为空',
+            education: '学历',
+            educationPlaceholder: '请选择学历',
+            educationRequired: '学历不能为空',
+            specialization: '专业特长',
+            specializationPlaceholder: '请输入专业特长',
+            description: '个人描述',
+            descriptionPlaceholder: '请输入个人描述',
+            cancel: '取消',
+            submit: '提交'
+        },
+        studentInfoDisplay: {
+            title: '学生信息确认',
+            confirmMessage: '用户已有学生信息，请确认信息无误后完成角色分配，可做修改',
+            cancel: '取消',
+            confirm: '确认分配'
+        },
+        teacherInfoDisplay: {
+            title: '教师信息确认',
+            confirmMessage: '用户已有教师信息，请确认信息无误后完成角色分配，可做修改',
+            cancel: '取消',
+            confirm: '确认分配'
+        },
+        // 表单验证规则
+        rules: {
+            usernameRequired: '用户名不能为空',
+            usernameLength: '用户名长度必须在2-20个字符之间',
+            nicknameRequired: '昵称不能为空',
+            emailRequired: '邮箱不能为空',
+            emailFormat: '邮箱格式不正确',
+            mobileRequired: '手机号不能为空',
+            mobileFormat: '手机号格式不正确',
+            genderRequired: '请选择性别',
+            statusRequired: '请选择状态',
+            studentCodeRequired: '学号不能为空',
+            realNameRequired: '真实姓名不能为空',
+            academicStatusRequired: '学籍状态不能为空',
+            teacherCodeRequired: '教师工号不能为空',
+            departmentRequired: '所属部门不能为空',
+            educationRequired: '学历不能为空'
+        },
+        // 控制台日志信息
+        console: {
+            getRoleDataFail: '获取角色数据失败',
+            addStudentInfoFail: '添加学生信息失败',
+            addTeacherInfoFail: '添加教师信息失败',
+            updateStudentInfoFail: '更新学生信息失败',
+            updateTeacherInfoFail: '更新教师信息失败'
         }
     },
     role: {

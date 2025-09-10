@@ -1,9 +1,9 @@
 import http from '@/utils/http'
 import type {
-    RegisterParams,
     SysUserAdminDTO,
     SysUserDTO,
     SysUserProfileDTO,
+    SysUserRegisterDTO,
     UserPageQueryDTO
 } from '@/types/system/user'
 
@@ -53,7 +53,7 @@ export function getDefaultSysUserDTO(): SysUserDTO {
 }
 
 // 获取默认用户注册参数
-export function getDefaultRegisterParams(): RegisterParams {
+export function getDefaultSysUserRegisterDTO(): SysUserRegisterDTO {
     return {
         username: null,
         password: null,

@@ -1,5 +1,5 @@
 import http from '@/utils/http'
-import type {StudentAddDTO, StudentDTO, StudentQueryParams} from '@/types/student'
+import type {StudentAddDTO, StudentDTO, StudentQueryParams, StudentVO} from '@/types/student'
 
 // 获取默认学生查询对象
 export function getDefaultStudentQuery(): StudentQueryParams {
@@ -47,13 +47,38 @@ export function getDefaultStudentDTO(): StudentDTO {
     }
 }
 
+// 获取默认学生VO
+export function getDefaultStudentVO(): StudentVO {
+    return {
+        id: '',
+        studentCode: '',
+        realName: '',
+        birthDate: null,
+        admissionYear: null,
+        major: null,
+        academicStatus: null,
+        description: null,
+        sysUserId: null,
+        avatar: null,
+        username: null,
+        nickName: null,
+        email: null,
+        mobile: null,
+        gender: null,
+        status: null,
+        createTime: null,
+        updateTime: null,
+        lastLoginTime: null
+    }
+}
+
 // 分页查询学生列表
-export function getStudentList(params: StudentQueryParams) {
+export function listStudent(params: StudentQueryParams) {
     return http.get('/student/list', params)
 }
 
 // 获取所有学生
-export function getAllStudents() {
+export function listAllStudent() {
     return http.get('/student/all')
 }
 
@@ -73,12 +98,12 @@ export function updateStudent(studentData: StudentDTO) {
 }
 
 // 根据ID删除学生
-export function deleteStudentById(id: string) {
+export function removeStudentById(id: string) {
     return http.delete(`/student/${id}`)
 }
 
 // 批量删除学生
-export function batchDeleteStudents(studentIds: string[]) {
+export function removeStudentByIds(studentIds: string[]) {
     return http.delete('/student', {data: studentIds})
 }
 

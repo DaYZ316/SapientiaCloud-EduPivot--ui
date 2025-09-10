@@ -40,13 +40,13 @@ export default defineConfig({
                 rewrite: (path) => path,
                 configure: (proxy) => {
                     proxy.on('error', (err) => {
-                        console.log('proxy error', err);
+                        // Proxy error handling
                     });
                     proxy.on('proxyReq', (_proxyReq, req) => {
-                        console.log('Sending Request to the Target:', req.method, req.url);
+                        // Request logging
                     });
                     proxy.on('proxyRes', (proxyRes, req) => {
-                        console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+                        // Response logging
                     });
                 }
             }

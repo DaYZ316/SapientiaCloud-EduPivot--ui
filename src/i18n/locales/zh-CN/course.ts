@@ -39,6 +39,9 @@ export default {
         add: '新增课程',
         edit: '编辑',
         delete: '删除',
+        deleteConfirm: '确认删除',
+        deleteConfirmContent: '确定要删除课程"{courseName}"吗？此操作不可恢复。',
+        deleteSuccess: '课程删除成功',
         batchDelete: '批量删除',
         assignTeacher: '分配教师',
         assignTeachers: '分配教师团队',
@@ -183,5 +186,16 @@ export default {
         assignTeachers: '分配教师团队',
         mainTeacher: '主讲教师',
         assistantTeachers: '辅助教师'
+    },
+
+    // 教师个人主页
+    profile: {
+        notFound: '教师信息不存在',
+        noName: '未设置姓名',
+        noCode: '未设置工号',
+        teacherCode: '工号',
+        description: '个人简介',
+        specialization: '专业领域',
+        contactInfo: '联系信息'
     }
 }

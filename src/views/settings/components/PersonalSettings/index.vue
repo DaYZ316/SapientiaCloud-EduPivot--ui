@@ -76,12 +76,14 @@ const initFormData = () => {
 // 头像上传成功处理
 const handleAvatarUploadSuccess = (url: string) => {
   // 头像已经通过 v-model 更新到 personalForm.avatar
-  // 这里可以添加额外的处理逻辑
+  // 同步更新BasicInfo组件中的头像数据
+  if (basicInfoRef.value) {
+    basicInfoRef.value.updateAvatar(url)
+  }
 }
 
 // 头像上传失败处理
 const handleAvatarUploadError = (error: Error) => {
-  console.error('头像上传失败:', error)
 }
 
 // 初始化表单数据

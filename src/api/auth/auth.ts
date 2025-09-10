@@ -45,12 +45,12 @@ export function logout() {
 }
 
 // 验证令牌
-export function validate(token: string) {
+export function validateToken(token: string) {
     return http.get('/auth/validate', {token})
 }
 
 // 获取当前登录用户信息
-export function getCurrentUser() {
+export function getUserInfo() {
     return http.get('/auth/info')
 }
 

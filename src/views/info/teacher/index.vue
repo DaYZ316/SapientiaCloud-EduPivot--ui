@@ -72,7 +72,7 @@
       <!-- 教师表格 -->
       <page-table
           ref="pageTableRef"
-          :api-fn="teacherApi.getTeacherList"
+          :api-fn="teacherApi.listTeacher"
           :auto-search="false"
           :columns="columns"
           :query-params="searchForm"
@@ -266,7 +266,7 @@ const columns = computed(() => [
         h(
             'button',
             {
-              class: 'n-button n-button--primary n-button--small',
+              class: 'n-button n-button--text',
               style: {marginRight: '8px'},
               onClick: () => handleEdit(row)
             },
@@ -278,7 +278,7 @@ const columns = computed(() => [
         h(
             'button',
             {
-              class: 'n-button n-button--error n-button--small',
+              class: 'n-button n-button--text',
               onClick: () => handleDelete(row)
             },
             [
@@ -325,7 +325,7 @@ async function handleDelete(row: teacherType.TeacherVO) {
     negativeText: t('common.cancel'),
     onPositiveClick: async () => {
       try {
-        await teacherApi.deleteTeacherById(row.id)
+        await teacherApi.removeTeacherById(row.id)
         message.success(t('teacher.messages.deleteSuccess'))
         pageTableRef.value?.fetchData()
       } catch (error) {

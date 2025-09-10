@@ -77,7 +77,7 @@ export function updateCourse(courseData: CourseDTO) {
  * @param courseIds 课程ID列表
  * @returns 删除结果
  */
-export function batchDeleteCourses(courseIds: string[]) {
+export function removeCourseByIds(courseIds: string[]) {
     return http.delete('/course', {data: courseIds})
 }
 
@@ -111,7 +111,7 @@ export function assignCourseTeacher(courseId: string, teacherId: string) {
  * @param teacherIds 教师ID列表
  * @returns 分配结果
  */
-export function assignCourseTeachers(courseId: string, teacherIds: string[]) {
+export function assignCourseTeacherTeam(courseId: string, teacherIds: string[]) {
     return http.post(`/course/${courseId}/teachers`, teacherIds)
 }
 
@@ -121,7 +121,7 @@ export function assignCourseTeachers(courseId: string, teacherIds: string[]) {
  * @param teacherIds 教师ID列表
  * @returns 分配结果
  */
-export function batchAssignCourseTeachers(courseId: string, teacherIds: string[]) {
+export function assignCourseTeachers(courseId: string, teacherIds: string[]) {
     return http.post(`/course/${courseId}/teachers/assign`, teacherIds)
 }
 
@@ -139,7 +139,7 @@ export function getCourseById(id: string) {
  * @param id 课程ID
  * @returns 删除结果
  */
-export function deleteCourseById(id: string) {
+export function removeCourseById(id: string) {
     return http.delete(`/course/${id}`)
 }
 
@@ -156,7 +156,7 @@ export function addCourse(courseData: CourseDTO) {
  * 获取所有课程
  * @returns 所有课程列表
  */
-export function getAllCourses() {
+export function listAllCourse() {
     return http.get<CourseVO[]>('/course/all')
 }
 
@@ -165,7 +165,7 @@ export function getAllCourses() {
  * @param params 查询参数
  * @returns 分页课程列表
  */
-export function getCourseList(params: CourseQueryParams) {
+export function listCourse(params: CourseQueryParams) {
     return http.get<TableDataResult<CourseVO>>('/course/list', params)
 }
 
@@ -174,7 +174,7 @@ export function getCourseList(params: CourseQueryParams) {
  * @param studentId 学生ID
  * @returns 学生已选课程列表
  */
-export function getCoursesByStudentId(studentId: string) {
+export function listAllCourseByStudentId(studentId: string) {
     return http.get<CourseVO[]>(`/course/student/${studentId}/all`)
 }
 
@@ -183,7 +183,7 @@ export function getCoursesByStudentId(studentId: string) {
  * @param params 查询参数
  * @returns 学生已选课程分页列表
  */
-export function getCoursesByStudentIdPage(params: CourseQueryParams) {
+export function listCourseByStudentId(params: CourseQueryParams) {
     return http.get<TableDataResult<CourseVO>>('/course/student/page', params)
 }
 
@@ -192,7 +192,7 @@ export function getCoursesByStudentIdPage(params: CourseQueryParams) {
  * @param teacherId 教师ID
  * @returns 教师课程列表
  */
-export function getCoursesByTeacherId(teacherId: string) {
+export function listAllCourseByTeacherId(teacherId: string) {
     return http.get<CourseVO[]>(`/course/teacher/${teacherId}/all`)
 }
 
@@ -201,7 +201,7 @@ export function getCoursesByTeacherId(teacherId: string) {
  * @param params 查询参数
  * @returns 教师课程分页列表
  */
-export function getCoursesByTeacherIdPage(params: CourseQueryParams) {
+export function listCourseByTeacherId(params: CourseQueryParams) {
     return http.get<TableDataResult<CourseVO>>('/course/teacher/page', params)
 }
 
@@ -213,7 +213,7 @@ export function getCoursesByTeacherIdPage(params: CourseQueryParams) {
  * @param courseId 课程ID
  * @returns 是否已选课
  */
-export function checkStudentEnrolled(studentId: string, courseId: string) {
+export function isEnrolled(studentId: string, courseId: string) {
     return http.get<boolean>('/course/course-student/check-enrolled', {
         params: {studentId, courseId}
     })
@@ -224,7 +224,7 @@ export function checkStudentEnrolled(studentId: string, courseId: string) {
  * @param params 查询参数
  * @returns 选课学生分页列表
  */
-export function getCourseStudentsPage(params: CourseStudentQueryParams) {
+export function listCourseStudentByCourseId(params: CourseStudentQueryParams) {
     return http.get<TableDataResult<CourseStudentVO>>('/course/course-student/course/page', params)
 }
 
@@ -233,7 +233,7 @@ export function getCourseStudentsPage(params: CourseStudentQueryParams) {
  * @param courseId 课程ID
  * @returns 所有选课学生列表
  */
-export function getAllCourseStudents(courseId: string) {
+export function listAllCourseStudentByCourseId(courseId: string) {
     return http.get<CourseStudentVO[]>(`/course/course-student/course/${courseId}/all`)
 }
 
@@ -277,7 +277,7 @@ export function getStudentGrade(studentId: string, courseId: string) {
  * @param grade 成绩
  * @returns 更新结果
  */
-export function updateStudentGrade(studentId: string, courseId: string, grade: number) {
+export function updateGrade(studentId: string, courseId: string, grade: number) {
     return http.put('/course/course-student/grade', null, {
         params: {studentId, courseId, grade}
     })
@@ -288,7 +288,7 @@ export function updateStudentGrade(studentId: string, courseId: string, grade: n
  * @param courseStudentDTOs 课程学生数据传输对象列表
  * @returns 批量更新结果
  */
-export function batchUpdateStudentGrades(courseStudentDTOs: CourseStudentDTO[]) {
+export function batchUpdateGrade(courseStudentDTOs: CourseStudentDTO[]) {
     return http.put<number>('/course/course-student/grade/batch', courseStudentDTOs)
 }
 
@@ -297,7 +297,7 @@ export function batchUpdateStudentGrades(courseStudentDTOs: CourseStudentDTO[]) 
  * @param params 查询参数
  * @returns 学生选课记录分页列表
  */
-export function getStudentCoursesPage(params: CourseStudentQueryParams) {
+export function listCourseStudentByStudentId(params: CourseStudentQueryParams) {
     return http.get<TableDataResult<CourseStudentVO>>('/course/course-student/student/page', params)
 }
 

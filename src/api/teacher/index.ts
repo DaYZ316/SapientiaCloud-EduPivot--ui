@@ -1,5 +1,5 @@
 import http from '@/utils/http'
-import type {TeacherAddDTO, TeacherDTO, TeacherQueryParams} from '@/types/teacher'
+import type {TeacherAddDTO, TeacherDTO, TeacherQueryParams, TeacherVO} from '@/types/teacher'
 
 // 获取默认教师查询对象
 export function getDefaultTeacherQuery(): TeacherQueryParams {
@@ -47,13 +47,38 @@ export function getDefaultTeacherDTO(): TeacherDTO {
     }
 }
 
+// 获取默认教师VO
+export function getDefaultTeacherVO(): TeacherVO {
+    return {
+        id: null,
+        teacherCode: null,
+        realName: null,
+        birthDate: null,
+        department: null,
+        education: null,
+        specialization: null,
+        description: null,
+        sysUserId: null,
+        avatar: null,
+        username: null,
+        nickName: null,
+        email: null,
+        mobile: null,
+        gender: null,
+        status: null,
+        createTime: null,
+        updateTime: null,
+        lastLoginTime: null
+    }
+}
+
 // 分页查询教师列表
-export function getTeacherList(params: TeacherQueryParams) {
+export function listTeacher(params: TeacherQueryParams) {
     return http.get('/teacher/list', params)
 }
 
 // 获取所有教师
-export function getAllTeachers() {
+export function listAllTeacher() {
     return http.get('/teacher/all')
 }
 
@@ -73,12 +98,12 @@ export function updateTeacher(teacherData: TeacherDTO) {
 }
 
 // 根据ID删除教师
-export function deleteTeacherById(id: string) {
+export function removeTeacherById(id: string) {
     return http.delete(`/teacher/${id}`)
 }
 
 // 批量删除教师
-export function batchDeleteTeachers(teacherIds: string[]) {
+export function removeTeacherByIds(teacherIds: string[]) {
     return http.delete('/teacher', {data: teacherIds})
 }
 

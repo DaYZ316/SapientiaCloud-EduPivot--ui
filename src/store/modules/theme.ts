@@ -35,15 +35,14 @@ export const useThemeStore = defineStore('theme', {
             const primaryVariants = generateColorVariants(this.primaryColor)
 
             return {
-                // 主要颜色（用户可自定义）
-                primary: this.primaryColor,
+                // 语义化颜色（包含primary）
+                ...semanticColors,
+
+                // 主要颜色变体（用户可自定义）
                 primaryLight: primaryVariants.light,
                 primaryLighter: primaryVariants.lighter,
                 primaryDark: primaryVariants.dark,
                 primaryDarker: primaryVariants.darker,
-
-                // 语义化颜色
-                ...semanticColors,
 
                 // 兼容性别名
                 success: semanticColors.success,

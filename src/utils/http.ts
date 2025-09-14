@@ -121,6 +121,7 @@ class HttpClient {
                 if (token && config.headers) {
                     config.headers.Authorization = `Bearer ${token}`
                 }
+
                 return config
             },
             (error) => {

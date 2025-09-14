@@ -9,7 +9,7 @@
       <h1 class="page-title">{{ t('student.title') }}</h1>
     </div>
 
-    <n-card :title="t('student.title')" size="small">
+    <n-card size="small">
       <!-- 搜索表单 -->
       <n-form :model="searchForm" class="search-form" inline>
         <n-form-item :label="t('student.searchForm.studentCode')" path="studentCode">

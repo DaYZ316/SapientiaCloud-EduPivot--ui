@@ -9,7 +9,6 @@ export default {
     delete: 'Delete',
     success: 'Operation Successful',
     fail: 'Failed',
-    loading: 'Loading...',
     noData: 'No Data',
     backToHome: 'Back to Home',
     operation: 'Operation',

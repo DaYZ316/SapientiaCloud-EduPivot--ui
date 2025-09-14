@@ -23,6 +23,7 @@
             :collapsed="collapsed"
             :collapsed-icon-size="22"
             :collapsed-width="64"
+            :default-expanded-keys="defaultExpandedKeys"
             :options="menuOptions"
             :value="currentRoute"
             @update:value="handleMenuSelect"
@@ -50,7 +51,7 @@
                 {{ userStore.userInfo?.nickName || userStore.userInfo?.username }}
               </span>
               <n-icon class="dropdown-icon">
-                <component :is="ChevronDownOutline"/>
+                <ChevronDownOutline/>
               </n-icon>
             </div>
           </div>
@@ -60,7 +61,6 @@
 
     <!-- 主内容区域 -->
     <div :class="{ 'main-content-expanded': collapsed }" class="main-content">
-
       <!-- 页面内容 -->
       <div class="content">
         <router-view v-slot="{ Component }">
@@ -70,6 +70,7 @@
         </router-view>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -78,7 +79,7 @@ import {computed, onMounted, onUnmounted} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {useThemeStore, useUserStore} from '@/store'
-import {getMenuOptions, getUserMenuOptions, menuRouteMap} from '@/config/menu'
+import {getMenuOptions, getUserMenuOptions, menuExpandMap, menuRouteMap} from '@/config/menu'
 import {ChevronDownOutline} from '@vicons/ionicons5'
 import {NAvatar, NDropdown, NIcon, NMenu, useDialog, useMessage} from 'naive-ui'
 import defaultAvatar from '@/assets/image/default-userAvatar.png'
@@ -92,43 +93,32 @@ const {t, locale} = useI18n()
 const dialog = useDialog()
 const message = useMessage()
 
-// 计算属性：处理项目名显示
-const displayAppName = computed(() =>
-    locale.value === 'en-US' ? t('app.name').replace(' ', '<br>') : t('app.name')
-)
-
 // 状态管理
 const userStore = useUserStore()
 const themeStore = useThemeStore()
 
-// 响应式状态
-const collapsed = computed(() => themeStore.sidebarCollapsed)
-
 // 计算属性
+const collapsed = computed(() => themeStore.sidebarCollapsed)
 const currentRoute = computed(() => route.name as string)
-
-// 菜单选项
 const menuOptions = computed(() => getMenuOptions(t) as any[])
 const userMenuOptions = computed(() => getUserMenuOptions(t) as any[])
+const displayAppName = computed(() =>
+    locale.value === 'en-US' ? t('app.name').replace(' ', '<br>') : t('app.name')
+)
 
+
+const defaultExpandedKeys = computed(() =>
+    menuExpandMap[currentRoute.value] || []
+)
 
 // 方法
-
-const handleMenuSelect = (key: string) => {
-  const routePath = menuRouteMap[key]
-  if (routePath) {
-    router.push(routePath)
-  }
-}
-
 const handleUserMenuSelect = (key: string) => {
-  const actions = {
-    profile: () => router.push('/profile'),
-    logout: handleLogout
+  if (key === 'profile') {
+    router.push('/profile')
+  } else if (key === 'logout') {
+    handleLogout()
   }
-  actions[key as keyof typeof actions]?.()
 }
-
 
 const handleLogout = async () => {
   dialog.warning({
@@ -141,17 +131,23 @@ const handleLogout = async () => {
         await userStore.logout()
         message.success(t('auth.logoutSuccess'))
         router.push('/login')
-      } catch (error) {
+      } catch {
         message.error(t('auth.logoutFail'))
       }
     }
   })
 }
 
-// 检查屏幕尺寸并自动收起侧边栏
 const checkScreenSize = () => {
   if (window.innerWidth < 768) {
     themeStore.setSidebarCollapsed(true)
+  }
+}
+
+const handleMenuSelect = (key: string) => {
+  const routePath = menuRouteMap[key]
+  if (routePath) {
+    router.push(routePath)
   }
 }
 
@@ -183,6 +179,7 @@ onUnmounted(() => {
   transition: width 0.3s ease;
   position: relative;
   z-index: 1000;
+  box-shadow: 0 2px 8px var(--shadow-secondary-color);
 
   &.sidebar-collapsed {
     width: 64px;
@@ -201,9 +198,14 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: var(--primary-color);
+  color: var(--color-primary);
   font-weight: 600;
   font-size: 18px;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: var(--color-primary-light);
+  }
 }
 
 .logo-image {
@@ -252,7 +254,6 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-
 .user-info {
   display: flex;
   align-items: center;
@@ -264,15 +265,16 @@ onUnmounted(() => {
   width: 100%;
   justify-content: center;
   min-height: 48px;
+  border: 1px solid transparent;
 
   &:hover {
-    background-color: var(--background-secondary-color);
+    background-color: var(--background-tertiary-color);
+    border-color: var(--border-secondary-color);
+    box-shadow: 0 2px 4px var(--shadow-secondary-color);
   }
 
   &.user-info-collapsed {
     padding: 8px;
-    justify-content: center;
-    min-height: 48px;
 
     .user-avatar {
       margin: 0;
@@ -296,6 +298,8 @@ onUnmounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
+  font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 .user-avatar {
@@ -306,8 +310,13 @@ onUnmounted(() => {
 .dropdown-icon {
   font-size: 12px;
   color: var(--text-secondary-color);
-  transition: transform 0.2s ease;
+  transition: all 0.2s ease;
   flex-shrink: 0;
+
+  &:hover {
+    color: var(--text-color);
+    transform: translateY(-1px);
+  }
 }
 
 // 内容区域样式
@@ -316,17 +325,35 @@ onUnmounted(() => {
   padding: 24px;
   overflow-y: auto;
   background-color: var(--background-color);
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-secondary-color), transparent);
+  }
 }
 
 // 过渡动画
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+  transform: translateY(10px);
+}
+
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 // 响应式设计
@@ -339,12 +366,16 @@ onUnmounted(() => {
     z-index: 1001;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
+    box-shadow: 2px 0 8px var(--shadow-color);
 
     &:not(.sidebar-collapsed) {
       transform: translateX(0);
     }
   }
 
+  .main-content {
+    width: 100%;
+  }
 
   .content {
     padding: 16px;
@@ -356,30 +387,35 @@ onUnmounted(() => {
 
   .user-info {
     padding: 8px;
-    min-height: 48px;
 
     .user-avatar {
       margin: 0;
     }
   }
-}
 
+  .logo-text {
+    font-size: 16px;
+  }
+}
 
 // 滚动条样式
-.sidebar-menu::-webkit-scrollbar {
-  width: 4px;
-}
+.sidebar-menu {
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
 
-.sidebar-menu::-webkit-scrollbar-track {
-  background: transparent;
-}
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
-.sidebar-menu::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 2px;
-}
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 2px;
+    transition: background 0.3s ease;
+  }
 
-.sidebar-menu::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary-color);
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary-color);
+  }
 }
 </style>

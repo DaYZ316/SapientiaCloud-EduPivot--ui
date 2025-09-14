@@ -1,5 +1,6 @@
 export default {
     title: 'Course Management',
+    myCourses: 'My Courses',
 
     // Search form
     searchForm: {
@@ -42,6 +43,8 @@ export default {
         deleteConfirm: 'Confirm Delete',
         deleteConfirmContent: 'Are you sure you want to delete course "{courseName}"? This action cannot be undone.',
         deleteSuccess: 'Course deleted successfully',
+        addSuccess: 'Course added successfully',
+        editSuccess: 'Course edited successfully',
         batchDelete: 'Batch Delete',
         assignTeacher: 'Assign Teacher',
         assignTeachers: 'Assign Teachers',
@@ -197,5 +200,20 @@ export default {
         description: 'Personal Introduction',
         specialization: 'Specialization',
         contactInfo: 'Contact Information'
+    },
+
+    // Enroll course functionality
+    enroll: {
+        addCourse: 'Add Course',
+        addCourseTitle: 'Enroll in Course',
+        courseId: 'Course ID',
+        courseIdPlaceholder: 'Please enter course ID',
+        courseIdRequired: 'Please enter course ID',
+        addSuccess: 'Successfully enrolled in course',
+        addFail: 'Failed to enroll in course',
+        courseNotFound: 'Course not found',
+        alreadyEnrolled: 'You have already enrolled in this course',
+        confirmAdd: 'Confirm Enrollment',
+        confirmAddContent: 'Are you sure you want to enroll in course with ID "{courseId}"?'
     }
 }

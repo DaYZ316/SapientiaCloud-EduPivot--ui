@@ -11,5 +11,5 @@ export default {
     student: '学生管理',
     course: '课程',
     courseManagement: '课程管理',
-    studentEnrollment: '学生选课'
+    myCourses: '我的课程'
 } 

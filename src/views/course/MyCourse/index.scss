@@ -1,0 +1,23 @@
+@use '@/assets/styles/index.scss' as *;
+
+
+.course-card-container {
+  .empty-state {
+    display: flex;
+    justify-content: center;
+    padding: 40px 0;
+  }
+
+  .course-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    margin-bottom: 24px;
+  }
+
+  .pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 24px;
+  }
+}

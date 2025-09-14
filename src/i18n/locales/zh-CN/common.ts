@@ -9,7 +9,6 @@ export default {
     delete: '删除',
     success: '操作成功',
     fail: '失败',
-    loading: '加载中...',
     noData: '暂无数据',
     backToHome: '返回首页',
     operation: '操作',

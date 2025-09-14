@@ -111,7 +111,6 @@ const handleLogin = async () => {
 
   try {
     await formRef.value.validate()
-    loading.value = true
 
     const success = await userStore.login(
         loginForm.username || '',
@@ -134,8 +133,6 @@ const handleLogin = async () => {
     }
   } catch (error: any) {
     message.error(error?.message || t('auth.loginFail'))
-  } finally {
-    loading.value = false
   }
 }
 

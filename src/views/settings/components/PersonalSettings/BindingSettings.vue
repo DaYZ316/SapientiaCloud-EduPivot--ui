@@ -216,7 +216,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, reactive, ref, watch} from 'vue'
+import {computed, reactive, ref, watch} from 'vue'
 import type {FormInst, FormRules} from 'naive-ui'
 import {useUserStore} from '@/store'
 import {useI18n} from 'vue-i18n'
@@ -409,7 +409,6 @@ const saveInfo = async (
 ) => {
   formRef.value?.validate(async (errors: any) => {
     if (!errors) {
-      loading.value = true
       try {
         const formattedForm = {
           ...form,
@@ -436,18 +435,15 @@ const saveInfo = async (
           if (res.success && res.data) {
             message.success(t('settings.personal.bindSuccess'))
             showRef.value = false
+            // 更新用户角色信息
+            await userStore.fetchUserRoleInfo(userInfo.value?.id || '')
           } else {
             message.error(res.message || t('settings.personal.bindFail'))
           }
         }
 
-        if (res.success) {
-          await userStore.fetchUserRoleInfo(userInfo.value?.id || '')
-        }
       } catch (error) {
         message.error(t('settings.personal.bindFail'))
-      } finally {
-        loading.value = false
       }
     }
   })
@@ -478,12 +474,6 @@ const saveStudentInfo = () => saveInfo(
 const resetTeacherForm = () => initTeacherForm()
 const resetStudentForm = () => initStudentForm()
 
-// 组件挂载时加载角色信息
-onMounted(async () => {
-  if (userInfo.value?.id) {
-    await userStore.fetchUserRoleInfo(userInfo.value.id)
-  }
-})
 
 // 暴露方法给父组件
 defineExpose({

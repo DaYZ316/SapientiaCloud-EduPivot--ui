@@ -9,7 +9,7 @@
       <h1 class="page-title">{{ t('teacher.title') }}</h1>
     </div>
 
-    <n-card :title="t('teacher.title')" size="small">
+    <n-card size="small">
       <!-- 搜索表单 -->
       <n-form :model="searchForm" class="search-form" inline>
         <n-form-item :label="t('teacher.searchForm.teacherCode')" path="teacherCode">
@@ -325,7 +325,7 @@ async function handleDelete(row: teacherType.TeacherVO) {
     negativeText: t('common.cancel'),
     onPositiveClick: async () => {
       try {
-        await teacherApi.removeTeacherById(row.id)
+        await teacherApi.removeTeacherById(row.id!)
         message.success(t('teacher.messages.deleteSuccess'))
         pageTableRef.value?.fetchData()
       } catch (error) {
@@ -370,7 +370,7 @@ function handleAdd() {
 // 编辑教师
 async function handleEdit(row: teacherType.TeacherVO) {
   try {
-    const teacherDetail = await teacherApi.getTeacherById(row.id)
+    const teacherDetail = await teacherApi.getTeacherById(row.id!)
     Object.assign(editTeacherForm, teacherDetail?.data)
     showEditModal.value = true
   } catch (error) {

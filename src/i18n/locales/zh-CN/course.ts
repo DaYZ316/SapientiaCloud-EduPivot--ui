@@ -1,5 +1,6 @@
 export default {
     title: '课程管理',
+    myCourses: '我的课程',
 
     // 搜索表单
     searchForm: {
@@ -42,6 +43,8 @@ export default {
         deleteConfirm: '确认删除',
         deleteConfirmContent: '确定要删除课程"{courseName}"吗？此操作不可恢复。',
         deleteSuccess: '课程删除成功',
+        addSuccess: '课程添加成功',
+        editSuccess: '课程编辑成功',
         batchDelete: '批量删除',
         assignTeacher: '分配教师',
         assignTeachers: '分配教师团队',
@@ -197,5 +200,20 @@ export default {
         description: '个人简介',
         specialization: '专业领域',
         contactInfo: '联系信息'
+    },
+
+    // 加课功能
+    enroll: {
+        addCourse: '我要加课',
+        addCourseTitle: '添加课程',
+        courseId: '课程ID',
+        courseIdPlaceholder: '请输入课程ID',
+        courseIdRequired: '请输入课程ID',
+        addSuccess: '加课成功',
+        addFail: '加课失败',
+        courseNotFound: '课程不存在',
+        alreadyEnrolled: '您已经选修了该课程',
+        confirmAdd: '确认加课',
+        confirmAddContent: '确定要选修课程ID为"{courseId}"的课程吗？'
     }
 }

@@ -9,7 +9,7 @@
       <h1 class="page-title">{{ t('menu.user') }}</h1>
     </div>
 
-    <n-card :title="t('settings.user.title')" size="small">
+    <n-card size="small">
       <!-- 搜索表单 -->
       <n-form :model="searchForm" class="search-form" inline>
         <n-form-item :label="t('settings.user.searchForm.username')" path="username">

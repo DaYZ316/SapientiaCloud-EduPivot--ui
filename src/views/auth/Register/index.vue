@@ -188,7 +188,6 @@ const handleRegister = async () => {
 
   try {
     await registerFormRef.value.validate()
-    loading.value = true
 
     // 这里调用注册API
     // const success = await userStore.register(registerForm.value)
@@ -199,8 +198,6 @@ const handleRegister = async () => {
     emit('switchToLogin')
   } catch (error: any) {
     message.error(t('auth.registerFailed'))
-  } finally {
-    loading.value = false
   }
 }
 

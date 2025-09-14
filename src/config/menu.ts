@@ -46,13 +46,13 @@ export const getMenuOptions = (t: (key: string) => string): MenuOption[] => [
         icon: renderIcon(BookOutline),
         children: [
             {
-                key: 'CourseManagement',
-                label: t('menu.courseManagement'),
+                key: 'MyCourses',
+                label: t('menu.myCourses'),
                 icon: renderIcon(BookOutline)
             },
             {
-                key: 'StudentEnrollment',
-                label: t('menu.studentEnrollment'),
+                key: 'CourseManagement',
+                label: t('menu.courseManagement'),
                 icon: renderIcon(BookOutline)
             }
         ]
@@ -128,5 +128,16 @@ export const menuRouteMap: Record<string, string> = {
     'Teacher': '/info/teacher',
     'Student': '/info/student',
     'CourseManagement': '/course',
-    'StudentEnrollment': '/course/enrollment'
+    'MyCourses': '/course/my-courses'
+}
+
+// 菜单展开配置映射
+export const menuExpandMap: Record<string, string[]> = {
+    'CourseManagement': ['Course'],
+    'MyCourses': ['Course'],
+    'Teacher': ['InfoManagement'],
+    'Student': ['InfoManagement'],
+    'User': ['system'],
+    'Role': ['system'],
+    'Permission': ['system']
 }

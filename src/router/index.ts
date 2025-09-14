@@ -96,7 +96,7 @@ const routes: RouteRecordRaw[] = [
             },
             {
                 path: 'course',
-                name: 'Course',
+                name: 'CourseManagement',
                 component: () => import('@/views/course/index.vue'),
                 meta: {
                     title: '课程管理',
@@ -104,11 +104,11 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
-                path: 'course/enrollment',
-                name: 'StudentEnrollment',
-                component: () => import('@/views/course/StudentEnrollment/index.vue'),
+                path: 'course/my-courses',
+                name: 'MyCourses',
+                component: () => import('@/views/course/MyCourse/index.vue'),
                 meta: {
-                    title: '学生选课',
+                    title: '我的课程',
                     requiresAuth: true
                 }
             },
@@ -188,6 +188,13 @@ router.beforeEach(async (to, _from, next) => {
     } else {
         next()
     }
+})
+
+/**
+ * 路由后置守卫
+ */
+router.afterEach((_to, _from) => {
+    // 路由切换完成后的处理
 })
 
 export default router 

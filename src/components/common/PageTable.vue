@@ -5,7 +5,7 @@
         :bordered="bordered"
         :columns="processedColumns"
         :data="dataList"
-        :loading="loading"
+        :loading="tableLoading"
         :max-height="maxHeight"
         :row-key="processedRowKey"
         :single-line="singleLine"
@@ -108,10 +108,13 @@ const props = defineProps({
   }
 })
 
-const emits = defineEmits(['update:data', 'page-change', 'update:loading'])
+const emits = defineEmits(['update:data', 'page-change'])
 
 // 表格数据
 const dataList = ref([]) as Ref<any[]>
+
+// 表格loading状态
+const tableLoading = ref(false)
 
 // 处理表格列，添加居中对齐
 const processedColumns = computed(() => {
@@ -143,117 +146,78 @@ const pagination = reactive({
   total: 0
 })
 
-// 加载状态
-const loading = ref(false)
 
 /**
  * 解析API响应数据
- * @param res API响应数据
- * @returns 处理后的列表数据和总数
  */
 function parseResponse<R>(res: any): { list: R[], total: number } {
-  let list: R[] = []
-  let total = 0
-
-  if (!res) return {list, total}
+  if (!res) return {list: [], total: 0}
 
   // 处理不同格式的响应
   if ('total' in res && 'data' in res) {
-    // 格式1: TableDataResult 或 PageResult - { data: T[], total: number }
-    list = Array.isArray(res.data) ? res.data : []
-    total = typeof res.total === 'number' ? res.total : 0
-  } else if ('data' in res && res.data && typeof res.data === 'object') {
-    // 格式2: Result<TableDataResult> - { data: { data: T[], total: number } }
-    const pageResult = res.data as any
-    if ('data' in pageResult && 'total' in pageResult) {
-      list = Array.isArray(pageResult.data) ? pageResult.data : []
-      total = typeof pageResult.total === 'number' ? pageResult.total : 0
+    return {
+      list: Array.isArray(res.data) ? res.data : [],
+      total: typeof res.total === 'number' ? res.total : 0
     }
   }
 
-  return {list, total}
-}
+  if ('data' in res && res.data && typeof res.data === 'object') {
+    const pageResult = res.data
+    if ('data' in pageResult && 'total' in pageResult) {
+      return {
+        list: Array.isArray(pageResult.data) ? pageResult.data : [],
+        total: typeof pageResult.total === 'number' ? pageResult.total : 0
+      }
+    }
+  }
 
-/**
- * 更新分页状态
- * @param total 总记录数
- */
-function updatePagination(total: number): void {
-  pagination.total = total
-}
-
-/**
- * 获取分页参数
- * @param params 基础查询参数
- * @returns 添加了分页参数的查询对象
- */
-function getQueryParams<P extends PageEntity>(params: P): P {
-  return {
-    ...params,
-    pageNum: pagination.pageNum,
-    pageSize: pagination.pageSize
-  } as P
+  return {list: [], total: 0}
 }
 
 /**
  * 执行分页查询
- * @returns 请求结果
  */
 async function fetchData() {
-  loading.value = true
-  emits('update:loading', true)
+  // 设置表格loading状态
+  tableLoading.value = true
 
   try {
-    // 构建带分页参数的查询对象
-    const queryParams = getQueryParams(props.queryParams)
+    const queryParams = {
+      ...props.queryParams,
+      pageNum: pagination.pageNum,
+      pageSize: pagination.pageSize
+    }
 
-    // 执行API请求
     const res = await props.apiFn(queryParams)
-
     if (res) {
-      // 解析响应
       const {list, total} = parseResponse(res)
-
-      // 更新数据和分页
       dataList.value = list
-      updatePagination(total)
+      pagination.total = total
       emits('update:data', list)
-
       return res
     }
   } catch (error) {
     dataList.value = []
-    updatePagination(0)
+    pagination.total = 0
   } finally {
-    loading.value = false
-    emits('update:loading', false)
+    // 确保loading状态被清除
+    tableLoading.value = false
   }
 }
 
-/**
- * 处理页码变化
- * @param page 新页码
- */
 function onPageChange(page: number): void {
   pagination.pageNum = page
   fetchData()
   emits('page-change', {pageNum: page, pageSize: pagination.pageSize})
 }
 
-/**
- * 处理页大小变化
- * @param size 新页大小
- */
 function onSizeChange(size: number): void {
-  pagination.pageNum = 1 // 切换页大小时重置为第一页
+  pagination.pageNum = 1
   pagination.pageSize = size
   fetchData()
   emits('page-change', {pageNum: 1, pageSize: size})
 }
 
-/**
- * 重置分页状态并重新加载数据
- */
 function reset(): void {
   pagination.pageNum = 1
   pagination.pageSize = 10
@@ -264,20 +228,17 @@ function reset(): void {
 // 暴露给父组件的方法
 defineExpose({
   pagination,
-  loading,
   fetchData,
   reset
 })
 
-// 监听查询参数变化，重新加载数据
 watch(() => props.queryParams, () => {
   if (props.autoSearch) {
-    pagination.pageNum = 1 // 查询条件变化时重置为第一页
+    pagination.pageNum = 1
     fetchData()
   }
 }, {deep: true})
 
-// 组件挂载时，如果配置了自动加载则加载数据
 onMounted(() => {
   if (props.autoLoad) {
     fetchData()

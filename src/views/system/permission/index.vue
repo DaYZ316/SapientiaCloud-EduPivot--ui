@@ -9,7 +9,7 @@
       <h1 class="page-title">{{ t('menu.permission') }}</h1>
     </div>
 
-    <n-card :title="t('settings.permission.title')" size="small">
+    <n-card size="small">
       <!-- 搜索表单 -->
       <n-form :model="searchForm" class="search-form" inline>
         <n-form-item :label="t('settings.permission.searchForm.permissionName')" path="permissionName">
@@ -198,7 +198,7 @@ import {renderIcon} from '@/utils/iconUtil'
 import {handleDateRangeChange} from '@/utils/dateUtil'
 
 const {message, dialog} = getDiscreteApi()
-const {t, locale} = useI18n()
+const {t} = useI18n()
 const router = useRouter()
 
 // 搜索表单

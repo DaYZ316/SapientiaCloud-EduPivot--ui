@@ -192,40 +192,27 @@ export const useUserStore = defineStore('user', () => {
      */
     const fetchUserRoleInfo = async (sysUserId: string): Promise<void> => {
         try {
-            const hasStudentRole = hasRole('STUDENT')
-            const hasTeacherRole = hasRole('TEACHER')
-
-            // 构建查询任务
-            const tasks = []
-            if (hasStudentRole) {
-                tasks.push(StudentApi.getStudentByUserId(sysUserId))
-            }
-            if (hasTeacherRole) {
-                tasks.push(TeacherApi.getTeacherByUserId(sysUserId))
-            }
+            // 直接查询学生和教师信息，不依赖角色判断
+            // 这样可以确保在角色绑定完成后能立即获取到最新的信息
+            const tasks = [
+                StudentApi.getStudentByUserId(sysUserId),
+                TeacherApi.getTeacherByUserId(sysUserId)
+            ]
 
             // 并行查询
             const results = await Promise.allSettled(tasks)
 
-            // 处理结果
-            let resultIndex = 0
-            if (hasStudentRole) {
-                const studentRes = results[resultIndex++]
-                studentInfo.value = studentRes.status === 'fulfilled' &&
-                studentRes.value.success && studentRes.value.data ?
-                    studentRes.value.data : null
-            } else {
-                studentInfo.value = null
-            }
+            // 处理学生信息结果
+            const studentRes = results[0]
+            studentInfo.value = studentRes.status === 'fulfilled' &&
+            studentRes.value.success && studentRes.value.data ?
+                studentRes.value.data : null
 
-            if (hasTeacherRole) {
-                const teacherRes = results[resultIndex++]
-                teacherInfo.value = teacherRes.status === 'fulfilled' &&
-                teacherRes.value.success && teacherRes.value.data ?
-                    teacherRes.value.data : null
-            } else {
-                teacherInfo.value = null
-            }
+            // 处理教师信息结果
+            const teacherRes = results[1]
+            teacherInfo.value = teacherRes.status === 'fulfilled' &&
+            teacherRes.value.success && teacherRes.value.data ?
+                teacherRes.value.data : null
         } catch (error) {
             studentInfo.value = null
             teacherInfo.value = null

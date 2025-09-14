@@ -169,7 +169,6 @@ const handleLogin = async () => {
 
   try {
     await formRef.value.validate()
-    loading.value = true
 
     // 调用验证码登录API
     const success = await userStore.loginWithVerificationCode(
@@ -193,8 +192,6 @@ const handleLogin = async () => {
     }
   } catch (error: any) {
     message.error(error?.message || t('auth.verificationCodeLoginFailed'))
-  } finally {
-    loading.value = false
   }
 }
 

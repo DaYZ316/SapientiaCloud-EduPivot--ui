@@ -58,6 +58,7 @@ const bindingSettingsRef = ref()
 const userInfo = computed(() => userStore.userInfo)
 const userRoles = computed(() => userStore.userInfo?.roles || [])
 
+
 // 表单数据
 const personalForm = reactive<SysUserProfileDTO>(getDefaultSysUserProfileDTO())
 
@@ -87,9 +88,7 @@ const handleAvatarUploadError = (error: Error) => {
 }
 
 // 初始化表单数据
-onMounted(async () => {
-  // 刷新用户信息，确保数据是最新的
-  await userStore.refreshUserInfo()
+onMounted(() => {
   initFormData()
 })
 </script>

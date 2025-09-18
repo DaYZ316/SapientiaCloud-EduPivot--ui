@@ -6,7 +6,10 @@ import type {TableDataResult} from '@/types/common/baseEntity'
 export function getDefaultCourseStudentDTO(): CourseStudentDTO {
     return {
         studentId: null,
-        courseId: null
+        courseId: null,
+        grade: null,
+        enrollmentDate: null,
+        status: null
     }
 }
 

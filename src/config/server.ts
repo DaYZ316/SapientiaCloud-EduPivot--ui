@@ -6,7 +6,7 @@
 export interface ServerConfig {
     /** 服务器IP地址 */
     ip: string
-    /** 服务器端口 */
+    /** 服务器端口*/
     port: number
     /** API前缀 */
     prefix: string
@@ -16,7 +16,7 @@ export interface ServerConfig {
  * 默认服务器配置
  */
 export const defaultServerConfig: ServerConfig = {
-    ip: '127.0.0.1',
+    ip: '117.72.194.197',
     port: 31600,
     prefix: '/api'
 }
@@ -36,7 +36,7 @@ export function getApiBaseUrl(config: ServerConfig = defaultServerConfig): strin
 }
 
 /**
- * 获取代理目标URL（用于Vite配置）
+ * 获取代理目标URL
  */
 export function getProxyTarget(config: ServerConfig = defaultServerConfig): string {
     return getServerUrl(config)

@@ -129,4 +129,4 @@ const dotClass = computed(() => {
   background-color: rgba(208, 48, 80, 0.1);
   border-color: var(--error-color);
 }
-</style> 
+</style>

@@ -18,7 +18,7 @@ export interface SysRoleVO {
     permissions?: SysPermissionVO[]
     /** 排序 */
     sort: number
-    /** 状态 (0=正常, 1=停用) */
+    /** 状�?(0=正常, 1=停用) */
     status: number
     /** 描述 */
     description: string
@@ -40,7 +40,7 @@ export interface SysRoleAddDTO {
     roleKey: string | null
     /** 排序 */
     sort?: number | null
-    /** 状态 (0=正常, 1=停用) */
+    /** 状�?(0=正常, 1=停用) */
     status?: number | null
     /** 描述 */
     description?: string | null
@@ -58,7 +58,7 @@ export interface SysRoleDTO {
     roleKey: string | null
     /** 排序 */
     sort?: number | null
-    /** 状态 (0=正常, 1=停用) */
+    /** 状�?(0=正常, 1=停用) */
     status?: number | null
     /** 描述 */
     description?: string | null
@@ -74,9 +74,9 @@ export interface RolePageQueryDTO extends PageEntity {
     roleName?: string | null
     /** 角色标识 */
     roleKey?: string | null
-    /** 状态 (0=正常, 1=停用) */
+    /** 状�?(0=正常, 1=停用) */
     status?: number | null
-    /** 开始时间 */
+    /** 开始时�?*/
     startTime?: string | null
     /** 结束时间 */
     endTime?: string | null

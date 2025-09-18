@@ -1,5 +1,17 @@
 @use '@/assets/styles/index.scss' as *;
 
+.search-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 16px;
+
+  .enroll-course-btn {
+    flex-shrink: 0;
+    height: 34px;
+  }
+}
 
 .course-card-container {
   .empty-state {

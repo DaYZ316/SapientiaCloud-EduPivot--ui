@@ -11,6 +11,7 @@ export function getDefaultCourseQuery(): CourseQueryParams {
         courseType: null,
         location: null,
         status: null,
+        studentId: null,
         startTime: null,
         endTime: null,
         pageNum: 1,
@@ -24,10 +25,16 @@ export function getDefaultCourseQuery(): CourseQueryParams {
 // 获取默认课程添加DTO
 export function getDefaultCourseDTO(): CourseDTO {
     return {
+        id: null,
         courseName: null,
         teacherId: null,
         assistantTeacherIds: null,
-        coverImageUrl: null
+        description: null,
+        coverImageUrl: null,
+        semester: null,
+        location: null,
+        courseType: null,
+        status: null
     }
 }
 

@@ -21,28 +21,23 @@
         {{ truncateDescription(course.description) }}
       </p>
 
-      <!-- 教师信息 -->
-      <div v-if="course.teacherName" class="instructor">
-        <n-tag
-            :bordered="false"
-            class="teacher-tag"
-            round
-            @click.stop="handleTeacherClick(course.teacherId)"
-        >
-          <span class="teacher-name">{{ course.teacherName }}</span>
-          <template #avatar>
-            <n-avatar
-                :fallback-src="defaultUserAvatar"
-                :src="course.teacherAvatar"
-                size="small"
-                @error="handleAvatarError"
-            />
-          </template>
-        </n-tag>
-      </div>
 
       <!-- 课程信息行 -->
       <div class="course-info">
+        <!-- 教师信息 -->
+        <div v-if="course.teacherName" class="info-row teacher-info">
+          <div class="info-item teacher-item" @click.stop="handleTeacherClick">
+            <AvatarDisplay
+                :avatar-src="teacherAvatar"
+                :nick-name="course.teacherName"
+                :username="course.teacherName"
+                class="teacher-avatar"
+                size="small"
+            />
+            <span class="teacher-name">{{ course.teacherName }}</span>
+          </div>
+        </div>
+
         <!-- 学期信息 -->
         <div v-if="course.semester" class="info-row">
           <div class="info-item">
@@ -83,13 +78,15 @@ import {useI18n} from 'vue-i18n'
 import {useRouter} from 'vue-router'
 import {FingerPrintOutline, LocationOutline} from '@vicons/ionicons5'
 import {CourseStatusEnum} from '@/enum/course'
+import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
+import {computed} from 'vue'
 
 const {t} = useI18n()
 const router = useRouter()
 
 // Props
 interface Props {
-  course: courseType.CourseVO & { teacherAvatar?: string }
+  course: courseType.CourseVO
 }
 
 const props = defineProps<Props>()
@@ -105,7 +102,12 @@ const emit = defineEmits<Emits>()
 
 // 默认图片
 const defaultImage = '/src/assets/image/default-course.png'
-const defaultUserAvatar = '/src/assets/image/default-userAvatar.png'
+
+// 教师头像URL（从course对象中获取）
+const teacherAvatar = computed(() => {
+  // 从course对象中获取teacherAvatar字段
+  return props.course.teacherAvatar || undefined
+})
 
 const formatSemester = (semester: string) => semester ? `学期: ${semester}` : ''
 
@@ -121,26 +123,27 @@ const handleImageError = (event: Event) => {
   img.src = defaultImage
 }
 
-// 处理头像加载错误
-const handleAvatarError = (event: Event) => {
-  const img = event.target as HTMLImageElement
-  img.src = defaultUserAvatar
-}
 
 // 处理课程卡片点击
 const handleCourseClick = () => emit('course-click', props.course)
 
 // 处理继续课程按钮点击
-const handleContinueCourse = () => emit('continue-course', props.course)
+const handleContinueCourse = () => {
+  // 跳转到课程详情页面
+  router.push({name: 'CourseDetail', params: {courseId: props.course.id}})
+}
 
-// 处理教师标签点击
-const handleTeacherClick = (teacherId: string) => {
-  if (teacherId) {
-    router.push({name: 'TeacherProfile', params: {teacherId}})
+// 处理教师信息点击
+const handleTeacherClick = () => {
+  // 跳转到教师个人主页
+  if (props.course.teacherId) {
+    router.push({name: 'TeacherProfile', params: {teacherId: props.course.teacherId}})
   }
 }
+
 </script>
 
 <style lang="scss" scoped>
 @use './CourseCard.scss';
 </style>
+

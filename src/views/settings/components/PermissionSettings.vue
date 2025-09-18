@@ -61,7 +61,7 @@
       />
     </n-card>
 
-    <!-- 添加权限对话框 -->
+    <!-- 添加权限对话�?-->
     <n-modal v-model:show="showAddModal" :title="t('settings.permission.addPermission.title')" preset="card"
              style="width: 600px">
       <n-form
@@ -114,7 +114,7 @@
       </template>
     </n-modal>
 
-    <!-- 编辑权限对话框 -->
+    <!-- 编辑权限对话�?-->
     <n-modal v-model:show="showEditModal" :title="t('settings.permission.updatePermission.title')" preset="card"
              style="width: 600px">
       <n-form
@@ -186,8 +186,7 @@ const {t, locale} = useI18n()
 // 搜索表单
 const searchForm = reactive<permissionType.PermissionPageQueryDTO>(permissionApi.getDefaultPermissionQuery())
 
-// 日期范围选择器
-const createTimeRange = ref<[number, number] | null>(null)
+// 日期范围选择�?const createTimeRange = ref<[number, number] | null>(null)
 
 // 权限列表数据
 const permissionList = ref<permissionType.SysPermissionVO[]>([])
@@ -201,11 +200,9 @@ const editParentOptions = ref<{ label: string; value: string }[]>([])
 // 权限树形选项
 const permissionTreeOptions = ref<TreeSelectOption[]>([])
 
-// 树形选择器加载状态
-const treeLoading = ref(false)
+// 树形选择器加载状�?const treeLoading = ref(false)
 
-// 所有权限数据
-const allPermissions = ref<permissionType.SysPermissionVO[]>([])
+// 所有权限数�?const allPermissions = ref<permissionType.SysPermissionVO[]>([])
 
 // 分页表格引用
 const pageTableRef = ref()
@@ -240,52 +237,86 @@ const permissionFormRules = reactive<FormRules>({
   ]
 })
 
-// 表格列定义
-const columns = computed(() => [
-  {title: t('settings.permission.table.permissionName'), key: 'permissionName'},
-  {title: t('settings.permission.table.permissionKey'), key: 'permissionKey'},
+// 表格列定�?const columns = computed(() => [
+{
+  title: t('settings.permission.table.permissionName'), key
+:
+  'permissionName'
+}
+,
+{
+  title: t('settings.permission.table.permissionKey'), key
+:
+  'permissionKey'
+}
+,
+{
+  title: t('settings.permission.table.parentId'),
+      key
+:
+  'parentId',
+      render(row
+:
+  permissionType.SysPermissionVO
+)
   {
-    title: t('settings.permission.table.parentId'),
-    key: 'parentId',
-    render(row: permissionType.SysPermissionVO) {
-      const parent = parentPermissionOptions.value.find(item => item.value === row.parentId)
-      return parent ? parent.label : '-'
-    }
-  },
-  {title: t('settings.permission.table.sort'), key: 'sort'},
-  {title: t('settings.permission.table.createTime'), key: 'createTime'},
-  {
-    title: t('settings.permission.table.actions'),
-    key: 'actions',
-    width: 200,
-    render(row: permissionType.SysPermissionVO) {
-      return [
-        h(
-            'button',
-            {
-              class: 'n-button n-button--tertiary n-button--small',
-              style: {marginRight: '8px'},
-              onClick: () => handleEdit(row)
-            },
-            [
-              renderIcon(CreateOutline)(),
-              ' ' + t('settings.permission.actions.edit')
-            ]
-        ),
-        h(
-            'button',
-            {
-              class: 'n-button n-button--error n-button--small',
-              onClick: () => handleDelete(row)
-            },
-            [
-              renderIcon(TrashOutline)(),
-              ' ' + t('settings.permission.actions.delete')
-            ]
-        )
-      ]
-    }
+    const parent = parentPermissionOptions.value.find(item => item.value === row.parentId)
+    return parent ? parent.label : '-'
   }
+}
+,
+{
+  title: t('settings.permission.table.sort'), key
+:
+  'sort'
+}
+,
+{
+  title: t('settings.permission.table.createTime'), key
+:
+  'createTime'
+}
+,
+{
+  title: t('settings.permission.table.actions'),
+      key
+:
+  'actions',
+      width
+:
+  200,
+      render(row
+:
+  permissionType.SysPermissionVO
+)
+  {
+    return [
+      h(
+          'button',
+          {
+            class: 'n-button n-button--tertiary n-button--small',
+            style: {marginRight: '8px'},
+            onClick: () => handleEdit(row)
+          },
+          [
+            renderIcon(CreateOutline)(),
+            ' ' + t('settings.permission.actions.edit')
+          ]
+      ),
+      h(
+          'button',
+          {
+            class: 'n-button n-button--error n-button--small',
+            onClick: () => handleDelete(row)
+          },
+          [
+            renderIcon(TrashOutline)(),
+            ' ' + t('settings.permission.actions.delete')
+          ]
+      )
+    ]
+  }
+}
 ])
 
 // 搜索处理
@@ -316,12 +347,12 @@ function onDataUpdate(data: permissionType.SysPermissionVO[]) {
 
 // 更新父级权限选项
 function updateParentPermissionOptions() {
-  // 表格显示用的父级权限选项，包含所有权限
-  parentPermissionOptions.value = permissionList.value
-      .map(item => ({
-        label: item.permissionName,
-        value: item.id
-      }))
+  // 表格显示用的父级权限选项，包含所有权�?  parentPermissionOptions.value = permissionList.value
+.
+  map(item => ({
+    label: item.permissionName,
+    value: item.id
+  }))
 
   // 编辑对话框用的父级权限选项，过滤掉当前正在编辑的权限（不能选自己作为父级）
   editParentOptions.value = permissionList.value
@@ -332,24 +363,22 @@ function updateParentPermissionOptions() {
       }))
 }
 
-// 加载所有权限数据
-async function loadAllPermissions() {
-  try {
-    treeLoading.value = true
-    // 使用权限树API获取所有权限
-    const response = await permissionApi.getPermissionTree()
-    allPermissions.value = response?.data || []
+// 加载所有权限数�?async function loadAllPermissions() {
+try {
+  treeLoading.value = true
+  // 使用权限树API获取所有权�?    const response = await permissionApi.getPermissionTree()
+  allPermissions.value = response?.data || []
 
-    // 将扁平的权限列表转为树形选项
-    permissionTreeOptions.value = convertToTreeSelectOptions(allPermissions.value)
+  // 将扁平的权限列表转为树形选项
+  permissionTreeOptions.value = convertToTreeSelectOptions(allPermissions.value)
 
-    // 更新父级权限选项
-    updateParentPermissionOptions()
-  } catch (error) {
-    message.error(t('settings.permission.messages.loadFail'))
-  } finally {
-    treeLoading.value = false
-  }
+  // 更新父级权限选项
+  updateParentPermissionOptions()
+} catch (error) {
+  message.error(t('settings.permission.messages.loadFail'))
+} finally {
+  treeLoading.value = false
+}
 }
 
 // 将权限列表转换为树形选项
@@ -383,11 +412,10 @@ function handleEdit(row: permissionType.SysPermissionVO) {
   showEditModal.value = true
 }
 
-// 关闭编辑对话框
-function closeEditModal() {
-  showEditModal.value = false
-  currentEditingPermissionId.value = null
-  updateParentPermissionOptions() // 重新加载父级选项
+// 关闭编辑对话�?function closeEditModal() {
+showEditModal.value = false
+currentEditingPermissionId.value = null
+updateParentPermissionOptions() // 重新加载父级选项
 }
 
 // 提交编辑权限
@@ -447,10 +475,9 @@ function resetAddPermissionForm() {
   Object.assign(addPermissionForm, permissionApi.getDefaultSysPermissionAddDTO())
 }
 
-// 关闭添加权限对话框
-function closeAddModal() {
-  showAddModal.value = false
-  resetAddPermissionForm()
+// 关闭添加权限对话�?function closeAddModal() {
+showAddModal.value = false
+resetAddPermissionForm()
 }
 
 // 提交添加权限

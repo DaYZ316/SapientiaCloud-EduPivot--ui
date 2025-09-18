@@ -1,6 +1,7 @@
 export default {
     title: '课程管理',
     myCourses: '我的课程',
+    home: '首页',
 
     // 搜索表单
     searchForm: {
@@ -10,8 +11,6 @@ export default {
         courseTypePlaceholder: '请选择课程类型',
         courseStatus: '课程状态',
         courseStatusPlaceholder: '请选择课程状态',
-        teacherId: '教师ID',
-        teacherIdPlaceholder: '请输入教师ID',
         semester: '学期',
         semesterPlaceholder: '请输入学期',
         location: '上课地点',
@@ -215,5 +214,68 @@ export default {
         alreadyEnrolled: '您已经选修了该课程',
         confirmAdd: '确认加课',
         confirmAddContent: '确定要选修课程ID为"{courseId}"的课程吗？'
-    }
+    },
+
+    // 课程详情页面
+    detail: {
+        noDescription: '暂无课程描述',
+        noChapters: '暂无章节内容',
+        noThreads: '暂无论坛帖子',
+        noStudents: '暂无选课学生',
+        unknownTeacher: '未知教师',
+        chapters: '课程章节',
+        forum: '课程论坛',
+        courseInfo: '课程信息',
+        basicInfo: '基本信息',
+        quickActions: '快速操作',
+        addChapter: '添加章节',
+        createThread: '发布帖子',
+        view: '查看',
+        pinned: '置顶',
+        closed: '已关闭',
+        views: '浏览',
+        replies: '回复',
+        teacher: '主讲教师',
+        students: '选课学生',
+        semester: '学期',
+        location: '上课地点',
+        courseName: '课程名称',
+        courseType: '课程类型',
+        status: '课程状态',
+        createTime: '创建时间',
+        description: '课程描述',
+        enroll: '选课',
+        manageStudents: '管理学生',
+        editCourse: '编辑课程',
+        viewProfile: '查看资料',
+        noTeacher: '暂无教师信息',
+        viewAllStudents: '查看全部学生 ({count}人)',
+        threadTitle: '帖子标题',
+        threadTitlePlaceholder: '请输入帖子标题',
+        threadContent: '帖子内容',
+        threadContentPlaceholder: '请输入帖子内容',
+        threadTitleRequired: '请输入帖子标题',
+        threadContentRequired: '请输入帖子内容',
+        createThreadSuccess: '帖子发布成功',
+        createThreadError: '帖子发布失败',
+        enrollNotImplemented: '选课功能暂未实现',
+        viewAllStudentsNotImplemented: '查看全部学生功能暂未实现',
+        fetchCourseError: '获取课程信息失败',
+        fetchChaptersError: '获取课程章节失败',
+        fetchThreadsError: '获取课程论坛失败',
+        fetchStudentsError: '获取选课学生失败',
+        // 新增的课程详情页面内容
+        error: {
+            title: '加载失败',
+            loadError: '课程信息加载失败，请稍后重试'
+        },
+        teacherInfo: '教师信息',
+        mainTeacher: '主讲教师',
+        startCourse: '开始学习',
+        courseSuspended: '课程已停课',
+        loadError: '课程信息加载失败'
+    },
+
+    // 教师信息
+    teacherInfo: '开课教师'
 }

@@ -39,16 +39,20 @@
             @select="handleUserMenuSelect"
         >
           <div :class="{ 'user-info-collapsed': collapsed }" class="user-info">
-            <n-avatar
-                :fallback-src="defaultAvatar"
+            <AvatarDisplay
+                :avatar-src="userStore.userInfo?.avatar"
+                :nick-name="userStore.userInfo?.nickName"
                 :size="collapsed ? 'medium' : 'small'"
-                :src="userStore.userInfo?.avatar"
-                class="user-avatar"
-                round
+                :student-real-name="userStore.studentInfo?.realName || undefined"
+                :teacher-real-name="userStore.teacherInfo?.realName || undefined"
+                :username="userStore.userInfo?.username"
+                avatar-class="user-avatar"
             />
             <div v-if="!collapsed" class="user-details">
               <span class="username">
-                {{ userStore.userInfo?.nickName || userStore.userInfo?.username }}
+                {{
+                  userStore.studentInfo?.realName || userStore.teacherInfo?.realName || userStore.userInfo?.nickName || userStore.userInfo?.username
+                }}
               </span>
               <n-icon class="dropdown-icon">
                 <ChevronDownOutline/>
@@ -81,8 +85,8 @@ import {useI18n} from 'vue-i18n'
 import {useThemeStore, useUserStore} from '@/store'
 import {getMenuOptions, getUserMenuOptions, menuExpandMap, menuRouteMap} from '@/config/menu'
 import {ChevronDownOutline} from '@vicons/ionicons5'
-import {NAvatar, NDropdown, NIcon, NMenu, useDialog, useMessage} from 'naive-ui'
-import defaultAvatar from '@/assets/image/default-userAvatar.png'
+import {NDropdown, NIcon, NMenu, useDialog, useMessage} from 'naive-ui'
+import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
 
 // 路由和国际化
 const route = useRoute()
@@ -267,11 +271,6 @@ onUnmounted(() => {
   min-height: 48px;
   border: 1px solid transparent;
 
-  &:hover {
-    background-color: var(--background-tertiary-color);
-    border-color: var(--border-secondary-color);
-    box-shadow: 0 2px 4px var(--shadow-secondary-color);
-  }
 
   &.user-info-collapsed {
     padding: 8px;
@@ -313,10 +312,6 @@ onUnmounted(() => {
   transition: all 0.2s ease;
   flex-shrink: 0;
 
-  &:hover {
-    color: var(--text-color);
-    transform: translateY(-1px);
-  }
 }
 
 // 内容区域样式

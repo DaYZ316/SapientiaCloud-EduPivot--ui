@@ -5,7 +5,6 @@
       <n-card :bordered="false" class="admin-permissions-card" title-placement="left">
         <template #header>
           <div class="admin-permissions-header">
-            <Icon :component="ShieldCheckmarkOutline" class="admin-icon"/>
             <h3 class="section-title">{{ t('profile.superAdmin') }}</h3>
           </div>
         </template>
@@ -38,10 +37,8 @@
 <script lang="ts" setup>
 import {computed} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {ShieldCheckmarkOutline} from '@vicons/ionicons5'
 import {useUserStore} from '@/store'
 import type {SysPermissionVO} from '@/types/system'
-import Icon from '@/components/common/Icon.vue'
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -58,7 +55,7 @@ const userPermissions = computed(() => {
   // 否则从用户信息中提取权限
   const allPermissions: SysPermissionVO[] = [];
 
-  // 合并用户直接拥有的权限
+  // 合并用户直接拥有的权�?
   if (userInfo.value && userInfo.value.permissions) {
     allPermissions.push(...userInfo.value.permissions);
   }
@@ -96,7 +93,7 @@ interface TreeOption {
   children?: TreeOption[];
 }
 
-// 转换权限为树形结构以供渲染
+// 转换权限为树形结构以供渲�?
 const formattedPermissions = computed<TreeOption[]>(() => {
   const permissions = userPermissions.value || [];
 
@@ -119,7 +116,7 @@ const formattedPermissions = computed<TreeOption[]>(() => {
     children: []
   };
 
-  // 递归构建树
+  // 递归构建�?
   const buildPermissionTree = (parentId: string): TreeOption[] => {
     const children = permissions
         .filter(p => p.parentId === parentId)
@@ -133,7 +130,7 @@ const formattedPermissions = computed<TreeOption[]>(() => {
     return children.length ? children : [];
   };
 
-  // 将顶级权限添加到虚拟根节点
+  // 将顶级权限添加到虚拟根节�?
   root.children = rootPermissions.map(p => ({
     id: p.id,
     name: p.permissionName,

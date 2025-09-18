@@ -105,5 +105,30 @@ export default {
         description: 'Personal Description',
         specialization: 'Specialization',
         contactInfo: 'Contact Information'
+    },
+
+    // Teacher card
+    card: {
+        title: 'Teacher Information',
+        teacherCode: 'Teacher Code',
+        employeeId: 'Employee ID',
+        defaultName: 'Unknown Teacher',
+        expires: 'Expires',
+        id: 'ID#',
+        lanyardText: 'SapientiaCloud EduPivot',
+        defaultPosition: 'Teacher',
+        department: 'Department',
+        specialization: 'Specialization',
+        tagline: 'Smart Education, Cloud Journey',
+        viewProfile: 'View Teacher Profile',
+        learnMore: 'Learn More',
+        demo: {
+            title: 'Teacher Card Design Demo',
+            description: 'Modern ID card style teacher card component with multiple layouts and custom configurations',
+            single: 'Single Teacher Card',
+            multiple: 'Multiple Teacher Cards',
+            horizontal: 'Horizontal Layout',
+            empty: 'Empty State Display'
+        }
     }
 }

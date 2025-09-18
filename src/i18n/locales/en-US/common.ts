@@ -25,10 +25,15 @@ export default {
     uploadAvatar: 'Upload Avatar',
     cropAvatar: 'Crop Avatar',
     cropPreview: 'Preview',
+    rotateLeft: 'Rotate Left',
+    rotateRight: 'Rotate Right',
+    flipHorizontal: 'Flip Horizontal',
+    flipVertical: 'Flip Vertical',
     avatarTypeError: 'Invalid avatar format, only JPG and PNG are supported',
     avatarSizeError: 'Avatar size cannot exceed 2MB',
     avatarUploadSuccess: 'Avatar uploaded successfully',
     avatarUploadFail: 'Avatar upload failed',
+    avatarUpdateSuccess: 'Avatar updated successfully',
 
     // General image upload related
     uploadImage: 'Upload Image',
@@ -39,6 +44,10 @@ export default {
     imageSizeError: 'Image size cannot exceed 5MB',
     imageUploadSuccess: 'Image uploaded successfully',
     imageUploadFail: 'Image upload failed',
+    invalidImageType: 'Invalid image format',
+    fileSizeExceeded: 'File size exceeds limit (max {maxSize}MB)',
+    uploadSuccess: 'Upload successful',
+    uploadFailed: 'Upload failed',
 
     // HTTP related errors
     http: {
@@ -55,5 +64,16 @@ export default {
         statusCode: 'Request failed ({0})',
         notInitialized: 'Dialog instance not initialized',
         confirm: 'Confirm'
-    }
+    },
+
+    // Common status
+    loading: 'Loading...',
+    unknown: 'Unknown',
+
+    // Contact information
+    phone: 'Phone',
+    email: 'Email',
+
+    // Time related
+    lastLoginTime: 'Last Login Time'
 } 

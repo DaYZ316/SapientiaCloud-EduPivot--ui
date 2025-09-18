@@ -10,21 +10,22 @@
     <div class="profile-header">
       <div class="profile-bg"></div>
       <div class="profile-avatar-container">
-        <n-avatar
+        <AvatarDisplay
+            :avatar-src="userInfo?.avatar"
+            :nick-name="userInfo?.nickName"
             :size="120"
-            :src="userInfo?.avatar || '/src/assets/image/default-userAvatar.png'"
-            class="profile-avatar"
-            round
+            :student-real-name="studentInfo?.realName || undefined"
+            :teacher-real-name="teacherInfo?.realName || undefined"
+            :username="userInfo?.username"
+            avatar-class="profile-avatar"
         />
       </div>
-      <h1 class="profile-name">{{ userInfo?.nickName || userInfo?.username }}</h1>
+      <h1 class="profile-name">
+        {{ studentInfo?.realName || teacherInfo?.realName || userInfo?.nickName || userInfo?.username }}</h1>
       <p class="profile-bio">{{ t('profile.userBio') }}</p>
       <!-- Admin角色特殊标识 -->
       <div v-if="isAdmin" class="admin-badge">
         <n-tag round size="large" type="success">
-          <template #icon>
-            <Icon :component="ShieldCheckmarkOutline"/>
-          </template>
           {{ t('profile.superAdmin') }}
         </n-tag>
       </div>
@@ -64,9 +65,10 @@
 
 <script lang="ts" setup>
 import {useRouter} from 'vue-router'
-import {ArrowBackOutline, ShieldCheckmarkOutline} from '@vicons/ionicons5'
+import {ArrowBackOutline} from '@vicons/ionicons5'
 import {useI18n} from 'vue-i18n'
 import Icon from '@/components/common/Icon.vue'
+import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
 import BasicInfoTab from './components/BasicInfoTab.vue'
 import RoleInfoTab from './components/RoleInfoTab.vue'
 import PermissionInfoTab from './components/PermissionInfoTab.vue'
@@ -80,6 +82,8 @@ const {
   userInfo,
   userRoles,
   userPermissions,
+  studentInfo,
+  teacherInfo,
   isAdmin,
   accountAgeDays
 } = useProfileUtils()

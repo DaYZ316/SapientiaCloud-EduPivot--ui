@@ -78,4 +78,4 @@ export function removeRoles(ids: string[]) {
 // 分配角色权限
 export function assignRolePermissions(roleId: string, permissionIds: string[]) {
     return http.post(`/system/role/${roleId}/permission`, permissionIds)
-} 
+}

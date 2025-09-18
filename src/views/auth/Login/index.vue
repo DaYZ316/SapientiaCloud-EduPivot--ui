@@ -107,10 +107,13 @@ const rules: FormRules = {
 
 // 处理登录
 const handleLogin = async () => {
-  if (!formRef.value) return
+  if (!formRef.value || loading.value) return
 
   try {
     await formRef.value.validate()
+
+    // 开始登录，设置loading状态
+    loading.value = true
 
     const success = await userStore.login(
         loginForm.username || '',
@@ -133,6 +136,9 @@ const handleLogin = async () => {
     }
   } catch (error: any) {
     message.error(error?.message || t('auth.loginFail'))
+  } finally {
+    // 无论成功还是失败，都要关闭loading状态
+    loading.value = false
   }
 }
 

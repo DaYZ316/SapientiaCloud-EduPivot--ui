@@ -42,4 +42,4 @@ export function uploadFile(file: File, directory?: string) {
 // 获取文件URL
 export function getFileUrl(objectName: string, expiry?: number) {
     return http.get('/minIO/file/url', {params: {objectName, expiry}})
-} 
+}

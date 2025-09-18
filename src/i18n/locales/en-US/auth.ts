@@ -55,8 +55,7 @@ export default {
     nickNameRequired: 'Please enter your nickname',
     sendVerificationCode: 'Send Code',
 
-    // 验证码登录相关
-    verificationCodeSentSuccess: 'Verification code sent successfully',
+    // 验证码登录相�?    verificationCodeSentSuccess: 'Verification code sent successfully',
     verificationCodeCountdown: 'seconds to resend',
     verificationCodeLoginSuccess: 'Verification code login successful',
     verificationCodeLoginFailed: 'Verification code login failed',

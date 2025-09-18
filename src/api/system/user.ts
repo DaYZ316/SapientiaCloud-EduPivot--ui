@@ -1,11 +1,5 @@
 import http from '@/utils/http'
-import type {
-    SysUserAdminDTO,
-    SysUserDTO,
-    SysUserProfileDTO,
-    SysUserRegisterDTO,
-    UserPageQueryDTO
-} from '@/types/system/user'
+import type {SysUserAdminDTO, SysUserDTO, SysUserProfileDTO, UserPageQueryDTO} from '@/types/system/user'
 
 // 获取默认用户查询对象
 export function getDefaultUserQuery(): UserPageQueryDTO {
@@ -49,17 +43,6 @@ export function getDefaultSysUserDTO(): SysUserDTO {
         avatar: null,
         status: null,
         lastLoginTime: null
-    }
-}
-
-// 获取默认用户注册参数
-export function getDefaultSysUserRegisterDTO(): SysUserRegisterDTO {
-    return {
-        username: null,
-        password: null,
-        confirmPassword: null,
-        avatar: null,
-        nickName: null
     }
 }
 

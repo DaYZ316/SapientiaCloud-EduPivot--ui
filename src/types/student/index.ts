@@ -6,7 +6,7 @@ export interface StudentDTO {
     birthDate?: string | null
     admissionYear?: number | null
     major?: string | null
-    academicStatus?: number | null // 0=在读, 1=休学, 2=退学, 3=毕业
+    academicStatus?: number | null // 0=在读, 1=休学, 2=退�? 3=毕业
     description?: string | null
     sysUserId?: string | null
     createTime?: string | null
@@ -33,7 +33,7 @@ export interface StudentVO {
     birthDate?: string | null
     admissionYear?: number | null
     major?: string | null
-    academicStatus?: number | null // 0=在读, 1=休学, 2=退学, 3=毕业
+    academicStatus?: number | null // 0=在读, 1=休学, 2=退�? 3=毕业
     description?: string | null
     sysUserId?: string | null
     avatar?: string | null
@@ -41,8 +41,7 @@ export interface StudentVO {
     nickName?: string | null
     email?: string | null
     mobile?: string | null
-    gender?: number | null // 0=未知, 1=男, 2=女
-    status?: number | null // 0=正常, 1=停用
+    gender?: number | null // 0=未知, 1=�? 2=�?    status?: number | null // 0=正常, 1=停用
     createTime: string | null
     updateTime: string | null
     lastLoginTime?: string | null

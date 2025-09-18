@@ -20,4 +20,4 @@ export function renderIcon(icon: Component, props: Record<string, any> = {}) {
  */
 export function createIcon(icon: Component, props: Record<string, any> = {}) {
     return h(Icon, {component: icon, ...props})
-} 
+}

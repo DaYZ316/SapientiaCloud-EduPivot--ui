@@ -25,13 +25,6 @@
           style="min-width: 120px;"
       />
     </n-form-item>
-    <n-form-item :label="t('course.searchForm.teacherId')" path="teacherId">
-      <n-input
-          v-model:value="searchForm.teacherId"
-          :placeholder="t('course.searchForm.teacherIdPlaceholder')"
-          clearable
-      />
-    </n-form-item>
     <n-form-item :label="t('course.searchForm.createTimeRange')" path="createTimeRange">
       <n-date-picker
           v-model:value="createTimeRange"
@@ -55,17 +48,6 @@
         </template>
         {{ t('common.reset') }}
       </n-button>
-      <!-- 加课按钮 - 只有学生身份才能看到 -->
-      <n-button v-if="isStudent" class="enroll-course-btn" type="primary" @click="handleEnrollCourse">
-        <template #icon>
-          <n-icon>
-            <svg height="16" viewBox="0 0 24 24" width="16">
-              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/>
-            </svg>
-          </n-icon>
-        </template>
-        {{ t('course.enroll.addCourse') }}
-      </n-button>
     </n-form-item>
   </n-form>
 </template>
@@ -85,7 +67,6 @@ const {t} = useI18n()
 // Props
 interface Props {
   modelValue: courseType.CourseQueryParams
-  isStudent?: boolean
 }
 
 const props = defineProps<Props>()
@@ -97,8 +78,6 @@ interface Emits {
   (e: 'search'): void
 
   (e: 'reset'): void
-
-  (e: 'enroll-course'): void
 }
 
 const emit = defineEmits<Emits>()
@@ -138,10 +117,6 @@ function handleResetSearch() {
   emit('reset')
 }
 
-// 加课按钮处理
-function handleEnrollCourse() {
-  emit('enroll-course')
-}
 </script>
 
 <style lang="scss" scoped>
@@ -150,10 +125,6 @@ function handleEnrollCourse() {
 
   .search-reset-btn {
     margin-left: 8px;
-  }
-
-  .enroll-course-btn {
-    margin-left: 13vh;
   }
 }
 </style>

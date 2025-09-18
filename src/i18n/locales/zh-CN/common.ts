@@ -25,10 +25,15 @@ export default {
     uploadAvatar: '上传头像',
     cropAvatar: '裁剪头像',
     cropPreview: '预览效果',
+    rotateLeft: '向左旋转',
+    rotateRight: '向右旋转',
+    flipHorizontal: '水平翻转',
+    flipVertical: '垂直翻转',
     avatarTypeError: '头像格式错误，仅支持 JPG、PNG 格式',
     avatarSizeError: '头像大小不能超过 2MB',
     avatarUploadSuccess: '头像上传成功',
     avatarUploadFail: '头像上传失败',
+    avatarUpdateSuccess: '头像更新成功',
 
     // 通用图片上传相关
     uploadImage: '上传图片',
@@ -39,6 +44,10 @@ export default {
     imageSizeError: '图片大小不能超过 5MB',
     imageUploadSuccess: '图片上传成功',
     imageUploadFail: '图片上传失败',
+    invalidImageType: '无效的图片格式',
+    fileSizeExceeded: '文件大小超过限制（最大 {maxSize}MB）',
+    uploadSuccess: '上传成功',
+    uploadFailed: '上传失败',
 
     // HTTP 相关错误
     http: {
@@ -55,5 +64,19 @@ export default {
         statusCode: '请求失败({0})',
         notInitialized: '对话框实例未初始化',
         confirm: '确认'
-    }
+    },
+
+    // 通用状态
+    loading: '加载中...',
+    unknown: '未知',
+
+    // 联系信息
+    phone: '电话',
+    email: '邮箱',
+
+    // 时间相关
+    lastLoginTime: '最后登录时间',
+
+    // 用户相关
+    userId: '用户ID'
 } 

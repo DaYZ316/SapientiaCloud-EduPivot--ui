@@ -19,3 +19,6 @@ alwaysApply: true
 16.assets中的styles是全局样式,局部样式请添加在各组件下的scss文件中
 17.所有代码的规范都要按照system模块代码实现
 18.接口文档中的内部接口不需要管
+19.所有的api都在src\api里面，所有的DTO、VO类都在src\types
+20.所有的api都在src\api里面，所有的DTO、VO类都在src\types
+21.所有的api都在src\api里面，所有的DTO、VO类都在src\types

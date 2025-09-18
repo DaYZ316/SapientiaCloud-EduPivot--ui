@@ -5,7 +5,6 @@
       <n-card :bordered="false" class="admin-role-card" title-placement="left">
         <template #header>
           <div class="admin-role-header">
-            <Icon :component="ShieldCheckmarkOutline" class="admin-icon"/>
             <h3 class="section-title">{{ t('profile.superAdmin') }}</h3>
           </div>
         </template>
@@ -73,9 +72,7 @@
 <script lang="ts" setup>
 import {computed} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {ShieldCheckmarkOutline} from '@vicons/ionicons5'
 import {useUserStore} from '@/store'
-import Icon from '@/components/common/Icon.vue'
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -87,12 +84,12 @@ const isAdmin = computed(() => {
   return userRoles.value.some(role => role.roleKey === 'ADMIN' || role.admin === true)
 })
 
-// 获取状态类型
+// 获取状态类�?
 function getStatusType(status?: number | null): string {
   return status === 0 ? 'success' : 'error'
 }
 
-// 获取状态文本
+// 获取状态文�?
 function getStatusText(status?: number | null): string {
   return status === 0 ? t('settings.personal.statusNormal') : t('settings.personal.statusDisabled')
 }

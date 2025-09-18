@@ -1,6 +1,7 @@
 export default {
     title: 'Course Management',
     myCourses: 'My Courses',
+    home: 'Home',
 
     // Search form
     searchForm: {
@@ -10,8 +11,6 @@ export default {
         courseTypePlaceholder: 'Please select course type',
         courseStatus: 'Course Status',
         courseStatusPlaceholder: 'Please select course status',
-        teacherId: 'Teacher ID',
-        teacherIdPlaceholder: 'Please enter teacher ID',
         semester: 'Semester',
         semesterPlaceholder: 'Please enter semester',
         location: 'Location',
@@ -215,5 +214,58 @@ export default {
         alreadyEnrolled: 'You have already enrolled in this course',
         confirmAdd: 'Confirm Enrollment',
         confirmAddContent: 'Are you sure you want to enroll in course with ID "{courseId}"?'
-    }
+    },
+
+    // Course detail page
+    detail: {
+        noDescription: 'No course description available',
+        noChapters: 'No chapters available',
+        noThreads: 'No forum threads available',
+        noStudents: 'No enrolled students',
+        unknownTeacher: 'Unknown Teacher',
+        chapters: 'Course Chapters',
+        forum: 'Course Forum',
+        courseInfo: 'Course Information',
+        basicInfo: 'Basic Information',
+        quickActions: 'Quick Actions',
+        addChapter: 'Add Chapter',
+        createThread: 'Create Thread',
+        view: 'View',
+        pinned: 'Pinned',
+        closed: 'Closed',
+        views: 'Views',
+        replies: 'Replies',
+        teacher: 'Main Instructor',
+        students: 'Enrolled Students',
+        semester: 'Semester',
+        location: 'Location',
+        courseName: 'Course Name',
+        courseType: 'Course Type',
+        status: 'Status',
+        createTime: 'Create Time',
+        description: 'Course Description',
+        enroll: 'Enroll',
+        manageStudents: 'Manage Students',
+        editCourse: 'Edit Course',
+        viewProfile: 'View Profile',
+        noTeacher: 'No teacher information',
+        viewAllStudents: 'View All Students ({count})',
+        threadTitle: 'Thread Title',
+        threadTitlePlaceholder: 'Please enter thread title',
+        threadContent: 'Thread Content',
+        threadContentPlaceholder: 'Please enter thread content',
+        threadTitleRequired: 'Please enter thread title',
+        threadContentRequired: 'Please enter thread content',
+        createThreadSuccess: 'Thread created successfully',
+        createThreadError: 'Failed to create thread',
+        enrollNotImplemented: 'Enrollment feature not implemented',
+        viewAllStudentsNotImplemented: 'View all students feature not implemented',
+        fetchCourseError: 'Failed to fetch course information',
+        fetchChaptersError: 'Failed to fetch course chapters',
+        fetchThreadsError: 'Failed to fetch course threads',
+        fetchStudentsError: 'Failed to fetch enrolled students'
+    },
+
+    // Teacher information
+    teacherInfo: 'Course Instructor'
 }

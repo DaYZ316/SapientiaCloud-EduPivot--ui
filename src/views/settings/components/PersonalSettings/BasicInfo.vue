@@ -153,6 +153,8 @@ const savePersonalSettings = () => {
 
         const res = await updateUserProfile(userData)
         if (res.success && res.data) {
+          // 更新成功后刷新用户信息到store
+          await userStore.refreshUserInfo()
           message.success(t('settings.personal.updateSuccess'))
         } else {
           message.error(res.message || t('settings.personal.updateFail'))

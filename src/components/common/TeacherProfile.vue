@@ -20,12 +20,14 @@
       <div class="profile-header">
         <div class="profile-bg"></div>
         <div class="profile-avatar-container">
-          <n-avatar
+          <AvatarDisplay
+              :avatar-src="teacher.avatar"
+              :nick-name="teacher.nickName"
+              :round="true"
               :size="120"
-              :src="teacher.avatar || defaultUserAvatar"
-              class="profile-avatar"
-              round
-              @error="handleAvatarError"
+              :teacher-real-name="teacher.realName"
+              :username="teacher.username"
+              avatar-class="profile-avatar"
           />
         </div>
         <h1 class="profile-name">{{ teacher.realName || teacher.nickName || teacher.username }}</h1>
@@ -95,26 +97,18 @@ import {getEducationLabel} from '@/enum/teacher'
 import {getTeacherById} from '@/api/teacher'
 import {onMounted, ref} from 'vue'
 import Icon from '@/components/common/Icon.vue'
+import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
 
 const {t} = useI18n()
 const router = useRouter()
 const route = useRoute()
 
-// 从路由参数获取 teacherId
+// 从路由参数获取teacherId
 const teacherId = route.params.teacherId as string
 
 // 响应式数据
 const teacher = ref<TeacherVO | null>(null)
 const loading = ref(true)
-
-// 默认头像
-const defaultUserAvatar = '/src/assets/image/default-userAvatar.png'
-
-// 处理头像加载错误
-const handleAvatarError = (event: Event) => {
-  const img = event.target as HTMLImageElement
-  img.src = defaultUserAvatar
-}
 
 // 返回上一页
 const goBack = () => {

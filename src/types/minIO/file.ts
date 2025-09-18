@@ -23,13 +23,23 @@ export interface UploadFileResponse {
 // 头像上传组件Props接口
 export interface AvatarUploadProps {
     modelValue?: string;
-    size?: number;
+    size?: 'small' | 'medium' | 'large' | number;
     cropSize?: number;
     maxFileSize?: number;
     accept?: string;
     disabled?: boolean;
-    placeholder?: string;
-    showDefaultAvatar?: boolean;
+    // 用户名（用于生成首字母和背景色）
+    username?: string;
+    // 用户昵称
+    nickName?: string;
+    // 学生真实姓名（优先级最高）
+    studentRealName?: string;
+    // 教师真实姓名（优先级最高）
+    teacherRealName?: string;
+    // 是否圆形
+    round?: boolean;
+    // 自定义样式类
+    avatarClass?: string;
 }
 
 // 头像上传组件Emits接口
@@ -37,4 +47,5 @@ export interface AvatarUploadEmits {
     'update:modelValue': [value: string];
     'upload-success': [url: string];
     'upload-error': [error: Error];
-} 
+    'update-avatar': [url: string];
+}

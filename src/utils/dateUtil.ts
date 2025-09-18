@@ -71,4 +71,4 @@ export function handleDateRangeChange(
     } else {
         callback(null, null)
     }
-} 
+}

@@ -3,14 +3,25 @@
     <page-header :title="t('course.myCourses')"/>
 
     <n-card size="small">
-      <!-- 搜索表单 -->
-      <course-search-form
-          v-model="searchForm"
-          :is-student="isStudent"
-          @reset="handleResetSearch"
-          @search="handleSearch"
-          @enroll-course="showEnrollDialog = true"
-      />
+      <!-- 搜索表单和加课按钮 -->
+      <div class="search-container">
+        <course-search-form
+            v-model="searchForm"
+            @reset="handleResetSearch"
+            @search="handleSearch"
+        />
+        <!-- 加课按钮 - 只有学生身份才能看到 -->
+        <n-button v-if="isStudent" class="enroll-course-btn" type="primary" @click="showEnrollDialog = true">
+          <template #icon>
+            <n-icon>
+              <svg height="16" viewBox="0 0 24 24" width="16">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/>
+              </svg>
+            </n-icon>
+          </template>
+          {{ t('course.enroll.addCourse') }}
+        </n-button>
+      </div>
 
       <!-- 课程卡片视图 -->
       <div class="course-card-container">
@@ -21,7 +32,7 @@
           <!-- 课程网格 -->
           <div class="course-grid">
             <course-card
-                v-for="course in courseWithAvatars"
+                v-for="course in courseList"
                 :key="course.id"
                 :course="course"
                 @course-click="handleCourseClick"
@@ -70,10 +81,8 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, reactive, ref, watch} from 'vue'
+import {computed, onMounted, reactive, ref} from 'vue'
 import type * as courseType from '@/types/course'
-import type {TeacherVO} from '@/types/teacher'
-import type {SysUserVO} from '@/types/system/user'
 import {useI18n} from 'vue-i18n'
 import CourseCard from './CourseCard.vue'
 import CourseSearchForm from '../components/CourseSearchForm.vue'
@@ -81,8 +90,6 @@ import PageHeader from '../components/PageHeader.vue'
 import * as courseApi from '@/api/course'
 import {useUserStore} from '@/store/modules/user'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
-import {getTeacherById} from '@/api/teacher'
-import {getUserById} from '@/api/system/user'
 import {addCourseStudent} from '@/api/course/courseStudent'
 
 const {t} = useI18n()
@@ -113,9 +120,6 @@ const pageSizes = [12, 16, 24, 32]
 const showQuickJumper = true
 const showSizePicker = true
 
-// 默认图片
-const defaultUserAvatar = '/src/assets/image/default-userAvatar.png'
-
 // 加课相关状态
 const showEnrollDialog = ref(false)
 const enrollLoading = ref(false)
@@ -133,54 +137,8 @@ const enrollRules = computed(() => ({
   ]
 }))
 
-// 教师头像缓存
-const teacherAvatarCache = ref<Map<string, string>>(new Map())
-const loadingAvatars = ref<Set<string>>(new Set())
-
 // 课程API函数
 const courseApiFunction = computed(() => courseApi.listCourse)
-
-// 获取教师头像
-const getTeacherAvatar = async (teacherId: string): Promise<string> => {
-  if (teacherAvatarCache.value.has(teacherId)) {
-    return teacherAvatarCache.value.get(teacherId)!
-  }
-
-  if (loadingAvatars.value.has(teacherId)) {
-    return defaultUserAvatar
-  }
-
-  try {
-    loadingAvatars.value.add(teacherId)
-
-    const teacherResponse = await getTeacherById(teacherId)
-    const teacher: TeacherVO = teacherResponse.data
-
-    if (teacher.sysUserId) {
-      const userResponse = await getUserById(teacher.sysUserId)
-      const user: SysUserVO = userResponse.data
-      const avatarUrl = user.avatar || defaultUserAvatar
-      teacherAvatarCache.value.set(teacherId, avatarUrl)
-      return avatarUrl
-    }
-
-    teacherAvatarCache.value.set(teacherId, defaultUserAvatar)
-    return defaultUserAvatar
-  } catch {
-    teacherAvatarCache.value.set(teacherId, defaultUserAvatar)
-    return defaultUserAvatar
-  } finally {
-    loadingAvatars.value.delete(teacherId)
-  }
-}
-
-// 计算属性：为每个课程获取教师头像
-const courseWithAvatars = computed(() => {
-  return courseList.value.map(course => ({
-    ...course,
-    teacherAvatar: teacherAvatarCache.value.get(course.teacherId) || defaultUserAvatar
-  }))
-})
 
 // 初始化搜索表单
 const initializeSearchForm = () => {
@@ -220,16 +178,6 @@ const resetSearch = () => {
   initializeSearchForm()
 }
 
-// 监听课程列表变化，预加载教师头像
-watch(() => courseList.value, (newCourseList) => {
-  if (newCourseList?.length > 0) {
-    newCourseList.forEach(course => {
-      if (course.teacherId && !teacherAvatarCache.value.has(course.teacherId)) {
-        getTeacherAvatar(course.teacherId)
-      }
-    })
-  }
-}, {immediate: true})
 
 // 处理分页变化
 const onPageChange = (newPagination: { pageNum: number, pageSize: number }) => {

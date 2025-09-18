@@ -127,6 +127,52 @@
           margin-bottom: 0;
         }
 
+        &.teacher-info {
+          .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            .teacher-avatar {
+              flex-shrink: 0;
+            }
+
+            .teacher-name {
+              font-size: 14px;
+              color: var(--text-color);
+              font-weight: 500;
+            }
+
+            &.teacher-item {
+              cursor: pointer;
+              padding: 0px;
+              border-radius: 8px;
+              transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+              user-select: none;
+
+              &:hover {
+                background: rgba(var(--primary-color-rgb), 0.1);
+                transform: translateY(-1px);
+
+                .teacher-name {
+                  color: var(--primary-color);
+                  font-weight: 600;
+                }
+
+                :deep(.n-avatar) {
+                  transform: scale(1.05);
+                  box-shadow: 0 2px 8px rgba(var(--primary-color-rgb), 0.3);
+                }
+              }
+
+              &:active {
+                transform: translateY(0);
+                transition: all 0.1s ease;
+              }
+            }
+          }
+        }
+
         .info-item {
           display: flex;
           align-items: center;

@@ -136,9 +136,10 @@
 
 <script lang="ts" setup>
 import {computed, h, nextTick, onMounted, ref, watch} from 'vue'
+import {useRouter} from 'vue-router'
 import type {DataTableColumns, FormInst, FormRules, SelectRenderLabel, SelectRenderTag} from 'naive-ui'
 import {NAvatar, NTag, NText, useDialog, useMessage} from 'naive-ui'
-import {CreateOutline, TrashOutline} from '@vicons/ionicons5'
+import {CreateOutline, EyeOutline, TrashOutline} from '@vicons/ionicons5'
 import type * as courseType from '@/types/course'
 import type * as teacherType from '@/types/teacher'
 import {getCourseStatusLabel, getCourseStatusOptions, getCourseTypeLabel, getCourseTypeOptions} from '@/enum/course'
@@ -150,6 +151,7 @@ import * as teacherApi from '@/api/teacher'
 import ImageUpload from '@/components/common/ImageUpload.vue'
 
 const {t} = useI18n()
+const router = useRouter()
 const dialog = useDialog()
 const message = useMessage()
 
@@ -260,6 +262,22 @@ const columns = computed((): DataTableColumns => [
     width: 200,
     render(rowData: any) {
       const actions = []
+
+      // 查看详情按钮 - 所有用户都可以查看
+      actions.push(
+          h(
+              'button',
+              {
+                class: 'n-button n-button--text',
+                style: {marginRight: '8px'},
+                onClick: () => handleViewDetail(rowData)
+              },
+              [
+                renderIcon(EyeOutline)(),
+                ' ' + t('course.card.viewDetails')
+              ]
+          )
+      )
 
       // 只有管理员才能编辑和删除课程
       if (props.isAdmin) {
@@ -424,6 +442,11 @@ function handleDelete(course: courseType.CourseVO) {
       message.success(t('course.actions.deleteSuccess'))
     }
   })
+}
+
+// 查看课程详情
+function handleViewDetail(course: courseType.CourseVO) {
+  router.push({name: 'CourseDetail', params: {courseId: course.id}})
 }
 
 // 刷新数据

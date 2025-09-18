@@ -5,10 +5,9 @@ import * as userApi from '@api/system/user'
 import {getAllRoles} from '@api/system/role'
 import * as StudentApi from '@api/student'
 import * as TeacherApi from '@api/teacher'
-import type * as userType from '@types/system/user'
-import type {SysRoleVO} from '@types/system/role'
-import type {StudentAddDTO, StudentVO} from '@types/student'
-import type {TeacherAddDTO, TeacherVO} from '@types/teacher'
+import type {SysRoleVO, SysUserVO} from '@type/system'
+import type {StudentAddDTO, StudentVO} from '@type/student'
+import type {TeacherAddDTO, TeacherVO} from '@type/teacher'
 
 // 通用信息类型
 type InfoType = 'student' | 'teacher'
@@ -19,7 +18,7 @@ export function useRoleAssignment() {
     const {t} = useI18n()
     // 分配角色相关状态
     const showAssignModal = ref(false)
-    const currentUser = ref<userType.SysUserVO | null>(null)
+    const currentUser = ref<SysUserVO | null>(null)
     const availableRoles = ref<SysRoleVO[]>([])
     const selectedRoleIds = ref<string[]>([])
     const userRoles = ref<SysRoleVO[]>([])
@@ -79,7 +78,7 @@ export function useRoleAssignment() {
     const teacherInfoForm = infoModals.teacher.form
 
     // 处理分配角色
-    async function handleAssignRole(row: userType.SysUserVO) {
+    async function handleAssignRole(row: SysUserVO) {
         currentUser.value = row
         submittingRoles.value = true
 

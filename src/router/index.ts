@@ -1,4 +1,4 @@
-import type {RouteRecordRaw} from 'vue-router'
+﻿import type {RouteRecordRaw} from 'vue-router'
 import {createRouter, createWebHistory} from 'vue-router'
 import {useUserStore} from '@/store'
 import {TitleUtil} from '@/utils'
@@ -113,6 +113,15 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
+                path: 'course/detail/:courseId',
+                name: 'CourseDetail',
+                component: () => import('@/views/course/CourseDetail/index.vue'),
+                meta: {
+                    title: '课程详情',
+                    requiresAuth: true
+                }
+            },
+            {
                 path: 'teacher/profile/:teacherId',
                 name: 'TeacherProfile',
                 component: () => import('@/components/common/TeacherProfile.vue'),
@@ -169,7 +178,7 @@ router.beforeEach(async (to, _from, next) => {
             // 验证token有效性
             const isValid = await userStore.validateToken()
             if (isValid) {
-                // 如果JWT存在并有效，直接重定向到主页
+                // 如果JWT存在且有效，直接重定向到主页
                 return next('/dashboard')
             } else {
                 // 如果JWT无效，重定向到登录页
@@ -197,4 +206,4 @@ router.afterEach((_to, _from) => {
     // 路由切换完成后的处理
 })
 
-export default router 
+export default router

@@ -2,6 +2,7 @@
 export interface TeacherDTO {
     id?: string | null
     teacherCode: string | null
+    employeeId?: string | null
     realName: string | null
     birthDate?: string | null
     department?: string | null
@@ -16,6 +17,7 @@ export interface TeacherDTO {
 // 教师添加信息数据传输对象
 export interface TeacherAddDTO {
     teacherCode: string | null
+    employeeId?: string | null
     realName: string | null
     birthDate?: string | null
     department?: string | null
@@ -29,6 +31,7 @@ export interface TeacherAddDTO {
 export interface TeacherVO {
     id: string | null
     teacherCode: string | null
+    employeeId?: string | null
     realName: string | null
     birthDate?: string | null
     department?: string | null

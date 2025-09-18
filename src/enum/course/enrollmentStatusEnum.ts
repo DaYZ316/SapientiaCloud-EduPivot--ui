@@ -28,7 +28,6 @@ export const enrollmentStatusEnLabelMap = {
     [EnrollmentStatusEnum.COMPLETED]: 'Completed'
 };
 
-
 /**
  * 根据当前语言获取选课状态枚举选项
  * @param isEn 是否为英文

@@ -105,5 +105,29 @@ export default {
         description: '个人简介',
         specialization: '专业领域',
         contactInfo: '联系信息'
+    },
+
+    // 教师名片
+    card: {
+        title: '教师信息',
+        teacherCode: '工号',
+        employeeId: '教师工号',
+        defaultName: '未知教师',
+        expires: '有效期至',
+        id: 'ID#',
+        lanyardText: 'SapientiaCloud EduPivot',
+        defaultPosition: '教师',
+        department: '部门',
+        specialization: '专业领域',
+        tagline: '智慧教育，云端启航',
+        learnMore: '了解教师',
+        demo: {
+            title: '教师名片设计演示',
+            description: '参照现代ID卡设计风格的教师名片组件，支持多种布局和自定义配置',
+            single: '单个教师名片',
+            multiple: '多个教师名片',
+            horizontal: '水平布局',
+            empty: '空状态展示'
+        }
     }
 }

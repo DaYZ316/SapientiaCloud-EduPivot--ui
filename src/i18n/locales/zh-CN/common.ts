@@ -78,5 +78,6 @@ export default {
     lastLoginTime: '最后登录时间',
 
     // 用户相关
-    userId: '用户ID'
+    userId: '用户ID',
+    userCode: '用户编码'
 } 

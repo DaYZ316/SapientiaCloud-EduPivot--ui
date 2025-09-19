@@ -75,5 +75,8 @@ export default {
     email: 'Email',
 
     // Time related
-    lastLoginTime: 'Last Login Time'
+    lastLoginTime: 'Last Login Time',
+
+    // User related
+    userCode: 'USER CODE'
 } 

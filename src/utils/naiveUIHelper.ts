@@ -65,6 +65,13 @@ export function getGlobalApis() {
 }
 
 /**
+ * 检查API是否已初始化
+ */
+export function isApiInitialized(): boolean {
+    return !!(messageApi || window.$message)
+}
+
+/**
  * 兼容旧的函数名
  */
 export function getDiscreteApi() {

@@ -1,10 +1,11 @@
 import type {AxiosInstance, AxiosRequestConfig} from 'axios'
 import axios from 'axios'
+import {nextTick} from 'vue'
 import type {Result} from '@/types/common/baseEntity'
 import router from '@/router'
 import {useUserStore} from '@/store'
 import i18n from '@/i18n'
-import {getDiscreteApi} from '@/utils/naiveUIHelper'
+import {getDiscreteApi, isApiInitialized} from '@/utils/naiveUIHelper'
 import {defaultServerConfig, getApiBaseUrl, type ServerConfig} from '@/config/server'
 
 /**
@@ -161,10 +162,53 @@ class HttpClient {
     }
 
     /**
+     * 安全跳转到登录页
+     */
+    private navigateToLogin(): void {
+        const userStore = useUserStore()
+        userStore.resetUserState()
+        
+        // 使用 nextTick 确保状态更新后再跳转
+        nextTick(() => {
+            try {
+                // 尝试使用 Vue Router 跳转
+                router.push('/login').catch((error) => {
+                    console.warn('Vue Router 跳转失败，使用 window.location 强制跳转:', error)
+                    // 如果路由跳转失败，使用 window.location 强制跳转
+                    this.forceNavigateToLogin()
+                })
+            } catch (error) {
+                console.warn('路由跳转异常，使用 window.location 强制跳转:', error)
+                this.forceNavigateToLogin()
+            }
+        })
+    }
+
+    /**
+     * 强制跳转到登录页
+     */
+    private forceNavigateToLogin(): void {
+        try {
+            // 使用 window.location 强制跳转
+            window.location.href = '/login'
+        } catch (error) {
+            console.error('强制跳转失败:', error)
+            // 最后的回退方案：重新加载页面到登录页
+            window.location.reload()
+        }
+    }
+
+    /**
      * 处理未授权状态
      */
     private handleUnauthorized(): void {
-        const userStore = useUserStore()
+        // 检查API是否已初始化
+        if (!isApiInitialized()) {
+            // 如果API未初始化，直接跳转
+            this.navigateToLogin()
+            return
+        }
+
         const {dialog} = getDiscreteApi()
 
         if (dialog) {
@@ -177,8 +221,7 @@ class HttpClient {
                     ghost: false
                 },
                 onPositiveClick: () => {
-                    userStore.resetUserState()
-                    router.push('/login')
+                    this.navigateToLogin()
                 }
             })
         } else {
@@ -186,8 +229,7 @@ class HttpClient {
             if (message) {
                 message.error(i18n.global.t('common.http.unauthorized'))
             }
-            userStore.resetUserState()
-            router.push('/login')
+            this.navigateToLogin()
         }
     }
 

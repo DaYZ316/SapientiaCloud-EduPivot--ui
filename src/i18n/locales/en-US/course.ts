@@ -267,5 +267,27 @@ export default {
     },
 
     // Teacher information
-    teacherInfo: 'Course Instructor'
+    teacherInfo: 'Course Instructor',
+
+    // Share course
+    share: {
+        title: 'Share Course',
+        courseId: 'Course ID',
+        copySuccess: 'Course ID copied to clipboard',
+        copyFail: 'Copy failed, please copy manually',
+        shareTips: 'Share knowledge with your classmates!',
+        close: 'Close'
+    },
+
+    // Course detail actions
+    detailActions: {
+        edit: 'Edit Course',
+        delete: 'Delete Course',
+        deleteConfirm: 'Confirm Delete',
+        deleteConfirmContent: 'Are you sure you want to delete course "{courseName}"? This action cannot be undone.',
+        deleteSuccess: 'Course deleted successfully',
+        deleteFail: 'Failed to delete course',
+        editSuccess: 'Course edited successfully',
+        editFail: 'Failed to edit course'
+    }
 }

@@ -277,5 +277,27 @@ export default {
     },
 
     // 教师信息
-    teacherInfo: '开课教师'
+    teacherInfo: '开课教师',
+
+    // 分享课程
+    share: {
+        title: '分享课程',
+        courseId: '课程ID',
+        copySuccess: '课程ID已复制到剪贴板',
+        copyFail: '复制失败，请手动复制',
+        shareTips: '快将知识分享给同学吧！',
+        close: '关闭'
+    },
+
+    // 课程详情操作
+    detailActions: {
+        edit: '编辑课程',
+        delete: '删除课程',
+        deleteConfirm: '确认删除',
+        deleteConfirmContent: '确定要删除课程"{courseName}"吗？此操作不可恢复。',
+        deleteSuccess: '课程删除成功',
+        deleteFail: '课程删除失败',
+        editSuccess: '课程编辑成功',
+        editFail: '课程编辑失败'
+    }
 }

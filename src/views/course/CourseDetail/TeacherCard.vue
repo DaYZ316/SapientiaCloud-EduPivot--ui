@@ -75,9 +75,9 @@
       </div>
     </div>
 
-    <!-- 用户ID底部信息 -->
+    <!-- 用户编码底部信息 -->
     <div v-if="teacherInfo?.sysUserId" class="contact-footer">
-      {{ t('common.userId') + ": " + teacherInfo.sysUserId }}
+      {{ t('common.userCode') + ": " + teacherInfo.sysUserId }}
     </div>
 
     <!-- 右侧头像区域 -->

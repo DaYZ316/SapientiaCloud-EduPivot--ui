@@ -4,8 +4,15 @@
   height: 100vh;
   box-sizing: border-box;
 
-  .breadcrumb {
+  .breadcrumb-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 24px;
+  }
+
+  .breadcrumb {
+    flex: 1;
     font-size: 16px;
 
     :deep(.n-breadcrumb-item) {
@@ -33,6 +40,22 @@
       font-size: 16px;
       color: var(--text-color-3);
       margin: 0 8px;
+    }
+  }
+
+  .action-button {
+    flex-shrink: 0;
+    margin-left: 16px;
+    
+    :deep(.n-icon) {
+      font-size: 18px;
+      color: var(--text-color-2);
+    }
+    
+    &:hover {
+      :deep(.n-icon) {
+        color: var(--primary-color);
+      }
     }
   }
 
@@ -68,6 +91,54 @@
     }
   }
 
+}
+
+// 编辑对话框样式
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+.form-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  :deep(.n-form-item) {
+    margin-bottom: 0;
+  }
+
+  :deep(.n-form-item-label) {
+    font-weight: 500;
+    color: var(--text-color);
+  }
+
+  :deep(.n-input),
+  :deep(.n-select) {
+    width: 100%;
+  }
+
+  :deep(.n-textarea) {
+    resize: vertical;
+    min-height: 120px;
+  }
+}
+
+// 确保图片上传组件在右列有足够的空间
+.form-column:last-child {
+  :deep(.image-upload-container) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 160px;
+  }
 }
 
 // 渐变动画
@@ -113,5 +184,14 @@
       }
     }
   }
+}
+
+// 头像组件样式
+.mr-3 {
+  margin-right: 12px;
+}
+
+.mr-1 {
+  margin-right: 4px;
 }
 

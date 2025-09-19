@@ -138,7 +138,7 @@
 import {computed, h, nextTick, onMounted, ref, watch} from 'vue'
 import {useRouter} from 'vue-router'
 import type {DataTableColumns, FormInst, FormRules, SelectRenderLabel, SelectRenderTag} from 'naive-ui'
-import {NAvatar, NTag, NText, useDialog, useMessage} from 'naive-ui'
+import {NTag, NText, useDialog, useMessage} from 'naive-ui'
 import {CreateOutline, EyeOutline, TrashOutline} from '@vicons/ionicons5'
 import type * as courseType from '@/types/course'
 import type * as teacherType from '@/types/teacher'
@@ -149,6 +149,7 @@ import PageTable from '@/components/common/PageTable.vue'
 import * as courseApi from '@/api/course'
 import * as teacherApi from '@/api/teacher'
 import ImageUpload from '@/components/common/ImageUpload.vue'
+import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
 
 const {t} = useI18n()
 const router = useRouter()
@@ -324,10 +325,11 @@ const renderTeacherLabel: SelectRenderLabel = (option) => {
         }
       },
       [
-        h(NAvatar, {
-          src: (option.avatar as string) || '/src/assets/image/default-userAvatar.png',
-          round: true,
-          size: 'small'
+        h(AvatarDisplay, {
+          avatarSrc: option.avatar as string,
+          teacherRealName: option.label as string,
+          size: 'small',
+          round: true
         }),
         h(
             'div',
@@ -362,13 +364,12 @@ const renderSingleTeacherTag: SelectRenderTag = ({option}) => {
         }
       },
       [
-        h(NAvatar, {
-          src: (option.avatar as string) || '/src/assets/image/default-userAvatar.png',
-          round: true,
+        h(AvatarDisplay, {
+          avatarSrc: option.avatar as string,
+          teacherRealName: option.label as string,
           size: 24,
-          style: {
-            marginRight: '12px'
-          }
+          round: true,
+          avatarClass: 'mr-3'
         }),
         option.label as string
       ]
@@ -403,13 +404,12 @@ const renderMultipleTeacherTag: SelectRenderTag = ({
                   }
                 },
                 [
-                  h(NAvatar, {
-                    src: (option.avatar as string) || '/src/assets/image/default-userAvatar.png',
-                    round: true,
+                  h(AvatarDisplay, {
+                    avatarSrc: option.avatar as string,
+                    teacherRealName: option.label as string,
                     size: 22,
-                    style: {
-                      marginRight: '4px'
-                    }
+                    round: true,
+                    avatarClass: 'mr-1'
                   }),
                   option.label as string
                 ]

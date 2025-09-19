@@ -68,6 +68,15 @@
       .course-section {
         flex: 0 0 800px;
         min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+
+        .education-chart-container {
+          width: 100%;
+          max-width: 400px;
+          margin-top: 16px;
+        }
       }
 
       .teacher-section {
@@ -185,6 +194,7 @@
     }
   }
 }
+
 
 // 头像组件样式
 .mr-3 {

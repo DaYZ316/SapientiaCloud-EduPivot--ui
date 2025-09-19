@@ -16,13 +16,16 @@ export type {
 export type {
     CourseThreadDTO,
     CourseThreadVO,
+    CourseThreadQueryParams,
     ThreadReplyDTO,
-    ThreadReplyVO
+    ThreadReplyVO,
+    ThreadReplyQueryParams
 } from './courseThread'
 
 // 课程章节类型
 export type {
     CourseChapterDTO,
-    CourseChapterVO
+    CourseChapterVO,
+    CourseChapterQueryParams
 } from './courseChapter'
 

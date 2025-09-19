@@ -279,6 +279,11 @@ export default {
         close: 'Close'
     },
 
+    // Teacher education statistics
+    teacherEducation: {
+        title: 'Teacher Education Distribution'
+    },
+
     // Course detail actions
     detailActions: {
         edit: 'Edit Course',

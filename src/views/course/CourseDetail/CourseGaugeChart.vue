@@ -53,7 +53,6 @@ function renderItem(params: any, api: any) {
   const isDark = themeStore.isDarkMode
   const primaryColor = themeStore.primaryColor
   const textColor = isDark ? '#ffffff' : '#000000'
-  const shadowColor = isDark ? 'rgba(76,107,167,0.6)' : 'rgba(76,107,167,0.4)'
 
   return {
     type: 'group',
@@ -114,7 +113,9 @@ function renderItem(params: any, api: any) {
               }
             ]
           },
-          shadowBlur: 15,
+          shadowBlur: 25,
+          shadowOffsetX: 0,
+          shadowOffsetY: 0,
           shadowColor: primaryColor + '80'
         }
       },
@@ -128,8 +129,10 @@ function renderItem(params: any, api: any) {
           fill: primaryColor,
           stroke: '#ffffff',
           lineWidth: 2,
-          shadowBlur: 8,
-          shadowColor: primaryColor + '60'
+          shadowBlur: 15,
+          shadowOffsetX: 0,
+          shadowOffsetY: 0,
+          shadowColor: primaryColor + '80'
         },
         extra: {
           polarEndRadian: polarEndRadian,
@@ -152,10 +155,10 @@ function renderItem(params: any, api: any) {
         },
         style: {
           fill: isDark ? '#1f1f1f' : '#ffffff',
-          shadowBlur: 25,
+          shadowBlur: 30,
           shadowOffsetX: 0,
           shadowOffsetY: 0,
-          shadowColor: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}80)`
+          shadowColor: primaryColor + '60'
         }
       },
       {
@@ -361,10 +364,97 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 
   .chart-container {
     width: 200px;
     height: 200px;
+    position: relative;
+    
+    // 添加外圈荧光效果
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 110%;
+      height: 110%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(
+        circle,
+        rgba(var(--primary-color-rgb, 76, 107, 167), 0.15) 0%,
+        rgba(var(--primary-color-rgb, 76, 107, 167), 0.08) 40%,
+        transparent 70%
+      );
+      border-radius: 50%;
+      animation: gauge-glow 2.5s ease-in-out infinite;
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    // 添加内圈荧光效果
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 80%;
+      height: 80%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(
+        circle,
+        rgba(var(--primary-color-rgb, 76, 107, 167), 0.1) 0%,
+        transparent 60%
+      );
+      border-radius: 50%;
+      animation: inner-glow 2s ease-in-out infinite reverse;
+      pointer-events: none;
+      z-index: -1;
+    }
+  }
+}
+
+// 仪表盘外圈荧光动画
+@keyframes gauge-glow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+}
+
+// 仪表盘内圈荧光动画
+@keyframes inner-glow {
+  0%, 100% {
+    opacity: 0.2;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+// 暗色主题下的荧光效果
+:global(.dark) .course-gauge-chart .chart-container {
+  &::before {
+    background: radial-gradient(
+      circle,
+      rgba(var(--primary-color-rgb, 76, 107, 167), 0.25) 0%,
+      rgba(var(--primary-color-rgb, 76, 107, 167), 0.12) 40%,
+      transparent 70%
+    );
+  }
+  
+  &::after {
+    background: radial-gradient(
+      circle,
+      rgba(var(--primary-color-rgb, 76, 107, 167), 0.15) 0%,
+      transparent 60%
+    );
   }
 }
 </style>

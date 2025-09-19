@@ -74,6 +74,11 @@ export const useUserStore = defineStore('user', () => {
         token.value = accessToken
         localStorage.setItem(TOKEN_KEY, accessToken)
         isLogin.value = true
+        
+        // 重置HTTP客户端的登录失效处理状态，确保下次登录失效时能正常弹出通知
+        import('@/utils/http').then(({ default: httpClient }) => {
+            httpClient.resetUnauthorizedHandling()
+        })
     }
 
     /**

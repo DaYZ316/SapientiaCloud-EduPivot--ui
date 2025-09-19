@@ -56,6 +56,8 @@ class ApiConfig {
 class HttpClient {
     // Axios实例
     private instance: AxiosInstance
+    // 登录失效处理标志，防止重复弹出通知
+    private isHandlingUnauthorized = false
     // API配置
     private apiConfig: ApiConfig
     // 公共配置
@@ -168,6 +170,9 @@ class HttpClient {
         const userStore = useUserStore()
         userStore.resetUserState()
         
+        // 重置处理标志
+        this.isHandlingUnauthorized = false
+        
         // 使用 nextTick 确保状态更新后再跳转
         nextTick(() => {
             try {
@@ -202,6 +207,14 @@ class HttpClient {
      * 处理未授权状态
      */
     private handleUnauthorized(): void {
+        // 如果已经在处理登录失效，直接返回，避免重复弹出通知
+        if (this.isHandlingUnauthorized) {
+            return
+        }
+
+        // 设置处理标志
+        this.isHandlingUnauthorized = true
+
         // 检查API是否已初始化
         if (!isApiInitialized()) {
             // 如果API未初始化，直接跳转
@@ -222,6 +235,10 @@ class HttpClient {
                 },
                 onPositiveClick: () => {
                     this.navigateToLogin()
+                },
+                onAfterLeave: () => {
+                    // 对话框关闭后重置标志
+                    this.isHandlingUnauthorized = false
                 }
             })
         } else {
@@ -230,6 +247,8 @@ class HttpClient {
                 message.error(i18n.global.t('common.http.unauthorized'))
             }
             this.navigateToLogin()
+            // 如果没有对话框，立即重置标志
+            this.isHandlingUnauthorized = false
         }
     }
 
@@ -285,6 +304,14 @@ class HttpClient {
         } else {
             messageApi.error(i18n.global.t('common.http.unknown'))
         }
+    }
+
+    /**
+     * 重置登录失效处理状态
+     * 在用户重新登录后调用，确保下次登录失效时能正常弹出通知
+     */
+    public resetUnauthorizedHandling(): void {
+        this.isHandlingUnauthorized = false
     }
 }
 

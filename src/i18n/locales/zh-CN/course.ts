@@ -289,6 +289,11 @@ export default {
         close: '关闭'
     },
 
+    // 教师学历统计
+    teacherEducation: {
+        title: '教师学历分布'
+    },
+
     // 课程详情操作
     detailActions: {
         edit: '编辑课程',

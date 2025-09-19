@@ -41,6 +41,11 @@
         <div class="course-section">
           <!-- 使用CourseCard组件显示课程信息 -->
           <CourseCard :course-info="courseInfo"/>
+          
+          <!-- 教师学历分布饼图 -->
+          <div class="education-chart-container">
+            <TeacherEducationChart :course-id="courseId" />
+          </div>
         </div>
 
         <!-- 右侧教师信息 -->
@@ -57,6 +62,7 @@
           </div>
         </div>
       </div>
+
     </div>
 
     <!-- 分享课程对话框 -->
@@ -205,6 +211,7 @@ import {getCourseStatusOptions, getCourseTypeOptions} from '@/enum/course'
 import TeacherCard from './TeacherCard.vue'
 import CourseCard from './CourseCard.vue'
 import ShareCourseDialog from './ShareCourseDialog.vue'
+import TeacherEducationChart from './TeacherEducationChart.vue'
 import ImageUpload from '@/components/common/ImageUpload.vue'
 import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
 import Icon from '@/components/common/Icon.vue'
@@ -222,6 +229,7 @@ const courseInfo = ref<CourseVO | null>(null)
 const teacherLoading = ref(false)
 const teacherInfo = ref<TeacherVO | null>(null)
 const shareDialogVisible = ref(false)
+
 
 // 编辑对话框相关状态
 const showEditModal = ref(false)

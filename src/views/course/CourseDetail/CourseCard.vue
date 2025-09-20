@@ -2,6 +2,15 @@
   <div class="course-card">
     <!-- 信息模块 (40% 宽度，最左边) -->
     <div class="info-module">
+      <!-- 背景装饰元素 -->
+      <div class="decorative-lines">
+        <div class="top-left-decoration"></div>
+        <div class="module1-right-decoration"></div>
+        <div class="module1-long-decoration"></div>
+      </div>
+      <!-- 左侧背景装饰组件 -->
+      <div class="decorative-curve"></div>
+      
       <div class="course-info">
         <div class="course-title">
           <h1>{{ courseInfo.courseName }}</h1>
@@ -61,6 +70,12 @@
 
     <!-- 模块3 (最右侧，课程进度仪表盘) -->
     <div class="module-3">
+      <!-- 模块三装饰元素 -->
+      <div class="module3-decorations">
+        <div class="top-right-decoration"></div>
+        <div class="bottom-left-decoration"></div>
+        <div class="module3-long-decoration"></div>
+      </div>
       <div class="progress-chart">
         <CourseGaugeChart
             :max="100"

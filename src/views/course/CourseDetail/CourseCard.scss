@@ -1,7 +1,7 @@
 @use '@/assets/styles/index.scss' as *;
 
 .course-card {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0;
   position: relative;
   display: flex;
@@ -15,20 +15,137 @@
 
   // 信息模块 (固定40% 宽度，最左边，右侧斜切)
   .info-module {
-    width: 40%;
+    width: 54%;
     padding: 24px;
     display: flex;
     flex-direction: column;
     justify-content: start;
     position: relative;
     z-index: 3;
-    clip-path: polygon(0 0, 85% 0, 100% 100%, 0 100%);
+    clip-path: polygon(0 0, 100% 0, 83% 100%, 0 100%);
     transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
+    background: linear-gradient(135deg, 
+      var(--background-secondary-color) 0%, 
+      var(--background-tertiary-color) 50%,
+      var(--background-secondary-color) 100%
+    );
+    overflow: hidden;
 
-    .course-card:hover & {
-      opacity: 0.8;
+
+    // 几何装饰线条
+    .decorative-lines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 30%;
+        right: 40%;
+        width: 2px;
+        height: 60%;
+        background: linear-gradient(to bottom, 
+          transparent 0%, 
+          var(--primary-color) 20%,
+          var(--warning-color) 50%,
+          var(--error-color) 80%,
+          transparent 100%
+        );
+        opacity: 0.3;
+        transform: rotate(145deg);
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 15%;
+        left: 5%;
+        width: 80px;
+        height: 2px;
+        background: linear-gradient(to right, 
+          transparent 0%, 
+          var(--primary-color) 50%,
+          var(--success-color) 80%,
+          transparent 100%
+        );
+        opacity: 0.4;
+        transform: rotate(-60deg);
+      }
+
+      // 左上角长条装饰
+      .top-left-decoration {
+        position: absolute;
+        top: 20%;
+        left: 30%;
+        width: 100px;
+        height: 2px;
+        background: linear-gradient(to right, 
+          transparent 0%, 
+          var(--info-color) 30%,
+          var(--primary-color) 70%,
+          transparent 100%
+        );
+        opacity: 0.5;
+        transform: rotate(-30deg);
+      }
+
+      // 模块一右侧长条装饰
+      .module1-right-decoration {
+        position: absolute;
+        top: 25%;
+        right: 15%;
+        width: 50px;
+        height: 2px;
+        background: linear-gradient(to left, 
+          transparent 0%, 
+          var(--warning-color) 40%,
+          var(--error-color) 80%,
+          transparent 100%
+        );
+        opacity: 0.6;
+        transform: rotate(-30deg);
+      }
+
+      // 模块一较长装饰 - 左侧长条
+      .module1-long-decoration {
+        position: absolute;
+        top: 45%;
+        left: 40.5%;
+        width: 500px;
+        height: 2px;
+        background: linear-gradient(to right, 
+          transparent 0%, 
+          var(--info-color) 15%,
+          var(--primary-color) 40%,
+          var(--success-color) 65%,
+          var(--warning-color) 85%,
+          transparent 100%
+        );
+        transform: rotate(103deg);
+      }
     }
+
+    // 左侧背景装饰曲线
+    .decorative-curve {
+      position: absolute;
+      top: -200px;
+      left: -100px;
+      width: 600px;
+      height: 600px;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--color-primary-light) 30%, transparent 70%);
+      border-radius: 0 0 200px 0;
+      opacity: 0.15;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+
 
     .course-info {
       display: flex;
@@ -80,6 +197,8 @@
       }
 
       .course-description {
+        max-width: 90%;
+        
         p {
           margin: 0;
           color: var(--text-color);
@@ -90,41 +209,15 @@
     }
   }
 
-  // 模块2 (右上往左下斜切) - 课程封面
+
   .module-2 {
-    width: 40%;
+    width: 30%;
     position: absolute;
-    left: 35%;
+    left: 45%;
     height: 100%;
     z-index: 2;
     clip-path: polygon(30% 0, 100% 0, 70% 100%, 0 100%);
     overflow: hidden;
-    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    border-top: 5px solid var(--primary-color);
-    border-bottom: 5px solid var(--primary-color);
-
-    &:hover {
-      width: 60%;
-      left: 25%;
-      z-index: 10;
-      clip-path: polygon(20% 0, 100% 0, 80% 100%, 0 100%);
-      border-top: 5px solid var(--primary-color);
-      border-bottom: 5px solid var(--primary-color);
-
-      .course-cover {
-        .cover-image {
-          object-fit: cover;
-          border-radius: 0;
-          pointer-events: none;
-          user-select: none;
-          -webkit-user-drag: none;
-          -khtml-user-drag: none;
-          -moz-user-drag: none;
-          -o-user-drag: none;
-          user-drag: none;
-        }
-      }
-    }
 
     .course-cover {
       width: 100%;
@@ -147,7 +240,6 @@
         -khtml-user-drag: none;
         -moz-user-drag: none;
         -o-user-drag: none;
-        user-drag: none;
       }
     }
   }
@@ -182,6 +274,70 @@
       opacity: 0.15;
       z-index: -1;
       transition: opacity 0.6s ease;
+    }
+
+    // 模块三装饰线条
+    .module3-decorations {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+
+      // 右上角长条装饰
+      .top-right-decoration {
+        position: absolute;
+        top: 15%;
+        right: 20%;
+        width: 45px;
+        height: 2px;
+        background: linear-gradient(to left, 
+          transparent 0%, 
+          var(--success-color) 30%,
+          var(--info-color) 70%,
+          transparent 100%
+        );
+        opacity: 0.7;
+        transform: rotate(60deg);
+      }
+
+      // 左下角长条装饰
+      .bottom-left-decoration {
+        position: absolute;
+        bottom: 20%;
+        left: 10%;
+        width: 55px;
+        height: 2px;
+        background: linear-gradient(to right, 
+          transparent 0%, 
+          var(--warning-color) 40%,
+          var(--primary-color) 80%,
+          transparent 100%
+        );
+        opacity: 0.6;
+        transform: rotate(-45deg);
+      }
+
+      // 模块三较长装饰 - 顶部中央长条
+      .module3-long-decoration {
+        position: absolute;
+        top: 45%;
+        left: -89%;
+        transform: translateX(-50%) rotate(15deg);
+        width: 500px;
+        height: 2px;
+        background: linear-gradient(to right, 
+          transparent 0%, 
+          var(--success-color) 20%,
+          var(--info-color) 45%,
+          var(--primary-color) 70%,
+          var(--warning-color) 90%,
+          transparent 100%
+        );
+        transform: rotate(103deg);
+      }
     }
 
     .course-card:hover & {
@@ -256,6 +412,16 @@
   }
 }
 
+// 浮动动画
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(5deg);
+  }
+}
+
 // 响应式设计
 @media (max-width: 1024px) {
   .course-card {
@@ -276,6 +442,13 @@
       padding: 16px;
       height: auto;
       clip-path: none;
+
+      .decorative-curve {
+        top: -30px;
+        left: -50px;
+        width: 300px;
+        height: 400px;
+      }
 
       .course-info {
         .course-title {
@@ -347,6 +520,24 @@
   }
 }
 
+@media (max-width: 480px) {
+  .course-card {
+    margin: 0 16px;
+    border-radius: 12px;
+
+    .info-module {
+      padding: 20px;
+
+      .decorative-curve {
+        top: -20px;
+        left: -30px;
+        width: 250px;
+        height: 350px;
+      }
+    }
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   .course-card {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -358,3 +549,4 @@
     }
   }
 }
+

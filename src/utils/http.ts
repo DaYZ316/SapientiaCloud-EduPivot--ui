@@ -112,6 +112,14 @@ class HttpClient {
     }
 
     /**
+     * 重置登录失效处理状态
+     * 在用户重新登录后调用，确保下次登录失效时能正常弹出通知
+     */
+    public resetUnauthorizedHandling(): void {
+        this.isHandlingUnauthorized = false
+    }
+
+    /**
      * 配置请求/响应拦截器
      */
     private setupInterceptors(): void {
@@ -169,10 +177,10 @@ class HttpClient {
     private navigateToLogin(): void {
         const userStore = useUserStore()
         userStore.resetUserState()
-        
+
         // 重置处理标志
         this.isHandlingUnauthorized = false
-        
+
         // 使用 nextTick 确保状态更新后再跳转
         nextTick(() => {
             try {
@@ -304,14 +312,6 @@ class HttpClient {
         } else {
             messageApi.error(i18n.global.t('common.http.unknown'))
         }
-    }
-
-    /**
-     * 重置登录失效处理状态
-     * 在用户重新登录后调用，确保下次登录失效时能正常弹出通知
-     */
-    public resetUnauthorizedHandling(): void {
-        this.isHandlingUnauthorized = false
     }
 }
 

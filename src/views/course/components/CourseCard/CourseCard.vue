@@ -1,27 +1,15 @@
 <template>
-  <div class="course-card">
+  <div :style="{ '--dynamic-border-color': borderColor }" class="course-card">
     <!-- 信息模块 (40% 宽度，最左边) -->
     <div class="info-module">
       <!-- 背景装饰元素 -->
-      <div class="decorative-lines">
-        <div class="top-left-decoration"></div>
-        <div class="module1-right-decoration"></div>
-        <div class="module1-long-decoration"></div>
-      </div>
+      <DecorativeLines/>
       <!-- 左侧背景装饰组件 -->
       <div class="decorative-curve"></div>
-      
+
       <div class="course-info">
         <div class="course-title">
           <h1>{{ courseInfo.courseName }}</h1>
-          <n-tag
-              :type="courseInfo.courseType === 0 ? 'error' : 'success'"
-              class="course-type-tag"
-              round
-              size="medium"
-          >
-            {{ getCourseTypeLabel(courseInfo.courseType ?? 0) }}
-          </n-tag>
         </div>
 
         <div class="course-meta">
@@ -29,22 +17,30 @@
             <n-icon color="#1890ff" size="16">
               <CalendarOutline/>
             </n-icon>
-            <n-tag round size="small" type="info">
-              {{ courseInfo.semester }}
-            </n-tag>
+            <span class="semester-text">{{ courseInfo.semester }}</span>
           </div>
           <div v-if="courseInfo.createTime" class="meta-item create-time-item">
             <n-icon color="#52c41a" size="16">
               <TimeOutline/>
             </n-icon>
-            <n-tag round size="small" type="success">
-              {{ formatToBeijingTime(new Date(courseInfo.createTime)) }}
-            </n-tag>
+            <span class="create-time-text">{{ formatToBeijingTime(new Date(courseInfo.createTime)) }}</span>
           </div>
         </div>
 
         <div v-if="courseInfo.description" class="course-description">
           <p>{{ courseInfo.description }}</p>
+        </div>
+
+        <!-- 颜色声明 -->
+        <div class="color-declaration">
+          <div class="color-item required-color">
+            <div class="color-dot"></div>
+            <span>{{ t('course.colorDeclaration.required') }}</span>
+          </div>
+          <div class="color-item elective-color">
+            <div class="color-dot"></div>
+            <span>{{ t('course.colorDeclaration.elective') }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -71,20 +67,16 @@
     <!-- 模块3 (最右侧，课程进度仪表盘) -->
     <div class="module-3">
       <!-- 模块三装饰元素 -->
-      <div class="module3-decorations">
-        <div class="top-right-decoration"></div>
-        <div class="bottom-left-decoration"></div>
-        <div class="module3-long-decoration"></div>
-      </div>
+      <Module3Decorations/>
       <div class="progress-chart">
         <CourseGaugeChart
             :max="100"
+            :title="t('course.card.courseProgress')"
             :value="courseProgress"
-            title="课程进度"
             unit="%"
         />
         <div class="progress-info">
-          <h3>学习进度</h3>
+          <h3>{{ t('course.card.courseProgress') }}</h3>
         </div>
       </div>
     </div>
@@ -94,12 +86,15 @@
 
 <script lang="ts" setup>
 import {computed, ref} from 'vue'
+import {useI18n} from 'vue-i18n'
 import {CalendarOutline, TimeOutline} from '@vicons/ionicons5'
 import type {CourseVO} from '@/types/course'
-import {getCourseTypeLabel} from '@/enum/course/courseTypeEnum'
 import {formatToBeijingTime} from '@/utils/dateUtil'
-import CourseGaugeChart from './CourseGaugeChart.vue'
+import CourseGaugeChart from '../CourseGaugeChart.vue'
+import DecorativeLines from '../DecorativeLines.vue'
+import Module3Decorations from '../Module3Decorations.vue'
 import defaultCourseImage from '@/assets/image/default-course.png'
+import {useCourseBorderColor} from '../../composables/useCourseBorderColor'
 
 // 定义组件属性
 interface Props {
@@ -107,7 +102,13 @@ interface Props {
 }
 
 // 接收属性
-defineProps<Props>()
+const props = defineProps<Props>()
+
+// 国际化
+const {t} = useI18n()
+
+// 使用课程边框颜色composable
+const {borderColor} = useCourseBorderColor(props.courseInfo.courseType)
 
 // 图片加载错误处理
 const handleImageError = (event: Event) => {

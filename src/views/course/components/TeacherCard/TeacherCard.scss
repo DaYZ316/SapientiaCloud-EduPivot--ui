@@ -20,7 +20,7 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
 .teacher-card {
   position: relative;
   width: 100%;
-  max-width: 100%;
+  max-width: 900px; // 与CourseCard保持一致的最大宽度
   height: 360px;
   background: $gradient-background;
   border-radius: 16px;
@@ -94,14 +94,14 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
 
 .decorative-curve {
   position: absolute;
-  top: -50px;
-  left: -100px;
+  top: -150px;
+  left: 0;
   width: 400px;
-  height: 500px;
+  height: 700px;
   background: linear-gradient(135deg, $primary-color 0%, $primary-light 30%, transparent 70%);
-  border-radius: 0 0 200px 0;
+  border-radius: 0 0 300px 0;
   opacity: 0.15;
-  z-index: 1;
+  z-index: -2;
 }
 
 .teacher-basic-info {
@@ -243,6 +243,9 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
   font-size: 13px;
   font-weight: 600;
   z-index: 15;
+  max-width: calc(100% - 48px);
+  word-break: break-all;
+  line-height: 1.4;
 
   // 阴影效果
   text-shadow: 0 2px 4px $accent-shadow;
@@ -267,7 +270,7 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
     background: $gradient-accent;
     border-radius: 50%;
     opacity: 0.1;
-    z-index: 1;
+    z-index: -2;
   }
 
   &::after {
@@ -307,7 +310,7 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
     bottom: -20px;
     background: linear-gradient(45deg, var(--warning-color) 10%, var(--error-color) 30%, $primary-color 70%);
     border-radius: 50%;
-    opacity: 0.1;
+    opacity: 0.25;
     z-index: -1;
     animation: rotate 10s linear infinite;
   }
@@ -386,8 +389,8 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
   .teacher-card {
     flex-direction: column;
     height: auto;
-    min-height: 600px;
-    max-width: 100%;
+    min-height: 700px;
+    max-width: 100%; // 与CourseCard保持一致
   }
 
   .teacher-info-section {
@@ -406,10 +409,10 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
   }
 
   .decorative-curve {
-    top: -30px;
-    left: -50px;
-    width: 300px;
-    height: 400px;
+    top: -50px;
+    left: -80px;
+    width: 450px;
+    height: 550px;
   }
 
   .brand-circle {
@@ -431,12 +434,80 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
   .teacher-name .last-name {
     font-size: 24px;
   }
+
+  // 移动端用户编码样式调整
+  .contact-footer {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    margin-top: 16px;
+    padding: 0;
+    font-size: 12px;
+    max-width: 100%;
+    text-align: center;
+  }
+}
+
+// 中等屏幕尺寸调整 (768px - 1024px)
+@media (max-width: 1024px) and (min-width: 769px) {
+  .teacher-card {
+    max-width: 800px; // 与CourseCard保持一致
+    height: 400px;
+  }
+
+  .teacher-info-section {
+    padding: 20px 22px 22px 22px;
+  }
+
+  .teacher-brand-section {
+    flex: 0 0 240px;
+    padding: 20px;
+
+    &::before {
+      top: 12px;
+      left: -35px;
+    }
+  }
+
+  .brand-circle {
+    width: 220px;
+    height: 220px;
+
+    .teacher-avatar,
+    .avatar-placeholder {
+      width: 150px;
+      height: 150px;
+    }
+
+    .avatar-text {
+      font-size: 44px;
+    }
+  }
+
+  .teacher-name .first-name,
+  .teacher-name .last-name {
+    font-size: 26px;
+  }
+
+  // 中等屏幕用户编码样式
+  .contact-footer {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    margin-top: 16px;
+    padding: 0;
+    font-size: 12px;
+    max-width: 100%;
+    text-align: center;
+  }
 }
 
 @media (max-width: 480px) {
   .teacher-card {
-    margin: 0 16px;
+    margin: 0 16px; // 与CourseCard保持一致的外边距
     border-radius: 12px;
+    min-height: 650px;
+    max-width: calc(100% - 32px); // 考虑左右边距
   }
 
   .teacher-info-section {
@@ -454,10 +525,10 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
   }
 
   .decorative-curve {
-    top: -20px;
-    left: -30px;
-    width: 250px;
-    height: 350px;
+    top: -30px;
+    left: -50px;
+    width: 350px;
+    height: 450px;
   }
 
   .brand-circle {
@@ -480,4 +551,11 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
     font-size: 20px;
   }
 
+  // 小屏幕用户编码样式调整
+  .contact-footer {
+    margin-top: 12px;
+    padding: 0;
+    font-size: 11px;
+    text-align: center;
+  }
 }

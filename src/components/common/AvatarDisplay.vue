@@ -59,15 +59,15 @@ const avatarColors = [
 
 interface Props {
   // 头像图片地址
-  avatarSrc?: string
+  avatarSrc?: string | null
   // 用户名（用于生成首字母和背景色）
-  username?: string
+  username?: string | null
   // 用户昵称
-  nickName?: string
+  nickName?: string | null
   // 学生真实姓名（优先级最高）
-  studentRealName?: string
+  studentRealName?: string | null
   // 教师真实姓名（优先级最高）
-  teacherRealName?: string
+  teacherRealName?: string | null
   // 头像大小
   size?: 'small' | 'medium' | 'large' | number
   // 是否圆形

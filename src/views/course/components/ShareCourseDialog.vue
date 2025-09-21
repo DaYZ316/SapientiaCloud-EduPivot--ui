@@ -1,12 +1,12 @@
 <template>
   <n-modal
-    v-model:show="showModal"
-    preset="dialog"
-    :show-icon="false"
-    :title="$t('course.share.title')"
-    :positive-text="$t('course.share.close')"
-    @positive-click="handleClose"
-    style="width: 400px"
+      v-model:show="showModal"
+      :positive-text="$t('course.share.close')"
+      :show-icon="false"
+      :title="$t('course.share.title')"
+      preset="dialog"
+      style="width: 400px"
+      @positive-click="handleClose"
   >
     <div class="share-dialog-content">
       <div class="course-info">
@@ -14,16 +14,16 @@
           <div class="id-display">
             <span class="id-text">{{ courseId }}</span>
             <n-button
-              type="primary"
-              @click="handleCopy"
-              :loading="copyLoading"
-              class="copy-button"
-              circle
-              size="small"
+                :loading="copyLoading"
+                circle
+                class="copy-button"
+                size="small"
+                type="primary"
+                @click="handleCopy"
             >
               <template #icon>
                 <n-icon>
-                  <CopyOutline />
+                  <CopyOutline/>
                 </n-icon>
               </template>
             </n-button>
@@ -38,11 +38,11 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
-import { useMessage } from 'naive-ui'
-import { useI18n } from 'vue-i18n'
-import { CopyOutline } from '@vicons/ionicons5'
-import type { CourseVO } from '@/types/course'
+import {computed, ref} from 'vue'
+import {useMessage} from 'naive-ui'
+import {useI18n} from 'vue-i18n'
+import {CopyOutline} from '@vicons/ionicons5'
+import type {CourseVO} from '@/types/course'
 
 // 定义组件属性
 interface Props {
@@ -62,7 +62,7 @@ const emit = defineEmits<Emits>()
 // 响应式数据
 const copyLoading = ref(false)
 const message = useMessage()
-const { t } = useI18n()
+const {t} = useI18n()
 
 // 计算属性
 const showModal = computed({
@@ -81,7 +81,7 @@ const handleCopy = async () => {
 
   try {
     copyLoading.value = true
-    
+
     // 使用现代浏览器的 Clipboard API
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(courseId.value)
@@ -98,7 +98,7 @@ const handleCopy = async () => {
       document.execCommand('copy')
       document.body.removeChild(textArea)
     }
-    
+
     message.success(t('course.share.copySuccess'))
   } catch (error) {
     message.error(t('course.share.copyFail'))
@@ -117,11 +117,11 @@ const handleClose = () => {
 
 .share-dialog-content {
   padding: 16px 0;
-  
+
   .course-info {
     .course-id-section {
       margin-bottom: 20px;
-      
+
       .id-display {
         display: flex;
         gap: 12px;
@@ -130,7 +130,7 @@ const handleClose = () => {
         background-color: var(--background-secondary-color);
         border: 1px solid var(--border-color);
         border-radius: 8px;
-        
+
         .id-text {
           flex: 1;
           font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
@@ -139,7 +139,7 @@ const handleClose = () => {
           word-break: break-all;
           line-height: 1.4;
         }
-        
+
         .copy-button {
           flex-shrink: 0;
           width: 32px;
@@ -147,7 +147,7 @@ const handleClose = () => {
         }
       }
     }
-    
+
     .share-tips {
       display: flex;
       align-items: center;
@@ -158,7 +158,7 @@ const handleClose = () => {
       border-radius: 6px;
       font-size: 13px;
       color: var(--primary-color);
-      
+
       span {
         line-height: 1.4;
       }

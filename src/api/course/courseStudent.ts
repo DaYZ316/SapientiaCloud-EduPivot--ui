@@ -8,7 +8,6 @@ export function getDefaultCourseStudentDTO(): CourseStudentDTO {
         studentId: null,
         courseId: null,
         grade: null,
-        enrollmentDate: null,
         status: null
     }
 }

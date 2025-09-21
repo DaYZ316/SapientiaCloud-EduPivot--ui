@@ -86,6 +86,12 @@ export default {
         ELECTIVE: '选修'
     },
 
+    // 颜色声明
+    colorDeclaration: {
+        required: '必修',
+        elective: '选修'
+    },
+
     // 课程状态
     courseStatus: {
         NORMAL: '正常',
@@ -120,6 +126,8 @@ export default {
 
     // 消息提示
     messages: {
+        loading: '正在加载课程信息...',
+        loadingTeacher: '正在加载教师信息...',
         addSuccess: '课程添加成功',
         addFail: '课程添加失败',
         updateSuccess: '课程更新成功',
@@ -166,7 +174,8 @@ export default {
         suspended: '已停课',
         enroll: '选课',
         drop: '退课',
-        viewDetails: '查看详情'
+        viewDetails: '查看详情',
+        courseProgress: '课程进度'
     },
 
     // 学生管理
@@ -215,6 +224,7 @@ export default {
         confirmAdd: '确认加课',
         confirmAddContent: '确定要选修课程ID为"{courseId}"的课程吗？'
     },
+
 
     // 课程详情页面
     detail: {
@@ -292,6 +302,34 @@ export default {
     // 教师学历统计
     teacherEducation: {
         title: '教师学历分布'
+    },
+
+    // 学生状态分布
+    studentStatus: {
+        title: '学生状态分布'
+    },
+
+    // 学生入课统计图表
+    enrollment: {
+        title: '学生入课趋势',
+        tooltip: '入课人数',
+        barSeriesName: '每日入课人数',
+        lineSeriesName: '累计学生总数',
+        enrollmentCount: '入课人数',
+        totalStudents: '累计学生数'
+    },
+
+    // 学生成绩分布图表
+    studentGrade: {
+        title: '学生成绩分布',
+        studentCount: '学生人数',
+        ranges: {
+            fail: '不及格(0-59)',
+            pass: '及格(60-69)',
+            good: '良好(70-79)',
+            veryGood: '优秀(80-89)',
+            excellent: '卓越(90-100)'
+        }
     },
 
     // 课程详情操作

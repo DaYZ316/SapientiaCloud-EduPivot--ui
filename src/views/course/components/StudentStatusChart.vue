@@ -1,21 +1,22 @@
 <template>
-    <div class="teacher-education-chart">
-      <div class="chart-card">
-        <div ref="chartRef" class="chart-container"></div>
-      </div>
+  <div :style="{ '--dynamic-border-color': borderColor }" class="student-status-chart">
+    <div class="chart-card">
+      <div class="chart-title">{{ t('course.studentStatus.title') }}</div>
+      <div ref="chartRef" class="chart-container"></div>
     </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
+import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
+import {useI18n} from 'vue-i18n'
+import type {EChartsOption} from 'echarts'
 import * as echarts from 'echarts'
-import type { EChartsOption } from 'echarts'
-import { useThemeStore } from '@/store/modules/theme'
-import { EducationEnum, getEducationLabel } from '@/enum/teacher/educationEnum'
-import { useColorAlgorithm } from '@/composables/useColorAlgorithm'
-import { listAllTeacherByCourseId } from '@/api/course/courseTeacher'
-import type { TeacherVO } from '@/types/teacher'
+import {useThemeStore} from '@/store/modules/theme'
+import {EnrollmentStatusEnum, getEnrollmentStatusLabel} from '@/enum/course/enrollmentStatusEnum'
+import {useColorAlgorithm} from '@/composables/useColorAlgorithm'
+import {useCourseBorderColor} from '../composables/useCourseBorderColor'
+import {useCourseStudentData} from '../composables/useCourseStudentData'
 
 // 定义饼图数据项类型
 interface PieChartDataItem {
@@ -37,68 +38,73 @@ interface Props {
   data?: PieChartDataItem[]
   /** 是否加载中 */
   loading?: boolean
+  /** 课程类型 */
+  courseType?: number
 }
 
 // 接收属性
 const props = withDefaults(defineProps<Props>(), {
   courseId: '',
   data: () => [],
-  loading: false
+  loading: false,
+  courseType: 0
 })
 
 // 响应式数据
 const chartRef = ref<HTMLElement>()
 let chartInstance: echarts.ECharts | null = null
-const teachers = ref<TeacherVO[]>([])
-const isLoading = ref(false)
+
+// 使用课程学生数据composable
+const {students} = useCourseStudentData(props.courseId)
 
 // 国际化
-const { t, locale } = useI18n()
+const {t, locale} = useI18n()
 
 // 主题store
 const themeStore = useThemeStore()
 
 // 颜色算法
-const { themeColorPalette } = useColorAlgorithm()
+const {themeColorPalette} = useColorAlgorithm()
 
-// 计算教师学历分布数据
-const educationData = computed(() => {
+// 使用课程边框颜色composable
+const {borderColor} = useCourseBorderColor(props.courseType)
+
+// 计算学生状态分布数据
+const statusData = computed(() => {
   if (props.data.length > 0) {
     return props.data
   }
-  
-  if (teachers.value.length === 0) {
+
+  if (students.value.length === 0) {
     return []
   }
-  
-  // 统计各学历人数
-  const educationCount = {
-    [EducationEnum.COLLEGE]: 0,
-    [EducationEnum.BACHELOR]: 0,
-    [EducationEnum.MASTER]: 0,
-    [EducationEnum.DOCTOR]: 0
+
+  // 统计各状态人数
+  const statusCount = {
+    [EnrollmentStatusEnum.ENROLLED]: 0,
+    [EnrollmentStatusEnum.DROPPED]: 0,
+    [EnrollmentStatusEnum.COMPLETED]: 0
   }
-  
-  teachers.value.forEach(teacher => {
-    if (teacher.education !== null && teacher.education !== undefined) {
-      educationCount[teacher.education as EducationEnum]++
+
+  students.value.forEach(student => {
+    if (student.status !== null && student.status !== undefined) {
+      statusCount[student.status as EnrollmentStatusEnum]++
     }
   })
-  
+
   // 转换为图表数据格式
   const result: PieChartDataItem[] = []
-  Object.entries(educationCount).forEach(([education, count]) => {
+  Object.entries(statusCount).forEach(([status, count]) => {
     if (count > 0) {
       result.push({
         value: count,
-        name: getEducationLabel(parseInt(education) as EducationEnum, locale.value === 'en-US')
+        name: getEnrollmentStatusLabel(parseInt(status) as EnrollmentStatusEnum, locale.value === 'en-US')
       })
     }
   })
-  
+
   return result
 })
-
 
 // 获取图表配置
 function getChartOption(): EChartsOption {
@@ -106,10 +112,10 @@ function getChartOption(): EChartsOption {
   const primaryColor = themeStore.primaryColor
   const textColor = isDark ? '#ffffff' : '#000000'
   const backgroundColor = isDark ? 'rgba(31, 31, 31, 0.8)' : 'rgba(255, 255, 255, 0.8)'
-  
+
   // 使用计算的数据
-  const chartData = educationData.value
-  
+  const chartData = statusData.value
+
   // 使用颜色算法生成的主题颜色
   const colors = isDark ? themeColorPalette.value.dark : themeColorPalette.value.light
 
@@ -137,15 +143,14 @@ function getChartOption(): EChartsOption {
     },
     series: [
       {
-        name: t('course.teacherEducation.title'),
+        name: t('course.studentStatus.title'),
         type: 'pie',
         radius: ['40%', '70%'],
+        center: ['35%', '50%'],
         avoidLabelOverlap: false,
         padAngle: 5,
         itemStyle: {
           borderRadius: 10,
-          borderColor: isDark ? '#2a2a2a' : '#ffffff',
-          borderWidth: 2,
           shadowBlur: 8,
           shadowOffsetX: 0,
           shadowOffsetY: 0,
@@ -176,10 +181,10 @@ function getChartOption(): EChartsOption {
           ...item,
           itemStyle: {
             color: item.itemStyle?.color || colors[index % colors.length],
-            shadowBlur: 12,
+            shadowBlur: isDark ? 12 : 20,
             shadowOffsetX: 0,
             shadowOffsetY: 0,
-            shadowColor: (item.itemStyle?.color || colors[index % colors.length]) + '60'
+            shadowColor: isDark ? (item.itemStyle?.color || colors[index % colors.length]) + '60' : primaryColor + '80'
           }
         }))
       }
@@ -215,21 +220,7 @@ function handleResize() {
   }
 }
 
-// 加载教师数据
-async function loadTeachers() {
-  if (!props.courseId) return
-  
-  try {
-    isLoading.value = true
-    const response = await listAllTeacherByCourseId(props.courseId)
-    teachers.value = response.data || []
-  } catch (error) {
-    console.error('加载教师数据失败:', error)
-    teachers.value = []
-  } finally {
-    isLoading.value = false
-  }
-}
+// 课程ID变化由composable内部处理，这里不需要额外的监听
 
 // 更新图表数据
 function updateChart() {
@@ -240,17 +231,12 @@ function updateChart() {
 }
 
 // 监听数据变化
-watch(() => props.data, updateChart, { deep: true })
+watch(() => props.data, updateChart, {deep: true})
 
-// 监听教师数据变化
-watch(() => teachers.value, updateChart, { deep: true })
+// 监听学生数据变化
+watch(() => students.value, updateChart, {deep: true})
 
-// 监听课程ID变化
-watch(() => props.courseId, (newCourseId) => {
-  if (newCourseId) {
-    loadTeachers()
-  }
-}, { immediate: true })
+// 课程ID变化由composable内部处理，这里不需要额外的监听
 
 // 监听语言变化
 watch(() => locale.value, () => {
@@ -292,7 +278,7 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 @use '@/assets/styles/index.scss' as *;
 
-.teacher-education-chart {
+.student-status-chart {
   width: 100%;
   height: 100%;
   position: relative;
@@ -300,91 +286,98 @@ onUnmounted(() => {
   .chart-card {
     width: 100%;
     height: 100%;
-    background: var(--background-color);
-    border: 1px solid var(--border-color);
+    background: linear-gradient(135deg, var(--background-secondary-color) 0%, var(--background-tertiary-color) 100%) padding-box,
+    linear-gradient(45deg, var(--primary-color) 0%, transparent 25%, transparent 75%, var(--dynamic-border-color, var(--primary-color)) 100%) border-box;
+    border: 2px solid transparent;
     border-radius: 12px;
-    box-shadow: 0 4px 12px var(--shadow-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     position: relative;
-    transition: all 0.3s ease;
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 
+
+    .chart-title {
+      position: absolute;
+      top: 16px;
+      left: 20px;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-color);
+      z-index: 10;
+    }
 
 
     .chart-container {
       width: 100%;
-      height: 100%;
-      min-height: 300px;
+      height: 300px;
       position: relative;
-      padding: 16px;
-      
-      // 添加荧光动画效果
-      &::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 120%;
-        height: 120%;
-        transform: translate(-50%, -50%);
-        background: radial-gradient(
-          circle,
-          rgba(var(--primary-color-rgb), 0.1) 0%,
-          rgba(var(--primary-color-rgb), 0.05) 30%,
-          transparent 70%
-        );
-        border-radius: 50%;
-        animation: pulse-glow var(--glow-animation-duration) ease-in-out infinite;
-        pointer-events: none;
-        z-index: -1;
-      }
+      padding: 8px 8px 8px 8px;
+      margin-top: 20px;
+
     }
   }
 }
 
-// 荧光脉冲动画
-@keyframes pulse-glow {
-  0%, 100% {
-    opacity: 0.3;
-    transform: translate(-50%, -50%) scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: translate(-50%, -50%) scale(1.1);
-  }
-}
 
-// 暗色主题下的荧光效果
-:global(.dark) .teacher-education-chart .chart-container::before {
-  background: radial-gradient(
-    circle,
-    rgba(var(--primary-color-rgb), 0.2) 0%,
-    rgba(var(--primary-color-rgb), 0.1) 30%,
-    transparent 70%
-  );
+// 暗色主题下的边框效果
+:global(.dark) .student-status-chart .chart-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 // 响应式适配
 @media (max-width: 768px) {
-  .teacher-education-chart {
+  .student-status-chart {
     .chart-card {
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+      .chart-title {
+        top: 12px;
+        left: 16px;
+        font-size: 14px;
+        padding: 3px 10px;
+      }
 
       .chart-container {
-        padding: 12px;
-        min-height: 250px;
+        padding: 6px;
+        height: 300px;
       }
     }
   }
 }
 
 @media (max-width: 480px) {
-  .teacher-education-chart {
+  .student-status-chart {
+    .chart-card {
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+      .chart-title {
+        top: 10px;
+        left: 12px;
+        font-size: 13px;
+        padding: 2px 8px;
+      }
+
+      .chart-container {
+        padding: 4px;
+        height: 300px;
+      }
+    }
+  }
+}
+
+// 超小屏幕优化
+@media (max-width: 320px) {
+  .student-status-chart {
     .chart-card {
       border-radius: 8px;
 
-
-      .chart-container {
-        padding: 8px;
-        min-height: 200px;
+      .chart-title {
+        top: 8px;
+        left: 10px;
+        font-size: 12px;
+        padding: 2px 6px;
       }
     }
   }

@@ -1,5 +1,12 @@
 import http from '@/utils/http'
-import type {CourseThreadDTO, CourseThreadVO, CourseThreadQueryParams, ThreadReplyDTO, ThreadReplyVO, ThreadReplyQueryParams} from '@/types/course'
+import type {
+    CourseThreadDTO,
+    CourseThreadQueryParams,
+    CourseThreadVO,
+    ThreadReplyDTO,
+    ThreadReplyQueryParams,
+    ThreadReplyVO
+} from '@/types/course'
 import type {TableDataResult} from '@/types/common/baseEntity'
 
 // 获取默认论坛主贴DTO

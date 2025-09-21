@@ -35,7 +35,6 @@
   --warning-color-dark: #d48806;
 
   // 荧光效果相关变量
-  --primary-color-rgb: 24, 144, 255;
   --glow-intensity: 0.1;
   --glow-animation-duration: 3s;
 }
@@ -76,7 +75,6 @@
   --warning-color-dark: #d48806;
 
   // 荧光效果相关变量（暗色主题下增强）
-  --primary-color-rgb: 24, 144, 255;
   --glow-intensity: 0.2;
   --glow-animation-duration: 2.5s;
 }
@@ -156,7 +154,7 @@ body {
 // 全局荧光效果样式
 .glow-effect {
   position: relative;
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -165,10 +163,10 @@ body {
     right: 0;
     bottom: 0;
     background: radial-gradient(
-      circle at center,
-      rgba(var(--primary-color-rgb), var(--glow-intensity)) 0%,
-      rgba(var(--primary-color-rgb), calc(var(--glow-intensity) * 0.5)) 50%,
-      transparent 100%
+                    circle at center,
+                    color-mix(in srgb, var(--primary-color) var(--glow-intensity), transparent) 0%,
+                    color-mix(in srgb, var(--primary-color) calc(var(--glow-intensity) * 0.5), transparent) 50%,
+                    transparent 100%
     );
     border-radius: inherit;
     animation: global-glow var(--glow-animation-duration) ease-in-out infinite;
@@ -192,7 +190,7 @@ body {
 // 图表容器荧光效果
 .chart-glow {
   position: relative;
-  
+
   &::after {
     content: '';
     position: absolute;
@@ -202,10 +200,10 @@ body {
     height: 120%;
     transform: translate(-50%, -50%);
     background: radial-gradient(
-      circle,
-      rgba(var(--primary-color-rgb), 0.1) 0%,
-      rgba(var(--primary-color-rgb), 0.05) 40%,
-      transparent 80%
+                    circle,
+                    color-mix(in srgb, var(--primary-color) 10%, transparent) 0%,
+                    color-mix(in srgb, var(--primary-color) 5%, transparent) 40%,
+                    transparent 80%
     );
     border-radius: 50%;
     animation: chart-pulse var(--glow-animation-duration) ease-in-out infinite;
@@ -228,19 +226,19 @@ body {
 // 暗色主题下的增强荧光效果
 .dark .glow-effect::before {
   background: radial-gradient(
-    circle at center,
-    rgba(var(--primary-color-rgb), calc(var(--glow-intensity) * 1.5)) 0%,
-    rgba(var(--primary-color-rgb), var(--glow-intensity)) 50%,
-    transparent 100%
+                  circle at center,
+                  color-mix(in srgb, var(--primary-color) calc(var(--glow-intensity) * 1.5), transparent) 0%,
+                  color-mix(in srgb, var(--primary-color) var(--glow-intensity), transparent) 50%,
+                  transparent 100%
   );
 }
 
 .dark .chart-glow::after {
   background: radial-gradient(
-    circle,
-    rgba(var(--primary-color-rgb), 0.2) 0%,
-    rgba(var(--primary-color-rgb), 0.1) 40%,
-    transparent 80%
+                  circle,
+                  color-mix(in srgb, var(--primary-color) 20%, transparent) 0%,
+                  color-mix(in srgb, var(--primary-color) 10%, transparent) 40%,
+                  transparent 80%
   );
 }
 
@@ -249,18 +247,18 @@ body {
   .glow-effect::before {
     animation-duration: calc(var(--glow-animation-duration) * 1.2);
   }
-  
+
   .chart-glow::after {
     width: 110%;
     height: 110%;
     animation-duration: calc(var(--glow-animation-duration) * 1.1);
   }
-  
+
   // 移动端减少荧光强度以节省性能
   :root {
     --glow-intensity: 0.08;
   }
-  
+
   .dark {
     --glow-intensity: 0.15;
   }
@@ -270,18 +268,18 @@ body {
   .glow-effect::before {
     animation-duration: calc(var(--glow-animation-duration) * 1.5);
   }
-  
+
   .chart-glow::after {
     width: 105%;
     height: 105%;
     animation-duration: calc(var(--glow-animation-duration) * 1.3);
   }
-  
+
   // 小屏幕进一步减少荧光强度
   :root {
     --glow-intensity: 0.06;
   }
-  
+
   .dark {
     --glow-intensity: 0.12;
   }
@@ -305,7 +303,7 @@ body {
   .chart-glow::after {
     opacity: 0.1;
   }
-  
+
   .dark .glow-effect::before,
   .dark .chart-glow::after {
     opacity: 0.2;

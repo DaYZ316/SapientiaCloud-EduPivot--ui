@@ -86,6 +86,12 @@ export default {
         ELECTIVE: 'Elective'
     },
 
+    // Color declaration
+    colorDeclaration: {
+        required: 'Required',
+        elective: 'Elective'
+    },
+
     // Course status
     courseStatus: {
         NORMAL: 'Normal',
@@ -120,6 +126,8 @@ export default {
 
     // Messages
     messages: {
+        loading: 'Loading course information...',
+        loadingTeacher: 'Loading teacher information...',
         addSuccess: 'Course added successfully',
         addFail: 'Failed to add course',
         updateSuccess: 'Course updated successfully',
@@ -166,7 +174,8 @@ export default {
         suspended: 'Suspended',
         enroll: 'Enroll',
         drop: 'Drop',
-        viewDetails: 'View Details'
+        viewDetails: 'View Details',
+        courseProgress: 'Course Progress'
     },
 
     // Student management
@@ -215,6 +224,7 @@ export default {
         confirmAdd: 'Confirm Enrollment',
         confirmAddContent: 'Are you sure you want to enroll in course with ID "{courseId}"?'
     },
+
 
     // Course detail page
     detail: {
@@ -282,6 +292,34 @@ export default {
     // Teacher education statistics
     teacherEducation: {
         title: 'Teacher Education Distribution'
+    },
+
+    // Student status distribution
+    studentStatus: {
+        title: 'Student Status Distribution'
+    },
+
+    // Student enrollment statistics
+    enrollment: {
+        title: 'Student Enrollment Trend',
+        tooltip: 'Enrollment Count',
+        barSeriesName: 'Daily Enrollment',
+        lineSeriesName: 'Total Students',
+        enrollmentCount: 'Enrollment Count',
+        totalStudents: 'Total Students'
+    },
+
+    // Student grade distribution chart
+    studentGrade: {
+        title: 'Student Grade Distribution',
+        studentCount: 'Student Count',
+        ranges: {
+            fail: 'Fail (0-59)',
+            pass: 'Pass (60-69)',
+            good: 'Good (70-79)',
+            veryGood: 'Very Good (80-89)',
+            excellent: 'Excellent (90-100)'
+        }
     },
 
     // Course detail actions

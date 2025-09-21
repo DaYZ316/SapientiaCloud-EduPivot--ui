@@ -13,18 +13,18 @@
           {{ courseInfo.courseName }}
         </n-breadcrumb-item>
       </n-breadcrumb>
-      
+
       <!-- 三个点操作按钮 -->
       <n-dropdown
-        :options="actionOptions"
-        placement="bottom-end"
-        trigger="click"
-        @select="handleActionSelect"
+          :options="actionOptions"
+          placement="bottom-end"
+          trigger="click"
+          @select="handleActionSelect"
       >
-        <n-button circle quaternary class="action-button">
+        <n-button circle class="action-button" quaternary>
           <template #icon>
             <n-icon>
-              <EllipsisHorizontalOutline />
+              <EllipsisHorizontalOutline/>
             </n-icon>
           </template>
         </n-button>
@@ -32,7 +32,12 @@
     </div>
 
     <!-- 加载状态 -->
-    <n-spin v-if="loading" size="large" style="width: 100%; height: 400px;"/>
+    <LoadingSpinner
+        v-if="loading"
+        :title="$t('course.messages.loading')"
+        min-height="400px"
+        size="large"
+    />
 
     <!-- 课程详情内容 -->
     <div v-else-if="courseInfo" class="course-detail-content">
@@ -41,24 +46,45 @@
         <div class="course-section">
           <!-- 使用CourseCard组件显示课程信息 -->
           <CourseCard :course-info="courseInfo"/>
-          
-          <!-- 教师学历分布饼图 -->
-          <div class="education-chart-container">
-            <TeacherEducationChart :course-id="courseId" />
+
+          <!-- 学生加课趋势折线图 -->
+          <div class="enrollment-chart-container">
+            <EnrollmentChart :course-id="courseId" :course-type="courseInfo?.courseType"/>
+          </div>
+
+          <!-- 统计图表容器 -->
+          <div class="charts-container">
+            <!-- 教师学历分布饼图 -->
+            <div class="education-chart-container">
+              <TeacherEducationChart :course-id="courseId" :course-type="courseInfo?.courseType"/>
+            </div>
+
+            <!-- 学生状态分布饼图 -->
+            <div class="student-status-chart-container">
+              <StudentStatusChart :course-id="courseId" :course-type="courseInfo?.courseType"/>
+            </div>
           </div>
         </div>
 
         <!-- 右侧教师信息 -->
         <div class="teacher-section">
-          <div v-if="teacherLoading" class="teacher-loading">
-            <n-spin size="medium"/>
-          </div>
+          <LoadingSpinner
+              v-if="teacherLoading"
+              :title="$t('course.messages.loadingTeacher')"
+              min-height="200px"
+              size="medium"
+          />
           <TeacherCard
               v-else-if="teacherInfo"
               :teacher-info="teacherInfo"
           />
           <div v-else class="teacher-empty">
             <n-empty description="暂无教师信息"/>
+          </div>
+
+          <!-- 学生成绩分布柱状图 -->
+          <div class="grade-chart-container">
+            <StudentGradeChart :course-id="courseId" :course-type="courseInfo?.courseType"/>
           </div>
         </div>
       </div>
@@ -67,8 +93,8 @@
 
     <!-- 分享课程对话框 -->
     <ShareCourseDialog
-      v-model:visible="shareDialogVisible"
-      :course-info="courseInfo"
+        v-model:visible="shareDialogVisible"
+        :course-info="courseInfo"
     />
 
     <!-- 课程编辑对话框 -->
@@ -200,21 +226,25 @@
 import {computed, h, nextTick, onMounted, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
-import {useMessage, useDialog, NTag, NText} from 'naive-ui'
 import type {FormInst, FormRules, SelectRenderLabel, SelectRenderTag} from 'naive-ui'
-import {EllipsisHorizontalOutline, ShareSocialOutline, CreateOutline, TrashOutline} from '@vicons/ionicons5'
+import {NTag, NText, useDialog, useMessage} from 'naive-ui'
+import {CreateOutline, EllipsisHorizontalOutline, ShareSocialOutline, TrashOutline} from '@vicons/ionicons5'
 import * as CourseApi from '@/api/course/course'
 import * as TeacherApi from '@/api/teacher'
 import type {CourseVO} from '@/types/course'
 import type {TeacherVO} from '@/types/teacher'
 import {getCourseStatusOptions, getCourseTypeOptions} from '@/enum/course'
-import TeacherCard from './TeacherCard.vue'
-import CourseCard from './CourseCard.vue'
-import ShareCourseDialog from './ShareCourseDialog.vue'
-import TeacherEducationChart from './TeacherEducationChart.vue'
+import TeacherCard from '../components/TeacherCard/TeacherCard.vue'
+import CourseCard from '../components/CourseCard/CourseCard.vue'
+import ShareCourseDialog from '../components/ShareCourseDialog.vue'
+import TeacherEducationChart from '../components/TeacherEducationChart.vue'
+import StudentStatusChart from '../components/StudentStatusChart.vue'
+import EnrollmentChart from '../components/EnrollmentChart.vue'
+import StudentGradeChart from '../components/StudentGradeChart.vue'
 import ImageUpload from '@/components/common/ImageUpload.vue'
 import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
 import Icon from '@/components/common/Icon.vue'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 
 // 路由和国际化
 const route = useRoute()
@@ -280,17 +310,17 @@ const actionOptions = computed(() => [
   {
     label: t('course.share.title'),
     key: 'share',
-    icon: () => h(Icon, { component: ShareSocialOutline, size: 16 })
+    icon: () => h(Icon, {component: ShareSocialOutline, size: 16})
   },
   {
     label: t('course.detailActions.edit'),
     key: 'edit',
-    icon: () => h(Icon, { component: CreateOutline, size: 16 })
+    icon: () => h(Icon, {component: CreateOutline, size: 16})
   },
   {
-    label: () => h('span', { style: { color: '#d03050' } }, t('course.detailActions.delete')),
+    label: () => h('span', {style: {color: '#d03050'}}, t('course.detailActions.delete')),
     key: 'delete',
-    icon: () => h(Icon, { component: TrashOutline, size: 16, color: '#d03050' }),
+    icon: () => h(Icon, {component: TrashOutline, size: 16, color: '#d03050'}),
     type: 'error'
   }
 ])
@@ -353,16 +383,15 @@ const loadTeacherInfo = async (courseId: string) => {
     }
   } catch (error) {
     // 教师信息加载失败不显示错误，因为不是关键信息
-    console.warn('Failed to load teacher info:', error)
   } finally {
     teacherLoading.value = false
   }
 }
 
 // 编辑课程
-const handleEditCourse = () => {
+const handleEditCourse = async () => {
   if (!courseInfo.value) return
-  
+
   // 填充表单数据
   formData.value = {
     id: courseInfo.value.id,
@@ -376,7 +405,10 @@ const handleEditCourse = () => {
     courseType: courseInfo.value.courseType,
     status: courseInfo.value.status
   }
-  
+
+  // 加载教师数据用于编辑表单
+  await loadTeachersForForm()
+
   // 显示编辑对话框
   showEditModal.value = true
 }
@@ -384,10 +416,10 @@ const handleEditCourse = () => {
 // 删除课程
 const handleDeleteCourse = () => {
   if (!courseInfo.value) return
-  
+
   dialog.warning({
     title: t('course.detailActions.deleteConfirm'),
-    content: t('course.detailActions.deleteConfirmContent', { courseName: courseInfo.value.courseName }),
+    content: t('course.detailActions.deleteConfirmContent', {courseName: courseInfo.value.courseName}),
     positiveText: t('common.confirm'),
     negativeText: t('common.cancel'),
     onPositiveClick: async () => {
@@ -423,7 +455,7 @@ const handleEditSubmit = async () => {
 
     showEditModal.value = false
     resetEditForm()
-    
+
     // 重新加载课程信息
     await loadCourseInfo()
   } catch (error) {
@@ -596,7 +628,6 @@ watch(() => showEditModal.value, (show) => {
 // 生命周期
 onMounted(async () => {
   await loadCourseInfo()
-  await loadTeachersForForm()
 })
 </script>
 

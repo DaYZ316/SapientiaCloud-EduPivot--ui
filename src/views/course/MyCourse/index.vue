@@ -84,6 +84,7 @@
 import {computed, onMounted, reactive, ref} from 'vue'
 import type * as courseType from '@/types/course'
 import {useI18n} from 'vue-i18n'
+import {useRouter} from 'vue-router'
 import CourseCard from './CourseCard.vue'
 import CourseSearchForm from '../components/CourseSearchForm.vue'
 import PageHeader from '../components/PageHeader.vue'
@@ -95,6 +96,7 @@ import {addCourseStudent} from '@/api/course/courseStudent'
 const {t} = useI18n()
 const {message} = getDiscreteApi()
 const userStore = useUserStore()
+const router = useRouter()
 
 // 检查用户是否为管理员
 const isAdmin = computed(() => userStore.hasRole('ADMIN'))
@@ -208,12 +210,14 @@ const handleResetSearch = () => {
 
 // 处理课程卡片点击
 const handleCourseClick = (_course: courseType.CourseVO) => {
-  // TODO: 跳转到课程详情页面
+  // 跳转到课程详情页面
+  router.push(`/course/detail/${_course.id}`)
 }
 
 // 处理继续课程按钮点击
 const handleContinueCourse = (_course: courseType.CourseVO) => {
-  // TODO: 跳转到课程学习页面
+  // 跳转到课程学习页面
+  router.push(`/course/learn/${_course.id}`)
 }
 
 // 处理加课

@@ -1,5 +1,5 @@
 import http from '@/utils/http'
-import type {CourseChapterDTO, CourseChapterVO, CourseChapterQueryParams} from '@/types/course'
+import type {CourseChapterDTO, CourseChapterQueryParams, CourseChapterVO} from '@/types/course'
 import type {TableDataResult} from '@/types/common/baseEntity'
 
 // 获取默认课程章节DTO

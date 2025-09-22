@@ -18,6 +18,7 @@ export default {
             teacher: 'Teacher Management',
             student: 'Student Management'
         },
-        course: 'Course Management'
+        course: 'Course Management',
+        courseDetail: 'Course Detail'
     }
 } 

@@ -1,0 +1,80 @@
+.breadcrumb-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+
+  .breadcrumb {
+    flex: 1;
+    font-size: 16px;
+
+    :deep(.n-breadcrumb-item) {
+      font-size: 16px;
+      font-weight: 500;
+
+      a {
+        color: var(--primary-color);
+        text-decoration: none;
+        transition: color 0.3s ease;
+
+        &:hover {
+          color: var(--primary-color-hover);
+          text-decoration: underline;
+        }
+      }
+
+      &:last-child {
+        color: var(--text-color);
+        font-weight: 600;
+      }
+    }
+
+    :deep(.n-breadcrumb-separator) {
+      font-size: 16px;
+      color: var(--text-color-3);
+      margin: 0 8px;
+    }
+  }
+
+  .breadcrumb-actions {
+    flex-shrink: 0;
+    margin-left: 16px;
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .breadcrumb-container {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+
+    .breadcrumb {
+      width: 100%;
+    }
+
+    .breadcrumb-actions {
+      align-self: flex-end;
+      margin-left: 0;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .breadcrumb-container {
+    margin-bottom: 16px;
+
+    .breadcrumb {
+      font-size: 14px;
+
+      :deep(.n-breadcrumb-item) {
+        font-size: 14px;
+      }
+
+      :deep(.n-breadcrumb-separator) {
+        font-size: 14px;
+        margin: 0 6px;
+      }
+    }
+  }
+}

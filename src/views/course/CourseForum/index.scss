@@ -1,0 +1,74 @@
+.course-forum {
+  padding: 24px;
+  width: 100%;
+  min-height: calc(100vh - 48px);
+  box-sizing: border-box;
+
+
+  .coming-soon-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+
+    .coming-soon-card {
+      max-width: 500px;
+      width: 100%;
+      background: var(--card-color);
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+
+      :deep(.n-card__content) {
+        padding: 40px 20px;
+      }
+    }
+
+    .coming-soon-content {
+      text-align: center;
+
+      .coming-soon-title {
+        margin: 20px 0 16px 0;
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--text-color);
+      }
+
+      .coming-soon-description {
+        margin: 0 0 32px 0;
+        font-size: 16px;
+        color: var(--text-color-2);
+        line-height: 1.6;
+      }
+    }
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .course-forum {
+    padding: 16px;
+
+
+    .coming-soon-container {
+      min-height: 300px;
+
+      .coming-soon-card {
+        :deep(.n-card__content) {
+          padding: 30px 16px;
+        }
+      }
+
+      .coming-soon-content {
+        .coming-soon-title {
+          font-size: 20px;
+          margin: 16px 0 12px 0;
+        }
+
+        .coming-soon-description {
+          font-size: 14px;
+          margin: 0 0 24px 0;
+        }
+      }
+    }
+  }
+}

@@ -11,5 +11,6 @@ export default {
     student: 'Student Management',
     course: 'Course',
     courseManagement: 'Course Management',
-    myCourses: 'My Courses'
+    myCourses: 'My Courses',
+    courseDetail: 'Course Detail'
 } 

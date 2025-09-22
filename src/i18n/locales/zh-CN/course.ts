@@ -301,12 +301,14 @@ export default {
 
     // 教师学历统计
     teacherEducation: {
-        title: '教师学历分布'
+        title: '教师学历分布',
+        noDataDescription: '暂无教师学历数据，请先为课程分配教师'
     },
 
     // 学生状态分布
     studentStatus: {
-        title: '学生状态分布'
+        title: '学生状态分布',
+        noDataDescription: '暂无学生状态数据，请等待学生选课'
     },
 
     // 学生入课统计图表
@@ -316,7 +318,8 @@ export default {
         barSeriesName: '每日入课人数',
         lineSeriesName: '累计学生总数',
         enrollmentCount: '入课人数',
-        totalStudents: '累计学生数'
+        totalStudents: '累计学生数',
+        noDataDescription: '暂无入课趋势数据，请等待学生选课'
     },
 
     // 学生成绩分布图表
@@ -329,7 +332,8 @@ export default {
             good: '良好(70-79)',
             veryGood: '优秀(80-89)',
             excellent: '卓越(90-100)'
-        }
+        },
+        noDataDescription: '暂无成绩分布数据，请先录入学生成绩'
     },
 
     // 课程详情操作
@@ -342,5 +346,22 @@ export default {
         deleteFail: '课程删除失败',
         editSuccess: '课程编辑成功',
         editFail: '课程编辑失败'
+    },
+
+    // 课程功能导航
+    navigation: {
+        students: '学生',
+        forum: '论坛',
+        chapters: '章节',
+        classroom: '课堂'
+    },
+
+    // 暂未开放提示
+    comingSoon: {
+        title: '功能暂未开放',
+        studentsDescription: '学生管理功能正在开发中，敬请期待！',
+        forumDescription: '课程论坛功能正在开发中，敬请期待！',
+        chaptersDescription: '课程章节功能正在开发中，敬请期待！',
+        classroomDescription: '在线课堂功能正在开发中，敬请期待！'
     }
 }

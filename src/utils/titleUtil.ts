@@ -16,25 +16,32 @@ export class TitleUtil {
     /**
      * 设置页面标题
      * @param titleKey 标题键名，对应i18n中的路径
+     * @param customTitle 自定义标题，用于动态标题（如课程详情页面）
      */
-    static setTitle(titleKey: string = 'default') {
+    static setTitle(titleKey: string = 'default', customTitle?: string) {
         if (!this.i18n) {
             return
         }
 
         try {
-            // 获取页面标题和项目名称
-            const pageTitle = this.i18n.global.t(`app.title.${titleKey}`)
             const projectName = this.i18n.global.t('app.name')
+            let pageTitle: string
 
-            if (pageTitle && pageTitle !== `app.title.${titleKey}`) {
-                // 格式：页面标题 - 项目名称
-                document.title = `${pageTitle} - ${projectName}`
+            if (customTitle) {
+                // 如果有自定义标题，直接使用
+                pageTitle = customTitle
             } else {
-                // 如果找不到对应的翻译，使用默认标题
-                const defaultTitle = this.i18n.global.t('app.title.default')
-                document.title = `${defaultTitle} - ${projectName}`
+                // 获取页面标题
+                pageTitle = this.i18n.global.t(`app.title.${titleKey}`)
+
+                if (pageTitle === `app.title.${titleKey}`) {
+                    // 如果找不到对应的翻译，使用默认标题
+                    pageTitle = this.i18n.global.t('app.title.default')
+                }
             }
+
+            // 格式：页面标题 - 项目名称
+            document.title = `${pageTitle} - ${projectName}`
         } catch (error) {
             // 降级处理：使用默认标题
             try {
@@ -93,19 +100,26 @@ export class TitleUtil {
 export function useTitle() {
     const {t} = useI18n()
 
-    const setTitle = (titleKey: string = 'default') => {
+    const setTitle = (titleKey: string = 'default', customTitle?: string) => {
         try {
-            // 获取页面标题和项目名称
-            const pageTitle = t(`app.title.${titleKey}`)
             const projectName = t('app.name')
+            let pageTitle: string
 
-            if (pageTitle && pageTitle !== `app.title.${titleKey}`) {
-                // 格式：页面标题 - 项目名称
-                document.title = `${pageTitle} - ${projectName}`
+            if (customTitle) {
+                // 如果有自定义标题，直接使用
+                pageTitle = customTitle
             } else {
-                const defaultTitle = t('app.title.default')
-                document.title = `${defaultTitle} - ${projectName}`
+                // 获取页面标题
+                pageTitle = t(`app.title.${titleKey}`)
+
+                if (pageTitle === `app.title.${titleKey}`) {
+                    // 如果找不到对应的翻译，使用默认标题
+                    pageTitle = t('app.title.default')
+                }
             }
+
+            // 格式：页面标题 - 项目名称
+            document.title = `${pageTitle} - ${projectName}`
         } catch (error) {
             document.title = 'SapientiaCloud EduPivot'
         }

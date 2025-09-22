@@ -19,6 +19,12 @@
             </n-icon>
             <span class="semester-text">{{ courseInfo.semester }}</span>
           </div>
+          <div v-if="courseInfo.location" class="meta-item location-item">
+            <n-icon color="#fa8c16" size="16">
+              <LocationOutline/>
+            </n-icon>
+            <span class="location-text">{{ courseInfo.location }}</span>
+          </div>
           <div v-if="courseInfo.createTime" class="meta-item create-time-item">
             <n-icon color="#52c41a" size="16">
               <TimeOutline/>
@@ -87,7 +93,7 @@
 <script lang="ts" setup>
 import {computed, ref} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {CalendarOutline, TimeOutline} from '@vicons/ionicons5'
+import {CalendarOutline, LocationOutline, TimeOutline} from '@vicons/ionicons5'
 import type {CourseVO} from '@/types/course'
 import {formatToBeijingTime} from '@/utils/dateUtil'
 import CourseGaugeChart from '../CourseGaugeChart.vue'

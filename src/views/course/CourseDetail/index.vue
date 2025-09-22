@@ -1,35 +1,28 @@
 <template>
   <div class="course-detail">
     <!-- 面包屑导航和操作按钮 -->
-    <div class="breadcrumb-container">
-      <n-breadcrumb class="breadcrumb" size="large">
-        <n-breadcrumb-item>
-          <router-link to="/">{{ $t('course.home') }}</router-link>
-        </n-breadcrumb-item>
-        <n-breadcrumb-item>
-          <router-link to="/course/my-courses">{{ $t('course.myCourses') }}</router-link>
-        </n-breadcrumb-item>
-        <n-breadcrumb-item v-if="courseInfo">
-          {{ courseInfo.courseName }}
-        </n-breadcrumb-item>
-      </n-breadcrumb>
-
-      <!-- 三个点操作按钮 -->
-      <n-dropdown
-          :options="actionOptions"
-          placement="bottom-end"
-          trigger="click"
-          @select="handleActionSelect"
-      >
-        <n-button circle class="action-button" quaternary>
-          <template #icon>
-            <n-icon>
-              <EllipsisHorizontalOutline/>
-            </n-icon>
-          </template>
-        </n-button>
-      </n-dropdown>
-    </div>
+    <CourseBreadcrumb
+        :course-info="courseInfo"
+        :show-course-link="false"
+    >
+      <template #actions>
+        <!-- 三个点操作按钮 -->
+        <n-dropdown
+            :options="actionOptions"
+            placement="bottom-end"
+            trigger="click"
+            @select="handleActionSelect"
+        >
+          <n-button circle class="action-button" quaternary>
+            <template #icon>
+              <n-icon>
+                <EllipsisHorizontalOutline/>
+              </n-icon>
+            </template>
+          </n-button>
+        </n-dropdown>
+      </template>
+    </CourseBreadcrumb>
 
     <!-- 加载状态 -->
     <LoadingSpinner
@@ -81,6 +74,9 @@
           <div v-else class="teacher-empty">
             <n-empty description="暂无教师信息"/>
           </div>
+
+          <!-- 课程功能导航按钮 -->
+          <CourseNavigation :course-id="courseId"/>
 
           <!-- 学生成绩分布柱状图 -->
           <div class="grade-chart-container">
@@ -223,9 +219,10 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, h, nextTick, onMounted, ref, watch} from 'vue'
+import {computed, h, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
+import {useTitle} from '@/utils/titleUtil'
 import type {FormInst, FormRules, SelectRenderLabel, SelectRenderTag} from 'naive-ui'
 import {NTag, NText, useDialog, useMessage} from 'naive-ui'
 import {CreateOutline, EllipsisHorizontalOutline, ShareSocialOutline, TrashOutline} from '@vicons/ionicons5'
@@ -234,6 +231,8 @@ import * as TeacherApi from '@/api/teacher'
 import type {CourseVO} from '@/types/course'
 import type {TeacherVO} from '@/types/teacher'
 import {getCourseStatusOptions, getCourseTypeOptions} from '@/enum/course'
+import {useMenuStore} from '@/store'
+import {createCourseDetailMenuOption} from '@/config/menu'
 import TeacherCard from '../components/TeacherCard/TeacherCard.vue'
 import CourseCard from '../components/CourseCard/CourseCard.vue'
 import ShareCourseDialog from '../components/ShareCourseDialog.vue'
@@ -241,6 +240,8 @@ import TeacherEducationChart from '../components/TeacherEducationChart.vue'
 import StudentStatusChart from '../components/StudentStatusChart.vue'
 import EnrollmentChart from '../components/EnrollmentChart.vue'
 import StudentGradeChart from '../components/StudentGradeChart.vue'
+import CourseNavigation from '../components/CourseNavigation/CourseNavigation.vue'
+import CourseBreadcrumb from '../components/CourseBreadcrumb/CourseBreadcrumb.vue'
 import ImageUpload from '@/components/common/ImageUpload.vue'
 import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
 import Icon from '@/components/common/Icon.vue'
@@ -252,6 +253,10 @@ const router = useRouter()
 const {t} = useI18n()
 const message = useMessage()
 const dialog = useDialog()
+const {setTitle} = useTitle()
+
+// 菜单状态管理
+const menuStore = useMenuStore()
 
 // 响应式数据
 const loading = ref(false)
@@ -342,6 +347,31 @@ const handleActionSelect = (key: string) => {
   }
 }
 
+
+// 菜单管理方法
+const addCourseDetailMenuItem = () => {
+  if (courseInfo.value?.courseName) {
+    const menuItem = createCourseDetailMenuOption(t, courseInfo.value.courseName)
+    menuStore.addDynamicMenuItem(menuItem)
+  }
+}
+
+const removeCourseDetailMenuItem = () => {
+  menuStore.removeDynamicMenuItem('CourseDetail')
+}
+
+// 设置动态标题
+const setCourseDetailTitle = () => {
+  if (courseInfo.value?.courseName) {
+    // 设置动态标题：课程名称 - 课程详情
+    const courseDetailTitle = t('app.title.courseDetail')
+    setTitle('courseDetail', `${courseInfo.value.courseName} - ${courseDetailTitle}`)
+  } else {
+    // 如果课程信息还未加载，使用默认标题
+    setTitle('courseDetail')
+  }
+}
+
 // 方法
 const loadCourseInfo = async () => {
   try {
@@ -357,7 +387,11 @@ const loadCourseInfo = async () => {
     const res = await CourseApi.getCourseById(courseId.value)
     if (res.success && res.data) {
       courseInfo.value = res.data
-      // 加载课程信息成功后，加载教师信息
+      // 加载课程信息成功后，添加动态菜单项
+      addCourseDetailMenuItem()
+      // 设置动态标题
+      setCourseDetailTitle()
+      // 加载教师信息
       await loadTeacherInfo(courseId.value)
     } else {
       message.error(t('course.messages.loadFail'))
@@ -625,9 +659,21 @@ watch(() => showEditModal.value, (show) => {
   }
 })
 
+// 监听课程信息变化，更新标题
+watch(() => courseInfo.value?.courseName, () => {
+  setCourseDetailTitle()
+})
+
 // 生命周期
 onMounted(async () => {
   await loadCourseInfo()
+})
+
+onUnmounted(() => {
+  // 组件卸载时移除动态菜单项
+  removeCourseDetailMenuItem()
+  // 重置标题为默认标题
+  setTitle('default')
 })
 </script>
 

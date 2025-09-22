@@ -291,12 +291,14 @@ export default {
 
     // Teacher education statistics
     teacherEducation: {
-        title: 'Teacher Education Distribution'
+        title: 'Teacher Education Distribution',
+        noDataDescription: 'No teacher education data available, please assign teachers to the course first'
     },
 
     // Student status distribution
     studentStatus: {
-        title: 'Student Status Distribution'
+        title: 'Student Status Distribution',
+        noDataDescription: 'No student status data available, please wait for students to enroll'
     },
 
     // Student enrollment statistics
@@ -306,7 +308,8 @@ export default {
         barSeriesName: 'Daily Enrollment',
         lineSeriesName: 'Total Students',
         enrollmentCount: 'Enrollment Count',
-        totalStudents: 'Total Students'
+        totalStudents: 'Total Students',
+        noDataDescription: 'No enrollment trend data available, please wait for students to enroll'
     },
 
     // Student grade distribution chart
@@ -319,7 +322,8 @@ export default {
             good: 'Good (70-79)',
             veryGood: 'Very Good (80-89)',
             excellent: 'Excellent (90-100)'
-        }
+        },
+        noDataDescription: 'No grade distribution data available, please enter student grades first'
     },
 
     // Course detail actions
@@ -332,5 +336,22 @@ export default {
         deleteFail: 'Failed to delete course',
         editSuccess: 'Course edited successfully',
         editFail: 'Failed to edit course'
+    },
+
+    // Course function navigation
+    navigation: {
+        students: 'Students',
+        forum: 'Forum',
+        chapters: 'Chapters',
+        classroom: 'Classroom'
+    },
+
+    // Coming soon notice
+    comingSoon: {
+        title: 'Feature Coming Soon',
+        studentsDescription: 'Student management feature is under development, stay tuned!',
+        forumDescription: 'Course forum feature is under development, stay tuned!',
+        chaptersDescription: 'Course chapters feature is under development, stay tuned!',
+        classroomDescription: 'Online classroom feature is under development, stay tuned!'
     }
 }

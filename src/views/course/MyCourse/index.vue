@@ -23,8 +23,16 @@
         </n-button>
       </div>
 
+      <!-- 加载状态 -->
+      <LoadingSpinner
+          v-if="loading"
+          :title="t('course.messages.loading')"
+          min-height="400px"
+          size="large"
+      />
+
       <!-- 课程卡片视图 -->
-      <div class="course-card-container">
+      <div v-else class="course-card-container">
         <div v-if="courseList.length === 0" class="empty-state">
           <n-empty :description="t('course.empty.noData')"/>
         </div>
@@ -88,6 +96,7 @@ import {useRouter} from 'vue-router'
 import CourseCard from './CourseCard.vue'
 import CourseSearchForm from '../components/CourseSearchForm.vue'
 import PageHeader from '../components/PageHeader.vue'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import * as courseApi from '@/api/course'
 import {useUserStore} from '@/store/modules/user'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
@@ -107,18 +116,21 @@ const isStudent = computed(() => userStore.studentInfo?.id !== null && userStore
 // 搜索表单
 const searchForm = reactive<courseType.CourseQueryParams>(courseApi.getDefaultCourseQuery())
 
+// 加载状态
+const loading = ref(false)
+
 // 课程列表数据
 const courseList = ref<courseType.CourseVO[]>([])
 
 // 分页状态
 const pagination = reactive({
   pageNum: 1,
-  pageSize: 12,
+  pageSize: 10,
   total: 0
 })
 
 // 分页配置
-const pageSizes = [12, 16, 24, 32]
+const pageSizes = [10, 20, 30, 50]
 const showQuickJumper = true
 const showSizePicker = true
 
@@ -156,6 +168,7 @@ const initializeSearchForm = () => {
 // 加载课程数据
 const loadCourseData = async () => {
   try {
+    loading.value = true
     const queryParams = {
       ...searchForm,
       pageNum: pagination.pageNum,
@@ -172,6 +185,8 @@ const loadCourseData = async () => {
     message.error('加载课程数据失败')
     courseList.value = []
     pagination.total = 0
+  } finally {
+    loading.value = false
   }
 }
 

@@ -41,7 +41,7 @@
         <!-- 学期信息 -->
         <div v-if="course.semester" class="info-row">
           <div class="info-item">
-            <n-icon :component="FingerPrintOutline" class="info-icon"/>
+            <n-icon :component="CalendarOutline" class="info-icon"/>
             <span>{{ formatSemester(course.semester) }}</span>
           </div>
         </div>
@@ -76,7 +76,7 @@
 import type * as courseType from '@/types/course'
 import {useI18n} from 'vue-i18n'
 import {useRouter} from 'vue-router'
-import {FingerPrintOutline, LocationOutline} from '@vicons/ionicons5'
+import {CalendarOutline, LocationOutline} from '@vicons/ionicons5'
 import {CourseStatusEnum} from '@/enum/course'
 import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
 import {computed} from 'vue'
@@ -109,7 +109,7 @@ const teacherAvatar = computed(() => {
   return props.course.teacherAvatar || undefined
 })
 
-const formatSemester = (semester: string) => semester ? `学期: ${semester}` : ''
+const formatSemester = (semester: string) => semester || ''
 
 const truncateDescription = (description: string, maxLength: number = 60) =>
     description.length <= maxLength ? description : description.substring(0, maxLength) + '...'

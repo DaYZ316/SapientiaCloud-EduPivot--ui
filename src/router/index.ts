@@ -1,6 +1,6 @@
 ﻿import type {RouteRecordRaw} from 'vue-router'
 import {createRouter, createWebHistory} from 'vue-router'
-import {useUserStore} from '@/store'
+import {useLoadingBarStore, useUserStore} from '@/store'
 import {TitleUtil} from '@/utils'
 
 /**
@@ -122,6 +122,42 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
+                path: 'course/:courseId/students',
+                name: 'CourseStudents',
+                component: () => import('@/views/course/CourseStudents/index.vue'),
+                meta: {
+                    title: '课程学生',
+                    requiresAuth: true
+                }
+            },
+            {
+                path: 'course/:courseId/forum',
+                name: 'CourseForum',
+                component: () => import('@/views/course/CourseForum/index.vue'),
+                meta: {
+                    title: '课程论坛',
+                    requiresAuth: true
+                }
+            },
+            {
+                path: 'course/:courseId/chapters',
+                name: 'CourseChapters',
+                component: () => import('@/views/course/CourseChapters/index.vue'),
+                meta: {
+                    title: '课程章节',
+                    requiresAuth: true
+                }
+            },
+            {
+                path: 'course/:courseId/classroom',
+                name: 'CourseClassroom',
+                component: () => import('@/views/course/CourseClassroom/index.vue'),
+                meta: {
+                    title: '在线课堂',
+                    requiresAuth: true
+                }
+            },
+            {
                 path: 'teacher/profile/:teacherId',
                 name: 'TeacherProfile',
                 component: () => import('@/components/common/TeacherProfile.vue'),
@@ -155,6 +191,10 @@ const router = createRouter({
  * 路由守卫
  */
 router.beforeEach(async (to, _from, next) => {
+    // 开始加载条
+    const loadingBarStore = useLoadingBarStore()
+    loadingBarStore.start()
+
     // 设置页面标题
     TitleUtil.setTitleByPath(to.path)
 
@@ -203,7 +243,9 @@ router.beforeEach(async (to, _from, next) => {
  * 路由后置守卫
  */
 router.afterEach((_to, _from) => {
-    // 路由切换完成后的处理
+    // 完成加载条
+    const loadingBarStore = useLoadingBarStore()
+    loadingBarStore.finish()
 })
 
 export default router

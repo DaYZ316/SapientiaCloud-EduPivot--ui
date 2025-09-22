@@ -4,49 +4,7 @@
   min-height: calc(100vh - 48px); // 使用最小高度而不是固定高度
   box-sizing: border-box;
 
-  .breadcrumb-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-  }
-
-  .breadcrumb {
-    flex: 1;
-    font-size: 16px;
-
-    :deep(.n-breadcrumb-item) {
-      font-size: 16px;
-      font-weight: 500;
-
-      a {
-        color: var(--primary-color);
-        text-decoration: none;
-        transition: color 0.3s ease;
-
-        &:hover {
-          color: var(--primary-color-hover);
-          text-decoration: underline;
-        }
-      }
-
-      &:last-child {
-        color: var(--text-color);
-        font-weight: 600;
-      }
-    }
-
-    :deep(.n-breadcrumb-separator) {
-      font-size: 16px;
-      color: var(--text-color-3);
-      margin: 0 8px;
-    }
-  }
-
   .action-button {
-    flex-shrink: 0;
-    margin-left: 16px;
-
     :deep(.n-icon) {
       font-size: 18px;
       color: var(--text-color-2);
@@ -115,8 +73,10 @@
 
         .grade-chart-container {
           width: 100%;
+          max-width: 900px;
           height: 400px;
         }
+
       }
     }
   }
@@ -186,20 +146,6 @@
   .course-detail {
     padding: 16px 16px 40px 16px; // 移动端也增加底部内边距
 
-    .breadcrumb-container {
-      flex-direction: column;
-      gap: 12px;
-      align-items: flex-start;
-
-      .breadcrumb {
-        width: 100%;
-      }
-
-      .action-button {
-        align-self: flex-end;
-        margin-left: 0;
-      }
-    }
 
     .course-detail-content {
       .content-layout {
@@ -236,8 +182,10 @@
           gap: 16px;
 
           .grade-chart-container {
+            max-width: 100%;
             height: 350px;
           }
+
         }
       }
     }
@@ -249,22 +197,6 @@
   .course-detail {
     padding: 12px 12px 32px 12px; // 小屏幕也增加底部内边距
 
-    .breadcrumb-container {
-      margin-bottom: 16px;
-
-      .breadcrumb {
-        font-size: 14px;
-
-        :deep(.n-breadcrumb-item) {
-          font-size: 14px;
-        }
-
-        :deep(.n-breadcrumb-separator) {
-          font-size: 14px;
-          margin: 0 6px;
-        }
-      }
-    }
 
     .course-detail-content {
       .content-layout {

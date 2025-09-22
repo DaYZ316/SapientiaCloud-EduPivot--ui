@@ -82,7 +82,7 @@
 import {computed, onMounted, onUnmounted} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
-import {useThemeStore, useUserStore} from '@/store'
+import {useMenuStore, useThemeStore, useUserStore} from '@/store'
 import {getMenuOptions, getUserMenuOptions, menuExpandMap, menuRouteMap} from '@/config/menu'
 import {ChevronDownOutline} from '@vicons/ionicons5'
 import {NDropdown, NIcon, NMenu, useDialog, useMessage} from 'naive-ui'
@@ -100,11 +100,12 @@ const message = useMessage()
 // 状态管理
 const userStore = useUserStore()
 const themeStore = useThemeStore()
+const menuStore = useMenuStore()
 
 // 计算属性
 const collapsed = computed(() => themeStore.sidebarCollapsed)
 const currentRoute = computed(() => route.name as string)
-const menuOptions = computed(() => getMenuOptions(t) as any[])
+const menuOptions = computed(() => getMenuOptions(t, menuStore.getDynamicMenuItems) as any[])
 const userMenuOptions = computed(() => getUserMenuOptions(t) as any[])
 const displayAppName = computed(() =>
     locale.value === 'en-US' ? t('app.name').replace(' ', '<br>') : t('app.name')
@@ -151,6 +152,11 @@ const checkScreenSize = () => {
 const handleMenuSelect = (key: string) => {
   const routePath = menuRouteMap[key]
   if (routePath) {
+    // 如果是课程详情菜单项，需要保持当前路由
+    if (key === 'CourseDetail') {
+      // 不进行路由跳转，因为已经在课程详情页面
+      return
+    }
     router.push(routePath)
   }
 }

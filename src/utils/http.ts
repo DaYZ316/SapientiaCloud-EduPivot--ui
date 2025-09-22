@@ -3,7 +3,7 @@ import axios from 'axios'
 import {nextTick} from 'vue'
 import type {Result} from '@/types/common/baseEntity'
 import router from '@/router'
-import {useUserStore} from '@/store'
+import {useLoadingBarStore, useUserStore} from '@/store'
 import i18n from '@/i18n'
 import {getDiscreteApi, isApiInitialized} from '@/utils/naiveUIHelper'
 import {defaultServerConfig, getApiBaseUrl, type ServerConfig} from '@/config/server'
@@ -133,6 +133,12 @@ class HttpClient {
                     config.headers.Authorization = `Bearer ${token}`
                 }
 
+                // 开始加载条（除了某些不需要显示加载条的请求）
+                if (!config.meta?.hideLoading) {
+                    const loadingBarStore = useLoadingBarStore()
+                    loadingBarStore.start()
+                }
+
                 return config
             },
             (error) => {
@@ -143,6 +149,12 @@ class HttpClient {
         // 响应拦截器
         this.instance.interceptors.response.use(
             (response): any => {
+                // 完成加载条（如果请求没有隐藏加载条）
+                if (!response.config.meta?.hideLoading) {
+                    const loadingBarStore = useLoadingBarStore()
+                    loadingBarStore.finish()
+                }
+
                 // 检查响应是否为TableDataResult格式
                 const data = response.data
                 if (data && 'total' in data && 'data' in data && 'code' in data && data.code === 200) {
@@ -164,6 +176,12 @@ class HttpClient {
                 return res
             },
             (error) => {
+                // 完成加载条（如果请求没有隐藏加载条）
+                if (!error.config?.meta?.hideLoading) {
+                    const loadingBarStore = useLoadingBarStore()
+                    loadingBarStore.error()
+                }
+
                 // HTTP错误处理
                 this.handleHttpError(error)
                 return Promise.reject(error)

@@ -1,7 +1,20 @@
 <template>
   <div :style="{ '--dynamic-border-color': borderColor }" class="student-grade-chart">
     <div class="chart-card">
-      <div ref="chartRef" class="chart-container"></div>
+      <div v-if="hasData" ref="chartRef" class="chart-container"></div>
+      <div v-else class="no-data-container">
+        <div class="no-data-icon">
+          <n-icon color="var(--text-color-disabled)" size="48">
+            <svg fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path
+                  d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9M19 9H14V4H5V21H19V9Z"
+                  fill="currentColor"/>
+            </svg>
+          </n-icon>
+        </div>
+        <div class="no-data-text">{{ t('common.noData') }}</div>
+        <div class="no-data-description">{{ t('course.studentGrade.noDataDescription') }}</div>
+      </div>
     </div>
   </div>
 </template>
@@ -11,6 +24,7 @@ import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
 import type {EChartsOption} from 'echarts'
 import * as echarts from 'echarts'
+import {NIcon} from 'naive-ui'
 import {useThemeStore} from '@/store/modules/theme'
 // import { useColorAlgorithm } from '@/composables/useColorAlgorithm'
 import {useCourseBorderColor} from '../composables/useCourseBorderColor'
@@ -104,6 +118,11 @@ const gradeData = computed(() => {
 
   // 过滤掉人数为0的区间
   return rangeCount.filter(item => item.count > 0)
+})
+
+// 判断是否有数据
+const hasData = computed(() => {
+  return gradeData.value.length > 0
 })
 
 // 获取图表配置
@@ -296,7 +315,7 @@ function getChartOption(): EChartsOption {
 
 // 初始化图表
 function initChart() {
-  if (!chartRef.value) return
+  if (!chartRef.value || !hasData.value) return
 
   // 销毁已存在的图表实例
   if (chartInstance) {
@@ -335,6 +354,20 @@ watch(() => props.data, updateChart, {deep: true})
 
 // 监听学生数据变化
 watch(() => students.value, updateChart, {deep: true})
+
+// 监听数据状态变化
+watch(hasData, (newHasData) => {
+  if (newHasData) {
+    nextTick(() => {
+      initChart()
+    })
+  } else {
+    if (chartInstance) {
+      chartInstance.dispose()
+      chartInstance = null
+    }
+  }
+})
 
 // 监听语言变化
 watch(() => locale.value, () => {
@@ -409,6 +442,37 @@ onUnmounted(() => {
       position: relative;
       padding: 8px 8px 8px 8px;
       margin-top: 20px;
+    }
+
+    .no-data-container {
+      width: 100%;
+      height: 350px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      margin-top: 20px;
+
+      .no-data-icon {
+        margin-bottom: 16px;
+        opacity: 0.6;
+      }
+
+      .no-data-text {
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--text-color-disabled);
+        margin-bottom: 8px;
+      }
+
+      .no-data-description {
+        font-size: 14px;
+        color: var(--text-color-disabled);
+        text-align: center;
+        line-height: 1.5;
+        opacity: 0.8;
+      }
     }
   }
 }

@@ -18,6 +18,7 @@ export default {
             teacher: '教师管理',
             student: '学生管理'
         },
-        course: '课程管理'
+        course: '课程管理',
+        courseDetail: '课程详情'
     }
 } 

@@ -82,25 +82,20 @@ export function useRoleAssignment() {
         currentUser.value = row
         submittingRoles.value = true
 
-        try {
-            // 获取用户详情，包括已分配的角色
-            const userDetail = await userApi.getUserById(row.id)
-            userRoles.value = userDetail?.data?.roles || []
+        // 获取用户详情，包括已分配的角色
+        const userDetail = await userApi.getUserById(row.id)
+        userRoles.value = userDetail?.data?.roles || []
 
-            // 获取所有角色列表
-            const roleResult = await getAllRoles()
-            availableRoles.value = roleResult?.data || []
+        // 获取所有角色列表
+        const roleResult = await getAllRoles()
+        availableRoles.value = roleResult?.data || []
 
-            // 设置已选中的角色
-            selectedRoleIds.value = userRoles.value.map((r: SysRoleVO) => r.id)
+        // 设置已选中的角色
+        selectedRoleIds.value = userRoles.value.map((r: SysRoleVO) => r.id)
 
-            // 显示分配角色对话框
-            showAssignModal.value = true
-        } catch (error) {
-            message.error(t('settings.user.messages.getRoleFail'))
-        } finally {
-            submittingRoles.value = false
-        }
+        // 显示分配角色对话框
+        showAssignModal.value = true
+        submittingRoles.value = false
     }
 
     // 关闭分配角色对话框
@@ -156,22 +151,17 @@ export function useRoleAssignment() {
 
         const modal = infoModals[type]
 
-        try {
-            // 查询用户是否已有信息
-            const getByUserId = type === 'student' ? StudentApi.getStudentByUserId : TeacherApi.getTeacherByUserId
-            const existingData = await getByUserId(currentUser.value.id)
+        // 查询用户是否已有信息
+        const getByUserId = type === 'student' ? StudentApi.getStudentByUserId : TeacherApi.getTeacherByUserId
+        const existingData = await getByUserId(currentUser.value.id)
 
-            if (existingData && existingData.data) {
-                // 如果已有信息，展示信息并等待确认
-                modal.existing.value = existingData.data
-                fillForm(type, existingData.data)
-                modal.display.value = true
-            } else {
-                // 如果没有信息，打开信息输入对话框
-                modal.input.value = true
-            }
-        } catch (error) {
-            // 如果查询失败，可能是用户没有信息，打开信息输入对话框
+        if (existingData && existingData.data) {
+            // 如果已有信息，展示信息并等待确认
+            modal.existing.value = existingData.data
+            fillForm(type, existingData.data)
+            modal.display.value = true
+        } else {
+            // 如果没有信息，打开信息输入对话框
             modal.input.value = true
         }
     }
@@ -221,15 +211,10 @@ export function useRoleAssignment() {
         if (!currentUser.value) return
 
         submittingRoles.value = true
-        try {
-            await userApi.assignUserRoles(currentUser.value.id, selectedRoleIds.value)
-            message.success(t('settings.user.messages.assignSuccess'))
-            closeAssignModal()
-        } catch (error) {
-            message.error(t('settings.user.messages.assignFail'))
-        } finally {
-            submittingRoles.value = false
-        }
+        await userApi.assignUserRoles(currentUser.value.id, selectedRoleIds.value)
+        message.success(t('settings.user.messages.assignSuccess'))
+        closeAssignModal()
+        submittingRoles.value = false
     }
 
     // 通用表单重置函数
@@ -275,38 +260,26 @@ export function useRoleAssignment() {
         const modal = infoModals[type]
         const form = modal.form
 
-        try {
-            modal.submitting.value = true
-            try {
-                // 设置用户ID
-                form.sysUserId = currentUser.value.id
+        modal.submitting.value = true
+        // 设置用户ID
+        form.sysUserId = currentUser.value.id
 
-                // 添加信息
-                if (type === 'student') {
-                    await StudentApi.addStudent(form as StudentAddDTO)
-                } else {
-                    await TeacherApi.addTeacher(form as TeacherAddDTO)
-                }
-
-                // 执行角色分配
-                await performRoleAssignment()
-
-                const successMessage = type === 'student'
-                    ? 'settings.user.messages.studentInfoSuccess'
-                    : 'settings.user.messages.teacherInfoSuccess'
-                message.success(t(successMessage))
-                closeInfoModal(type)
-            } catch (error) {
-                const errorMessage = type === 'student'
-                    ? 'settings.user.messages.studentInfoFail'
-                    : 'settings.user.messages.teacherInfoFail'
-                message.error(t(errorMessage))
-            } finally {
-                modal.submitting.value = false
-            }
-        } catch (err) {
-            message.error(t('settings.user.messages.formInvalid'))
+        // 添加信息
+        if (type === 'student') {
+            await StudentApi.addStudent(form as StudentAddDTO)
+        } else {
+            await TeacherApi.addTeacher(form as TeacherAddDTO)
         }
+
+        // 执行角色分配
+        await performRoleAssignment()
+
+        const successMessage = type === 'student'
+            ? 'settings.user.messages.studentInfoSuccess'
+            : 'settings.user.messages.teacherInfoSuccess'
+        message.success(t(successMessage))
+        closeInfoModal(type)
+        modal.submitting.value = false
     }
 
     // 确认角色分配
@@ -319,58 +292,46 @@ export function useRoleAssignment() {
 
         if (!existingInfo) return
 
-        try {
-            modal.submittingUpdate.value = true
-            try {
-                // 更新信息
-                if (type === 'student') {
-                    const studentForm = form as StudentAddDTO
-                    const updateData = {
-                        id: existingInfo.id,
-                        studentCode: studentForm.studentCode,
-                        realName: studentForm.realName,
-                        birthDate: studentForm.birthDate,
-                        admissionYear: studentForm.admissionYear,
-                        major: studentForm.major,
-                        academicStatus: studentForm.academicStatus,
-                        description: studentForm.description,
-                        sysUserId: currentUser.value.id
-                    }
-                    await StudentApi.updateStudent(updateData)
-                } else {
-                    const teacherForm = form as TeacherAddDTO
-                    const updateData = {
-                        id: existingInfo.id,
-                        teacherCode: teacherForm.teacherCode,
-                        realName: teacherForm.realName,
-                        birthDate: teacherForm.birthDate,
-                        department: teacherForm.department,
-                        education: teacherForm.education,
-                        specialization: teacherForm.specialization,
-                        description: teacherForm.description,
-                        sysUserId: currentUser.value.id
-                    }
-                    await TeacherApi.updateTeacher(updateData)
-                }
-
-                // 执行角色分配
-                await performRoleAssignment()
-
-                // 重置状态
-                modal.display.value = false
-                modal.existing.value = null
-                resetForm(type)
-            } catch (error) {
-                const errorMessage = type === 'student'
-                    ? 'settings.user.messages.studentRoleAssignFail'
-                    : 'settings.user.messages.teacherRoleAssignFail'
-                message.error(t(errorMessage))
-            } finally {
-                modal.submittingUpdate.value = false
+        modal.submittingUpdate.value = true
+        // 更新信息
+        if (type === 'student') {
+            const studentForm = form as StudentAddDTO
+            const updateData = {
+                id: existingInfo.id,
+                studentCode: studentForm.studentCode,
+                realName: studentForm.realName,
+                birthDate: studentForm.birthDate,
+                admissionYear: studentForm.admissionYear,
+                major: studentForm.major,
+                academicStatus: studentForm.academicStatus,
+                description: studentForm.description,
+                sysUserId: currentUser.value.id
             }
-        } catch (err) {
-            message.error(t('settings.user.messages.formInvalid'))
+            await StudentApi.updateStudent(updateData)
+        } else {
+            const teacherForm = form as TeacherAddDTO
+            const updateData = {
+                id: existingInfo.id,
+                teacherCode: teacherForm.teacherCode,
+                realName: teacherForm.realName,
+                birthDate: teacherForm.birthDate,
+                department: teacherForm.department,
+                education: teacherForm.education,
+                specialization: teacherForm.specialization,
+                description: teacherForm.description,
+                sysUserId: currentUser.value.id
+            }
+            await TeacherApi.updateTeacher(updateData)
         }
+
+        // 执行角色分配
+        await performRoleAssignment()
+
+        // 重置状态
+        modal.display.value = false
+        modal.existing.value = null
+        resetForm(type)
+        modal.submittingUpdate.value = false
     }
 
     return {

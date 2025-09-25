@@ -357,22 +357,17 @@ function updateParentPermissionOptions() {
 
 // 加载所有权限数据
 async function loadAllPermissions() {
-  try {
-    treeLoading.value = true
-    // 使用权限树API获取所有权限
-    const response = await permissionApi.getPermissionTree()
-    allPermissions.value = response?.data || []
+  treeLoading.value = true
+  // 使用权限树API获取所有权限
+  const response = await permissionApi.getPermissionTree()
+  allPermissions.value = response?.data || []
 
-    // 将扁平的权限列表转为树形选项
-    permissionTreeOptions.value = convertToTreeSelectOptions(allPermissions.value)
+  // 将扁平的权限列表转为树形选项
+  permissionTreeOptions.value = convertToTreeSelectOptions(allPermissions.value)
 
-    // 更新父级权限选项
-    updateParentPermissionOptions()
-  } catch (error) {
-    message.error(t('settings.permission.messages.loadFail'))
-  } finally {
-    treeLoading.value = false
-  }
+  // 更新父级权限选项
+  updateParentPermissionOptions()
+  treeLoading.value = false
 }
 
 // 将权限列表转换为树形选项
@@ -417,29 +412,19 @@ function closeEditModal() {
 async function submitUpdatePermission() {
   if (!currentEditingPermissionId.value) return
 
-  try {
-    // 表单验证
-    await editFormRef.value?.validate()
+  // 表单验证
+  await editFormRef.value?.validate()
 
-    submitting.value = true
-    try {
-      await permissionApi.updatePermission(updatePermissionForm)
-      message.success(t('settings.permission.messages.editSuccess'))
-      closeEditModal()
-      pageTableRef.value?.fetchData()
+  submitting.value = true
+  await permissionApi.updatePermission(updatePermissionForm)
+  message.success(t('settings.permission.messages.editSuccess'))
+  closeEditModal()
+  pageTableRef.value?.fetchData()
 
-      // 编辑成功后清空树数据，下次打开对话框时重新加载
-      allPermissions.value = []
-      permissionTreeOptions.value = []
-    } catch (error) {
-      message.error(t('settings.permission.messages.editFail'))
-    } finally {
-      submitting.value = false
-    }
-  } catch (err) {
-    // 表单验证失败
-    message.error(t('settings.permission.messages.formInvalid'))
-  }
+  // 编辑成功后清空树数据，下次打开对话框时重新加载
+  allPermissions.value = []
+  permissionTreeOptions.value = []
+  submitting.value = false
 }
 
 // 删除权限
@@ -450,17 +435,13 @@ async function handleDelete(row: permissionType.SysPermissionVO) {
     positiveText: t('settings.permission.actions.delete'),
     negativeText: t('common.cancel'),
     onPositiveClick: async () => {
-      try {
-        await permissionApi.removePermission(row.id)
-        message.success(t('settings.permission.messages.deleteSuccess'))
-        pageTableRef.value?.fetchData()
+      await permissionApi.removePermission(row.id)
+      message.success(t('settings.permission.messages.deleteSuccess'))
+      pageTableRef.value?.fetchData()
 
-        // 删除成功后清空树数据，下次打开对话框时重新加载
-        allPermissions.value = []
-        permissionTreeOptions.value = []
-      } catch (error) {
-        message.error(t('settings.permission.messages.deleteFail'))
-      }
+      // 删除成功后清空树数据，下次打开对话框时重新加载
+      allPermissions.value = []
+      permissionTreeOptions.value = []
     }
   })
 }
@@ -478,28 +459,18 @@ function closeAddModal() {
 
 // 提交添加权限
 async function submitAddPermission() {
-  try {
-    await addFormRef.value?.validate()
+  await addFormRef.value?.validate()
 
-    submitting.value = true
-    try {
-      await permissionApi.addPermission(addPermissionForm)
-      message.success(t('settings.permission.messages.addSuccess'))
-      closeAddModal()
-      pageTableRef.value?.fetchData()
+  submitting.value = true
+  await permissionApi.addPermission(addPermissionForm)
+  message.success(t('settings.permission.messages.addSuccess'))
+  closeAddModal()
+  pageTableRef.value?.fetchData()
 
-      // 添加成功后清空树数据，下次打开对话框时重新加载
-      allPermissions.value = []
-      permissionTreeOptions.value = []
-    } catch (error) {
-      message.error(t('settings.permission.messages.addFail'))
-    } finally {
-      submitting.value = false
-    }
-  } catch (err) {
-    // 表单验证失败
-    message.error(t('settings.permission.messages.formInvalid'))
-  }
+  // 添加成功后清空树数据，下次打开对话框时重新加载
+  allPermissions.value = []
+  permissionTreeOptions.value = []
+  submitting.value = false
 }
 
 // 新增权限

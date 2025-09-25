@@ -82,7 +82,6 @@ const message = useMessage()
 const handleNavigation = (type: string) => {
   const courseIdValue = props.courseId
   if (!courseIdValue) {
-    message.error('课程ID无效')
     return
   }
 

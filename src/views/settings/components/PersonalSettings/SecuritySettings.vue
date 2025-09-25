@@ -139,7 +139,6 @@ watch(showPasswordModal, (newVal: boolean) => {
 const changePassword = () => {
   passwordFormRef.value?.validate(async (errors: any) => {
     if (!errors) {
-      try {
         const passwordData: SysUserPasswordDTO = {
           currentPassword: passwordForm.currentPassword,
           newPassword: passwordForm.newPassword,
@@ -172,11 +171,7 @@ const changePassword = () => {
             }
           })
         } else {
-          message.error(res.message || t('settings.personal.passwordChangeFail'))
         }
-      } catch (error) {
-        message.error(t('settings.personal.passwordChangeFail'))
-      }
     }
   })
 }

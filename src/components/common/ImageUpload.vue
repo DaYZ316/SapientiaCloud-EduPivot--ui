@@ -169,13 +169,11 @@ const beforeUpload = (data: { file: UploadFileInfo }): boolean => {
   // 验证文件类型
   const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp']
   if (!allowedTypes.includes(file.file?.type || '')) {
-    message.error(t('common.imageTypeError'))
     return false
   }
 
   // 验证文件大小
   if ((file.file?.size || 0) > props.maxFileSize) {
-    message.error(t('common.imageSizeError'))
     return false
   }
 
@@ -288,14 +286,12 @@ const confirmCrop = async () => {
     })
 
     if (!croppedCanvas) {
-      message.error(t('common.imageUploadFail'))
       return
     }
 
     // 转换为 blob
     croppedCanvas.toBlob(async (blob: Blob | null) => {
       if (!blob) {
-        message.error(t('common.imageUploadFail'))
         return
       }
 
@@ -319,38 +315,24 @@ const uploadImageDirectly = async (file: File) => {
       modelValue.value = imageUrl
       emit('upload-success', imageUrl)
       message.success(t('common.imageUploadSuccess'))
-    } else {
-      emit('upload-error', new Error(response.message || 'Upload failed'))
-      message.error(response.message || t('common.imageUploadFail'))
     }
-  } catch (error) {
-    emit('upload-error', error as Error)
-    message.error(t('common.imageUploadFail'))
   } finally {
     uploading.value = false
   }
 }
 
 const uploadCroppedImage = async (blob: Blob) => {
-  try {
-    // 创建File对象并上传
-    const fileName = `image_${Date.now()}.jpg`
-    const file = new File([blob], fileName, {type: 'image/jpeg'})
-    const response = await uploadFile(file, props.uploadDir)
+  // 创建File对象并上传
+  const fileName = `image_${Date.now()}.jpg`
+  const file = new File([blob], fileName, {type: 'image/jpeg'})
+  const response = await uploadFile(file, props.uploadDir)
 
-    if (response.success && response.data) {
-      const imageUrl = response.data.url
-      modelValue.value = imageUrl
-      emit('upload-success', imageUrl)
-      message.success(t('common.imageUploadSuccess'))
-      showCropModal.value = false
-    } else {
-      emit('upload-error', new Error(response.message || 'Upload failed'))
-      message.error(response.message || t('common.imageUploadFail'))
-    }
-  } catch (error) {
-    emit('upload-error', error as Error)
-    message.error(t('common.imageUploadFail'))
+  if (response.success && response.data) {
+    const imageUrl = response.data.url
+    modelValue.value = imageUrl
+    emit('upload-success', imageUrl)
+    message.success(t('common.imageUploadSuccess'))
+    showCropModal.value = false
   }
 }
 

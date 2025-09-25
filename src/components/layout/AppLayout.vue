@@ -132,13 +132,9 @@ const handleLogout = async () => {
     positiveText: t('common.confirm'),
     negativeText: t('common.cancel'),
     onPositiveClick: async () => {
-      try {
-        await userStore.logout()
-        message.success(t('auth.logoutSuccess'))
-        router.push('/login')
-      } catch {
-        message.error(t('auth.logoutFail'))
-      }
+      await userStore.logout()
+      message.success(t('auth.logoutSuccess'))
+      router.push('/login')
     }
   })
 }

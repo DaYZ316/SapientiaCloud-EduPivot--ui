@@ -130,46 +130,36 @@ const rules: FormRules = {
 // 格式化日期时间
 function formatDateTime(dateStr?: string): string {
   if (!dateStr) return '-'
-  try {
-    const date = new Date(dateStr)
-    return date.toLocaleString()
-  } catch (e) {
-    return dateStr
-  }
+  const date = new Date(dateStr)
+  return date.toLocaleString()
 }
 
 // 保存个人设置
 const savePersonalSettings = () => {
   formRef.value?.validate(async (errors: any) => {
     if (!errors) {
-      try {
-        if (!userInfo.value) {
-          message.error(t('settings.personal.updateFail'))
-          return
-        }
+      if (!userInfo.value) {
+        return
+      }
 
-        // 调用API更新用户个人信息
-        const userData: SysUserProfileDTO = {
-          username: personalForm.username,
-          nickName: personalForm.nickName,
-          email: personalForm.email,
-          mobile: personalForm.mobile,
-          gender: personalForm.gender,
-          avatar: personalForm.avatar
-        }
+      // 调用API更新用户个人信息
+      const userData: SysUserProfileDTO = {
+        username: personalForm.username,
+        nickName: personalForm.nickName,
+        email: personalForm.email,
+        mobile: personalForm.mobile,
+        gender: personalForm.gender,
+        avatar: personalForm.avatar
+      }
 
-        const res = await updateUserProfile(userData)
-        if (res.success && res.data) {
-          // 更新成功后刷新用户信息到store
-          await userStore.refreshUserInfo()
-          // 重新初始化表单数据，确保显示最新信息
-          initFormData()
-          message.success(t('settings.personal.updateSuccess'))
-        } else {
-          message.error(res.message || t('settings.personal.updateFail'))
-        }
-      } catch (error) {
-        message.error(t('settings.personal.updateFail'))
+      const res = await updateUserProfile(userData)
+      if (res.success && res.data) {
+        // 更新成功后刷新用户信息到store
+        await userStore.refreshUserInfo()
+        // 重新初始化表单数据，确保显示最新信息
+        initFormData()
+        message.success(t('settings.personal.updateSuccess'))
+      } else {
       }
     }
   })

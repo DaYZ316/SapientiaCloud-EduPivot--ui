@@ -247,21 +247,17 @@ async function updateUserStatus(row: userType.SysUserVO, value: boolean) {
   const newStatus = value ? StatusEnum.NORMAL : StatusEnum.DISABLED;
   const statusText = value ? 'enable' : 'disable';
 
-  try {
-    await userApi.updateUser({
-      id: row.id,
-      status: newStatus,
-      nickName: null,
-      email: null,
-      mobile: null
-    })
-    message.success(t(`settings.user.messages.${statusText}Success`))
+  await userApi.updateUser({
+    id: row.id,
+    status: newStatus,
+    nickName: null,
+    email: null,
+    mobile: null
+  })
+  message.success(t(`settings.user.messages.${statusText}Success`))
 
-    // 本地更新状态而不是重新获取整个列表
-    row.status = newStatus;
-  } catch (error) {
-    message.error(t(`settings.user.messages.${statusText}Fail`))
-  }
+  // 本地更新状态而不是重新获取整个列表
+  row.status = newStatus;
 }
 
 // 表格列定义
@@ -371,13 +367,9 @@ async function handleDelete(row: userType.SysUserVO) {
     positiveText: t('settings.user.actions.delete'),
     negativeText: t('common.cancel'),
     onPositiveClick: async () => {
-      try {
-        await userApi.removeUser(row.id)
-        message.success(t('settings.user.messages.deleteSuccess'))
-        pageTableRef.value?.fetchData()
-      } catch (error) {
-        message.error(t('settings.user.messages.deleteFail'))
-      }
+      await userApi.removeUser(row.id)
+      message.success(t('settings.user.messages.deleteSuccess'))
+      pageTableRef.value?.fetchData()
     }
   })
 }
@@ -396,16 +388,11 @@ function closeAddModal() {
 // 提交添加用户
 async function submitAddUser() {
   submitting.value = true
-  try {
-    await userApi.addSysUser(addUserForm)
-    message.success(t('settings.user.messages.addSuccess'))
-    closeAddModal()
-    pageTableRef.value?.fetchData()
-  } catch (error) {
-    message.error(t('settings.user.messages.addFail'))
-  } finally {
-    submitting.value = false
-  }
+  await userApi.addSysUser(addUserForm)
+  message.success(t('settings.user.messages.addSuccess'))
+  closeAddModal()
+  pageTableRef.value?.fetchData()
+  submitting.value = false
 }
 
 // 新增用户
@@ -419,25 +406,20 @@ async function handleAssignRole(row: userType.SysUserVO) {
   currentUser.value = row
   submittingRoles.value = true
 
-  try {
-    // 获取用户详情，包括已分配的角色
-    const userDetail = await userApi.getUserById(row.id)
-    userRoles.value = userDetail?.data?.roles || []
+  // 获取用户详情，包括已分配的角色
+  const userDetail = await userApi.getUserById(row.id)
+  userRoles.value = userDetail?.data?.roles || []
 
-    // 获取所有角色列表
-    const roleResult = await getAllRoles()
-    availableRoles.value = roleResult?.data || []
+  // 获取所有角色列表
+  const roleResult = await getAllRoles()
+  availableRoles.value = roleResult?.data || []
 
-    // 设置已选中的角色
-    selectedRoleIds.value = userRoles.value.map((r: SysRoleVO) => r.id)
+  // 设置已选中的角色
+  selectedRoleIds.value = userRoles.value.map((r: SysRoleVO) => r.id)
 
-    // 显示分配角色对话框
-    showAssignModal.value = true
-  } catch (error) {
-    message.error(t('settings.user.messages.getRoleFail'))
-  } finally {
-    submittingRoles.value = false
-  }
+  // 显示分配角色对话框
+  showAssignModal.value = true
+  submittingRoles.value = false
 }
 
 // 关闭分配角色对话框
@@ -452,15 +434,10 @@ async function submitAssignRoles() {
   if (!currentUser.value) return
 
   submittingRoles.value = true
-  try {
-    await userApi.assignUserRoles(currentUser.value.id, selectedRoleIds.value)
-    message.success(t('settings.user.messages.assignSuccess'))
-    closeAssignModal()
-  } catch (error) {
-    message.error(t('settings.user.messages.assignFail'))
-  } finally {
-    submittingRoles.value = false
-  }
+  await userApi.assignUserRoles(currentUser.value.id, selectedRoleIds.value)
+  message.success(t('settings.user.messages.assignSuccess'))
+  closeAssignModal()
+  submittingRoles.value = false
 }
 
 

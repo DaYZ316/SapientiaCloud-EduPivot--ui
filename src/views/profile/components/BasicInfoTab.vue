@@ -186,23 +186,15 @@ function getGenderLabel(gender?: number | null): string {
 // 格式化日期时间
 function formatDateTime(dateStr?: string): string {
   if (!dateStr) return '-'
-  try {
-    const date = new Date(dateStr)
-    return date.toLocaleString()
-  } catch (e) {
-    return dateStr
-  }
+  const date = new Date(dateStr)
+  return date.toLocaleString()
 }
 
 // 格式化日期
 function formatDate(dateStr?: string | null): string {
   if (!dateStr) return '-'
-  try {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString()
-  } catch (e) {
-    return dateStr
-  }
+  const date = new Date(dateStr)
+  return date.toLocaleDateString()
 }
 
 // 获取学业状态标签

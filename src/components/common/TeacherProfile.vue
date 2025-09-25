@@ -162,20 +162,15 @@ function getEducationType(education?: number | null): string {
 
 // 加载教师信息
 const loadTeacherInfo = async () => {
-  try {
-    loading.value = true
+  loading.value = true
 
-    // 获取教师基本信息
-    const teacherResponse = await getTeacherById(teacherId)
-    const teacherData = teacherResponse.data as TeacherVO
+  // 获取教师基本信息
+  const teacherResponse = await getTeacherById(teacherId)
+  const teacherData = teacherResponse.data as TeacherVO
 
-    // 直接使用教师信息
-    teacher.value = teacherData
-  } catch (error) {
-    teacher.value = null
-  } finally {
-    loading.value = false
-  }
+  // 直接使用教师信息
+  teacher.value = teacherData
+  loading.value = false
 }
 
 // 组件挂载时加载数据

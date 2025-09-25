@@ -408,52 +408,39 @@ const setCourseDetailTitle = () => {
 
 // 方法
 const loadCourseInfo = async () => {
-  try {
-    loading.value = true
+  loading.value = true
 
-    // 检查courseId是否有效
-    if (!courseId.value || courseId.value === 'undefined') {
-      message.error('课程ID无效')
-      router.push('/course')
-      return
-    }
-
-    const res = await CourseApi.getCourseById(courseId.value)
-    if (res.success && res.data) {
-      courseInfo.value = res.data
-      // 加载课程信息成功后，添加动态菜单项
-      addCourseDetailMenuItem()
-      // 设置动态标题
-      setCourseDetailTitle()
-      // 加载教师信息
-      await loadTeacherInfo(courseId.value)
-    } else {
-      message.error(t('course.messages.loadFail'))
-    }
-  } catch (error) {
-    message.error(t('course.messages.loadFail'))
-  } finally {
-    loading.value = false
+  // 检查courseId是否有效
+  if (!courseId.value || courseId.value === 'undefined') {
+    router.push('/course')
+    return
   }
+
+  const res = await CourseApi.getCourseById(courseId.value)
+  if (res.success && res.data) {
+    courseInfo.value = res.data
+    // 加载课程信息成功后，添加动态菜单项
+    addCourseDetailMenuItem()
+    // 设置动态标题
+    setCourseDetailTitle()
+    // 加载教师信息
+    await loadTeacherInfo(courseId.value)
+  }
+  loading.value = false
 }
 
 const loadTeacherInfo = async (courseId: string) => {
   if (!courseId) return
 
-  try {
-    teacherLoading.value = true
-    // 直接使用开课教师的ID获取教师信息
-    if (courseInfo.value?.teacherId) {
-      const res = await TeacherApi.getTeacherById(courseInfo.value.teacherId)
-      if (res.success && res.data) {
-        teacherInfo.value = res.data
-      }
+  teacherLoading.value = true
+  // 直接使用开课教师的ID获取教师信息
+  if (courseInfo.value?.teacherId) {
+    const res = await TeacherApi.getTeacherById(courseInfo.value.teacherId)
+    if (res.success && res.data) {
+      teacherInfo.value = res.data
     }
-  } catch (error) {
-    // 教师信息加载失败不显示错误，因为不是关键信息
-  } finally {
-    teacherLoading.value = false
   }
+  teacherLoading.value = false
 }
 
 // 编辑课程
@@ -491,17 +478,11 @@ const handleDeleteCourse = () => {
     positiveText: t('common.confirm'),
     negativeText: t('common.cancel'),
     onPositiveClick: async () => {
-      try {
-        const res = await CourseApi.removeCourseById(courseInfo.value!.id)
-        if (res.success) {
-          message.success(t('course.detailActions.deleteSuccess'))
-          // 删除成功后跳转到课程列表页面
-          router.push('/course/my-courses')
-        } else {
-          message.error(t('course.detailActions.deleteFail'))
-        }
-      } catch (error) {
-        message.error(t('course.detailActions.deleteFail'))
+      const res = await CourseApi.removeCourseById(courseInfo.value!.id)
+      if (res.success) {
+        message.success(t('course.detailActions.deleteSuccess'))
+        // 删除成功后跳转到课程列表页面
+        router.push('/course/my-courses')
       }
     }
   })
@@ -514,23 +495,18 @@ const handleEditCancel = () => {
 }
 
 const handleEditSubmit = async () => {
-  try {
-    await formRef.value?.validate()
-    editSubmitting.value = true
+  await formRef.value?.validate()
+  editSubmitting.value = true
 
-    await CourseApi.updateCourse(formData.value)
-    message.success(t('course.actions.editSuccess'))
+  await CourseApi.updateCourse(formData.value)
+  message.success(t('course.actions.editSuccess'))
 
-    showEditModal.value = false
-    resetEditForm()
+  showEditModal.value = false
+  resetEditForm()
 
-    // 重新加载课程信息
-    await loadCourseInfo()
-  } catch (error) {
-    // 表单验证失败或API调用失败，不提交
-  } finally {
-    editSubmitting.value = false
-  }
+  // 重新加载课程信息
+  await loadCourseInfo()
+  editSubmitting.value = false
 }
 
 const resetEditForm = () => {
@@ -540,23 +516,18 @@ const resetEditForm = () => {
 
 // 教师选择器相关方法
 const loadTeachersForForm = async () => {
-  try {
-    teacherLoadingForForm.value = true
-    const response = await TeacherApi.listAllTeacher()
-    if (response.data) {
-      teacherOptions.value = response.data.map((teacher: TeacherVO) => ({
-        label: teacher.realName || teacher.teacherCode || '',
-        value: teacher.id,
-        avatar: teacher.avatar || null,
-        department: teacher.department || null,
-        teacherCode: teacher.teacherCode || null
-      }))
-    }
-  } catch (error) {
-    // 处理错误
-  } finally {
-    teacherLoadingForForm.value = false
+  teacherLoadingForForm.value = true
+  const response = await TeacherApi.listAllTeacher()
+  if (response.data) {
+    teacherOptions.value = response.data.map((teacher: TeacherVO) => ({
+      label: teacher.realName || teacher.teacherCode || '',
+      value: teacher.id,
+      avatar: teacher.avatar || null,
+      department: teacher.department || null,
+      teacherCode: teacher.teacherCode || null
+    }))
   }
+  teacherLoadingForForm.value = false
 }
 
 const handleTeacherSearch = (_query: string) => {

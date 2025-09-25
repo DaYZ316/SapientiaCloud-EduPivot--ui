@@ -167,27 +167,20 @@ const initializeSearchForm = () => {
 
 // 加载课程数据
 const loadCourseData = async () => {
-  try {
-    loading.value = true
-    const queryParams = {
-      ...searchForm,
-      pageNum: pagination.pageNum,
-      pageSize: pagination.pageSize
-    }
-
-    const result = await courseApiFunction.value(queryParams)
-
-    // 提取分页数据
-    const {data = [], total = 0} = (result as any) || {}
-    courseList.value = data
-    pagination.total = total
-  } catch (error) {
-    message.error('加载课程数据失败')
-    courseList.value = []
-    pagination.total = 0
-  } finally {
-    loading.value = false
+  loading.value = true
+  const queryParams = {
+    ...searchForm,
+    pageNum: pagination.pageNum,
+    pageSize: pagination.pageSize
   }
+
+  const result = await courseApiFunction.value(queryParams)
+
+  // 提取分页数据
+  const {data = [], total = 0} = (result as any) || {}
+  courseList.value = data
+  pagination.total = total
+  loading.value = false
 }
 
 // 重置搜索
@@ -239,36 +232,26 @@ const handleContinueCourse = (_course: courseType.CourseVO) => {
 const handleEnrollCourse = async () => {
   if (!enrollFormRef.value) return
 
-  try {
-    await enrollFormRef.value.validate()
+  await enrollFormRef.value.validate()
 
-    if (!userStore.studentInfo?.id) {
-      message.error('学生信息不存在')
-      return
-    }
-
-    enrollLoading.value = true
-
-    const courseStudentData = courseApi.getDefaultCourseStudentDTO()
-    courseStudentData.studentId = userStore.studentInfo.id
-    courseStudentData.courseId = enrollForm.courseId
-
-    await addCourseStudent(courseStudentData)
-
-    message.success(t('course.enroll.addSuccess'))
-    showEnrollDialog.value = false
-    enrollForm.courseId = null
-    // 重新加载课程数据
-    loadCourseData()
-  } catch (error: any) {
-    if (error.message) {
-      message.error(error.message)
-    } else {
-      message.error(t('course.enroll.addFail'))
-    }
-  } finally {
-    enrollLoading.value = false
+  if (!userStore.studentInfo?.id) {
+    return
   }
+
+  enrollLoading.value = true
+
+  const courseStudentData = courseApi.getDefaultCourseStudentDTO()
+  courseStudentData.studentId = userStore.studentInfo.id
+  courseStudentData.courseId = enrollForm.courseId
+
+  await addCourseStudent(courseStudentData)
+
+  message.success(t('course.enroll.addSuccess'))
+  showEnrollDialog.value = false
+  enrollForm.courseId = null
+  // 重新加载课程数据
+  loadCourseData()
+  enrollLoading.value = false
 }
 
 // 组件挂载时初始化

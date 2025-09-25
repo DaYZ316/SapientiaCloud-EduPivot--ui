@@ -259,8 +259,7 @@ const academicStatusOptions = computed(() => getAcademicStatusOptions(false))
 function formatDateForAPI(date: number | string | null | undefined): string | null {
   if (!date) return null
 
-  try {
-    let dateObj: Date
+  let dateObj: Date
     if (typeof date === 'number') {
       // 时间戳
       dateObj = new Date(date)
@@ -281,24 +280,17 @@ function formatDateForAPI(date: number | string | null | undefined): string | nu
     const day = String(dateObj.getDate()).padStart(2, '0')
 
     return `${year}-${month}-${day}`
-  } catch (error) {
-    return null
-  }
 }
 
 // 将API返回的日期字符串转换为DatePicker需要的时间戳
 function parseDateForPicker(date: string | null | undefined): number | null {
   if (!date) return null
 
-  try {
-    const dateObj = new Date(date)
-    if (isNaN(dateObj.getTime())) {
-      return null
-    }
-    return dateObj.getTime()
-  } catch (error) {
+  const dateObj = new Date(date)
+  if (isNaN(dateObj.getTime())) {
     return null
   }
+  return dateObj.getTime()
 }
 
 // 创建日期计算属性的通用函数
@@ -404,47 +396,40 @@ const saveInfo = async (
 ) => {
   formRef.value?.validate(async (errors: any) => {
     if (!errors) {
-      try {
-        const formattedForm = {
-          ...form,
-          birthDate: formatDateForAPI(form.birthDate)
-        }
+      const formattedForm = {
+        ...form,
+        birthDate: formatDateForAPI(form.birthDate)
+      }
 
-        let res
-        if (info.value) {
-          // 更新信息
-          const updateData = {
-            ...getDefaultDTO(),
-            ...formattedForm,
-            id: info.value.id
-          }
-          res = await updateFn(updateData)
-          if (res.success && res.data) {
-            message.success(t('settings.personal.updateSuccess'))
-            // 更新成功后刷新用户信息
-            await userStore.refreshUserInfo()
-            // 重新初始化表单数据
-            initFn()
-          } else {
-            message.error(res.message || t('settings.personal.updateFail'))
-          }
+      let res
+      if (info.value) {
+        // 更新信息
+        const updateData = {
+          ...getDefaultDTO(),
+          ...formattedForm,
+          id: info.value.id
+        }
+        res = await updateFn(updateData)
+        if (res.success && res.data) {
+          message.success(t('settings.personal.updateSuccess'))
+          // 更新成功后刷新用户信息
+          await userStore.refreshUserInfo()
+          // 重新初始化表单数据
+          initFn()
         } else {
-          // 添加信息
-          res = await addFn(formattedForm)
-          if (res.success && res.data) {
-            message.success(t('settings.personal.bindSuccess'))
-            showRef.value = false
-            // 更新用户角色信息
-            await userStore.fetchUserRoleInfo(userInfo.value?.id || '')
-            // 重新初始化表单数据
-            initFn()
-          } else {
-            message.error(res.message || t('settings.personal.bindFail'))
-          }
         }
-
-      } catch (error) {
-        message.error(t('settings.personal.bindFail'))
+      } else {
+        // 添加信息
+        res = await addFn(formattedForm)
+        if (res.success && res.data) {
+          message.success(t('settings.personal.bindSuccess'))
+          showRef.value = false
+          // 更新用户角色信息
+          await userStore.fetchUserRoleInfo(userInfo.value?.id || '')
+          // 重新初始化表单数据
+          initFn()
+        } else {
+        }
       }
     }
   })

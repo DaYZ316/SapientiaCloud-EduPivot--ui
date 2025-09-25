@@ -46,26 +46,21 @@ const initGlobalApis = () => {
 
 // 在应用启动时检查登录状态并刷新用户信息
 onMounted(async () => {
-  try {
-    // 首先确保DOM渲染完成并初始化全局API
-    await nextTick()
-    initGlobalApis()
+  // 首先确保DOM渲染完成并初始化全局API
+  await nextTick()
+  initGlobalApis()
 
-    // 为了确保API可用，再次延迟设置
-    setTimeout(initGlobalApis, 50)
+  // 为了确保API可用，再次延迟设置
+  setTimeout(initGlobalApis, 50)
 
-    // 然后检查登录状态
-    if (userStore.token) {
-      // 如果存在token，验证其有效性
-      const isValid = await userStore.validateToken()
-      if (isValid) {
-        // 如果token有效，刷新用户信息
-        await userStore.refreshUserInfo()
-      }
+  // 然后检查登录状态
+  if (userStore.token) {
+    // 如果存在token，验证其有效性
+    const isValid = await userStore.validateToken()
+    if (isValid) {
+      // 如果token有效，刷新用户信息
+      await userStore.refreshUserInfo()
     }
-  } catch (error) {
-    // 处理初始化错误
-    console.error('应用初始化失败:', error)
   }
 })
 </script>

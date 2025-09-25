@@ -466,46 +466,36 @@ function handleCancel() {
 }
 
 async function handleSubmit() {
-  try {
-    await formRef.value?.validate()
-    submitting.value = true
+  await formRef.value?.validate()
+  submitting.value = true
 
-    if (modalMode.value === 'add') {
-      await courseApi.addCourse(formData.value)
-      message.success(t('course.actions.addSuccess'))
-    } else {
-      await courseApi.updateCourse(formData.value)
-      message.success(t('course.actions.editSuccess'))
-    }
-
-    showModal.value = false
-    resetForm()
-    refresh()
-  } catch (error) {
-    // 表单验证失败或API调用失败，不提交
-  } finally {
-    submitting.value = false
+  if (modalMode.value === 'add') {
+    await courseApi.addCourse(formData.value)
+    message.success(t('course.actions.addSuccess'))
+  } else {
+    await courseApi.updateCourse(formData.value)
+    message.success(t('course.actions.editSuccess'))
   }
+
+  showModal.value = false
+  resetForm()
+  refresh()
+  submitting.value = false
 }
 
 async function loadTeachers() {
-  try {
-    teacherLoading.value = true
-    const response = await teacherApi.listAllTeacher()
-    if (response.data) {
-      teacherOptions.value = response.data.map((teacher: teacherType.TeacherVO) => ({
-        label: teacher.realName || teacher.teacherCode || '',
-        value: teacher.id,
-        avatar: teacher.avatar || null,
-        department: teacher.department || null,
-        teacherCode: teacher.teacherCode || null
-      }))
-    }
-  } catch (error) {
-    // 处理错误
-  } finally {
-    teacherLoading.value = false
+  teacherLoading.value = true
+  const response = await teacherApi.listAllTeacher()
+  if (response.data) {
+    teacherOptions.value = response.data.map((teacher: teacherType.TeacherVO) => ({
+      label: teacher.realName || teacher.teacherCode || '',
+      value: teacher.id,
+      avatar: teacher.avatar || null,
+      department: teacher.department || null,
+      teacherCode: teacher.teacherCode || null
+    }))
   }
+  teacherLoading.value = false
 }
 
 function handleTeacherSearch(_query: string) {

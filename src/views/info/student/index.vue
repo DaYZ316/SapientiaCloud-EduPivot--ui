@@ -383,7 +383,6 @@ function onDataUpdate(data: studentType.StudentVO[]) {
 // 删除学生
 async function handleDelete(row: studentType.StudentVO) {
   if (!row.id) {
-    message.error(t('student.messages.invalidId'))
     return
   }
 
@@ -393,13 +392,9 @@ async function handleDelete(row: studentType.StudentVO) {
     positiveText: t('student.actions.delete'),
     negativeText: t('common.cancel'),
     onPositiveClick: async () => {
-      try {
-        await studentApi.removeStudentById(row.id!)
-        message.success(t('student.messages.deleteSuccess'))
-        pageTableRef.value?.fetchData()
-      } catch (error) {
-        message.error(t('student.messages.deleteFail'))
-      }
+      await studentApi.removeStudentById(row.id!)
+      message.success(t('student.messages.deleteSuccess'))
+      pageTableRef.value?.fetchData()
     }
   })
 }
@@ -418,16 +413,11 @@ function closeAddModal() {
 // 提交添加学生
 async function submitAddStudent() {
   submitting.value = true
-  try {
-    await studentApi.addStudent(addStudentForm)
-    message.success(t('student.messages.addSuccess'))
-    closeAddModal()
-    pageTableRef.value?.fetchData()
-  } catch (error) {
-    message.error(t('student.messages.addFail'))
-  } finally {
-    submitting.value = false
-  }
+  await studentApi.addStudent(addStudentForm)
+  message.success(t('student.messages.addSuccess'))
+  closeAddModal()
+  pageTableRef.value?.fetchData()
+  submitting.value = false
 }
 
 // 新增学生
@@ -439,17 +429,12 @@ function handleAdd() {
 // 编辑学生
 async function handleEdit(row: studentType.StudentVO) {
   if (!row.id) {
-    message.error(t('student.messages.invalidId'))
     return
   }
 
-  try {
-    const studentDetail = await studentApi.getStudentById(row.id!)
-    Object.assign(editStudentForm, studentDetail?.data)
-    showEditModal.value = true
-  } catch (error) {
-    message.error(t('student.messages.getDetailFail'))
-  }
+  const studentDetail = await studentApi.getStudentById(row.id!)
+  Object.assign(editStudentForm, studentDetail?.data)
+  showEditModal.value = true
 }
 
 // 关闭编辑学生对话框
@@ -461,16 +446,11 @@ function closeEditModal() {
 // 提交编辑学生
 async function submitEditStudent() {
   submitting.value = true
-  try {
-    await studentApi.updateStudent(editStudentForm)
-    message.success(t('student.messages.editSuccess'))
-    closeEditModal()
-    pageTableRef.value?.fetchData()
-  } catch (error) {
-    message.error(t('student.messages.editFail'))
-  } finally {
-    submitting.value = false
-  }
+  await studentApi.updateStudent(editStudentForm)
+  message.success(t('student.messages.editSuccess'))
+  closeEditModal()
+  pageTableRef.value?.fetchData()
+  submitting.value = false
 }
 </script>
 

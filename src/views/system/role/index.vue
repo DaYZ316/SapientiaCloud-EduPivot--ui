@@ -442,25 +442,15 @@ function closeEditModal() {
 async function submitUpdateRole() {
   if (!currentEditingRoleId.value) return
 
-  try {
-    // 表单验证
-    await editFormRef.value?.validate()
+  // 表单验证
+  await editFormRef.value?.validate()
 
-    submitting.value = true
-    try {
-      await roleApi.updateRole(updateRoleForm)
-      message.success(t('settings.role.messages.editSuccess'))
-      closeEditModal()
-      pageTableRef.value?.fetchData()
-    } catch (error) {
-      message.error(t('settings.role.messages.editFail'))
-    } finally {
-      submitting.value = false
-    }
-  } catch (err) {
-    // 表单验证失败
-    message.error(t('settings.role.messages.formInvalid'))
-  }
+  submitting.value = true
+  await roleApi.updateRole(updateRoleForm)
+  message.success(t('settings.role.messages.editSuccess'))
+  closeEditModal()
+  pageTableRef.value?.fetchData()
+  submitting.value = false
 }
 
 // 删除角色
@@ -471,13 +461,9 @@ async function handleDelete(row: roleType.SysRoleVO) {
     positiveText: t('settings.role.actions.delete'),
     negativeText: t('common.cancel'),
     onPositiveClick: async () => {
-      try {
-        await roleApi.removeRole(row.id)
-        message.success(t('settings.role.messages.deleteSuccess'))
-        pageTableRef.value?.fetchData()
-      } catch (error) {
-        message.error(t('settings.role.messages.deleteFail'))
-      }
+      await roleApi.removeRole(row.id)
+      message.success(t('settings.role.messages.deleteSuccess'))
+      pageTableRef.value?.fetchData()
     }
   })
 }
@@ -497,24 +483,14 @@ function closeAddModal() {
 
 // 提交添加角色
 async function submitAddRole() {
-  try {
-    await addFormRef.value?.validate()
+  await addFormRef.value?.validate()
 
-    submitting.value = true
-    try {
-      await roleApi.addRole(addRoleForm)
-      message.success(t('settings.role.messages.addSuccess'))
-      closeAddModal()
-      pageTableRef.value?.fetchData()
-    } catch (error) {
-      message.error(t('settings.role.messages.addFail'))
-    } finally {
-      submitting.value = false
-    }
-  } catch (err) {
-    // 表单验证失败
-    message.error(t('settings.role.messages.formInvalid'))
-  }
+  submitting.value = true
+  await roleApi.addRole(addRoleForm)
+  message.success(t('settings.role.messages.addSuccess'))
+  closeAddModal()
+  pageTableRef.value?.fetchData()
+  submitting.value = false
 }
 
 // 新增角色
@@ -556,31 +532,26 @@ async function handleAssign(row: roleType.SysRoleVO) {
   currentRole.value = row
   submitting.value = true
 
-  try {
-    // 获取角色详情，包括已分配的权限
-    const roleDetail = await roleApi.getRoleDetail(row.id)
-    const rolePermissions = roleDetail?.data?.permissions || []
+  // 获取角色详情，包括已分配的权限
+  const roleDetail = await roleApi.getRoleDetail(row.id)
+  const rolePermissions = roleDetail?.data?.permissions || []
 
-    // 获取权限树结构
-    const permResult = await getPermissionTree()
-    const permissions: SysPermissionVO[] = permResult?.data || []
+  // 获取权限树结构
+  const permResult = await getPermissionTree()
+  const permissions: SysPermissionVO[] = permResult?.data || []
 
-    // 构建权限树
-    permissionTree.value = buildPermissionTree(permissions)
+  // 构建权限树
+  permissionTree.value = buildPermissionTree(permissions)
 
-    // 设置已选中的权限
-    checkedPermissions.value = rolePermissions.map((p: SysPermissionVO) => p.id)
+  // 设置已选中的权限
+  checkedPermissions.value = rolePermissions.map((p: SysPermissionVO) => p.id)
 
-    // 默认收起所有节点（设置为空数组）
-    expandedKeys.value = []
+  // 默认收起所有节点（设置为空数组）
+  expandedKeys.value = []
 
-    // 显示分配权限对话框
-    showAssignModal.value = true
-  } catch (error) {
-    message.error(t('settings.role.messages.getPermissionFail'))
-  } finally {
-    submitting.value = false
-  }
+  // 显示分配权限对话框
+  showAssignModal.value = true
+  submitting.value = false
 }
 
 // 处理权限选中状态变化
@@ -600,15 +571,10 @@ async function submitAssignPermissions() {
   if (!currentRole.value) return
 
   submitting.value = true
-  try {
-    await roleApi.assignRolePermissions(currentRole.value.id, checkedPermissions.value)
-    message.success(t('settings.role.messages.assignSuccess'))
-    closeAssignModal()
-  } catch (error) {
-    message.error(t('settings.role.messages.assignFail'))
-  } finally {
-    submitting.value = false
-  }
+  await roleApi.assignRolePermissions(currentRole.value.id, checkedPermissions.value)
+  message.success(t('settings.role.messages.assignSuccess'))
+  closeAssignModal()
+  submitting.value = false
 }
 </script>
 

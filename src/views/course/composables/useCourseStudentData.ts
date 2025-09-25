@@ -66,34 +66,26 @@ export function useCourseStudentData(courseId?: string) {
         }
 
         // 开始新的请求
-        try {
-            cache.isLoading = true
-            cache.error = null
-            isLoading.value = true
-            error.value = null
+        cache.isLoading = true
+        cache.error = null
+        isLoading.value = true
+        error.value = null
 
-            // 创建请求Promise并缓存
-            cache.promise = (async () => {
-                const response = await listAllCourseStudentByCourseId(targetCourseId)
-                cache!.data = response.data || []
-                cache!.error = null
-            })()
+        // 创建请求Promise并缓存
+        cache.promise = (async () => {
+            const response = await listAllCourseStudentByCourseId(targetCourseId)
+            cache!.data = response.data || []
+            cache!.error = null
+        })()
 
-            await cache.promise
+        await cache.promise
 
-            // 更新本地响应式数据
-            students.value = cache.data
-            error.value = null
-        } catch (err) {
-            cache.error = '加载学生数据失败'
-            cache.data = []
-            error.value = '加载学生数据失败'
-            students.value = []
-        } finally {
-            cache.isLoading = false
-            cache.promise = null
-            isLoading.value = false
-        }
+        // 更新本地响应式数据
+        students.value = cache.data
+        error.value = null
+        cache.isLoading = false
+        cache.promise = null
+        isLoading.value = false
     }
 
     /**

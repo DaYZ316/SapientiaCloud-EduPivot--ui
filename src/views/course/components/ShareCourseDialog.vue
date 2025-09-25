@@ -75,36 +75,30 @@ const courseId = computed(() => props.courseInfo?.id || '')
 // 方法
 const handleCopy = async () => {
   if (!courseId.value) {
-    message.error(t('course.share.courseId') + '不存在')
     return
   }
 
-  try {
-    copyLoading.value = true
+  copyLoading.value = true
 
-    // 使用现代浏览器的 Clipboard API
-    if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(courseId.value)
-    } else {
-      // 降级方案：使用传统的 document.execCommand
-      const textArea = document.createElement('textarea')
-      textArea.value = courseId.value
-      textArea.style.position = 'fixed'
-      textArea.style.left = '-999999px'
-      textArea.style.top = '-999999px'
-      document.body.appendChild(textArea)
-      textArea.focus()
-      textArea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textArea)
-    }
-
-    message.success(t('course.share.copySuccess'))
-  } catch (error) {
-    message.error(t('course.share.copyFail'))
-  } finally {
-    copyLoading.value = false
+  // 使用现代浏览器的 Clipboard API
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(courseId.value)
+  } else {
+    // 降级方案：使用传统的 document.execCommand
+    const textArea = document.createElement('textarea')
+    textArea.value = courseId.value
+    textArea.style.position = 'fixed'
+    textArea.style.left = '-999999px'
+    textArea.style.top = '-999999px'
+    document.body.appendChild(textArea)
+    textArea.focus()
+    textArea.select()
+    document.execCommand('copy')
+    document.body.removeChild(textArea)
   }
+
+  message.success(t('course.share.copySuccess'))
+  copyLoading.value = false
 }
 
 const handleClose = () => {

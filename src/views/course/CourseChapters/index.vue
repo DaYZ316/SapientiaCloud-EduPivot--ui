@@ -44,18 +44,14 @@ const courseId = computed(() => route.params.courseId as string)
 
 // 方法
 const loadCourseInfo = async () => {
-  try {
-    if (!courseId.value || courseId.value === 'undefined') {
-      router.push('/course')
-      return
-    }
+  if (!courseId.value || courseId.value === 'undefined') {
+    router.push('/course')
+    return
+  }
 
-    const res = await CourseApi.getCourseById(courseId.value)
-    if (res.success && res.data) {
-      courseInfo.value = res.data
-    }
-  } catch (error) {
-    // 处理错误
+  const res = await CourseApi.getCourseById(courseId.value)
+  if (res.success && res.data) {
+    courseInfo.value = res.data
   }
 }
 

@@ -242,13 +242,11 @@ const handleFileChange = (event: Event) => {
 
   // 验证文件类型
   if (!file.type.startsWith('image/')) {
-    message.error(t('common.invalidImageType'))
     return
   }
 
   // 验证文件大小
   if (file.size > props.maxFileSize) {
-    message.error(t('common.fileSizeExceeded', {maxSize: Math.round(props.maxFileSize / 1024 / 1024)}))
     return
   }
 
@@ -354,22 +352,17 @@ const handleCropConfirm = async () => {
     })
 
     if (!croppedCanvas) {
-      message.error(t('common.uploadFailed'))
       return
     }
 
     // 转换为 blob
     croppedCanvas.toBlob(async (blob: Blob | null) => {
       if (!blob) {
-        message.error(t('common.uploadFailed'))
         return
       }
 
       await uploadCroppedImage(blob)
     }, 'image/jpeg', 0.8)
-  } catch (error) {
-    emit('upload-error', error as Error)
-    message.error(t('common.uploadFailed'))
   } finally {
     uploading.value = false
   }
@@ -394,13 +387,7 @@ const uploadCroppedImage = async (blob: Blob) => {
 
       message.success(t('common.avatarUpdateSuccess'))
       showCropModal.value = false
-    } else {
-      throw new Error('Upload response is invalid')
     }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Upload failed'
-    message.error(t('common.uploadFailed') + ': ' + errorMessage)
-    emit('upload-error', error instanceof Error ? error : new Error(errorMessage))
   } finally {
     // 清空文件输入
     if (fileInputRef.value) {

@@ -133,11 +133,12 @@
 
 <script lang="ts" setup>
 import {onMounted, ref} from 'vue'
-import {NIcon} from 'naive-ui'
+import {NIcon, useMessage} from 'naive-ui'
 import {WarningOutline} from '@vicons/ionicons5'
-import {getMessageInstance} from '@/utils/http'
+import {useI18n} from 'vue-i18n'
 
-const message = getMessageInstance()
+const {t} = useI18n()
+const message = useMessage()
 
 // 通知类型设置
 const emailNotifications = ref(true)
@@ -165,37 +166,28 @@ onMounted(() => {
   // 从本地存储或API获取已保存的设置
   const savedSettings = localStorage.getItem('notificationSettings')
   if (savedSettings) {
-    try {
-      const settings = JSON.parse(savedSettings)
-      emailNotifications.value = settings.emailNotifications ?? emailNotifications.value
-      pushNotifications.value = settings.pushNotifications ?? pushNotifications.value
-      soundEffects.value = settings.soundEffects ?? soundEffects.value
-      systemMessages.value = settings.systemMessages ?? systemMessages.value
-      systemUpdates.value = settings.systemUpdates ?? systemUpdates.value
-      marketingInfo.value = settings.marketingInfo ?? marketingInfo.value
-      notificationFrequency.value = settings.notificationFrequency || notificationFrequency.value
-    } catch (e) {
-    }
+    const settings = JSON.parse(savedSettings)
+    emailNotifications.value = settings.emailNotifications ?? emailNotifications.value
+    pushNotifications.value = settings.pushNotifications ?? pushNotifications.value
+    soundEffects.value = settings.soundEffects ?? soundEffects.value
+    systemMessages.value = settings.systemMessages ?? systemMessages.value
+    systemUpdates.value = settings.systemUpdates ?? systemUpdates.value
+    marketingInfo.value = settings.marketingInfo ?? marketingInfo.value
+    notificationFrequency.value = settings.notificationFrequency || notificationFrequency.value
   }
 })
 
 // 请求通知权限
 const requestNotificationPermission = async () => {
   if ('Notification' in window) {
-    try {
-      const permission = await Notification.requestPermission()
-      hasNotificationPermission.value = permission === 'granted'
+    const permission = await Notification.requestPermission()
+    hasNotificationPermission.value = permission === 'granted'
 
-      if (permission === 'granted') {
-        message.success('已获得通知权限')
-      } else {
-        message.error('未能获得通知权限')
-      }
-    } catch (error) {
-      message.error('请求通知权限时出错')
+    if (permission === 'granted') {
+      message.success('已获得通知权限')
+    } else {
     }
   } else {
-    message.error('您的浏览器不支持通知功能')
   }
 }
 

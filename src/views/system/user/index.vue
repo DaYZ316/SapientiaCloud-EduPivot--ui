@@ -309,21 +309,17 @@ async function updateUserStatus(row: userType.SysUserVO, value: boolean) {
   const newStatus = value ? StatusEnum.NORMAL : StatusEnum.DISABLED;
   const statusText = value ? 'enable' : 'disable';
 
-  try {
-    await userApi.updateUser({
-      id: row.id,
-      status: newStatus,
-      nickName: null,
-      email: null,
-      mobile: null
-    })
-    message.success(t(`settings.user.messages.${statusText}Success`))
+  await userApi.updateUser({
+    id: row.id,
+    status: newStatus,
+    nickName: null,
+    email: null,
+    mobile: null
+  })
+  message.success(t(`settings.user.messages.${statusText}Success`))
 
-    // 本地更新状态而不是重新获取整个列表
-    row.status = newStatus;
-  } catch (error) {
-    message.error(t(`settings.user.messages.${statusText}Fail`))
-  }
+  // 本地更新状态而不是重新获取整个列表
+  row.status = newStatus;
 }
 
 // 表格渲染函数
@@ -414,13 +410,9 @@ async function handleDelete(row: userType.SysUserVO) {
     positiveText: t('settings.user.actions.delete'),
     negativeText: t('common.cancel'),
     onPositiveClick: async () => {
-      try {
-        await userApi.removeUser(row.id)
-        message.success(t('settings.user.messages.deleteSuccess'))
-        pageTableRef.value?.fetchData()
-      } catch (error) {
-        message.error(t('settings.user.messages.deleteFail'))
-      }
+      await userApi.removeUser(row.id)
+      message.success(t('settings.user.messages.deleteSuccess'))
+      pageTableRef.value?.fetchData()
     }
   })
 }
@@ -437,16 +429,11 @@ function closeAddModal() {
 
 async function submitAddUser() {
   submitting.value = true
-  try {
-    await userApi.addSysUser(addUserForm)
-    message.success(t('settings.user.messages.addSuccess'))
-    closeAddModal()
-    pageTableRef.value?.fetchData()
-  } catch (error) {
-    message.error(t('settings.user.messages.addFail'))
-  } finally {
-    submitting.value = false
-  }
+  await userApi.addSysUser(addUserForm)
+  message.success(t('settings.user.messages.addSuccess'))
+  closeAddModal()
+  pageTableRef.value?.fetchData()
+  submitting.value = false
 }
 
 function handleAdd() {

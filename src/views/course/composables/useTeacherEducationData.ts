@@ -112,16 +112,10 @@ export function useTeacherEducationData(courseId?: string, externalData?: PieCha
         const id = targetCourseId || courseId
         if (!id) return
 
-        try {
-            isLoading.value = true
-            const response = await listAllTeacherByCourseId(id)
-            teachers.value = response.data || []
-        } catch (error) {
-            console.error('加载教师数据失败:', error)
-            teachers.value = []
-        } finally {
-            isLoading.value = false
-        }
+        isLoading.value = true
+        const response = await listAllTeacherByCourseId(id)
+        teachers.value = response.data || []
+        isLoading.value = false
     }
 
     // 刷新数据

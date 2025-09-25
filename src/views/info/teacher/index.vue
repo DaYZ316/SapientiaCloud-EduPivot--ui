@@ -324,13 +324,9 @@ async function handleDelete(row: teacherType.TeacherVO) {
     positiveText: t('teacher.deleteConfirm.confirmText'),
     negativeText: t('common.cancel'),
     onPositiveClick: async () => {
-      try {
-        await teacherApi.removeTeacherById(row.id!)
-        message.success(t('teacher.messages.deleteSuccess'))
-        pageTableRef.value?.fetchData()
-      } catch (error) {
-        message.error(t('teacher.messages.deleteFail'))
-      }
+      await teacherApi.removeTeacherById(row.id!)
+      message.success(t('teacher.messages.deleteSuccess'))
+      pageTableRef.value?.fetchData()
     }
   })
 }
@@ -349,16 +345,11 @@ function closeAddModal() {
 // 提交添加教师
 async function submitAddTeacher() {
   submitting.value = true
-  try {
-    await teacherApi.addTeacher(addTeacherForm)
-    message.success(t('teacher.messages.addSuccess'))
-    closeAddModal()
-    pageTableRef.value?.fetchData()
-  } catch (error) {
-    message.error(t('teacher.messages.addFail'))
-  } finally {
-    submitting.value = false
-  }
+  await teacherApi.addTeacher(addTeacherForm)
+  message.success(t('teacher.messages.addSuccess'))
+  closeAddModal()
+  pageTableRef.value?.fetchData()
+  submitting.value = false
 }
 
 // 新增教师
@@ -369,13 +360,9 @@ function handleAdd() {
 
 // 编辑教师
 async function handleEdit(row: teacherType.TeacherVO) {
-  try {
-    const teacherDetail = await teacherApi.getTeacherById(row.id!)
-    Object.assign(editTeacherForm, teacherDetail?.data)
-    showEditModal.value = true
-  } catch (error) {
-    message.error(t('teacher.messages.loadFail'))
-  }
+  const teacherDetail = await teacherApi.getTeacherById(row.id!)
+  Object.assign(editTeacherForm, teacherDetail?.data)
+  showEditModal.value = true
 }
 
 // 关闭编辑教师对话框
@@ -387,16 +374,11 @@ function closeEditModal() {
 // 提交编辑教师
 async function submitEditTeacher() {
   submitting.value = true
-  try {
-    await teacherApi.updateTeacher(editTeacherForm)
-    message.success(t('teacher.messages.updateSuccess'))
-    closeEditModal()
-    pageTableRef.value?.fetchData()
-  } catch (error) {
-    message.error(t('teacher.messages.updateFail'))
-  } finally {
-    submitting.value = false
-  }
+  await teacherApi.updateTeacher(editTeacherForm)
+  message.success(t('teacher.messages.updateSuccess'))
+  closeEditModal()
+  pageTableRef.value?.fetchData()
+  submitting.value = false
 }
 </script>
 

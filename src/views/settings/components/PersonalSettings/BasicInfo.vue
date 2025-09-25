@@ -74,7 +74,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, reactive, ref} from 'vue'
+import {computed, reactive, ref, watch} from 'vue'
 import type {FormInst, FormRules} from 'naive-ui'
 import {useUserStore} from '@/store'
 import {useI18n} from 'vue-i18n'
@@ -104,6 +104,13 @@ const initFormData = () => {
     personalForm.avatar = userInfo.value.avatar || ''
   }
 }
+
+// 监听用户信息变化，自动同步表单数据
+watch(userInfo, (newUserInfo) => {
+  if (newUserInfo) {
+    initFormData()
+  }
+}, {immediate: true, deep: true})
 
 // 表单验证规则
 const rules: FormRules = {
@@ -155,6 +162,8 @@ const savePersonalSettings = () => {
         if (res.success && res.data) {
           // 更新成功后刷新用户信息到store
           await userStore.refreshUserInfo()
+          // 重新初始化表单数据，确保显示最新信息
+          initFormData()
           message.success(t('settings.personal.updateSuccess'))
         } else {
           message.error(res.message || t('settings.personal.updateFail'))
@@ -182,7 +191,4 @@ defineExpose({
   resetForm,
   updateAvatar
 })
-
-// 初始化表单数据
-initFormData()
 </script>

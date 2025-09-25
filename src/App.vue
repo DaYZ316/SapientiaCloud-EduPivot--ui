@@ -76,7 +76,6 @@ onMounted(async () => {
       <n-dialog-provider ref="dialogProviderRef">
         <n-notification-provider ref="notificationProviderRef">
           <n-loading-bar-provider ref="loadingBarProviderRef">
-            <n-loading-bar/>
             <router-view/>
           </n-loading-bar-provider>
         </n-notification-provider>

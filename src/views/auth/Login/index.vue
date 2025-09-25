@@ -109,37 +109,31 @@ const rules: FormRules = {
 const handleLogin = async () => {
   if (!formRef.value || loading.value) return
 
-  try {
-    await formRef.value.validate()
+  await formRef.value.validate()
 
-    // 开始登录，设置loading状态
-    loading.value = true
+  // 开始登录，设置loading状态
+  loading.value = true
 
-    const success = await userStore.login(
-        loginForm.username || '',
-        loginForm.password || ''
-    )
+  const success = await userStore.login(
+      loginForm.username || '',
+      loginForm.password || ''
+  )
 
-    if (success) {
-      // 记住我功能
-      if (rememberMe.value) {
-        localStorage.setItem('rememberedUsername', loginForm.username || '')
-      } else {
-        localStorage.removeItem('rememberedUsername')
-      }
-
-      message.success(t('auth.loginSuccess'))
-      // 跳转到首页
-      router.push('/dashboard')
+  if (success) {
+    // 记住我功能
+    if (rememberMe.value) {
+      localStorage.setItem('rememberedUsername', loginForm.username || '')
     } else {
-      message.error(t('auth.loginFail'))
+      localStorage.removeItem('rememberedUsername')
     }
-  } catch (error: any) {
-    message.error(error?.message || t('auth.loginFail'))
-  } finally {
-    // 无论成功还是失败，都要关闭loading状态
-    loading.value = false
+
+    message.success(t('auth.loginSuccess'))
+    // 跳转到首页
+    router.push('/dashboard')
   }
+
+  // 无论成功还是失败，都要关闭loading状态
+  loading.value = false
 }
 
 // 初始化记住的用户名

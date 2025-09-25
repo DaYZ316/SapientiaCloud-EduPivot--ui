@@ -58,6 +58,8 @@ export default {
         unauthorizedTitle: 'Login Expired',
         unauthorizedContent: 'Your session has expired, please log in again',
         forbidden: 'Access forbidden',
+        forbiddenTitle: 'Access Forbidden',
+        forbiddenContent: 'You do not have permission to perform this action. Please contact the administrator for appropriate permissions.',
         notFound: 'Resource not found',
         serverError: 'Internal server error',
         requestFailed: 'Request failed',

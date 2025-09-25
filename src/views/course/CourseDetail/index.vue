@@ -40,6 +40,24 @@
           <!-- 使用CourseCard组件显示课程信息 -->
           <CourseCard :course-info="courseInfo"/>
 
+          <!-- 教师跑马灯和学生计数器容器 -->
+          <div class="teacher-student-container">
+            <!-- 学生和教师数量计数器 -->
+            <StudentTeacherCounter
+                :course-id="courseId"
+                :teacher-count="totalTeachers"
+                :teacher-loading="teacherDataLoading"
+            />
+
+            <!-- 教师跑马灯组件 -->
+            <TeacherMarquee
+                :course-id="courseId"
+                :loading="teacherDataLoading"
+                :main-teacher-id="courseInfo?.teacherId"
+                :teachers="courseTeachers"
+            />
+          </div>
+
           <!-- 学生加课趋势折线图 -->
           <div class="enrollment-chart-container">
             <EnrollmentChart :course-id="courseId" :course-type="courseInfo?.courseType"/>
@@ -49,7 +67,12 @@
           <div class="charts-container">
             <!-- 教师学历分布饼图 -->
             <div class="education-chart-container">
-              <TeacherEducationChart :course-id="courseId" :course-type="courseInfo?.courseType"/>
+              <TeacherEducationChart
+                  :course-id="courseId"
+                  :course-type="courseInfo?.courseType"
+                  :data="teacherEducationData"
+                  :loading="teacherDataLoading"
+              />
             </div>
 
             <!-- 学生状态分布饼图 -->
@@ -235,6 +258,8 @@ import {useMenuStore} from '@/store'
 import {createCourseDetailMenuOption} from '@/config/menu'
 import TeacherCard from '../components/TeacherCard/TeacherCard.vue'
 import CourseCard from '../components/CourseCard/CourseCard.vue'
+import TeacherMarquee from '../components/TeacherMarquee.vue'
+import StudentTeacherCounter from '../components/StudentTeacherCounter.vue'
 import ShareCourseDialog from '../components/ShareCourseDialog.vue'
 import TeacherEducationChart from '../components/TeacherEducationChart.vue'
 import StudentStatusChart from '../components/StudentStatusChart.vue'
@@ -246,6 +271,7 @@ import ImageUpload from '@/components/common/ImageUpload.vue'
 import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
 import Icon from '@/components/common/Icon.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import {useTeacherEducationData} from '../composables/useTeacherEducationData'
 
 // 路由和国际化
 const route = useRoute()
@@ -286,6 +312,14 @@ const teacherLoadingForForm = ref(false)
 const courseId = computed(() => route.params.courseId as string)
 const courseTypeOptions = computed(() => getCourseTypeOptions(t))
 const courseStatusOptions = computed(() => getCourseStatusOptions(t))
+
+// 统一管理教师数据，避免重复API调用
+const {
+  educationData: teacherEducationData,
+  teachers: courseTeachers,
+  totalTeachers,
+  isLoading: teacherDataLoading
+} = useTeacherEducationData(courseId.value)
 
 // 表单验证规则
 const formRules: FormRules = {
@@ -680,3 +714,4 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 @use './index.scss';
 </style>
+

@@ -338,12 +338,23 @@ export default {
         editFail: 'Failed to edit course'
     },
 
+    // Teacher marquee
+    teacherMarquee: {
+        noAssistantTeachers: 'No assistant teachers available'
+    },
+
     // Course function navigation
     navigation: {
         students: 'Students',
         forum: 'Forum',
         chapters: 'Chapters',
         classroom: 'Classroom'
+    },
+
+    // Counter
+    counter: {
+        students: 'Students',
+        teachers: 'Teachers'
     },
 
     // Coming soon notice

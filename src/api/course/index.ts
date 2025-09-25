@@ -12,7 +12,13 @@ export * from './courseTeacher'
 export * from './courseStudent'
 
 // 导出课程论坛相关API
-export * from './courseThread'
+export * from './courseForum'
+
+// 导出论坛帖子相关API
+export * from './forumPost'
+
+// 导出论坛回复相关API
+export * from './forumReply'
 
 // 导出课程章节管理相关API
 export * from './courseChapter'

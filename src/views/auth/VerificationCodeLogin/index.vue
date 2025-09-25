@@ -135,18 +135,13 @@ const sendVerificationCode = async () => {
     return
   }
 
-  try {
-    sendingCode.value = true
-    // TODO: 调用发送验证码API
-    // await sendVerificationCodeAPI(loginForm.phone)
+  sendingCode.value = true
+  // TODO: 调用发送验证码API
+  // await sendVerificationCodeAPI(loginForm.phone)
 
-    message.success(t('auth.verificationCodeSentSuccess'))
-    startCountdown()
-  } catch (error: any) {
-    message.error(error?.message || t('auth.sendVerificationCodeFailed'))
-  } finally {
-    sendingCode.value = false
-  }
+  message.success(t('auth.verificationCodeSentSuccess'))
+  startCountdown()
+  sendingCode.value = false
 }
 
 // 开始倒计时
@@ -167,31 +162,25 @@ const startCountdown = () => {
 const handleLogin = async () => {
   if (!formRef.value) return
 
-  try {
-    await formRef.value.validate()
+  await formRef.value.validate()
 
-    // 调用验证码登录API
-    const success = await userStore.loginWithVerificationCode(
-        loginForm.mobile || '',
-        loginForm.verificationCode || ''
-    )
+  // 调用验证码登录API
+  const success = await userStore.loginWithVerificationCode(
+      loginForm.mobile || '',
+      loginForm.verificationCode || ''
+  )
 
-    if (success) {
-      // 记住我功能
-      if (rememberMe.value) {
-        localStorage.setItem('rememberedPhone', loginForm.mobile || '')
-      } else {
-        localStorage.removeItem('rememberedPhone')
-      }
-
-      message.success(t('auth.verificationCodeLoginSuccess'))
-      // 跳转到首页
-      router.push('/dashboard')
+  if (success) {
+    // 记住我功能
+    if (rememberMe.value) {
+      localStorage.setItem('rememberedPhone', loginForm.mobile || '')
     } else {
-      message.error(t('auth.verificationCodeLoginFailed'))
+      localStorage.removeItem('rememberedPhone')
     }
-  } catch (error: any) {
-    message.error(error?.message || t('auth.verificationCodeLoginFailed'))
+
+    message.success(t('auth.verificationCodeLoginSuccess'))
+    // 跳转到首页
+    router.push('/dashboard')
   }
 }
 

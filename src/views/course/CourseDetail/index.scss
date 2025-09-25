@@ -44,6 +44,26 @@
           }
         }
 
+        .teacher-student-container {
+          display: flex;
+          align-items: stretch;
+          gap: 16px;
+          width: 100%;
+          margin-top: 16px;
+
+          // 计数器组件占据较小空间
+          :deep(.student-teacher-counter) {
+            flex: 0 0 280px;
+            min-width: 280px;
+          }
+
+          // 跑马灯组件占据剩余空间
+          :deep(.teacher-marquee-container) {
+            flex: 1;
+            min-width: 0;
+          }
+        }
+
         .enrollment-chart-container {
           margin-top: 24px;
           width: 100%;
@@ -166,6 +186,20 @@
             .student-status-chart-container {
               width: 100%;
               flex: none;
+            }
+          }
+
+          .teacher-student-container {
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 12px;
+
+            // 移动端时两个组件都占据全宽
+            :deep(.student-teacher-counter),
+            :deep(.teacher-marquee-container) {
+              flex: none;
+              width: 100%;
+              min-width: unset;
             }
           }
 

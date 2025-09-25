@@ -348,12 +348,23 @@ export default {
         editFail: '课程编辑失败'
     },
 
+    // 教师跑马灯
+    teacherMarquee: {
+        noAssistantTeachers: '暂无助教信息'
+    },
+
     // 课程功能导航
     navigation: {
         students: '学生',
         forum: '论坛',
         chapters: '章节',
         classroom: '课堂'
+    },
+
+    // 计数器
+    counter: {
+        students: '学生',
+        teachers: '教师'
     },
 
     // 暂未开放提示

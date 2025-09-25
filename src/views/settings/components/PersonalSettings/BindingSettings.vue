@@ -61,7 +61,6 @@
             </n-form-item>
           </n-grid-item>
           <n-grid-item :span="12">
-            <!-- 空占位，保持布局平衡 -->
           </n-grid-item>
         </n-grid>
 
@@ -370,21 +369,16 @@ const initForm = (form: any, info: any, getDefaultDTO: () => any) => {
 const initTeacherForm = () => initForm(teacherForm, teacherInfo, getDefaultTeacherAddDTO)
 const initStudentForm = () => initForm(studentForm, studentInfo, getDefaultStudentAddDTO)
 
-// 监听表单显示事件的通用函数
-const watchFormShow = (showRef: any, initFn: () => void) => {
+// 监听表单显示和信息变化的通用函数
+const watchFormAndInfo = (showRef: any, info: any, initFn: () => void) => {
+  // 监听表单显示事件
   watch(showRef, (newVal: boolean) => {
     if (newVal) {
       initFn()
     }
   })
-}
 
-// 监听教师和学生表单显示事件
-watchFormShow(showTeacherForm, initTeacherForm)
-watchFormShow(showStudentForm, initStudentForm)
-
-// 监听信息变化的通用函数
-const watchInfoChange = (info: any, showRef: any, initFn: () => void) => {
+  // 监听信息变化事件
   watch(info, (newVal) => {
     if (newVal) {
       showRef.value = true
@@ -393,9 +387,9 @@ const watchInfoChange = (info: any, showRef: any, initFn: () => void) => {
   }, {immediate: true})
 }
 
-// 监听教师和学生信息变化
-watchInfoChange(teacherInfo, showTeacherForm, initTeacherForm)
-watchInfoChange(studentInfo, showStudentForm, initStudentForm)
+// 监听教师和学生表单显示及信息变化
+watchFormAndInfo(showTeacherForm, teacherInfo, initTeacherForm)
+watchFormAndInfo(showStudentForm, studentInfo, initStudentForm)
 
 // 通用的保存信息函数
 const saveInfo = async (
@@ -405,7 +399,8 @@ const saveInfo = async (
     showRef: any,
     updateFn: (data: any) => Promise<any>,
     addFn: (data: any) => Promise<any>,
-    getDefaultDTO: () => any
+    getDefaultDTO: () => any,
+    initFn: () => void
 ) => {
   formRef.value?.validate(async (errors: any) => {
     if (!errors) {
@@ -426,6 +421,10 @@ const saveInfo = async (
           res = await updateFn(updateData)
           if (res.success && res.data) {
             message.success(t('settings.personal.updateSuccess'))
+            // 更新成功后刷新用户信息
+            await userStore.refreshUserInfo()
+            // 重新初始化表单数据
+            initFn()
           } else {
             message.error(res.message || t('settings.personal.updateFail'))
           }
@@ -437,6 +436,8 @@ const saveInfo = async (
             showRef.value = false
             // 更新用户角色信息
             await userStore.fetchUserRoleInfo(userInfo.value?.id || '')
+            // 重新初始化表单数据
+            initFn()
           } else {
             message.error(res.message || t('settings.personal.bindFail'))
           }
@@ -457,7 +458,8 @@ const saveTeacherInfo = () => saveInfo(
     showTeacherForm,
     updateTeacher,
     addTeacher,
-    getDefaultTeacherDTO
+    getDefaultTeacherDTO,
+    initTeacherForm
 )
 
 const saveStudentInfo = () => saveInfo(
@@ -467,18 +469,25 @@ const saveStudentInfo = () => saveInfo(
     showStudentForm,
     updateStudent,
     addStudent,
-    getDefaultStudentDTO
+    getDefaultStudentDTO,
+    initStudentForm
 )
 
 // 重置表单
 const resetTeacherForm = () => initTeacherForm()
 const resetStudentForm = () => initStudentForm()
 
+// 统一的初始化方法
+const initForms = () => {
+  initTeacherForm()
+  initStudentForm()
+}
 
 // 暴露方法给父组件
 defineExpose({
   resetTeacherForm,
-  resetStudentForm
+  resetStudentForm,
+  initForms
 })
 </script>
 

@@ -21,29 +21,16 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
+import {nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
 import type {EChartsOption} from 'echarts'
 import * as echarts from 'echarts'
 import {NIcon} from 'naive-ui'
 import {useThemeStore} from '@/store/modules/theme'
-import {EducationEnum, getEducationLabel} from '@/enum/teacher/educationEnum'
 import {useColorAlgorithm} from '@/composables/useColorAlgorithm'
-import {listAllTeacherByCourseId} from '@/api/course/courseTeacher'
-import type {TeacherVO} from '@/types/teacher'
 import {useCourseBorderColor} from '../composables/useCourseBorderColor'
+import {useTeacherEducationData, type PieChartDataItem} from '../composables/useTeacherEducationData'
 
-// 定义饼图数据项类型
-interface PieChartDataItem {
-  /** 数值 */
-  value: number
-  /** 名称 */
-  name: string
-  /** 颜色（可选） */
-  itemStyle?: {
-    color?: string
-  }
-}
 
 // 定义组件属性
 interface Props {
@@ -68,8 +55,6 @@ const props = withDefaults(defineProps<Props>(), {
 // 响应式数据
 const chartRef = ref<HTMLElement>()
 let chartInstance: echarts.ECharts | null = null
-const teachers = ref<TeacherVO[]>([])
-const isLoading = ref(false)
 
 // 国际化
 const {t, locale} = useI18n()
@@ -83,48 +68,11 @@ const {themeColorPalette} = useColorAlgorithm()
 // 使用课程边框颜色composable
 const {borderColor} = useCourseBorderColor(props.courseType)
 
-// 计算教师学历分布数据
-const educationData = computed(() => {
-  if (props.data.length > 0) {
-    return props.data
-  }
-
-  if (teachers.value.length === 0) {
-    return []
-  }
-
-  // 统计各学历人数
-  const educationCount = {
-    [EducationEnum.COLLEGE]: 0,
-    [EducationEnum.BACHELOR]: 0,
-    [EducationEnum.MASTER]: 0,
-    [EducationEnum.DOCTOR]: 0
-  }
-
-  teachers.value.forEach(teacher => {
-    if (teacher.education !== null && teacher.education !== undefined) {
-      educationCount[teacher.education as EducationEnum]++
-    }
-  })
-
-  // 转换为图表数据格式
-  const result: PieChartDataItem[] = []
-  Object.entries(educationCount).forEach(([education, count]) => {
-    if (count > 0) {
-      result.push({
-        value: count,
-        name: getEducationLabel(parseInt(education) as EducationEnum, locale.value === 'en-US')
-      })
-    }
-  })
-
-  return result
-})
-
-// 判断是否有数据
-const hasData = computed(() => {
-  return educationData.value.length > 0
-})
+// 使用教师学历分布数据composable
+const {
+  educationData,
+  hasData
+} = useTeacherEducationData(props.courseId, props.data)
 
 
 // 获取图表配置
@@ -241,20 +189,6 @@ function handleResize() {
   }
 }
 
-// 加载教师数据
-async function loadTeachers() {
-  if (!props.courseId) return
-
-  try {
-    isLoading.value = true
-    const response = await listAllTeacherByCourseId(props.courseId)
-    teachers.value = response.data || []
-  } catch (error) {
-    teachers.value = []
-  } finally {
-    isLoading.value = false
-  }
-}
 
 // 更新图表数据
 function updateChart() {
@@ -268,7 +202,7 @@ function updateChart() {
 watch(() => props.data, updateChart, {deep: true})
 
 // 监听教师数据变化
-watch(() => teachers.value, updateChart, {deep: true})
+watch(educationData, updateChart, {deep: true})
 
 // 监听数据状态变化
 watch(hasData, (newHasData) => {
@@ -284,12 +218,6 @@ watch(hasData, (newHasData) => {
   }
 })
 
-// 监听课程ID变化
-watch(() => props.courseId, (newCourseId) => {
-  if (newCourseId) {
-    loadTeachers()
-  }
-}, {immediate: true})
 
 // 监听语言变化
 watch(() => locale.value, () => {

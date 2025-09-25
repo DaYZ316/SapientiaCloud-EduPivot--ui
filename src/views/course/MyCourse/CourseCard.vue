@@ -1,5 +1,5 @@
 <template>
-  <div class="course-card" @click="handleCourseClick">
+  <div class="course-card">
     <!-- 课程封面图片 -->
     <div class="course-cover">
       <img
@@ -93,8 +93,6 @@ const props = defineProps<Props>()
 
 // Emits
 interface Emits {
-  (e: 'course-click', course: courseType.CourseVO): void
-
   (e: 'continue-course', course: courseType.CourseVO): void
 }
 
@@ -123,9 +121,6 @@ const handleImageError = (event: Event) => {
   img.src = defaultImage
 }
 
-
-// 处理课程卡片点击
-const handleCourseClick = () => emit('course-click', props.course)
 
 // 处理继续课程按钮点击
 const handleContinueCourse = () => {

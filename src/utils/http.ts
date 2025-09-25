@@ -282,16 +282,26 @@ class HttpClient {
      * 处理业务错误码
      */
     private handleErrorCode(code: number, message: string): void {
-        const {message: messageApi} = getDiscreteApi()
-        if (!messageApi) return
+        const {message: messageApi, notification: notificationApi} = getDiscreteApi()
 
         // 根据不同错误码处理
         switch (code) {
             case 403:
-                messageApi.error(i18n.global.t('common.http.forbidden'))
+                if (notificationApi) {
+                    notificationApi.warning({
+                        title: i18n.global.t('common.http.forbiddenTitle'),
+                        content: i18n.global.t('common.http.forbiddenContent'),
+                        duration: 5000,
+                        keepAliveOnHover: true
+                    })
+                } else if (messageApi) {
+                    messageApi.error(i18n.global.t('common.http.forbidden'))
+                }
                 break
             default:
-                messageApi.error(message)
+                if (messageApi) {
+                    messageApi.error(message)
+                }
         }
     }
 
@@ -299,8 +309,7 @@ class HttpClient {
      * 处理HTTP错误
      */
     private handleHttpError(error: any): void {
-        const {message: messageApi} = getDiscreteApi()
-        if (!messageApi) return
+        const {message: messageApi, notification: notificationApi} = getDiscreteApi()
 
         if (error.response) {
             const status = error.response.status
@@ -308,25 +317,44 @@ class HttpClient {
             // 根据HTTP状态码处理
             switch (status) {
                 case 400:
-                    messageApi.error(i18n.global.t('common.http.badRequest'))
+                    if (messageApi) {
+                        messageApi.error(i18n.global.t('common.http.badRequest'))
+                    }
                     break
                 case 401:
                     this.handleUnauthorized()
                     break
                 case 403:
-                    messageApi.error(i18n.global.t('common.http.forbidden'))
+                    if (notificationApi) {
+                        notificationApi.warning({
+                            title: i18n.global.t('common.http.forbiddenTitle'),
+                            content: i18n.global.t('common.http.forbiddenContent'),
+                            duration: 5000,
+                            keepAliveOnHover: true
+                        })
+                    } else if (messageApi) {
+                        messageApi.error(i18n.global.t('common.http.forbidden'))
+                    }
                     break
                 case 404:
-                    messageApi.error(i18n.global.t('common.http.notFound'))
+                    if (messageApi) {
+                        messageApi.error(i18n.global.t('common.http.notFound'))
+                    }
                     break
                 case 500:
-                    messageApi.error(i18n.global.t('common.http.serverError'))
+                    if (messageApi) {
+                        messageApi.error(i18n.global.t('common.http.serverError'))
+                    }
                     break
                 default:
-                    messageApi.error(`${i18n.global.t('common.http.requestFailed')}(${status})`)
+                    if (messageApi) {
+                        messageApi.error(`${i18n.global.t('common.http.requestFailed')}(${status})`)
+                    }
             }
         } else if (error.request) {
-            messageApi.error(i18n.global.t('common.http.timeout'))
+            if (messageApi) {
+                messageApi.error(i18n.global.t('common.http.timeout'))
+            }
         } else {
             messageApi.error(i18n.global.t('common.http.unknown'))
         }

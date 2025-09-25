@@ -186,19 +186,15 @@ const captchaText = ref(t('auth.sendVerificationCode'))
 const handleRegister = async () => {
   if (!registerFormRef.value) return
 
-  try {
-    await registerFormRef.value.validate()
+  await registerFormRef.value.validate()
 
-    // 这里调用注册API
-    // const success = await userStore.register(registerForm.value)
+  // 这里调用注册API
+  // const success = await userStore.register(registerForm.value)
 
-    // 模拟注册成功
-    message.success(t('auth.registerSuccess'))
-    // 注册成功后切换到登录页面
-    emit('switchToLogin')
-  } catch (error: any) {
-    message.error(t('auth.registerFailed'))
-  }
+  // 模拟注册成功
+  message.success(t('auth.registerSuccess'))
+  // 注册成功后切换到登录页面
+  emit('switchToLogin')
 }
 
 // 发送验证码

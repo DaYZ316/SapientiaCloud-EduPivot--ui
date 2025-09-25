@@ -24,14 +24,16 @@
 </template>
 
 <script lang="ts" setup>
-import {defineAsyncComponent} from 'vue'
+import {defineAsyncComponent, onMounted} from 'vue'
 import {useRouter} from 'vue-router'
 import {ArrowBackOutline} from '@vicons/ionicons5'
 import Icon from '@/components/common/Icon.vue'
 import {useI18n} from 'vue-i18n'
+import {useUserStore} from '@/store'
 
 const {t} = useI18n()
 const router = useRouter()
+const userStore = useUserStore()
 
 // 使用异步组件加载各个设置模块
 const PersonalSettings = defineAsyncComponent(() => import('./components/PersonalSettings/index.vue'))
@@ -41,6 +43,13 @@ const SystemSettings = defineAsyncComponent(() => import('./components/SystemSet
 function goBack() {
   router.back()
 }
+
+// 确保页面加载时用户信息已准备好
+onMounted(async () => {
+  if (!userStore.userInfo) {
+    await userStore.refreshUserInfo()
+  }
+})
 </script>
 
 <style lang="scss" scoped>

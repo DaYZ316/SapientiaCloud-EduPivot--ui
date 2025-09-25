@@ -85,78 +85,61 @@ export const useUserStore = defineStore('user', () => {
      * 登录
      */
     const login = async (username: string, password: string): Promise<boolean> => {
-        try {
-            const loginDTO = AuthApi.getDefaultSysUserLoginDTO()
-            loginDTO.username = username
-            loginDTO.password = password
+        const loginDTO = AuthApi.getDefaultSysUserLoginDTO()
+        loginDTO.username = username
+        loginDTO.password = password
 
-            const res = await AuthApi.login(loginDTO)
-            if (res.success && res.data) {
-                setLoginState(res.data.accessToken)
-                await refreshUserInfo()
-                return true
-            }
-            return false
-        } catch (error) {
-            return false
+        const res = await AuthApi.login(loginDTO)
+        if (res.success && res.data) {
+            setLoginState(res.data.accessToken)
+            await refreshUserInfo()
+            return true
         }
+        return false
     }
 
     const register = async (username: string, password: string, confirmPassword: string): Promise<boolean> => {
-        try {
-            const registerDTO = AuthApi.getDefaultSysUserRegisterDTO()
-            registerDTO.username = username
-            registerDTO.password = password
-            registerDTO.confirmPassword = confirmPassword
-            registerDTO.nickName = '默认用户'
+        const registerDTO = AuthApi.getDefaultSysUserRegisterDTO()
+        registerDTO.username = username
+        registerDTO.password = password
+        registerDTO.confirmPassword = confirmPassword
+        registerDTO.nickName = '默认用户'
 
-            const res = await AuthApi.register(registerDTO)
-            if (res.success && res.data) {
-                setLoginState(res.data.accessToken)
-                await refreshUserInfo()
-                return true
-            }
-            return false
-        } catch (error) {
-            return false
+        const res = await AuthApi.register(registerDTO)
+        if (res.success && res.data) {
+            setLoginState(res.data.accessToken)
+            await refreshUserInfo()
+            return true
         }
+        return false
     }
 
     /**
      * 验证码登录
      */
     const loginWithVerificationCode = async (mobile: string, verificationCode: string): Promise<boolean> => {
-        try {
-            const mobileLoginDTO = AuthApi.getDefaultSysUserMobileLoginDTO()
-            mobileLoginDTO.mobile = mobile
-            mobileLoginDTO.verificationCode = verificationCode
+        const mobileLoginDTO = AuthApi.getDefaultSysUserMobileLoginDTO()
+        mobileLoginDTO.mobile = mobile
+        mobileLoginDTO.verificationCode = verificationCode
 
-            const res = await AuthApi.mobileLogin(mobileLoginDTO)
-            if (res.success && res.data) {
-                setLoginState(res.data.accessToken)
-                await refreshUserInfo()
-                return true
-            }
-            return false
-        } catch (error) {
-            return false
+        const res = await AuthApi.mobileLogin(mobileLoginDTO)
+        if (res.success && res.data) {
+            setLoginState(res.data.accessToken)
+            await refreshUserInfo()
+            return true
         }
+        return false
     }
 
     /**
      * 登出
      */
     const logout = async (): Promise<void> => {
-        try {
-            if (token.value) {
-                await AuthApi.logout()
-            }
-            // 无论API是否成功，都清除本地状态
-            resetUserState()
-        } catch (error) {
-            resetUserState()
-            throw error
+        if (token.value) {
+            await AuthApi.logout()
         }
+        // 无论API是否成功，都清除本地状态
+        resetUserState()
     }
 
     /**
@@ -182,13 +165,8 @@ export const useUserStore = defineStore('user', () => {
     const validateToken = async (): Promise<boolean> => {
         if (!token.value) return false
 
-        try {
-            const res = await AuthApi.validateToken(token.value)
-            return (res.success && res.data)
-        } catch (error) {
-            resetUserState()
-            return false
-        }
+        const res = await AuthApi.validateToken(token.value)
+        return (res.success && res.data)
     }
 
     /**
@@ -196,32 +174,27 @@ export const useUserStore = defineStore('user', () => {
      * @param sysUserId 系统用户ID
      */
     const fetchUserRoleInfo = async (sysUserId: string): Promise<void> => {
-        try {
-            // 直接查询学生和教师信息，不依赖角色判断
-            // 这样可以确保在角色绑定完成后能立即获取到最新的信息
-            const tasks = [
-                StudentApi.getStudentByUserId(sysUserId),
-                TeacherApi.getTeacherByUserId(sysUserId)
-            ]
+        // 直接查询学生和教师信息，不依赖角色判断
+        // 这样可以确保在角色绑定完成后能立即获取到最新的信息
+        const tasks = [
+            StudentApi.getStudentByUserId(sysUserId),
+            TeacherApi.getTeacherByUserId(sysUserId)
+        ]
 
-            // 并行查询
-            const results = await Promise.allSettled(tasks)
+        // 并行查询
+        const results = await Promise.allSettled(tasks)
 
-            // 处理学生信息结果
-            const studentRes = results[0]
-            studentInfo.value = studentRes.status === 'fulfilled' &&
-            studentRes.value.success && studentRes.value.data ?
-                studentRes.value.data : null
+        // 处理学生信息结果
+        const studentRes = results[0]
+        studentInfo.value = studentRes.status === 'fulfilled' &&
+        studentRes.value.success && studentRes.value.data ?
+            studentRes.value.data : null
 
-            // 处理教师信息结果
-            const teacherRes = results[1]
-            teacherInfo.value = teacherRes.status === 'fulfilled' &&
-            teacherRes.value.success && teacherRes.value.data ?
-                teacherRes.value.data : null
-        } catch (error) {
-            studentInfo.value = null
-            teacherInfo.value = null
-        }
+        // 处理教师信息结果
+        const teacherRes = results[1]
+        teacherInfo.value = teacherRes.status === 'fulfilled' &&
+        teacherRes.value.success && teacherRes.value.data ?
+            teacherRes.value.data : null
     }
 
     /**
@@ -231,34 +204,30 @@ export const useUserStore = defineStore('user', () => {
     const refreshUserInfo = async (): Promise<boolean> => {
         if (!token.value) return false
 
-        try {
-            const res = await AuthApi.getUserInfo()
-            if (res.success && res.data) {
-                const userData = res.data
+        const res = await AuthApi.getUserInfo()
+        if (res.success && res.data) {
+            const userData = res.data
 
-                // 更新用户信息
-                userInfo.value = userData
+            // 更新用户信息
+            userInfo.value = userData
 
-                // 更新角色和权限
-                roles.value = userData.roles || []
+            // 更新角色和权限
+            roles.value = userData.roles || []
 
-                // 合并所有权限
-                const userPermissions: SysPermissionVO[] = [
-                    ...(userData.permissions || []),
-                    ...(userData.roles || []).flatMap((role: SysRoleVO) => role.permissions || [])
-                ]
+            // 合并所有权限
+            const userPermissions: SysPermissionVO[] = [
+                ...(userData.permissions || []),
+                ...(userData.roles || []).flatMap((role: SysRoleVO) => role.permissions || [])
+            ]
 
-                permissions.value = userPermissions
+            permissions.value = userPermissions
 
-                // 查询学生和教师信息
-                await fetchUserRoleInfo(userData.id)
+            // 查询学生和教师信息
+            await fetchUserRoleInfo(userData.id)
 
-                return true
-            }
-            return false
-        } catch (error) {
-            return false
+            return true
         }
+        return false
     }
 
     return {

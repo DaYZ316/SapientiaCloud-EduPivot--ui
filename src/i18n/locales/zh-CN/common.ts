@@ -58,6 +58,8 @@ export default {
         unauthorizedTitle: '登录已过期',
         unauthorizedContent: '您的登录已过期，请重新登录',
         forbidden: '权限不足',
+        forbiddenTitle: '权限不足',
+        forbiddenContent: '您没有权限执行此操作，请联系管理员获取相应权限',
         notFound: '请求资源不存在',
         serverError: '服务器内部错误',
         requestFailed: '请求失败',

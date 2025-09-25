@@ -17,7 +17,8 @@
         </div>
         <div class="user-info-brief">
           <h3>{{
-              userStore.studentInfo?.realName || userStore.teacherInfo?.realName || userInfo?.nickName || userInfo?.username
+            userStore.studentInfo?.realName || userStore.teacherInfo?.realName || userInfo?.nickName ||
+            userInfo?.username
             }}</h3>
           <n-tag v-for="role in userRoles" :key="role.id" class="role-tag" size="small">
             {{ role.roleName }}
@@ -45,7 +46,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, reactive, ref} from 'vue'
+import {computed, onMounted, reactive, ref, watch} from 'vue'
 import {useUserStore} from '@/store'
 import {useI18n} from 'vue-i18n'
 import {getDefaultSysUserProfileDTO} from '@/api/system/user'
@@ -64,22 +65,29 @@ const bindingSettingsRef = ref()
 const userInfo = computed(() => userStore.userInfo)
 const userRoles = computed(() => userStore.userInfo?.roles || [])
 
-
-// 表单数据
+// 表单数据（仅用于头像上传）
 const personalForm = reactive<SysUserProfileDTO>(getDefaultSysUserProfileDTO())
 
-// 初始化表单数据
-const initFormData = () => {
+// 初始化头像数据
+const initAvatarData = () => {
   if (userInfo.value) {
-    personalForm.username = userInfo.value.username || ''
-    personalForm.nickName = userInfo.value.nickName || ''
-    personalForm.email = userInfo.value.email || ''
-    personalForm.mobile = userInfo.value.mobile || ''
-    personalForm.gender = userInfo.value.gender || 0
     personalForm.avatar = userInfo.value.avatar || ''
   }
 }
 
+// 监听用户信息变化，自动同步头像数据
+watch(userInfo, (newUserInfo) => {
+  if (newUserInfo) {
+    initAvatarData()
+    // 同步更新子组件的数据
+    if (basicInfoRef.value) {
+      basicInfoRef.value.initFormData()
+    }
+    if (bindingSettingsRef.value) {
+      bindingSettingsRef.value.initForms()
+    }
+  }
+}, {immediate: true, deep: true})
 
 // 头像上传成功处理
 const handleAvatarUploadSuccess = async (url: string) => {
@@ -98,9 +106,13 @@ const handleAvatarUploadError = (error: Error) => {
   // 可以在这里添加错误处理逻辑
 }
 
-// 初始化表单数据
-onMounted(() => {
-  initFormData()
+// 初始化头像数据
+onMounted(async () => {
+  // 确保用户信息已加载
+  if (!userInfo.value) {
+    await userStore.refreshUserInfo()
+  }
+  initAvatarData()
 })
 </script>
 

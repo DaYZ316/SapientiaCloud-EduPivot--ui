@@ -46,7 +46,7 @@ export function getDefaultForumPostDTO(): ForumPostDTO {
  * @returns 添加结果
  */
 export function addForumPost(postData: ForumPostDTO) {
-    return http.post<ForumPostVO>('/course/forum/post', postData)
+    return http.post<ForumPostVO>('/course/post', postData)
 }
 
 /**
@@ -55,7 +55,7 @@ export function addForumPost(postData: ForumPostDTO) {
  * @returns 更新结果
  */
 export function updateForumPost(postData: ForumPostDTO) {
-    return http.put('/course/forum/post', postData)
+    return http.put('/course/post', postData)
 }
 
 /**
@@ -64,7 +64,7 @@ export function updateForumPost(postData: ForumPostDTO) {
  * @returns 删除结果
  */
 export function removeForumPostByIds(postIds: string[]) {
-    return http.delete('/course/forum/post/', {data: postIds})
+    return http.delete('/course/post/', {data: postIds})
 }
 
 /**
@@ -73,7 +73,7 @@ export function removeForumPostByIds(postIds: string[]) {
  * @returns 帖子信息
  */
 export function getForumPostById(id: string) {
-    return http.get<ForumPostVO>(`/course/forum/post/${id}`)
+    return http.get<ForumPostVO>(`/course/post/${id}`)
 }
 
 /**
@@ -82,7 +82,7 @@ export function getForumPostById(id: string) {
  * @returns 删除结果
  */
 export function removeForumPostById(id: string) {
-    return http.delete(`/course/forum/post/${id}`)
+    return http.delete(`/course/post/${id}`)
 }
 
 /**
@@ -92,7 +92,7 @@ export function removeForumPostById(id: string) {
  * @returns 设置结果
  */
 export function setPostEssence(postId: string, isEssence: boolean) {
-    return http.put(`/course/forum/post/${postId}/essence`, {isEssence})
+    return http.put(`/course/post/${postId}/essence`, {isEssence})
 }
 
 /**
@@ -101,7 +101,7 @@ export function setPostEssence(postId: string, isEssence: boolean) {
  * @returns 点赞结果
  */
 export function likePost(postId: string) {
-    return http.post(`/course/forum/post/${postId}/like`)
+    return http.post(`/course/post/${postId}/like`)
 }
 
 /**
@@ -110,7 +110,7 @@ export function likePost(postId: string) {
  * @returns 取消点赞结果
  */
 export function unlikePost(postId: string) {
-    return http.delete(`/course/forum/post/${postId}/like`)
+    return http.delete(`/course/post/${postId}/like`)
 }
 
 /**
@@ -120,7 +120,7 @@ export function unlikePost(postId: string) {
  * @returns 设置结果
  */
 export function setPostLock(postId: string, isLocked: boolean) {
-    return http.put(`/course/forum/post/${postId}/lock`, {isLocked})
+    return http.put(`/course/post/${postId}/lock`, {isLocked})
 }
 
 /**
@@ -129,7 +129,7 @@ export function setPostLock(postId: string, isLocked: boolean) {
  * @returns 分享结果
  */
 export function sharePost(postId: string) {
-    return http.post(`/course/forum/post/${postId}/share`)
+    return http.post(`/course/post/${postId}/share`)
 }
 
 /**
@@ -139,7 +139,7 @@ export function sharePost(postId: string) {
  * @returns 更新结果
  */
 export function updatePostStatus(postId: string, status: number) {
-    return http.put(`/course/forum/post/${postId}/status`, {status})
+    return http.put(`/course/post/${postId}/status`, {status})
 }
 
 /**
@@ -149,7 +149,7 @@ export function updatePostStatus(postId: string, status: number) {
  * @returns 设置结果
  */
 export function setPostTop(postId: string, isTop: boolean) {
-    return http.put(`/course/forum/post/${postId}/top`, {isTop})
+    return http.put(`/course/post/${postId}/top`, {isTop})
 }
 
 /**
@@ -158,7 +158,7 @@ export function setPostTop(postId: string, isTop: boolean) {
  * @returns 浏览结果
  */
 export function viewPost(postId: string) {
-    return http.post(`/course/forum/post/${postId}/view`)
+    return http.post(`/course/post/${postId}/view`)
 }
 
 /**
@@ -168,7 +168,7 @@ export function viewPost(postId: string) {
  * @returns 帖子列表
  */
 export function listForumPostByCourseId(courseId: string, params?: ForumPostQueryParams) {
-    return http.get<TableDataResult<ForumPostVO>>(`/course/${courseId}/posts`, params)
+    return http.get<TableDataResult<ForumPostVO>>(`/course/post/course/${courseId}`, params)
 }
 
 /**
@@ -178,7 +178,7 @@ export function listForumPostByCourseId(courseId: string, params?: ForumPostQuer
  * @returns 帖子列表
  */
 export function listForumPostByForumId(forumId: string, params?: ForumPostQueryParams) {
-    return http.get<TableDataResult<ForumPostVO>>(`/course/forum/${forumId}/posts`, params)
+    return http.get<TableDataResult<ForumPostVO>>(`/course/post/forum/${forumId}`, params)
 }
 
 /**
@@ -187,7 +187,7 @@ export function listForumPostByForumId(forumId: string, params?: ForumPostQueryP
  * @returns 热门帖子列表
  */
 export function getHotPosts(params?: ForumPostQueryParams) {
-    return http.get<ForumPostVO[]>('/course/forum/post/hot', params)
+    return http.get<ForumPostVO[]>('/course/post/hot', params)
 }
 
 /**
@@ -196,7 +196,7 @@ export function getHotPosts(params?: ForumPostQueryParams) {
  * @returns 最新帖子列表
  */
 export function getLatestPosts(params?: ForumPostQueryParams) {
-    return http.get<ForumPostVO[]>('/course/forum/post/latest', params)
+    return http.get<ForumPostVO[]>('/course/post/latest', params)
 }
 
 /**
@@ -205,5 +205,5 @@ export function getLatestPosts(params?: ForumPostQueryParams) {
  * @returns 分页帖子列表
  */
 export function listForumPost(params: ForumPostQueryParams) {
-    return http.get<TableDataResult<ForumPostVO>>('/course/forum/post/list', params)
+    return http.get<TableDataResult<ForumPostVO>>('/course/post/list', params)
 }

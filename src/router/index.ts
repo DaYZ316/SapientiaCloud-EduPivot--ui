@@ -122,36 +122,36 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
-                path: 'course/:courseId/students',
+                path: 'course/detail/:courseId/students',
                 name: 'CourseStudents',
-                component: () => import('@/views/course/CourseStudents/index.vue'),
+                component: () => import('@/views/course/CourseDetail/CourseStudents/index.vue'),
                 meta: {
                     title: '课程学生',
                     requiresAuth: true
                 }
             },
             {
-                path: 'course/:courseId/forum',
+                path: 'course/detail/:courseId/forum',
                 name: 'CourseForum',
-                component: () => import('@/views/course/CourseForum/index.vue'),
+                component: () => import('@/views/course/CourseDetail/CourseForum/index.vue'),
                 meta: {
                     title: '课程论坛',
                     requiresAuth: true
                 }
             },
             {
-                path: 'course/:courseId/chapters',
+                path: 'course/detail/:courseId/chapters',
                 name: 'CourseChapters',
-                component: () => import('@/views/course/CourseChapters/index.vue'),
+                component: () => import('@/views/course/CourseDetail/CourseChapters/index.vue'),
                 meta: {
                     title: '课程章节',
                     requiresAuth: true
                 }
             },
             {
-                path: 'course/:courseId/classroom',
+                path: 'course/detail/:courseId/classroom',
                 name: 'CourseClassroom',
-                component: () => import('@/views/course/CourseClassroom/index.vue'),
+                component: () => import('@/views/course/CourseDetail/CourseClassroom/index.vue'),
                 meta: {
                     title: '在线课堂',
                     requiresAuth: true

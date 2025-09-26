@@ -181,22 +181,25 @@ async function fetchData() {
   // 设置表格loading状态
   tableLoading.value = true
 
-  const queryParams = {
-    ...props.queryParams,
-    pageNum: pagination.pageNum,
-    pageSize: pagination.pageSize
-  }
+  try {
+    const queryParams = {
+      ...props.queryParams,
+      pageNum: pagination.pageNum,
+      pageSize: pagination.pageSize
+    }
 
-  const res = await props.apiFn(queryParams)
-  if (res) {
-    const {list, total} = parseResponse(res)
-    dataList.value = list
-    pagination.total = total
-    emits('update:data', list)
+    const res = await props.apiFn(queryParams)
+    if (res) {
+      const {list, total} = parseResponse(res)
+      dataList.value = list
+      pagination.total = total
+      emits('update:data', list)
+    }
     return res
+  } finally {
+    // 确保loading状态被清除
+    tableLoading.value = false
   }
-  // 确保loading状态被清除
-  tableLoading.value = false
 }
 
 function onPageChange(page: number): void {

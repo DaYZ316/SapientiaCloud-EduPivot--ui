@@ -1,9 +1,9 @@
 <template>
   <n-modal
       v-model:show="showModal"
-      :positive-text="$t('course.share.close')"
+      :positive-text="t('course.share.close')"
       :show-icon="false"
-      :title="$t('course.share.title')"
+      :title="t('course.share.title')"
       preset="dialog"
       style="width: 400px"
       @positive-click="handleClose"
@@ -30,7 +30,7 @@
           </div>
         </div>
         <div class="share-tips">
-          <span>{{ $t('course.share.shareTips') }}</span>
+          <span>{{ t('course.share.shareTips') }}</span>
         </div>
       </div>
     </div>

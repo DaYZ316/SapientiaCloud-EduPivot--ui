@@ -116,7 +116,7 @@ export function updateForumStatus(forumId: string, status: number) {
  * @returns 论坛列表
  */
 export function listCourseForumByCourseId(courseId: string) {
-    return http.get<CourseForumVO[]>(`/course/${courseId}/forums`)
+    return http.get<CourseForumVO[]>(`/course/forum/course/${courseId}`)
 }
 
 /**

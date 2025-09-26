@@ -2,10 +2,10 @@
   <div class="breadcrumb-container">
     <n-breadcrumb class="breadcrumb" size="large">
       <n-breadcrumb-item>
-        <router-link to="/">{{ $t('course.home') }}</router-link>
+        <router-link to="/">{{ t('course.home') }}</router-link>
       </n-breadcrumb-item>
       <n-breadcrumb-item>
-        <router-link to="/course/my-courses">{{ $t('course.myCourses') }}</router-link>
+        <router-link to="/course/my-courses">{{ t('course.myCourses') }}</router-link>
       </n-breadcrumb-item>
       <n-breadcrumb-item v-if="courseInfo">
         <router-link v-if="showCourseLink" :to="`/course/detail/${courseId}`">
@@ -28,6 +28,7 @@
 <script lang="ts" setup>
 import {computed} from 'vue'
 import {useRoute} from 'vue-router'
+import {useI18n} from 'vue-i18n'
 import type {CourseVO} from '@/types/course'
 
 // 定义组件属性
@@ -45,6 +46,7 @@ withDefaults(defineProps<Props>(), {
 
 // 路由和国际化
 const route = useRoute()
+const {t} = useI18n()
 
 // 计算属性
 const courseId = computed(() => route.params.courseId as string)

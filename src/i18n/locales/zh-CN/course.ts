@@ -374,5 +374,56 @@ export default {
         forumDescription: '课程论坛功能正在开发中，敬请期待！',
         chaptersDescription: '课程章节功能正在开发中，敬请期待！',
         classroomDescription: '在线课堂功能正在开发中，敬请期待！'
+    },
+
+    // 章节管理
+    chapters: {
+        title: '课程章节',
+        searchPlaceholder: '请输入章节名称',
+        addChapter: '添加章节',
+        addFirstChapter: '添加第一个章节',
+        noChapters: '暂无章节内容',
+        chapterNumber: '章节序号',
+        loadError: '章节加载失败',
+        deleteConfirmContent: '确定要删除章节"{chapterName}"吗？此操作不可恢复。',
+        deleteSuccess: '章节删除成功',
+        deleteError: '章节删除失败',
+        addChapterNotImplemented: '添加章节功能暂未实现',
+        viewChapterNotImplemented: '查看章节详情功能暂未实现',
+        editChapterNotImplemented: '编辑章节功能暂未实现',
+        likeSuccess: '点赞成功',
+        likeError: '点赞失败',
+        unlikeSuccess: '取消点赞成功',
+        unlikeError: '取消点赞失败',
+        statusUpdateSuccess: '章节状态更新成功',
+        statusUpdateError: '章节状态更新失败',
+        sortUpdateSuccess: '章节排序更新成功',
+        sortUpdateError: '章节排序更新失败',
+        batchSortUpdateSuccess: '批量排序更新成功',
+        batchSortUpdateError: '批量排序更新失败',
+        form: {
+            chapterName: '章节名称',
+            chapterNamePlaceholder: '请输入章节名称',
+            parentChapterId: '父章节',
+            parentChapterIdPlaceholder: '请选择父章节（可选）',
+            chapterNumber: '章节序号',
+            chapterNumberPlaceholder: '请输入章节序号（数字）',
+            sortOrder: '排序',
+            status: '状态',
+            statusPlaceholder: '请选择状态',
+            description: '章节描述',
+            descriptionPlaceholder: '请输入章节描述（可选）'
+        },
+        validation: {
+            chapterNameRequired: '请输入章节名称',
+            statusRequired: '请选择状态'
+        }
+    },
+
+    // 章节状态
+    chapterStatus: {
+        DRAFT: '草稿',
+        PUBLISHED: '发布',
+        OFFLINE: '下架'
     }
 }

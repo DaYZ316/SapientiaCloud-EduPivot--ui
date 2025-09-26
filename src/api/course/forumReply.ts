@@ -42,7 +42,7 @@ export function getDefaultForumReplyDTO(): ForumReplyDTO {
  * @returns 添加结果
  */
 export function addForumReply(replyData: ForumReplyDTO) {
-    return http.post<ForumReplyVO>('/course/forum/reply', replyData)
+    return http.post<ForumReplyVO>('/course/reply', replyData)
 }
 
 /**
@@ -51,7 +51,7 @@ export function addForumReply(replyData: ForumReplyDTO) {
  * @returns 更新结果
  */
 export function updateForumReply(replyData: ForumReplyDTO) {
-    return http.put('/course/forum/reply', replyData)
+    return http.put('/course/reply', replyData)
 }
 
 /**
@@ -60,7 +60,7 @@ export function updateForumReply(replyData: ForumReplyDTO) {
  * @returns 删除结果
  */
 export function removeForumReplyByIds(replyIds: string[]) {
-    return http.delete('/course/forum/reply/', {data: replyIds})
+    return http.delete('/course/reply/', {data: replyIds})
 }
 
 /**
@@ -69,7 +69,7 @@ export function removeForumReplyByIds(replyIds: string[]) {
  * @returns 回复信息
  */
 export function getForumReplyById(id: string) {
-    return http.get<ForumReplyVO>(`/course/forum/reply/${id}`)
+    return http.get<ForumReplyVO>(`/course/reply/${id}`)
 }
 
 /**
@@ -78,7 +78,7 @@ export function getForumReplyById(id: string) {
  * @returns 删除结果
  */
 export function removeForumReplyById(id: string) {
-    return http.delete(`/course/forum/reply/${id}`)
+    return http.delete(`/course/reply/${id}`)
 }
 
 /**
@@ -87,7 +87,7 @@ export function removeForumReplyById(id: string) {
  * @returns 采纳结果
  */
 export function acceptReply(replyId: string) {
-    return http.put(`/course/forum/reply/${replyId}/accept`)
+    return http.put(`/course/reply/${replyId}/accept`)
 }
 
 /**
@@ -96,7 +96,7 @@ export function acceptReply(replyId: string) {
  * @returns 取消采纳结果
  */
 export function unacceptReply(replyId: string) {
-    return http.put(`/course/forum/reply/${replyId}/unaccept`)
+    return http.put(`/course/reply/${replyId}/unaccept`)
 }
 
 /**
@@ -105,7 +105,7 @@ export function unacceptReply(replyId: string) {
  * @returns 点赞结果
  */
 export function likeReply(replyId: string) {
-    return http.post(`/course/forum/reply/${replyId}/like`)
+    return http.post(`/course/reply/${replyId}/like`)
 }
 
 /**
@@ -114,7 +114,7 @@ export function likeReply(replyId: string) {
  * @returns 取消点赞结果
  */
 export function unlikeReply(replyId: string) {
-    return http.delete(`/course/forum/reply/${replyId}/like`)
+    return http.delete(`/course/reply/${replyId}/like`)
 }
 
 /**
@@ -123,7 +123,7 @@ export function unlikeReply(replyId: string) {
  * @returns 统计信息
  */
 export function getReplyStatistics(replyId: string) {
-    return http.get(`/course/forum/reply/${replyId}/statistics`)
+    return http.get(`/course/reply/${replyId}/statistics`)
 }
 
 /**
@@ -133,7 +133,7 @@ export function getReplyStatistics(replyId: string) {
  * @returns 更新结果
  */
 export function updateReplyStatus(replyId: string, status: number) {
-    return http.put(`/course/forum/reply/${replyId}/status`, {status})
+    return http.put(`/course/reply/${replyId}/status`, {status})
 }
 
 /**
@@ -142,7 +142,7 @@ export function updateReplyStatus(replyId: string, status: number) {
  * @returns 回复树
  */
 export function getReplyTree(postId: string) {
-    return http.get<ForumReplyVO[]>(`/course/forum/post/${postId}/replies/tree`)
+    return http.get<ForumReplyVO[]>(`/course/reply/${postId}/tree`)
 }
 
 /**
@@ -152,7 +152,7 @@ export function getReplyTree(postId: string) {
  * @returns 回复列表
  */
 export function listForumReplyByCourseId(courseId: string, params?: ForumReplyQueryParams) {
-    return http.get<TableDataResult<ForumReplyVO>>(`/course/${courseId}/replies`, params)
+    return http.get<TableDataResult<ForumReplyVO>>(`/course/reply/course/${courseId}`, params)
 }
 
 /**
@@ -162,7 +162,7 @@ export function listForumReplyByCourseId(courseId: string, params?: ForumReplyQu
  * @returns 回复列表
  */
 export function listForumReplyByForumId(forumId: string, params?: ForumReplyQueryParams) {
-    return http.get<TableDataResult<ForumReplyVO>>(`/course/forum/${forumId}/replies`, params)
+    return http.get<TableDataResult<ForumReplyVO>>(`/course/reply/forum/${forumId}`, params)
 }
 
 /**
@@ -171,7 +171,7 @@ export function listForumReplyByForumId(forumId: string, params?: ForumReplyQuer
  * @returns 分页回复列表
  */
 export function listForumReply(params: ForumReplyQueryParams) {
-    return http.get<TableDataResult<ForumReplyVO>>('/course/forum/reply/list', params)
+    return http.get<TableDataResult<ForumReplyVO>>('/course/reply/list', params)
 }
 
 /**
@@ -181,5 +181,5 @@ export function listForumReply(params: ForumReplyQueryParams) {
  * @returns 回复列表
  */
 export function listForumReplyByPostId(postId: string, params?: ForumReplyQueryParams) {
-    return http.get<TableDataResult<ForumReplyVO>>(`/course/forum/post/${postId}/replies`, params)
+    return http.get<TableDataResult<ForumReplyVO>>(`/course/reply/post/${postId}`, params)
 }

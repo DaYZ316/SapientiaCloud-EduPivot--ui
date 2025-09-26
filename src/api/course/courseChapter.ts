@@ -33,7 +33,7 @@ export function getDefaultCourseChapterDTO(): CourseChapterDTO {
         videoUrl: null,
         videoDuration: null,
         attachmentUrls: null,
-        sortOrder: null,
+        sortOrder: 0,
         status: null
     }
 }
@@ -117,7 +117,7 @@ export function updateChapterSortOrder(chapterId: string, sortOrder: number) {
  * @returns 更新结果
  */
 export function batchUpdateChapterSortOrder(chapterSortData: Array<{ id: string, sortOrder: number }>) {
-    return http.put('/course/chapter/batch-sort', chapterSortData)
+    return http.put('/course/chapter/batch/sort', chapterSortData)
 }
 
 /**
@@ -155,7 +155,7 @@ export function viewChapter(chapterId: string) {
  * @returns 章节列表
  */
 export function listCourseChapterByCourseId(courseId: string, params?: CourseChapterQueryParams) {
-    return http.get<TableDataResult<CourseChapterVO>>(`/course/${courseId}/chapters`, params)
+    return http.get<TableDataResult<CourseChapterVO>>(`/course/chapter/course/${courseId}`, params)
 }
 
 /**
@@ -163,8 +163,8 @@ export function listCourseChapterByCourseId(courseId: string, params?: CourseCha
  * @param courseId 课程ID
  * @returns 章节树
  */
-export function getCourseChapterTree(courseId: string) {
-    return http.get<CourseChapterVO[]>(`/course/${courseId}/chapters/tree`)
+export function listCourseChapterTree(courseId: string) {
+    return http.get<CourseChapterVO[]>(`/course/chapter/course/${courseId}/tree`)
 }
 
 /**

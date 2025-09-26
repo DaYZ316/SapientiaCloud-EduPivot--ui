@@ -27,7 +27,7 @@
     <!-- 加载状态 -->
     <LoadingSpinner
         v-if="loading"
-        :title="$t('course.messages.loading')"
+        :title="t('course.messages.loading')"
         min-height="400px"
         size="large"
     />
@@ -86,7 +86,7 @@
         <div class="teacher-section">
           <LoadingSpinner
               v-if="teacherLoading"
-              :title="$t('course.messages.loadingTeacher')"
+              :title="t('course.messages.loadingTeacher')"
               min-height="200px"
               size="medium"
           />

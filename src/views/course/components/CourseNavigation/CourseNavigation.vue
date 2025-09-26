@@ -6,14 +6,14 @@
             block
             class="nav-button"
             size="large"
-            @click="handleNavigation('students')"
+            @click="handleNavigation('chapters')"
         >
           <template #icon>
             <n-icon>
-              <PeopleOutline/>
+              <LibraryOutline/>
             </n-icon>
           </template>
-          {{ $t('course.navigation.students') }}
+          {{ $t('course.navigation.chapters') }}
         </n-button>
 
         <n-button
@@ -24,7 +24,7 @@
         >
           <template #icon>
             <n-icon>
-              <ChatbubblesOutline/>
+              <ChatbubbleOutline/>
             </n-icon>
           </template>
           {{ $t('course.navigation.forum') }}
@@ -34,14 +34,14 @@
             block
             class="nav-button"
             size="large"
-            @click="handleNavigation('chapters')"
+            @click="handleNavigation('students')"
         >
           <template #icon>
             <n-icon>
-              <LibraryOutline/>
+              <PeopleOutline/>
             </n-icon>
           </template>
-          {{ $t('course.navigation.chapters') }}
+          {{ $t('course.navigation.students') }}
         </n-button>
 
         <n-button
@@ -64,8 +64,7 @@
 
 <script lang="ts" setup>
 import {useRouter} from 'vue-router'
-import {useMessage} from 'naive-ui'
-import {ChatbubblesOutline, LibraryOutline, PeopleOutline, SchoolOutline} from '@vicons/ionicons5'
+import {ChatbubbleOutline, LibraryOutline, PeopleOutline, SchoolOutline} from '@vicons/ionicons5'
 
 // 定义props
 interface Props {
@@ -74,9 +73,8 @@ interface Props {
 
 const props = defineProps<Props>()
 
-// 路由和国际化
+// 路由
 const router = useRouter()
-const message = useMessage()
 
 // 处理课程功能导航
 const handleNavigation = (type: string) => {
@@ -87,16 +85,16 @@ const handleNavigation = (type: string) => {
 
   switch (type) {
     case 'students':
-      router.push(`/course/${courseIdValue}/students`)
+      router.push(`/course/detail/${courseIdValue}/students`)
       break
     case 'forum':
-      router.push(`/course/${courseIdValue}/forum`)
+      router.push(`/course/detail/${courseIdValue}/forum`)
       break
     case 'chapters':
-      router.push(`/course/${courseIdValue}/chapters`)
+      router.push(`/course/detail/${courseIdValue}/chapters`)
       break
     case 'classroom':
-      router.push(`/course/${courseIdValue}/classroom`)
+      router.push(`/course/detail/${courseIdValue}/classroom`)
       break
     default:
       break

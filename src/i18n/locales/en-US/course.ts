@@ -364,5 +364,56 @@ export default {
         forumDescription: 'Course forum feature is under development, stay tuned!',
         chaptersDescription: 'Course chapters feature is under development, stay tuned!',
         classroomDescription: 'Online classroom feature is under development, stay tuned!'
+    },
+
+    // Chapter management
+    chapters: {
+        title: 'Course Chapters',
+        searchPlaceholder: 'Please enter chapter name',
+        addChapter: 'Add Chapter',
+        addFirstChapter: 'Add First Chapter',
+        noChapters: 'No chapters available',
+        chapterNumber: 'Chapter Number',
+        loadError: 'Failed to load chapters',
+        deleteConfirmContent: 'Are you sure you want to delete chapter "{chapterName}"? This action cannot be undone.',
+        deleteSuccess: 'Chapter deleted successfully',
+        deleteError: 'Failed to delete chapter',
+        addChapterNotImplemented: 'Add chapter feature not implemented yet',
+        viewChapterNotImplemented: 'View chapter details feature not implemented yet',
+        editChapterNotImplemented: 'Edit chapter feature not implemented yet',
+        likeSuccess: 'Liked successfully',
+        likeError: 'Failed to like',
+        unlikeSuccess: 'Unliked successfully',
+        unlikeError: 'Failed to unlike',
+        statusUpdateSuccess: 'Chapter status updated successfully',
+        statusUpdateError: 'Failed to update chapter status',
+        sortUpdateSuccess: 'Chapter sort updated successfully',
+        sortUpdateError: 'Failed to update chapter sort',
+        batchSortUpdateSuccess: 'Batch sort updated successfully',
+        batchSortUpdateError: 'Failed to update batch sort',
+        form: {
+            chapterName: 'Chapter Name',
+            chapterNamePlaceholder: 'Please enter chapter name',
+            parentChapterId: 'Parent Chapter',
+            parentChapterIdPlaceholder: 'Please select parent chapter (optional)',
+            chapterNumber: 'Chapter Number',
+            chapterNumberPlaceholder: 'Please enter chapter number (numeric)',
+            sortOrder: 'Sort',
+            status: 'Status',
+            statusPlaceholder: 'Please select status',
+            description: 'Description',
+            descriptionPlaceholder: 'Please enter description (optional)'
+        },
+        validation: {
+            chapterNameRequired: 'Please enter chapter name',
+            statusRequired: 'Please select status'
+        }
+    },
+
+    // Chapter status
+    chapterStatus: {
+        DRAFT: 'Draft',
+        PUBLISHED: 'Published',
+        OFFLINE: 'Offline'
     }
 }

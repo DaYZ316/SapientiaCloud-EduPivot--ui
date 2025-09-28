@@ -369,12 +369,18 @@ export default {
     // Chapter management
     chapters: {
         title: 'Course Chapters',
+        searchLabel: 'Chapter Name',
         searchPlaceholder: 'Please enter chapter name',
         addChapter: 'Add Chapter',
-        addFirstChapter: 'Add First Chapter',
+        draft: 'Draft',
+        published: 'Published',
+        draftChapters: 'No draft chapters available',
+        publishedChapters: 'No published chapters available',
         noChapters: 'No chapters available',
-        chapterNumber: 'Chapter Number',
         loadError: 'Failed to load chapters',
+        loadCourseInfoFailed: 'Failed to load course information',
+        loadDraftChaptersFailed: 'Failed to load draft chapters',
+        loadPublishedChaptersFailed: 'Failed to load published chapters',
         deleteConfirmContent: 'Are you sure you want to delete chapter "{chapterName}"? This action cannot be undone.',
         deleteSuccess: 'Chapter deleted successfully',
         deleteError: 'Failed to delete chapter',
@@ -391,23 +397,51 @@ export default {
         sortUpdateError: 'Failed to update chapter sort',
         batchSortUpdateSuccess: 'Batch sort updated successfully',
         batchSortUpdateError: 'Failed to update batch sort',
+        actions: {
+            addChapter: 'Add Chapter',
+            viewChapter: 'View Chapter',
+            editChapter: 'Edit Chapter',
+            deleteChapter: 'Delete Chapter',
+            likeChapter: 'Like',
+            unlikeChapter: 'Unlike'
+        },
         form: {
             chapterName: 'Chapter Name',
             chapterNamePlaceholder: 'Please enter chapter name',
             parentChapterId: 'Parent Chapter',
             parentChapterIdPlaceholder: 'Please select parent chapter (optional)',
-            chapterNumber: 'Chapter Number',
-            chapterNumberPlaceholder: 'Please enter chapter number (numeric)',
             sortOrder: 'Sort',
-            status: 'Status',
-            statusPlaceholder: 'Please select status',
             description: 'Description',
-            descriptionPlaceholder: 'Please enter description (optional)'
+            descriptionPlaceholder: 'Please enter description (optional)',
+            content: 'Chapter Content',
+            contentPlaceholder: 'Please enter chapter content',
+            sortOrderPlaceholder: 'Please enter sort order (0-9999)'
         },
         validation: {
             chapterNameRequired: 'Please enter chapter name',
-            statusRequired: 'Please select status'
-        }
+            chapterNameLength: 'Chapter name should be between 1-100 characters',
+            descriptionLength: 'Description length cannot exceed 500 characters',
+            sortOrderRange: 'Sort order should be between 0-9999'
+        },
+        selectChapterToView: 'Please select a chapter to view details',
+        chapterOrder: 'Chapter {order}',
+        description: 'Chapter Description',
+        content: 'Chapter Content',
+        editChapter: 'Edit Chapter',
+        deleteChapter: 'Delete Chapter',
+        deleteChapterNotImplemented: 'Delete chapter feature not implemented yet',
+        status: {
+            published: 'Published',
+            draft: 'Draft',
+            archived: 'Archived',
+            unknown: 'Unknown Status'
+        },
+        statusDraft: 'Draft',
+        statusPublished: 'Published',
+        addSuccess: 'Chapter added successfully',
+        addFailed: 'Failed to add chapter',
+        publish: 'Publish',
+        saveDraft: 'Save Draft'
     },
 
     // Chapter status

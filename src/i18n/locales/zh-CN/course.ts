@@ -231,14 +231,12 @@ export default {
         noDescription: '暂无课程描述',
         noChapters: '暂无章节内容',
         noThreads: '暂无论坛帖子',
-        noStudents: '暂无选课学生',
         unknownTeacher: '未知教师',
         chapters: '课程章节',
         forum: '课程论坛',
         courseInfo: '课程信息',
         basicInfo: '基本信息',
         quickActions: '快速操作',
-        addChapter: '添加章节',
         createThread: '发布帖子',
         view: '查看',
         pinned: '置顶',
@@ -282,8 +280,7 @@ export default {
         teacherInfo: '教师信息',
         mainTeacher: '主讲教师',
         startCourse: '开始学习',
-        courseSuspended: '课程已停课',
-        loadError: '课程信息加载失败'
+        courseSuspended: '课程已停课'
     },
 
     // 教师信息
@@ -363,7 +360,6 @@ export default {
 
     // 计数器
     counter: {
-        students: '学生',
         teachers: '教师'
     },
 
@@ -379,12 +375,17 @@ export default {
     // 章节管理
     chapters: {
         title: '课程章节',
+        searchLabel: '章节名称',
         searchPlaceholder: '请输入章节名称',
         addChapter: '添加章节',
-        addFirstChapter: '添加第一个章节',
-        noChapters: '暂无章节内容',
-        chapterNumber: '章节序号',
+        draft: '草稿',
+        published: '已发布',
+        draftChapters: '暂无草稿章节',
+        publishedChapters: '暂无已发布章节',
         loadError: '章节加载失败',
+        loadCourseInfoFailed: '加载课程信息失败',
+        loadDraftChaptersFailed: '加载草稿章节失败',
+        loadPublishedChaptersFailed: '加载已发布章节失败',
         deleteConfirmContent: '确定要删除章节"{chapterName}"吗？此操作不可恢复。',
         deleteSuccess: '章节删除成功',
         deleteError: '章节删除失败',
@@ -401,23 +402,51 @@ export default {
         sortUpdateError: '章节排序更新失败',
         batchSortUpdateSuccess: '批量排序更新成功',
         batchSortUpdateError: '批量排序更新失败',
+        actions: {
+            addChapter: '添加章节',
+            viewChapter: '查看章节',
+            editChapter: '编辑章节',
+            deleteChapter: '删除章节',
+            likeChapter: '点赞',
+            unlikeChapter: '取消点赞'
+        },
         form: {
             chapterName: '章节名称',
             chapterNamePlaceholder: '请输入章节名称',
             parentChapterId: '父章节',
             parentChapterIdPlaceholder: '请选择父章节（可选）',
-            chapterNumber: '章节序号',
-            chapterNumberPlaceholder: '请输入章节序号（数字）',
             sortOrder: '排序',
-            status: '状态',
-            statusPlaceholder: '请选择状态',
             description: '章节描述',
-            descriptionPlaceholder: '请输入章节描述（可选）'
+            descriptionPlaceholder: '请输入章节描述（可选）',
+            content: '章节内容',
+            contentPlaceholder: '请输入章节内容',
+            sortOrderPlaceholder: '请输入排序值（0-9999）'
         },
         validation: {
             chapterNameRequired: '请输入章节名称',
-            statusRequired: '请选择状态'
-        }
+            chapterNameLength: '章节名称长度应在1-100个字符之间',
+            descriptionLength: '章节描述长度不能超过500个字符',
+            sortOrderRange: '排序值应在0-9999之间'
+        },
+        selectChapterToView: '请选择章节查看详情',
+        chapterOrder: '第{order}章',
+        description: '章节描述',
+        content: '章节内容',
+        editChapter: '编辑章节',
+        deleteChapter: '删除章节',
+        deleteChapterNotImplemented: '删除章节功能暂未实现',
+        status: {
+            published: '已发布',
+            draft: '草稿',
+            archived: '已归档',
+            unknown: '未知状态'
+        },
+        statusDraft: '草稿',
+        statusPublished: '已发布',
+        addSuccess: '章节添加成功',
+        addFailed: '章节添加失败',
+        publish: '发布',
+        saveDraft: '保存草稿'
     },
 
     // 章节状态

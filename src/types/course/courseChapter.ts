@@ -1,16 +1,47 @@
 /**
  * 课程章节数据传输对象
- * 用于章节的新增和更新操作
+ * 用于章节更新操作
  */
 export interface CourseChapterDTO {
     /** 章节ID，更新时必须提供 */
     id?: string | null
     /** 所属课程ID */
     courseId: string | null
+    /** 创建教师ID */
+    teacherId: string | null
     /** 章节名称 */
     chapterName: string | null
-    /** 章节序号 */
-    chapterNumber?: number | null
+    /** 父章节ID */
+    parentChapterId?: string | null
+    /** 章节描述 */
+    description?: string | null
+    /** 章节内容 */
+    content?: string | null
+    /** 视频资源URL */
+    videoUrl?: string | null
+    /** 视频时长(秒) */
+    videoDuration?: number | null
+    /** 附件URL列表 */
+    attachmentUrls?: string[] | null
+    /** 排序权重 */
+    sortOrder?: number | null
+    /** 章节状态 (0=草稿, 1=发布, 2=下架) */
+    status?: number | null
+}
+
+/**
+ * 课程章节数据传输对象
+ * 用于章节的新增操作
+ */
+export interface CourseChapterAddDTO {
+    /** 章节ID，更新时必须提供 */
+    id?: string | null
+    /** 所属课程ID */
+    courseId: string | null
+    /** 创建教师ID */
+    teacherId: string | null
+    /** 章节名称 */
+    chapterName: string | null
     /** 父章节ID */
     parentChapterId?: string | null
     /** 章节描述 */
@@ -38,10 +69,10 @@ export interface CourseChapterVO {
     id: string
     /** 所属课程ID */
     courseId: string
+    /** 创建教师ID */
+    teacherId: string
     /** 章节名称 */
     chapterName: string
-    /** 章节序号 */
-    chapterNumber?: number
     /** 父章节ID */
     parentChapterId?: string
     /** 章节描述 */
@@ -91,8 +122,10 @@ export interface CourseChapterQueryParams {
     parentChapterId?: string | null
     /** 章节状态 */
     status?: string | null
-    /** 是否有视频 */
-    hasVideo?: string | null
+    /** 最小浏览次数 */
+    minViewCount?: string | null
+    /** 最大浏览次数 */
+    maxViewCount?: string | null
     /** 起始时间 */
     startTime?: string | null
     /** 结束时间 */

@@ -18,7 +18,7 @@
           <span>{{ t('settings.personal.accountStatus') }}</span>
           <n-tag :type="userInfo?.status === 0 ? 'success' : 'error'">
             {{
-            userInfo?.status === 0 ? t('settings.personal.statusNormal') : t('settings.personal.statusDisabled')
+              userInfo?.status === 0 ? t('settings.personal.statusNormal') : t('settings.personal.statusDisabled')
             }}
           </n-tag>
         </div>
@@ -139,39 +139,39 @@ watch(showPasswordModal, (newVal: boolean) => {
 const changePassword = () => {
   passwordFormRef.value?.validate(async (errors: any) => {
     if (!errors) {
-        const passwordData: SysUserPasswordDTO = {
-          currentPassword: passwordForm.currentPassword,
-          newPassword: passwordForm.newPassword,
-          confirmPassword: passwordForm.confirmPassword
-        }
+      const passwordData: SysUserPasswordDTO = {
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+        confirmPassword: passwordForm.confirmPassword
+      }
 
-        const res = await updatePassword(passwordData)
-        if (res.success && res.data) {
-          showPasswordModal.value = false
+      const res = await updatePassword(passwordData)
+      if (res.success && res.data) {
+        showPasswordModal.value = false
 
-          // 显示成功对话�?
-          dialog.success({
-            title: t('settings.personal.passwordChangeSuccess'),
-            content: t('settings.personal.passwordChangeRedirect'),
-            positiveText: t('common.confirm'),
-            onPositiveClick: async () => {
-              try {
-                // 登出当前用户
-                await logout()
+        // 显示成功对话�?
+        dialog.success({
+          title: t('settings.personal.passwordChangeSuccess'),
+          content: t('settings.personal.passwordChangeRedirect'),
+          positiveText: t('common.confirm'),
+          onPositiveClick: async () => {
+            try {
+              // 登出当前用户
+              await logout()
 
-                // 清除用户状�?
-                userStore.resetUserState()
+              // 清除用户状�?
+              userStore.resetUserState()
 
-                // 跳转到登录页
-                router.push('/login')
-              } catch (error) {
-                // 即使登出失败也跳转到登录�?
-                router.push('/login')
-              }
+              // 跳转到登录页
+              router.push('/login')
+            } catch (error) {
+              // 即使登出失败也跳转到登录�?
+              router.push('/login')
             }
-          })
-        } else {
-        }
+          }
+        })
+      } else {
+      }
     }
   })
 }

@@ -149,6 +149,15 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
+                path: 'course/detail/:courseId/chapters/control',
+                name: 'ChapterControl',
+                component: () => import('@/views/course/CourseDetail/CourseChapters/ChapterControl.vue'),
+                meta: {
+                    title: '章节操作',
+                    requiresAuth: true
+                }
+            },
+            {
                 path: 'course/detail/:courseId/classroom',
                 name: 'CourseClassroom',
                 component: () => import('@/views/course/CourseDetail/CourseClassroom/index.vue'),

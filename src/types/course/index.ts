@@ -36,6 +36,7 @@ export type {
 // 课程章节类型
 export type {
     CourseChapterDTO,
+    CourseChapterAddDTO,
     CourseChapterVO,
     CourseChapterQueryParams
 } from './courseChapter'

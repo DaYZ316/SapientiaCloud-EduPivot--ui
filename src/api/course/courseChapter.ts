@@ -1,5 +1,5 @@
 import http from '@/utils/http'
-import type {CourseChapterDTO, CourseChapterQueryParams, CourseChapterVO} from '@/types/course'
+import type {CourseChapterAddDTO, CourseChapterDTO, CourseChapterQueryParams, CourseChapterVO} from '@/types/course'
 import type {TableDataResult} from '@/types/common/baseEntity'
 
 // 获取默认课程章节查询对象
@@ -9,7 +9,6 @@ export function getDefaultCourseChapterQuery(): CourseChapterQueryParams {
         chapterName: null,
         parentChapterId: null,
         status: null,
-        hasVideo: null,
         startTime: null,
         endTime: null,
         pageNum: 1,
@@ -25,8 +24,26 @@ export function getDefaultCourseChapterDTO(): CourseChapterDTO {
     return {
         id: null,
         courseId: null,
+        teacherId: null,
         chapterName: null,
-        chapterNumber: null,
+        parentChapterId: null,
+        description: null,
+        content: null,
+        videoUrl: null,
+        videoDuration: null,
+        attachmentUrls: null,
+        sortOrder: 0,
+        status: null
+    }
+}
+
+// 获取默认课程章节添加DTO
+export function getDefaultCourseChapterAddDTO(): CourseChapterAddDTO {
+    return {
+        id: null,
+        courseId: null,
+        teacherId: null,
+        chapterName: null,
         parentChapterId: null,
         description: null,
         content: null,
@@ -43,7 +60,7 @@ export function getDefaultCourseChapterDTO(): CourseChapterDTO {
  * @param chapterData 课程章节数据传输对象
  * @returns 添加结果
  */
-export function addCourseChapter(chapterData: CourseChapterDTO) {
+export function addCourseChapter(chapterData: CourseChapterAddDTO) {
     return http.post<CourseChapterVO>('/course/chapter', chapterData)
 }
 

@@ -273,27 +273,27 @@ const columns = computed(() => [
     render(row: permissionType.SysPermissionVO) {
       return [
         h(
-          'button',
-          {
-            class: 'n-button n-button--tertiary n-button--small',
-            style: {marginRight: '8px'},
-            onClick: () => handleEdit(row)
-          },
-          [
-            renderIcon(CreateOutline)(),
-            ' ' + t('settings.permission.actions.edit')
-          ]
+            'button',
+            {
+              class: 'n-button n-button--tertiary n-button--small',
+              style: {marginRight: '8px'},
+              onClick: () => handleEdit(row)
+            },
+            [
+              renderIcon(CreateOutline)(),
+              ' ' + t('settings.permission.actions.edit')
+            ]
         ),
         h(
-          'button',
-          {
-            class: 'n-button n-button--error n-button--small',
-            onClick: () => handleDelete(row)
-          },
-          [
-            renderIcon(TrashOutline)(),
-            ' ' + t('settings.permission.actions.delete')
-          ]
+            'button',
+            {
+              class: 'n-button n-button--error n-button--small',
+              onClick: () => handleDelete(row)
+            },
+            [
+              renderIcon(TrashOutline)(),
+              ' ' + t('settings.permission.actions.delete')
+            ]
         )
       ]
     }
@@ -330,10 +330,10 @@ function onDataUpdate(data: permissionType.SysPermissionVO[]) {
 function updateParentPermissionOptions() {
   // 表格显示用的父级权限选项，包含所有权限
   parentPermissionOptions.value = permissionList.value
-    .map(item => ({
-      label: item.permissionName,
-      value: item.id
-    }))
+      .map(item => ({
+        label: item.permissionName,
+        value: item.id
+      }))
 
   // 编辑对话框用的父级权限选项，过滤掉当前正在编辑的权限（不能选自己作为父级）
   editParentOptions.value = permissionList.value

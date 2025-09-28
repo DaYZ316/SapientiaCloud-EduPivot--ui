@@ -1,74 +1,302 @@
 .course-chapters {
-  padding: 24px;
   width: 100%;
   min-height: calc(100vh - 48px);
   box-sizing: border-box;
 
-
-  .coming-soon-container {
+  .search-and-actions {
     display: flex;
-    justify-content: center;
     align-items: center;
-    min-height: 400px;
 
-    .coming-soon-card {
-      max-width: 500px;
-      width: 100%;
-      background: var(--card-color);
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    .search-section {
+      flex: 1;
 
-      :deep(.n-card__content) {
-        padding: 40px 20px;
+      .n-input {
+        max-width: 300px;
+        width: 100%;
       }
     }
 
-    .coming-soon-content {
-      text-align: center;
+    .action-buttons {
+      flex-shrink: 0;
+    }
+  }
 
-      .coming-soon-title {
-        margin: 20px 0 16px 0;
-        font-size: 24px;
-        font-weight: 600;
-        color: var(--text-color);
+  // 主要内容区域
+  .main-content {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+    height: calc(100vh - 180px);
+    min-height: 600px;
+  }
+
+  // 左侧章节树形列表
+  .chapters-sidebar {
+    width: 35%;
+    min-width: 400px;
+    max-width: 500px;
+    border: none;
+    border-radius: 0;
+    background: var(--n-color);
+    box-shadow: none;
+
+    .chapters-container {
+      height: 100%;
+      overflow: auto;
+      padding: 0;
+
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+
+      &::-webkit-scrollbar {
+        display: none;
       }
 
-      .coming-soon-description {
-        margin: 0 0 32px 0;
-        font-size: 16px;
-        color: var(--text-color-2);
-        line-height: 1.6;
+      .empty-state {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        padding: 60px 20px;
+      }
+
+      .chapters-tree {
+        height: 100%;
+        margin: 0;
+        padding: 8px 0;
+
+        // 树形组件节点样式优化
+        :deep(.n-tree) {
+          font-size: 14px;
+          line-height: 1.6;
+
+          .n-tree-node {
+            margin-bottom: 4px;
+            padding: 6px 8px;
+            border-radius: 6px;
+
+            .n-tree-node-content {
+              padding: 4px 0;
+              font-weight: 500;
+            }
+
+            .n-tree-node-indent {
+              width: 20px;
+            }
+
+            .n-tree-node-switcher {
+              width: 24px;
+              height: 24px;
+              margin-right: 8px;
+              margin-top: 2px;
+            }
+          }
+
+          // 一级节点样式放大
+          .n-tree-node:not(.n-tree-node--has-children) {
+            font-size: 16px;
+            font-weight: 600;
+
+            .n-tree-node-content {
+              padding: 6px 0;
+            }
+
+            .n-tree-node-switcher {
+              width: 28px;
+              height: 28px;
+              margin-right: 10px;
+              margin-top: 3px;
+            }
+          }
+
+          .n-tree-node-children {
+            margin-left: 16px;
+          }
+        }
+      }
+    }
+  }
+
+  // 右侧章节详情
+  .chapter-detail {
+    width: 70%;
+    border: none;
+    border-radius: 0;
+    overflow: hidden;
+    box-shadow: none;
+  }
+}
+
+// 响应式设计
+@media (max-width: 1200px) {
+  .course-chapters {
+    .main-content {
+      .chapters-sidebar {
+        width: 40%;
+        min-width: 350px;
+        max-width: 450px;
+      }
+
+      .chapter-detail {
+        width: 60%;
       }
     }
   }
 }
 
-// 响应式设计
 @media (max-width: 768px) {
   .course-chapters {
-    padding: 16px;
+    padding: 0;
 
+    .search-and-actions {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
 
-    .coming-soon-container {
-      min-height: 300px;
-
-      .coming-soon-card {
-        :deep(.n-card__content) {
-          padding: 30px 16px;
+      .search-section {
+        .n-input {
+          max-width: 100%;
         }
       }
 
-      .coming-soon-content {
-        .coming-soon-title {
-          font-size: 20px;
-          margin: 16px 0 12px 0;
-        }
+      .action-buttons {
+        display: flex;
+        justify-content: center;
+      }
+    }
 
-        .coming-soon-description {
-          font-size: 14px;
-          margin: 0 0 24px 0;
+    .main-content {
+      flex-direction: column;
+      height: auto;
+      min-height: auto;
+      gap: 16px;
+    }
+
+    .chapters-sidebar {
+      width: 100%;
+      min-width: auto;
+      max-width: none;
+      height: 400px;
+
+      .chapters-container {
+        padding: 0;
+
+        .chapters-tree {
+          :deep(.n-tree) {
+            font-size: 13px;
+
+            .n-tree-node {
+              padding: 4px 6px;
+              margin-bottom: 2px;
+
+              .n-tree-node-content {
+                padding: 2px 0;
+              }
+
+              .n-tree-node-indent {
+                width: 16px;
+              }
+
+              .n-tree-node-switcher {
+                width: 22px;
+                height: 22px;
+                margin-right: 6px;
+                margin-top: 1px;
+              }
+            }
+
+            // 平板端一级节点样式放大
+            .n-tree-node:not(.n-tree-node--has-children) {
+              font-size: 15px;
+              font-weight: 600;
+
+              .n-tree-node-content {
+                padding: 4px 0;
+              }
+
+              .n-tree-node-switcher {
+                width: 26px;
+                height: 26px;
+                margin-right: 8px;
+                margin-top: 2px;
+              }
+            }
+
+            .n-tree-node-children {
+              margin-left: 12px;
+            }
+          }
         }
       }
+    }
+
+    .chapter-detail {
+      width: 100%;
+      height: 500px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .course-chapters {
+    padding: 0;
+
+    .main-content {
+      gap: 12px;
+    }
+
+    .chapters-sidebar {
+      height: 350px;
+
+      .chapters-container {
+        padding: 0;
+
+        .chapters-tree {
+          :deep(.n-tree) {
+            font-size: 12px;
+
+            .n-tree-node {
+              padding: 3px 4px;
+
+              .n-tree-node-indent {
+                width: 14px;
+              }
+
+              .n-tree-node-switcher {
+                width: 20px;
+                height: 20px;
+                margin-right: 4px;
+                margin-top: 1px;
+              }
+            }
+
+            // 手机端一级节点样式放大
+            .n-tree-node:not(.n-tree-node--has-children) {
+              font-size: 14px;
+              font-weight: 600;
+
+              .n-tree-node-content {
+                padding: 3px 0;
+              }
+
+              .n-tree-node-switcher {
+                width: 24px;
+                height: 24px;
+                margin-right: 6px;
+                margin-top: 2px;
+              }
+            }
+
+            .n-tree-node-children {
+              margin-left: 10px;
+            }
+          }
+        }
+      }
+    }
+
+    .chapter-detail {
+      height: 450px;
     }
   }
 }

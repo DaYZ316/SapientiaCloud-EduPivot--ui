@@ -260,26 +260,26 @@ function formatDateForAPI(date: number | string | null | undefined): string | nu
   if (!date) return null
 
   let dateObj: Date
-    if (typeof date === 'number') {
-      // 时间戳
-      dateObj = new Date(date)
-    } else if (typeof date === 'string') {
-      // 字符串日期
-      dateObj = new Date(date)
-    } else {
-      return null
-    }
+  if (typeof date === 'number') {
+    // 时间戳
+    dateObj = new Date(date)
+  } else if (typeof date === 'string') {
+    // 字符串日期
+    dateObj = new Date(date)
+  } else {
+    return null
+  }
 
-    if (isNaN(dateObj.getTime())) {
-      return null
-    }
+  if (isNaN(dateObj.getTime())) {
+    return null
+  }
 
-    // 格式化为 YYYY-MM-DD
-    const year = dateObj.getFullYear()
-    const month = String(dateObj.getMonth() + 1).padStart(2, '0')
-    const day = String(dateObj.getDate()).padStart(2, '0')
+  // 格式化为 YYYY-MM-DD
+  const year = dateObj.getFullYear()
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0')
+  const day = String(dateObj.getDate()).padStart(2, '0')
 
-    return `${year}-${month}-${day}`
+  return `${year}-${month}-${day}`
 }
 
 // 将API返回的日期字符串转换为DatePicker需要的时间戳

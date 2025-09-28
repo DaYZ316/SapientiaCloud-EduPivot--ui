@@ -29,7 +29,7 @@ import {NIcon} from 'naive-ui'
 import {useThemeStore} from '@/store/modules/theme'
 import {useColorAlgorithm} from '@/composables/useColorAlgorithm'
 import {useCourseBorderColor} from '../composables/useCourseBorderColor'
-import {useTeacherEducationData, type PieChartDataItem} from '../composables/useTeacherEducationData'
+import {type PieChartDataItem, useTeacherEducationData} from '../composables/useTeacherEducationData'
 
 
 // 定义组件属性

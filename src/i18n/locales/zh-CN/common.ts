@@ -20,6 +20,7 @@ export default {
     no: '否',
     user: '用户',
     back: '返回',
+    retry: '重试',
 
     // 头像上传相关
     uploadAvatar: '上传头像',
@@ -48,6 +49,39 @@ export default {
     fileSizeExceeded: '文件大小超过限制（最大 {maxSize}MB）',
     uploadSuccess: '上传成功',
     uploadFailed: '上传失败',
+
+    // 文件上传相关
+    selectFiles: '选择文件',
+    clickOrDragToUpload: '点击或拖拽文件到此区域上传',
+    uploadHint: '支持单个或批量上传，文件大小不超过 10MB',
+    downloadFile: '下载文件',
+    previewNotSupported: '此文件类型不支持预览',
+    fileUploadSuccess: '文件上传成功',
+    fileUploadFail: '文件上传失败',
+    fileSizeLimit: '文件大小不能超过 {size}MB',
+    fileCountLimit: '最多只能上传 {count} 个文件',
+    invalidFileType: '不支持的文件类型',
+    uploadInProgress: '正在上传...',
+    uploadComplete: '上传完成',
+    uploadError: '上传出错',
+    uploadFile: '上传文件',
+    selectFile: '选择文件',
+    supportedFormats: '支持格式',
+    allFiles: '所有文件',
+    uploading: '上传中',
+    maxFileCountExceeded: '文件数量超过限制（最多 {maxCount} 个）',
+    dragUploadText: '拖拽文件到此处或点击上传',
+    clickUploadText: '点击上传',
+    fileSize: '文件大小',
+    fileType: '文件类型',
+    uploadProgress: '上传进度',
+    downloadFailed: '文件下载失败',
+    fileUrlNotFound: '文件链接不存在',
+    removeFile: '删除文件',
+    previewFile: '预览文件',
+    confirmDelete: '确认删除',
+    confirmDeleteFile: '确定要删除文件 "{fileName}" 吗？',
+    fileDeleted: '文件删除成功',
 
     // HTTP 相关错误
     http: {
@@ -81,5 +115,120 @@ export default {
 
     // 用户相关
     userId: '用户ID',
-    userCode: '用户编码'
+    userCode: '用户编码',
+
+    // 文件相关
+    files: '文件',
+
+    // 文件上传相关
+    fileUpload: {
+        selectFiles: '选择文件',
+        dragFiles: '拖拽文件到此处或点击上传',
+        supportedFormats: '支持格式',
+        fileExpired: '已过期',
+        validityPeriod: '有效期',
+        preview: '预览',
+        download: '下载',
+        delete: '删除',
+        previewImage: '预览图片',
+        unknownFile: '未知文件',
+        attachment: '附件',
+        uploadProgress: '上传进度',
+        uploadSuccess: '上传成功',
+        uploadFailed: '上传失败',
+        fileTooLarge: '文件大小超过限制',
+        fileTypeNotSupported: '文件类型不支持',
+        tooManyFiles: '文件数量超过限制',
+        downloadFailed: '下载文件失败'
+    },
+
+    // 文件预览相关
+    filePreview: {
+        title: '文件预览',
+        loading: '正在加载文件...',
+        loadFailed: '文件加载失败',
+        loadSuccess: '文件加载成功',
+        unsupportedFormat: '不支持的文件格式',
+        downloadFile: '下载文件',
+        printFile: '打印文件',
+        fullscreen: '全屏',
+        exitFullscreen: '退出全屏',
+        fileInfo: '文件信息',
+        closeFileInfo: '关闭文件信息',
+        zoomIn: '放大',
+        zoomOut: '缩小',
+        resetZoom: '重置缩放',
+        fitWidth: '适应宽度',
+        fitHeight: '适应高度',
+        fitPage: '适应页面',
+        previousPage: '上一页',
+        nextPage: '下一页',
+        pageInfo: '第 {current} 页，共 {total} 页',
+        fileDetails: {
+            fileName: '文件名',
+            fileSize: '文件大小',
+            fileType: '文件类型',
+            lastModified: '最后修改时间',
+            uploadTime: '上传时间'
+        },
+        toolbar: {
+            download: '下载',
+            print: '打印',
+            fullscreen: '全屏',
+            fileInfo: '文件信息',
+            zoom: '缩放',
+            pageControl: '页码控制'
+        },
+        errors: {
+            fileNotFound: '文件不存在',
+            networkError: '网络错误',
+            parseError: '文件解析错误',
+            permissionDenied: '权限不足',
+            fileCorrupted: '文件已损坏',
+            unsupportedBrowser: '浏览器不支持此文件格式'
+        }
+    },
+
+    // 富文本编辑器相关
+    richTextEditor: {
+        placeholder: '请输入内容...',
+        toolbar: {
+            bold: '粗体',
+            italic: '斜体',
+            underline: '下划线',
+            strikethrough: '删除线',
+            alignLeft: '左对齐',
+            alignCenter: '居中对齐',
+            alignRight: '右对齐',
+            alignJustify: '两端对齐',
+            bulletList: '无序列表',
+            orderedList: '有序列表',
+            blockquote: '引用',
+            codeBlock: '代码块',
+            addLink: '添加链接',
+            insertImage: '插入图片',
+            insertVideo: '插入视频',
+            insertTable: '插入表格',
+            fullscreen: '全屏',
+            exitFullscreen: '退出全屏'
+        },
+        upload: {
+            uploading: '上传中...',
+            imageUploading: '正在上传图片...',
+            videoUploading: '正在上传视频...',
+            imageUploadSuccess: '图片上传成功',
+            videoUploadSuccess: '视频上传成功',
+            imageUploadFail: '图片上传失败，请重试',
+            videoUploadFail: '视频上传失败，请重试',
+            imageTypeError: '请选择图片文件',
+            videoTypeError: '请选择视频文件',
+            imageSizeError: '图片大小不能超过10MB',
+            videoSizeError: '视频大小不能超过100MB',
+            uploadResponseError: '上传响应格式错误'
+        },
+        link: {
+            prompt: '请输入链接地址',
+            remove: '移除链接'
+        }
+    }
 } 

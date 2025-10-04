@@ -23,7 +23,7 @@ const routes: RouteRecordRaw[] = [
         redirect: '/dashboard',
         children: [
             {
-                path: 'dashboard',
+                path: '/dashboard',
                 name: 'Dashboard',
                 component: () => import('@/views/dashboard/index.vue'),
                 meta: {
@@ -32,7 +32,7 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
-                path: 'profile',
+                path: '/profile',
                 name: 'Profile',
                 component: () => import('@/views/profile/index.vue'),
                 meta: {
@@ -41,7 +41,7 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
-                path: 'settings',
+                path: '/settings',
                 name: 'Settings',
                 component: () => import('@/views/settings/index.vue'),
                 meta: {
@@ -50,7 +50,7 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
-                path: 'system/user',
+                path: '/system/user',
                 name: 'User',
                 component: () => import('@/views/system/user/index.vue'),
                 meta: {
@@ -59,7 +59,7 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
-                path: 'system/role',
+                path: '/system/role',
                 name: 'Role',
                 component: () => import('@/views/system/role/index.vue'),
                 meta: {
@@ -68,7 +68,7 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
-                path: 'system/permission',
+                path: '/system/permission',
                 name: 'Permission',
                 component: () => import('@/views/system/permission/index.vue'),
                 meta: {
@@ -77,7 +77,7 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
-                path: 'info/teacher',
+                path: '/info/teacher',
                 name: 'Teacher',
                 component: () => import('@/views/info/teacher/index.vue'),
                 meta: {
@@ -86,7 +86,7 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
-                path: 'info/student',
+                path: '/info/student',
                 name: 'Student',
                 component: () => import('@/views/info/student/index.vue'),
                 meta: {
@@ -95,7 +95,7 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
-                path: 'course',
+                path: '/course',
                 name: 'CourseManagement',
                 component: () => import('@/views/course/index.vue'),
                 meta: {
@@ -104,7 +104,7 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
-                path: 'course/my-courses',
+                path: '/course/my-courses',
                 name: 'MyCourses',
                 component: () => import('@/views/course/MyCourse/index.vue'),
                 meta: {
@@ -113,7 +113,7 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
-                path: 'course/detail/:courseId',
+                path: '/course/detail/:courseId',
                 name: 'CourseDetail',
                 component: () => import('@/views/course/CourseDetail/index.vue'),
                 meta: {
@@ -122,7 +122,7 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
-                path: 'course/detail/:courseId/students',
+                path: '/course/detail/:courseId/students',
                 name: 'CourseStudents',
                 component: () => import('@/views/course/CourseDetail/CourseStudents/index.vue'),
                 meta: {
@@ -131,7 +131,7 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
-                path: 'course/detail/:courseId/forum',
+                path: '/course/detail/:courseId/forum',
                 name: 'CourseForum',
                 component: () => import('@/views/course/CourseDetail/CourseForum/index.vue'),
                 meta: {
@@ -140,7 +140,7 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
-                path: 'course/detail/:courseId/chapters',
+                path: '/course/detail/:courseId/chapters',
                 name: 'CourseChapters',
                 component: () => import('@/views/course/CourseDetail/CourseChapters/index.vue'),
                 meta: {
@@ -149,7 +149,7 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
-                path: 'course/detail/:courseId/chapters/control',
+                path: '/course/detail/:courseId/chapters/control',
                 name: 'ChapterControl',
                 component: () => import('@/views/course/CourseDetail/CourseChapters/ChapterControl.vue'),
                 meta: {
@@ -158,7 +158,7 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
-                path: 'course/detail/:courseId/classroom',
+                path: '/course/detail/:courseId/classroom',
                 name: 'CourseClassroom',
                 component: () => import('@/views/course/CourseDetail/CourseClassroom/index.vue'),
                 meta: {
@@ -167,15 +167,24 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
-                path: 'teacher/profile/:teacherId',
+                path: '/teacher/profile/:teacherId',
                 name: 'TeacherProfile',
                 component: () => import('@/components/common/TeacherProfile.vue'),
                 meta: {
                     title: '教师主页',
                     requiresAuth: true
                 }
-            }
+            },
         ]
+    },
+    {
+        path: '/file/preview',
+        name: 'FilePreview',
+        component: () => import('@/views/file/index.vue'),
+        meta: {
+            title: '文件预览',
+            requiresAuth: true
+        }
     },
     {
         path: '/:pathMatch(.*)*',

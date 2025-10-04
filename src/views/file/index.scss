@@ -1,0 +1,285 @@
+@use '@/assets/styles/index.scss' as *;
+
+.file-preview-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--n-color);
+
+  &.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+  }
+}
+
+.file-preview-toolbar {
+  height: 60px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--n-color);
+  border-bottom: 1px solid var(--n-border-color);
+  flex-shrink: 0;
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+
+    .file-name {
+      font-weight: 500;
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .toolbar-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+
+    .page-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    justify-content: flex-end;
+
+    .zoom-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+}
+
+.file-preview-content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+
+  .loading-container,
+  .error-container,
+  .unsupported-container {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .preview-content {
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+
+    .image-preview,
+    .video-preview,
+    .audio-preview {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .text-preview {
+      height: 100%;
+      overflow: auto;
+    }
+  }
+}
+
+.file-info-content {
+  .file-actions {
+    margin-top: 16px;
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .file-preview-toolbar {
+    padding: 0 8px;
+
+    .toolbar-left {
+      .file-name {
+        max-width: 150px;
+      }
+    }
+
+    .toolbar-center {
+      display: none;
+    }
+
+    .toolbar-right {
+      .zoom-controls {
+        display: none;
+      }
+    }
+  }
+}
+
+// 全屏模式下的特殊样式
+.file-preview-container.fullscreen {
+  .file-preview-toolbar {
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+
+    @media (prefers-color-scheme: dark) {
+      background-color: rgba(0, 0, 0, 0.95);
+    }
+  }
+}
+
+// 文件预览组件的特殊样式
+:deep(.vue-office-pdf) {
+  .pdf-container {
+    background-color: #f5f5f5;
+  }
+}
+
+:deep(.vue-office-docx) {
+  .docx-container {
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+:deep(.vue-office-excel) {
+  .excel-container {
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// 图片预览的特殊样式
+.image-preview {
+  img {
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: scale(1.02);
+    }
+  }
+}
+
+// 视频预览的特殊样式
+.video-preview {
+  video {
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// 音频预览的特殊样式
+.audio-preview {
+  audio {
+    width: 100%;
+    max-width: 600px;
+  }
+}
+
+// 文本预览的特殊样式
+.text-preview {
+  pre {
+    background-color: var(--n-color);
+    border: 1px solid var(--n-border-color);
+    border-radius: 8px;
+    font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+    line-height: 1.6;
+
+    &::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: var(--n-scrollbar-color);
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--n-scrollbar-color-hover);
+      border-radius: 4px;
+
+      &:hover {
+        background: var(--n-scrollbar-color-pressed);
+      }
+    }
+  }
+}
+
+// 工具栏按钮的特殊样式
+.file-preview-toolbar {
+  .n-button {
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: var(--n-color-hover);
+    }
+
+    &:active {
+      background-color: var(--n-color-pressed);
+    }
+  }
+}
+
+// 文件信息抽屉的特殊样式
+:deep(.n-drawer-content) {
+  .n-descriptions {
+    .n-descriptions-item-label {
+      font-weight: 500;
+      color: var(--n-text-color);
+    }
+
+    .n-descriptions-item-content {
+      color: var(--n-text-color);
+    }
+  }
+}
+
+// 加载和错误状态的样式
+.loading-container,
+.error-container,
+.unsupported-container {
+  .n-spin {
+    .n-spin-description {
+      margin-top: 16px;
+      color: var(--n-text-color);
+    }
+  }
+
+  .n-result {
+    .n-result-header {
+      .n-result-icon {
+        color: var(--n-text-color);
+      }
+    }
+
+    .n-result-title {
+      color: var(--n-text-color);
+    }
+
+    .n-result-description {
+      color: var(--n-text-color);
+    }
+  }
+}

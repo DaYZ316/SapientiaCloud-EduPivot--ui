@@ -87,6 +87,7 @@ import {computed, onMounted, ref} from 'vue'
 import {AddOutline, BookOutline, SearchOutline} from '@vicons/ionicons5'
 import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
+import {useTitle} from '@/utils/titleUtil'
 import * as CourseApi from '@/api/course/course'
 import * as CourseChapterApi from '@/api/course/courseChapter'
 import type {CourseVO} from '@/types/course'
@@ -101,6 +102,7 @@ const {message} = getDiscreteApi()
 const {t} = useI18n()
 const route = useRoute()
 const router = useRouter()
+const {setTitle} = useTitle()
 
 // 响应式数据
 const courseInfo = ref<CourseVO | null>(null)
@@ -115,6 +117,18 @@ const selectedChapterId = ref<string | null>(null)
 const courseId = computed(() => route.params.courseId as string)
 
 
+// 设置动态标题
+const setCourseChaptersTitle = () => {
+  if (courseInfo.value?.courseName) {
+    // 设置动态标题：课程名称 - 课程章节
+    const courseChaptersTitle = t('app.title.course.courseChapters')
+    setTitle('courseChapters', `${courseInfo.value.courseName} - ${courseChaptersTitle}`)
+  } else {
+    // 如果课程信息还未加载，使用默认标题
+    setTitle('courseChapters')
+  }
+}
+
 // 加载课程信息
 const loadCourseInfo = async () => {
   if (!courseId.value || courseId.value === 'undefined') {
@@ -125,6 +139,8 @@ const loadCourseInfo = async () => {
   const res = await CourseApi.getCourseById(courseId.value)
   if (res.success && res.data) {
     courseInfo.value = res.data
+    // 设置动态标题
+    setCourseChaptersTitle()
   }
 }
 

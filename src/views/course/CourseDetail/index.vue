@@ -383,22 +383,25 @@ const handleActionSelect = (key: string) => {
 
 
 // 菜单管理方法
-const addCourseDetailMenuItem = () => {
+// 更新课程详情菜单项
+const updateCourseDetailMenuItem = () => {
   if (courseInfo.value?.courseName) {
     const menuItem = createCourseDetailMenuOption(t, courseInfo.value.courseName)
     menuStore.addDynamicMenuItem(menuItem)
+    // 同时更新最后访问的课程信息
+    menuStore.setLastAccessedCourse(courseInfo.value.id, courseInfo.value.courseName)
   }
 }
 
-const removeCourseDetailMenuItem = () => {
-  menuStore.removeDynamicMenuItem('CourseDetail')
-}
+// const removeCourseDetailMenuItem = () => {
+//   menuStore.removeDynamicMenuItem('CourseDetail')
+// }
 
 // 设置动态标题
 const setCourseDetailTitle = () => {
   if (courseInfo.value?.courseName) {
     // 设置动态标题：课程名称 - 课程详情
-    const courseDetailTitle = t('app.title.courseDetail')
+    const courseDetailTitle = t('app.title.course.courseDetail')
     setTitle('courseDetail', `${courseInfo.value.courseName} - ${courseDetailTitle}`)
   } else {
     // 如果课程信息还未加载，使用默认标题
@@ -419,8 +422,8 @@ const loadCourseInfo = async () => {
   const res = await CourseApi.getCourseById(courseId.value)
   if (res.success && res.data) {
     courseInfo.value = res.data
-    // 加载课程信息成功后，添加动态菜单项
-    addCourseDetailMenuItem()
+    // 加载课程信息成功后，更新动态菜单项
+    updateCourseDetailMenuItem()
     // 设置动态标题
     setCourseDetailTitle()
     // 加载教师信息
@@ -675,8 +678,8 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  // 组件卸载时移除动态菜单项
-  removeCourseDetailMenuItem()
+  // 不再移除动态菜单项，保持课程详情菜单常态显示
+  // removeCourseDetailMenuItem()
   // 重置标题为默认标题
   setTitle('default')
 })

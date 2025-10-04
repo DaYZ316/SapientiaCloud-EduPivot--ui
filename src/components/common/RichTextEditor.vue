@@ -13,7 +13,7 @@
                 <Icon :component="BoldOutlined"/>
               </n-button>
             </template>
-            粗体
+            {{ t('common.richTextEditor.toolbar.bold') }}
           </n-tooltip>
           <n-tooltip trigger="hover">
             <template #trigger>
@@ -24,7 +24,7 @@
                 <Icon :component="ItalicOutlined"/>
               </n-button>
             </template>
-            斜体
+            {{ t('common.richTextEditor.toolbar.italic') }}
           </n-tooltip>
           <n-tooltip trigger="hover">
             <template #trigger>
@@ -35,7 +35,7 @@
                 <Icon :component="UnderlineOutlined"/>
               </n-button>
             </template>
-            下划线
+            {{ t('common.richTextEditor.toolbar.underline') }}
           </n-tooltip>
           <n-tooltip trigger="hover">
             <template #trigger>
@@ -46,7 +46,7 @@
                 <Icon :component="StrikethroughOutlined"/>
               </n-button>
             </template>
-            删除线
+            {{ t('common.richTextEditor.toolbar.strikethrough') }}
           </n-tooltip>
         </n-button-group>
 
@@ -62,7 +62,7 @@
                 <Icon :component="AlignLeftOutlined"/>
               </n-button>
             </template>
-            左对齐
+            {{ t('common.richTextEditor.toolbar.alignLeft') }}
           </n-tooltip>
           <n-tooltip trigger="hover">
             <template #trigger>
@@ -73,7 +73,7 @@
                 <Icon :component="AlignCenterOutlined"/>
               </n-button>
             </template>
-            居中对齐
+            {{ t('common.richTextEditor.toolbar.alignCenter') }}
           </n-tooltip>
           <n-tooltip trigger="hover">
             <template #trigger>
@@ -84,7 +84,7 @@
                 <Icon :component="AlignRightOutlined"/>
               </n-button>
             </template>
-            右对齐
+            {{ t('common.richTextEditor.toolbar.alignRight') }}
           </n-tooltip>
           <n-tooltip trigger="hover">
             <template #trigger>
@@ -95,7 +95,7 @@
                 <Icon :component="AlignRightOutlined"/>
               </n-button>
             </template>
-            两端对齐
+            {{ t('common.richTextEditor.toolbar.alignJustify') }}
           </n-tooltip>
         </n-button-group>
 
@@ -111,7 +111,7 @@
                 <Icon :component="UnorderedListOutlined"/>
               </n-button>
             </template>
-            无序列表
+            {{ t('common.richTextEditor.toolbar.bulletList') }}
           </n-tooltip>
           <n-tooltip trigger="hover">
             <template #trigger>
@@ -122,7 +122,7 @@
                 <Icon :component="OrderedListOutlined"/>
               </n-button>
             </template>
-            有序列表
+            {{ t('common.richTextEditor.toolbar.orderedList') }}
           </n-tooltip>
         </n-button-group>
 
@@ -138,7 +138,7 @@
                 <Icon :component="CodeOutlined"/>
               </n-button>
             </template>
-            引用
+            {{ t('common.richTextEditor.toolbar.blockquote') }}
           </n-tooltip>
           <n-tooltip trigger="hover">
             <template #trigger>
@@ -149,7 +149,7 @@
                 <Icon :component="CodeOutlined"/>
               </n-button>
             </template>
-            代码块
+            {{ t('common.richTextEditor.toolbar.codeBlock') }}
           </n-tooltip>
         </n-button-group>
 
@@ -165,7 +165,7 @@
                 <Icon :component="LinkOutlined"/>
               </n-button>
             </template>
-            添加链接
+            {{ t('common.richTextEditor.toolbar.addLink') }}
           </n-tooltip>
           <n-tooltip trigger="hover">
             <template #trigger>
@@ -177,7 +177,9 @@
                 <Icon :component="PictureOutlined"/>
               </n-button>
             </template>
-            {{ isUploading ? '上传中...' : '插入图片' }}
+            {{
+              isUploading ? t('common.richTextEditor.upload.uploading') : t('common.richTextEditor.toolbar.insertImage')
+            }}
           </n-tooltip>
           <n-tooltip trigger="hover">
             <template #trigger>
@@ -189,7 +191,9 @@
                 <Icon :component="VideoCameraOutlined"/>
               </n-button>
             </template>
-            {{ isVideoUploading ? '上传中...' : '插入视频' }}
+            {{
+              isVideoUploading ? t('common.richTextEditor.upload.uploading') : t('common.richTextEditor.toolbar.insertVideo')
+            }}
           </n-tooltip>
         </n-button-group>
 
@@ -205,7 +209,7 @@
                 <Icon :component="TableOutlined"/>
               </n-button>
             </template>
-            插入表格
+            {{ t('common.richTextEditor.toolbar.insertTable') }}
           </n-tooltip>
         </n-button-group>
 
@@ -221,7 +225,9 @@
                 <Icon :component="isFullscreen ? FullscreenExitOutlined : FullscreenOutlined"/>
               </n-button>
             </template>
-            {{ isFullscreen ? '退出全屏' : '全屏' }}
+            {{
+              isFullscreen ? t('common.richTextEditor.toolbar.exitFullscreen') : t('common.richTextEditor.toolbar.fullscreen')
+            }}
           </n-tooltip>
         </n-button-group>
       </div>
@@ -285,6 +291,7 @@ import {
 import {uploadFile} from '@/api/minIO'
 import Icon from '@/components/common/Icon.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
+import {useI18n} from 'vue-i18n'
 
 // 自定义Video扩展
 const Video = Node.create({
@@ -344,7 +351,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: '',
-  placeholder: '请输入内容...',
+  placeholder: '',
   minHeight: '300px',
   maxHeight: '600px',
   uploadPath: 'course-content',
@@ -363,6 +370,7 @@ const emit = defineEmits<{
 }>()
 
 const {message} = getDiscreteApi()
+const {t} = useI18n()
 
 // 文件上传相关
 const fileInputRef = ref<HTMLInputElement>()
@@ -408,7 +416,7 @@ const editor = new Editor({
   editorProps: {
     attributes: {
       class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none',
-      placeholder: props.placeholder,
+      placeholder: props.placeholder || t('common.richTextEditor.placeholder'),
     },
   },
   onUpdate: ({editor}) => {
@@ -430,7 +438,7 @@ const setLink = () => {
   if (!props.enableLink) return
 
   const previousUrl = editor.getAttributes('link').href
-  const url = window.prompt('URL', previousUrl)
+  const url = window.prompt(t('common.richTextEditor.link.prompt'), previousUrl)
 
   // 取消
   if (url === null) {
@@ -462,20 +470,20 @@ const handleFileSelect = async (event: Event) => {
 
   // 验证文件类型
   if (!file.type.startsWith('image/')) {
-    message.error('请选择图片文件')
+    message.error(t('common.richTextEditor.upload.imageTypeError'))
     return
   }
 
   // 验证文件大小 (限制为10MB)
   const maxSize = 10 * 1024 * 1024
   if (file.size > maxSize) {
-    message.error('图片大小不能超过10MB')
+    message.error(t('common.richTextEditor.upload.imageSizeError'))
     return
   }
 
   try {
     isUploading.value = true
-    message.loading('正在上传图片...', {duration: 0})
+    message.loading(t('common.richTextEditor.upload.imageUploading'), {duration: 0})
 
     // 上传到MinIO
     const response = await uploadFile(file, props.uploadPath)
@@ -485,14 +493,14 @@ const handleFileSelect = async (event: Event) => {
       editor.chain().focus().setImage({src: response.data.url}).run()
       emit('image-upload', response.data.url)
       message.destroyAll()
-      message.success('图片上传成功')
+      message.success(t('common.richTextEditor.upload.imageUploadSuccess'))
     } else {
-      throw new Error('上传响应格式错误')
+      throw new Error(t('common.richTextEditor.upload.uploadResponseError'))
     }
   } catch (error) {
     console.error('图片上传失败:', error)
     message.destroyAll()
-    message.error('图片上传失败，请重试')
+    message.error(t('common.richTextEditor.upload.imageUploadFail'))
   } finally {
     isUploading.value = false
     // 清空文件输入
@@ -517,20 +525,20 @@ const handleVideoSelect = async (event: Event) => {
 
   // 验证文件类型
   if (!file.type.startsWith('video/')) {
-    message.error('请选择视频文件')
+    message.error(t('common.richTextEditor.upload.videoTypeError'))
     return
   }
 
   // 验证文件大小 (限制为100MB)
   const maxSize = 100 * 1024 * 1024
   if (file.size > maxSize) {
-    message.error('视频大小不能超过100MB')
+    message.error(t('common.richTextEditor.upload.videoSizeError'))
     return
   }
 
   try {
     isVideoUploading.value = true
-    message.loading('正在上传视频...', {duration: 0})
+    message.loading(t('common.richTextEditor.upload.videoUploading'), {duration: 0})
 
     // 上传到MinIO
     const response = await uploadFile(file, props.uploadPath)
@@ -540,14 +548,14 @@ const handleVideoSelect = async (event: Event) => {
       insertVideoFromUrl(response.data.url)
       emit('video-upload', response.data.url)
       message.destroyAll()
-      message.success('视频上传成功')
+      message.success(t('common.richTextEditor.upload.videoUploadSuccess'))
     } else {
-      throw new Error('上传响应格式错误')
+      throw new Error(t('common.richTextEditor.upload.uploadResponseError'))
     }
   } catch (error) {
     console.error('视频上传失败:', error)
     message.destroyAll()
-    message.error('视频上传失败，请重试')
+    message.error(t('common.richTextEditor.upload.videoUploadFail'))
   } finally {
     isVideoUploading.value = false
     // 清空文件输入

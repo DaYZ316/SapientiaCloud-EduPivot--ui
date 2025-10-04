@@ -18,7 +18,14 @@ export default {
             teacher: '教师管理',
             student: '学生管理'
         },
-        course: '课程管理',
-        courseDetail: '课程详情'
+        course: {
+            course: '课程管理',
+            courseDetail: '课程详情',
+            courseChapters: '课程章节',
+            courseForum: '课程论坛',
+            courseStudents: '课程学生',
+            courseClassroom: '在线课堂',
+            courseChapterControl: '章节管理'
+        }
     }
 } 

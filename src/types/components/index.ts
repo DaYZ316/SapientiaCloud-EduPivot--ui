@@ -4,3 +4,5 @@
 
 // 导出通用图片上传组件类型
 export * from './imageUpload'
+// 导出文件上传组件类型
+export * from './fileUpload'

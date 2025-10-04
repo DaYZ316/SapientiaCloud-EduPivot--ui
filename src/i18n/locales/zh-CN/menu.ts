@@ -1,6 +1,7 @@
 export default {
     dashboard: '控制台',
     settings: '设置',
+    filePreview: '文件预览',
     profile: '个人资料',
     system: '系统管理',
     user: '用户管理',
@@ -12,5 +13,10 @@ export default {
     course: '课程',
     courseManagement: '课程管理',
     myCourses: '我的课程',
-    courseDetail: '课程详情'
+    courseDetail: '课程详情',
+    courseOverview: '课程概览',
+    courseChapters: '章节',
+    courseForum: '论坛',
+    courseStudents: '学生',
+    courseClassroom: '课堂'
 } 

@@ -18,7 +18,14 @@ export default {
             teacher: 'Teacher Management',
             student: 'Student Management'
         },
-        course: 'Course Management',
-        courseDetail: 'Course Detail'
+        course: {
+            course: 'Course Management',
+            courseDetail: 'Course Detail',
+            courseChapters: 'Course Chapters',
+            courseForum: 'Course Forum',
+            courseStudents: 'Course Students',
+            courseClassroom: 'Online Classroom',
+            courseChapterControl: 'Chapter Management'
+        }
     }
 } 

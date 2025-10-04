@@ -2,7 +2,24 @@
  * MinIO模块-文件类型定义
  */
 
-// 文件信息接口
+// 文件信息DTO接口
+export interface FileInfoDTO {
+    objectName: string;
+    fileName: string;
+    size: number;
+    contentType: string;
+    lastModified: string;
+    etag: string;
+    isDir: boolean;
+    url: string;
+    extension: string;
+    path: string;
+    bucketName: string;
+    error: boolean;
+    errorMessage: string;
+}
+
+// 文件信息接口（兼容旧版本）
 export interface FileInfo {
     filename: string;
     size: number;

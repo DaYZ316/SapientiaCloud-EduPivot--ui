@@ -1,6 +1,7 @@
 export default {
     dashboard: 'Dashboard',
     settings: 'Settings',
+    filePreview: 'File Preview',
     profile: 'Profile',
     system: 'System Management',
     user: 'User Management',
@@ -12,5 +13,10 @@ export default {
     course: 'Course',
     courseManagement: 'Course Management',
     myCourses: 'My Courses',
-    courseDetail: 'Course Detail'
+    courseDetail: 'Course Detail',
+    courseOverview: 'Course Overview',
+    courseChapters: 'Chapters',
+    courseForum: 'Forum',
+    courseStudents: 'Students',
+    courseClassroom: 'Classroom'
 } 

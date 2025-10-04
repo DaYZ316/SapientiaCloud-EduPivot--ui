@@ -3,16 +3,24 @@ import type {MenuOption} from '@/config/menu'
 
 interface MenuState {
     dynamicMenuItems: MenuOption[]
+    lastAccessedCourse: {
+        courseId: string
+        courseName: string
+    } | null
 }
 
 export const useMenuStore = defineStore('menu', {
     state: (): MenuState => ({
-        dynamicMenuItems: []
+        dynamicMenuItems: [],
+        lastAccessedCourse: null
     }),
 
     getters: {
         // 获取所有动态菜单项
-        getDynamicMenuItems: (state): MenuOption[] => state.dynamicMenuItems
+        getDynamicMenuItems: (state): MenuOption[] => state.dynamicMenuItems,
+
+        // 获取最后访问的课程信息
+        getLastAccessedCourse: (state) => state.lastAccessedCourse
     },
 
     actions: {
@@ -40,6 +48,36 @@ export const useMenuStore = defineStore('menu', {
         // 清空所有动态菜单项
         clearDynamicMenuItems() {
             this.dynamicMenuItems = []
+        },
+
+        // 设置最后访问的课程信息
+        setLastAccessedCourse(courseId: string, courseName: string) {
+            this.lastAccessedCourse = {
+                courseId,
+                courseName
+            }
+            // 持久化存储到localStorage
+            localStorage.setItem('lastAccessedCourse', JSON.stringify(this.lastAccessedCourse))
+        },
+
+        // 从localStorage加载最后访问的课程信息
+        loadLastAccessedCourse() {
+            try {
+                const stored = localStorage.getItem('lastAccessedCourse')
+                if (stored) {
+                    this.lastAccessedCourse = JSON.parse(stored)
+                }
+            } catch (error) {
+                // 如果解析失败，清空存储
+                localStorage.removeItem('lastAccessedCourse')
+                this.lastAccessedCourse = null
+            }
+        },
+
+        // 清除最后访问的课程信息
+        clearLastAccessedCourse() {
+            this.lastAccessedCourse = null
+            localStorage.removeItem('lastAccessedCourse')
         }
     }
 })

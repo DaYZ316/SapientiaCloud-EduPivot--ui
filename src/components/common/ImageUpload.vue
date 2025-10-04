@@ -385,7 +385,7 @@ onUnmounted(() => {
     }
 
     &:hover {
-      border-color: var(--n-primary-color);
+      border-color: var(--primary-color);
       transform: scale(1.02);
     }
 

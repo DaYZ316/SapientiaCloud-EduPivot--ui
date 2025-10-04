@@ -5,9 +5,7 @@ export enum ChapterStatusEnum {
     /** 草稿 */
     DRAFT = 0,
     /** 发布 */
-    PUBLISHED = 1,
-    /** 下架 */
-    OFFLINE = 2
+    PUBLISHED = 1
 }
 
 /**
@@ -15,8 +13,7 @@ export enum ChapterStatusEnum {
  */
 export const chapterStatusLabelMap = {
     [ChapterStatusEnum.DRAFT]: '草稿',
-    [ChapterStatusEnum.PUBLISHED]: '发布',
-    [ChapterStatusEnum.OFFLINE]: '下架'
+    [ChapterStatusEnum.PUBLISHED]: '发布'
 };
 
 /**
@@ -24,8 +21,7 @@ export const chapterStatusLabelMap = {
  */
 export const chapterStatusEnLabelMap = {
     [ChapterStatusEnum.DRAFT]: 'Draft',
-    [ChapterStatusEnum.PUBLISHED]: 'Published',
-    [ChapterStatusEnum.OFFLINE]: 'Offline'
+    [ChapterStatusEnum.PUBLISHED]: 'Published'
 };
 
 /**
@@ -36,8 +32,7 @@ export const chapterStatusEnLabelMap = {
 export function getChapterStatusOptions(t: (key: string) => string) {
     return [
         {label: t('course.chapterStatus.DRAFT'), value: ChapterStatusEnum.DRAFT},
-        {label: t('course.chapterStatus.PUBLISHED'), value: ChapterStatusEnum.PUBLISHED},
-        {label: t('course.chapterStatus.OFFLINE'), value: ChapterStatusEnum.OFFLINE}
+        {label: t('course.chapterStatus.PUBLISHED'), value: ChapterStatusEnum.PUBLISHED}
     ];
 }
 

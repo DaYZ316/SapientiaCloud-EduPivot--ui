@@ -1,3 +1,5 @@
+import type {ReplyStatusEnum} from '@/enum/course'
+
 /**
  * 论坛回复数据传输对象
  * 用于回复的新增和更新操作
@@ -8,7 +10,7 @@ export interface ForumReplyDTO {
     /** 所属帖子ID */
     postId: string | null
     /** 回复用户ID */
-    userId: string | null
+    sysUserId: string | null
     /** 父回复ID（用于嵌套回复） */
     parentReplyId?: string | null
     /** 回复内容 */
@@ -17,8 +19,8 @@ export interface ForumReplyDTO {
     isAnonymous?: number | null
     /** 附件URL列表 */
     attachmentUrls?: string[] | null
-    /** 回复状态 (0=正常, 1=删除) */
-    status?: number | null
+    /** 回复状态 (0=正常, 1=删除, 2=审核中, 3=审核失败) */
+    status?: ReplyStatusEnum | null
 }
 
 /**
@@ -31,7 +33,7 @@ export interface ForumReplyVO {
     /** 所属帖子ID */
     postId: string
     /** 回复用户ID */
-    userId: string
+    sysUserId: string
     /** 回复用户姓名 */
     userName?: string
     /** 回复用户头像 */
@@ -46,8 +48,8 @@ export interface ForumReplyVO {
     isAnonymous?: number
     /** 附件URL列表 */
     attachmentUrls?: string[]
-    /** 回复状态 (0=正常, 1=删除) */
-    status?: number
+    /** 回复状态 (0=正常, 1=删除, 2=审核中, 3=审核失败) */
+    status?: ReplyStatusEnum
     /** 点赞次数 */
     likeCount?: number
     /** 是否已点赞 */
@@ -74,7 +76,7 @@ export interface ForumReplyQueryParams {
     /** 课程ID */
     courseId?: string | null
     /** 回复用户ID */
-    userId?: string | null
+    sysUserId?: string | null
     /** 父回复ID */
     parentReplyId?: string | null
     /** 回复状态 */

@@ -29,8 +29,6 @@ export function getDefaultCourseChapterDTO(): CourseChapterDTO {
         parentChapterId: null,
         description: null,
         content: null,
-        videoUrl: null,
-        videoDuration: null,
         attachmentUrls: null,
         sortOrder: 0,
         status: null
@@ -47,8 +45,6 @@ export function getDefaultCourseChapterAddDTO(): CourseChapterAddDTO {
         parentChapterId: null,
         description: null,
         content: null,
-        videoUrl: null,
-        videoDuration: null,
         attachmentUrls: null,
         sortOrder: 0,
         status: null

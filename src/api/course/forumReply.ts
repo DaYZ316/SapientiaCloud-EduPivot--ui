@@ -8,7 +8,7 @@ export function getDefaultForumReplyQuery(): ForumReplyQueryParams {
         postId: null,
         forumId: null,
         courseId: null,
-        userId: null,
+        sysUserId: null,
         parentReplyId: null,
         status: null,
         isAccepted: null,
@@ -27,7 +27,7 @@ export function getDefaultForumReplyDTO(): ForumReplyDTO {
     return {
         id: null,
         postId: null,
-        userId: null,
+        sysUserId: null,
         parentReplyId: null,
         content: null,
         isAnonymous: null,

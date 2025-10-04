@@ -16,9 +16,7 @@
           @click="handleBack"
       >
         <template #icon>
-          <n-icon>
-            <Icon :component="ArrowBackOutline"/>
-          </n-icon>
+          <Icon :component="ArrowBackOutline"/>
         </template>
         {{ t('common.back') }}
       </n-button>
@@ -31,51 +29,6 @@
         <n-card class="info-card">
           <!-- 标签栏 -->
           <n-tabs v-model:value="activeTab" type="line">
-            <n-tab-pane :tab="t('course.chapters.draft')" name="draft">
-              <div class="chapter-list">
-                <n-spin :show="loading">
-                  <div class="chapter-items">
-                    <!-- 添加章节选项 - 始终显示 -->
-                    <div class="add-chapter-item" @click="handleAddChapter">
-                      <div class="add-chapter-content">
-                        <div class="add-icon">
-                          <n-icon size="20">
-                            <Icon :component="AddOutline"/>
-                          </n-icon>
-                        </div>
-                        <span class="add-text">{{ t('course.chapters.addChapter') }}</span>
-                      </div>
-                    </div>
-
-                    <!-- 空状态 - 只在没有草稿章节且不在加载时显示 -->
-                    <div v-if="draftChapters.length === 0 && !loading" class="empty-state">
-                      <n-empty :description="t('course.chapters.draftChapters')">
-                        <template #icon>
-                          <Icon :component="BookOutline"/>
-                        </template>
-                      </n-empty>
-                    </div>
-
-                    <!-- 草稿章节列表 -->
-                    <div
-                        v-for="chapter in draftChapters"
-                        :key="chapter.id"
-                        :class="{ 'selected': currentEditingChapter?.id === chapter.id }"
-                        class="chapter-item"
-                        @click="handleDraftChapterClick(chapter)"
-                    >
-                      <div class="chapter-info">
-                        <h4 class="chapter-title">{{ chapter.chapterName }}</h4>
-                        <p v-if="chapter.description" class="chapter-description">{{ chapter.description }}</p>
-                        <div class="chapter-meta">
-                          <span class="update-time">{{ chapter.updateTime }}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </n-spin>
-              </div>
-            </n-tab-pane>
             <n-tab-pane :tab="t('course.chapters.published')" name="published">
               <div class="chapter-tree-container">
                 <n-spin :show="loading">
@@ -104,6 +57,49 @@
                 </n-spin>
               </div>
             </n-tab-pane>
+            <n-tab-pane :tab="t('course.chapters.draft')" name="draft">
+              <div class="chapter-list">
+                <n-spin :show="loading">
+                  <div class="chapter-items">
+                    <!-- 添加章节选项 - 始终显示 -->
+                    <div class="add-chapter-item" @click="handleAddChapter">
+                      <div class="add-chapter-content">
+                        <div class="add-icon">
+                          <Icon :component="AddOutline" size="20"/>
+                        </div>
+                        <span class="add-text">{{ t('course.chapters.addChapter') }}</span>
+                      </div>
+                    </div>
+
+                    <!-- 空状态 - 只在没有草稿章节且不在加载时显示 -->
+                    <div v-if="draftChapters.length === 0 && !loading" class="empty-state">
+                      <n-empty :description="t('course.chapters.draftChapters')">
+                        <template #icon>
+                          <Icon :component="BookOutline"/>
+                        </template>
+                      </n-empty>
+                    </div>
+
+                    <!-- 草稿章节列表 -->
+                    <div
+                        v-for="chapter in draftChapters"
+                        :key="chapter.id"
+                        :class="{ 'selected': currentEditingChapter?.id === chapter.id }"
+                        class="chapter-item"
+                        @click="handleChapterClick(chapter)"
+                    >
+                      <div class="chapter-info">
+                        <h4 class="chapter-title">{{ chapter.chapterName }}</h4>
+                        <p v-if="chapter.description" class="chapter-description">{{ chapter.description }}</p>
+                        <div class="chapter-meta">
+                          <span class="update-time">{{ chapter.updateTime }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </n-spin>
+              </div>
+            </n-tab-pane>
           </n-tabs>
         </n-card>
       </div>
@@ -122,7 +118,7 @@
             >
               <n-grid :cols="24" :x-gap="16">
                 <!-- 章节名称和排序权重 -->
-                <n-form-item-grid-item :span="12" label="章节名称" path="chapterName">
+                <n-form-item-grid-item :label="t('course.chapters.form.chapterName')" :span="12" path="chapterName">
                   <n-input
                       v-model:value="chapterForm.chapterName"
                       :placeholder="t('course.chapters.form.chapterNamePlaceholder')"
@@ -130,7 +126,7 @@
                   />
                 </n-form-item-grid-item>
 
-                <n-form-item-grid-item :span="18" label="排序权重" path="sortOrder">
+                <n-form-item-grid-item :label="t('course.chapters.form.sortOrder')" :span="18" path="sortOrder">
                   <n-input-number
                       v-model:value="chapterForm.sortOrder"
                       :max="9999"
@@ -142,7 +138,8 @@
                 </n-form-item-grid-item>
 
                 <!-- 父章节选择 -->
-                <n-form-item-grid-item :span="24" label="父章节" path="parentChapterId">
+                <n-form-item-grid-item :label="t('course.chapters.form.parentChapterId')" :span="24"
+                                       path="parentChapterId">
                   <n-tree-select
                       v-model:value="chapterForm.parentChapterId"
                       :cascade="false"
@@ -158,7 +155,7 @@
                 </n-form-item-grid-item>
 
                 <!-- 章节描述 -->
-                <n-form-item-grid-item :span="24" label="章节描述" path="description">
+                <n-form-item-grid-item :label="t('course.chapters.form.description')" :span="24" path="description">
                   <n-input
                       v-model:value="chapterForm.description"
                       :placeholder="t('course.chapters.form.descriptionPlaceholder')"
@@ -169,14 +166,84 @@
                 </n-form-item-grid-item>
 
 
+                <!-- 章节内容标题 -->
+                <n-form-item-grid-item :span="24">
+                  <div class="section-title">
+                    <h3>{{ t('course.chapters.form.content') }}</h3>
+                  </div>
+                </n-form-item-grid-item>
+
                 <!-- 章节内容 -->
                 <n-form-item-grid-item :span="24">
                   <RichTextEditor
                       v-model="chapterForm.content"
-                      placeholder="请输入章节内容..."
+                      :placeholder="t('course.chapters.form.contentPlaceholder')"
                       upload-path="course-chapters"
                       @change="handleContentChange"
                   />
+                </n-form-item-grid-item>
+
+                <!-- 章节附件 -->
+                <n-form-item-grid-item :label="t('course.chapters.form.attachments')" :span="24">
+                  <FileUpload
+                      v-model="attachmentFiles"
+                      :max-file-count="10"
+                      :max-file-size="50 * 1024 * 1024"
+                      :multiple="true"
+                      :show-delete-button="true"
+                      :show-download-button="true"
+                      :show-file-list="true"
+                      :show-preview-button="true"
+                      :upload-hint="t('course.chapters.form.attachmentsDescription')"
+                      :upload-text="t('course.chapters.form.attachmentsPlaceholder')"
+                      upload-dir="course-chapters"
+                      @file-change="handleAttachmentChange"
+                      @upload-success="handleAttachmentUploadSuccess"
+                      @upload-error="handleAttachmentUploadError"
+                      @urls-updated="handleUrlsUpdated"
+                  />
+                </n-form-item-grid-item>
+
+                <!-- 文件详细信息展示 -->
+                <n-form-item-grid-item v-if="fileInfoList.length > 0" :span="24" label="附件列表">
+                  <div class="file-info-container">
+                    <n-spin :show="loadingFileInfo">
+                      <n-list>
+                        <n-list-item v-for="fileInfo in fileInfoList" :key="fileInfo.objectName" class="file-info-item"
+                                     @click="handleFilePreview(fileInfo)">
+                          <template #prefix>
+                            <Icon :component="getFileTypeIcon(fileInfo)" color="var(--color-primary)" size="20"/>
+                          </template>
+
+                          <div class="file-details">
+                            <div class="file-name">{{ fileInfo.fileName }}</div>
+                            <div class="file-meta">
+                              <n-text depth="3" style="font-size: 12px">
+                                {{ formatFileSize(fileInfo.size) }}
+                              </n-text>
+                              <n-text depth="3" style="font-size: 12px; margin-left: 8px">
+                                {{ formatUploadTime(fileInfo.lastModified) }}
+                              </n-text>
+                            </div>
+                          </div>
+
+                          <template #suffix>
+                            <n-button
+                                class="delete-button"
+                                quaternary
+                                size="small"
+                                type="error"
+                                @click.stop="handleDeleteAttachment(fileInfo)"
+                            >
+                              <template #icon>
+                                <Icon :component="TrashOutline" size="16"/>
+                              </template>
+                            </n-button>
+                          </template>
+                        </n-list-item>
+                      </n-list>
+                    </n-spin>
+                  </div>
                 </n-form-item-grid-item>
               </n-grid>
             </n-form>
@@ -193,20 +260,20 @@
                     type="error"
                     @click="handleDeleteChapter"
                 >
-                  删除章节
+                  {{ t('course.chapters.deleteChapter') }}
                 </n-button>
               </div>
 
               <!-- 右侧其他按钮 -->
               <n-space>
                 <n-button v-if="isEditMode" type="default" @click="handleCancelEdit">
-                  取消编辑
+                  {{ t('course.chapters.cancelEdit') }}
                 </n-button>
                 <n-button v-if="!isEditMode" :loading="saving" type="info" @click="handleSaveDraft">
                   {{ t('course.chapters.saveDraft') }}
                 </n-button>
                 <n-button :loading="saving" type="primary" @click="handleSave">
-                  {{ isEditMode ? '更新章节' : t('course.chapters.publish') }}
+                  {{ isEditMode ? t('course.chapters.updateChapter') : t('course.chapters.publish') }}
                 </n-button>
               </n-space>
             </n-space>
@@ -218,24 +285,40 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, ref} from 'vue'
+import {computed, onMounted, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
-import {AddOutline, ArrowBackOutline, BookOutline} from '@vicons/ionicons5'
+import {useTitle} from '@/utils/titleUtil'
+import {
+  AddOutline,
+  ArchiveOutline,
+  ArrowBackOutline,
+  BookOutline,
+  DocumentTextOutline,
+  FolderOutline,
+  ImageOutline,
+  MusicalNotesOutline,
+  TrashOutline,
+  VideocamOutline
+} from '@vicons/ionicons5'
 import * as CourseApi from '@/api/course/course'
 import * as CourseChapterApi from '@/api/course/courseChapter'
+import * as MinIOApi from '@/api/minIO'
 import {ChapterStatusEnum} from '@/enum/course/chapterStatusEnum'
 import type {CourseVO} from '@/types/course'
 import type {CourseChapterVO} from '@/types/course/courseChapter'
+import type {FileInfoDTO} from '@/types/minIO/file'
 import CourseBreadcrumb from '../../components/CourseBreadcrumb/CourseBreadcrumb.vue'
 import Icon from '@/components/common/Icon.vue'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
+import FileUpload from '@/components/common/FileUpload.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
 
 const {message} = getDiscreteApi()
 const {t} = useI18n()
 const route = useRoute()
 const router = useRouter()
+const {setTitle} = useTitle()
 
 // 响应式数据
 const courseInfo = ref<CourseVO | null>(null)
@@ -248,7 +331,10 @@ const saving = ref(false)
 const formRef = ref()
 const isEditMode = ref(false) // 是否为编辑模式
 const currentEditingChapter = ref<CourseChapterVO | null>(null) // 当前正在编辑的章节
-const activeTab = ref('draft') // 当前激活的标签页
+const activeTab = ref('published') // 当前激活的标签页
+const attachmentFiles = ref<any[]>([]) // 附件文件列表
+const fileInfoList = ref<FileInfoDTO[]>([]) // 文件详细信息列表
+const loadingFileInfo = ref(false) // 加载文件信息状态
 
 // 章节表单数据
 const chapterForm = ref({
@@ -259,6 +345,7 @@ const chapterForm = ref({
   parentChapterId: null as string | null,
   description: '',
   content: '',
+  attachmentUrls: null as string[] | null,
   sortOrder: 0,
   status: null as number | null
 })
@@ -289,6 +376,33 @@ const formRules = {
 const courseId = computed(() => route.params.courseId as string)
 const editChapterId = computed(() => route.query.chapterId as string)
 
+// 监听标签页切换，重新初始化附件相关字段
+watch(activeTab, () => {
+  // 清空附件相关字段
+  chapterForm.value.attachmentUrls = null
+  attachmentFiles.value = []
+  fileInfoList.value = []
+
+  // 重置当前编辑章节
+  currentEditingChapter.value = null
+  isEditMode.value = false
+
+  // 重置表单
+  resetForm()
+})
+
+// 设置动态标题
+const setCourseChapterControlTitle = () => {
+  if (courseInfo.value?.courseName) {
+    // 设置动态标题：课程名称 - 章节管理
+    const courseChapterControlTitle = t('app.title.course.courseChapterControl')
+    setTitle('courseChapterControl', `${courseInfo.value.courseName} - ${courseChapterControlTitle}`)
+  } else {
+    // 如果课程信息还未加载，使用默认标题
+    setTitle('courseChapterControl')
+  }
+}
+
 // 加载课程信息
 const loadCourseInfo = async () => {
   if (!courseId.value || courseId.value === 'undefined') {
@@ -300,6 +414,8 @@ const loadCourseInfo = async () => {
     const res = await CourseApi.getCourseById(courseId.value)
     if (res.success && res.data) {
       courseInfo.value = res.data
+      // 设置动态标题
+      setCourseChapterControlTitle()
     }
   } catch (error) {
     message.error(t('course.chapters.loadCourseInfoFailed'))
@@ -484,6 +600,127 @@ const handleContentChange = (content: string) => {
   chapterForm.value.content = content
 }
 
+// 处理附件变化
+const handleAttachmentChange = (files: any[]) => {
+  attachmentFiles.value = files
+  // URL更新由handleUrlsUpdated方法处理
+}
+
+// 加载文件详细信息
+const loadFileInfo = async () => {
+  if (!chapterForm.value.attachmentUrls || chapterForm.value.attachmentUrls.length === 0) {
+    fileInfoList.value = []
+    return
+  }
+
+  loadingFileInfo.value = true
+  try {
+    const res = await MinIOApi.getBatchFileInfoByPath(chapterForm.value.attachmentUrls)
+    if (res && res.success && res.data) {
+      // 过滤掉error字段为true的文件
+      fileInfoList.value = res.data.filter(file => !file.error)
+    }
+  } catch (error) {
+    message.error(t('course.chapters.getFileInfoFailed'))
+  } finally {
+    loadingFileInfo.value = false
+  }
+}
+
+// 处理附件上传成功
+const handleAttachmentUploadSuccess = () => {
+  message.success(t('course.chapters.attachmentUploadSuccess'))
+}
+
+// 处理附件上传失败
+const handleAttachmentUploadError = () => {
+  message.error(t('course.chapters.attachmentUploadError'))
+}
+
+// 处理URL更新
+const handleUrlsUpdated = (urls: string[]) => {
+  // 确保URL数组不为空且过滤掉无效URL
+  const validUrls = urls.filter(url => url && url.trim() !== '')
+
+  if (validUrls.length > 0) {
+    // 拼接新URL到现有的attachmentUrls数组中
+    const existingUrls = chapterForm.value.attachmentUrls || []
+    chapterForm.value.attachmentUrls = [...existingUrls, ...validUrls]
+  }
+
+  // 获取文件详细信息
+  loadFileInfo()
+}
+
+// 处理文件预览
+const handleFilePreview = (fileInfo: FileInfoDTO) => {
+  // 跳转到文件预览页面，传递文件信息作为查询参数
+  router.push({
+    name: 'FilePreview',
+    query: {
+      fileInfo: JSON.stringify(fileInfo),
+      from: 'ChapterControl',
+      courseId: courseId.value,
+      chapterId: currentEditingChapter.value?.id || ''
+    }
+  })
+}
+
+// 处理删除附件
+const handleDeleteAttachment = (fileInfo: FileInfoDTO) => {
+  const {dialog} = getDiscreteApi()
+  dialog.warning({
+    title: t('course.chapters.form.deleteAttachmentConfirm'),
+    content: t('course.chapters.form.deleteAttachmentConfirmContent', {fileName: fileInfo.fileName}),
+    positiveText: t('course.chapters.confirmDelete'),
+    negativeText: t('common.cancel'),
+    onPositiveClick: async () => {
+      try {
+        // 1. 先更新章节信息，从attachmentUrls中移除该文件的URL
+        if (chapterForm.value.attachmentUrls) {
+          chapterForm.value.attachmentUrls = chapterForm.value.attachmentUrls.filter(url => {
+            // 排除逻辑：filePath.url匹配或者是filePath.objectName包含
+            return url !== fileInfo.url && !url.includes(fileInfo.objectName)
+          })
+        }
+
+        // 如果是编辑模式且有章节ID，先更新章节信息
+        if (isEditMode.value && chapterForm.value.id) {
+          // 更新章节信息
+          const updateData = {
+            ...chapterForm.value,
+            courseId: courseId.value,
+            teacherId: null
+          }
+
+          const updateRes = await CourseChapterApi.updateCourseChapter(updateData)
+          if (!updateRes || !updateRes.success) {
+            message.error(t('course.chapters.updateFailed'))
+            return
+          }
+        }
+
+        // 2. 只有当文件的error字段不为true时，才删除MinIO中的文件
+        if (!fileInfo.error && fileInfo.url) {
+          await MinIOApi.deleteFileByPath(fileInfo.url)
+        }
+
+        // 3. 更新本地缓存状态（无论error字段是否为true都要删除本地缓存）
+        // 从fileInfoList中移除该文件信息
+        fileInfoList.value = fileInfoList.value.filter(file => !file.url.includes(fileInfo.objectName))
+
+        // 从attachmentFiles中移除对应的文件
+        attachmentFiles.value = attachmentFiles.value.filter(file => !file.url.includes(fileInfo.objectName))
+
+        message.success(t('course.chapters.deleteAttachmentSuccess'))
+      } catch (error) {
+        message.error(t('course.chapters.deleteAttachmentError'))
+      }
+    }
+  })
+}
+
+
 // 处理添加章节点击
 const handleAddChapter = () => {
   currentEditingChapter.value = null
@@ -494,15 +731,8 @@ const handleAddChapter = () => {
   chapterForm.value.teacherId = null
 }
 
-// 处理草稿章节点击
-const handleDraftChapterClick = (chapter: CourseChapterVO) => {
-  currentEditingChapter.value = chapter
-  isEditMode.value = true
-  fillFormWithChapterData(chapter)
-}
-
-// 处理已发布章节点击
-const handlePublishedChapterClick = (chapter: CourseChapterVO) => {
+// 处理章节点击（通用函数）
+const handleChapterClick = (chapter: CourseChapterVO) => {
   currentEditingChapter.value = chapter
   isEditMode.value = true
   fillFormWithChapterData(chapter)
@@ -518,8 +748,26 @@ const fillFormWithChapterData = (chapter: CourseChapterVO) => {
     parentChapterId: chapter.parentChapterId || null,
     description: chapter.description || '',
     content: chapter.content || '',
+    attachmentUrls: chapter.attachmentUrls || null,
     sortOrder: chapter.sortOrder || 0,
     status: chapter.status || null
+  }
+
+  // 初始化附件文件列表
+  if (chapter.attachmentUrls && chapter.attachmentUrls.length > 0) {
+    attachmentFiles.value = chapter.attachmentUrls.map((url, index) => ({
+      id: `attachment-${index}`,
+      name: url.split('/').pop() || `附件${index + 1}`,
+      status: 'finished',
+      url: url,
+      percentage: 100
+    }))
+
+    // 加载文件详细信息
+    loadFileInfo()
+  } else {
+    attachmentFiles.value = []
+    fileInfoList.value = []
   }
 }
 
@@ -541,7 +789,7 @@ const handlePublishedChapterSelect = (keys: string[]) => {
     }
     const selectedChapter = findChapter(publishedChapterTree.value)
     if (selectedChapter) {
-      handlePublishedChapterClick(selectedChapter)
+      handleChapterClick(selectedChapter)
     }
   }
 }
@@ -557,6 +805,8 @@ const saveChapter = async (isDraft: boolean = false) => {
     // 设置表单数据
     chapterForm.value.courseId = courseId.value
     chapterForm.value.teacherId = null
+
+    // attachmentUrls已经在handleUrlsUpdated中更新，无需重复处理
 
     // 如果是编辑模式，保持原有的status不变
     if (isEditMode.value && chapterForm.value.id) {
@@ -580,20 +830,20 @@ const saveChapter = async (isDraft: boolean = false) => {
       await loadChapters() // 重新加载章节列表
       if (!isEditMode.value) {
         resetForm() // 新增模式下重置表单
-        message.success(isDraft ? '草稿保存成功' : t('course.chapters.addSuccess'))
+        message.success(isDraft ? t('course.chapters.saveDraftSuccess') : t('course.chapters.addSuccess'))
       } else {
-        message.success('章节更新成功')
+        message.success(t('course.chapters.updateSuccess'))
       }
 
       // 保持当前页面状态不变，不进行标签页跳转
     } else {
       const errorMessage = isEditMode.value
-          ? '章节更新失败'
-          : (isDraft ? '草稿保存失败' : t('course.chapters.addFailed'))
+          ? t('course.chapters.updateFailed')
+          : (isDraft ? t('course.chapters.saveDraftFailed') : t('course.chapters.addFailed'))
       message.error(errorMessage)
     }
   } catch (error) {
-    message.error('保存失败，请检查表单信息')
+    message.error(t('course.chapters.saveFailed'))
   } finally {
     saving.value = false
   }
@@ -608,21 +858,21 @@ const handleSaveDraft = () => saveChapter(true)
 // 删除章节
 const handleDeleteChapter = async () => {
   if (!currentEditingChapter.value?.id) {
-    message.error('无法获取章节信息')
+    message.error(t('course.chapters.cannotGetChapterInfo'))
     return
   }
 
   // 显示确认对话框
   const {dialog} = getDiscreteApi()
   dialog.warning({
-    title: '确认删除',
-    content: `确定要删除章节"${currentEditingChapter.value.chapterName}"吗？删除后无法恢复。`,
-    positiveText: '确定删除',
-    negativeText: '取消',
+    title: t('course.chapters.deleteConfirm'),
+    content: t('course.chapters.deleteConfirmContent', {chapterName: currentEditingChapter.value.chapterName}),
+    positiveText: t('course.chapters.confirmDelete'),
+    negativeText: t('common.cancel'),
     onPositiveClick: async () => {
       try {
         await CourseChapterApi.removeCourseChapterById(currentEditingChapter.value!.id!)
-        message.success('章节删除成功')
+        message.success(t('course.chapters.deleteSuccess'))
 
         // 重置表单并退出编辑模式
         resetForm()
@@ -630,7 +880,7 @@ const handleDeleteChapter = async () => {
         // 重新加载章节列表
         await loadChapters()
       } catch (error) {
-        message.error('删除章节失败')
+        message.error(t('course.chapters.deleteFailed'))
       }
     }
   })
@@ -646,9 +896,11 @@ const resetForm = () => {
     parentChapterId: null,
     description: '',
     content: '',
+    attachmentUrls: null,
     sortOrder: 0,
     status: null
   }
+  attachmentFiles.value = []
   isEditMode.value = false
   currentEditingChapter.value = null
   if (formRef.value) {
@@ -664,6 +916,39 @@ const handleCancelEdit = () => {
 // 返回上一页
 const handleBack = () => {
   router.back()
+}
+
+// 获取文件类型图标
+const getFileTypeIcon = (fileInfo: FileInfoDTO) => {
+  const contentType = fileInfo.contentType || ''
+  if (contentType.startsWith('image/')) return ImageOutline
+  if (contentType.startsWith('video/')) return VideocamOutline
+  if (contentType.startsWith('audio/')) return MusicalNotesOutline
+  if (contentType.includes('pdf') || contentType.includes('document') || contentType.includes('text')) return DocumentTextOutline
+  if (contentType.includes('zip') || contentType.includes('rar') || contentType.includes('7z')) return ArchiveOutline
+  return FolderOutline
+}
+
+
+// 格式化文件大小
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+// 格式化上传时间
+const formatUploadTime = (timeString: string): string => {
+  const date = new Date(timeString)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 
 // 生命周期
@@ -902,5 +1187,67 @@ onMounted(async () => {
 
   }
 }
+
+// 文件信息展示样式
+.file-info-container {
+  margin-top: 8px;
+
+  .file-info-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--n-border-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    position: relative;
+
+    &:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+
+    &:hover {
+      background-color: var(--n-color-hover);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    &:active {
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .file-details {
+      flex: 1;
+      margin-left: 12px;
+
+      .file-name {
+        font-weight: 500;
+        margin-bottom: 4px;
+        word-break: break-all;
+        color: var(--n-text-color);
+        transition: color 0.2s ease;
+      }
+
+      .file-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+    }
+
+    &:hover .file-details .file-name {
+      color: var(--color-primary);
+    }
+
+    .delete-button {
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    &:hover .delete-button {
+      opacity: 1;
+    }
+  }
+}
 </style>
+
 

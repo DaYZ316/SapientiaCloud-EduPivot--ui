@@ -25,7 +25,7 @@ export interface CourseChapterDTO {
     attachmentUrls?: string[] | null
     /** 排序权重 */
     sortOrder?: number | null
-    /** 章节状态 (0=草稿, 1=发布, 2=下架) */
+    /** 章节状态 (0=草稿, 1=发布) */
     status?: number | null
 }
 
@@ -48,15 +48,11 @@ export interface CourseChapterAddDTO {
     description?: string | null
     /** 章节内容 */
     content?: string | null
-    /** 视频资源URL */
-    videoUrl?: string | null
-    /** 视频时长(秒) */
-    videoDuration?: number | null
     /** 附件URL列表 */
     attachmentUrls?: string[] | null
     /** 排序权重 */
     sortOrder?: number | null
-    /** 章节状态 (0=草稿, 1=发布, 2=下架) */
+    /** 章节状态 (0=草稿, 1=发布) */
     status?: number | null
 }
 
@@ -79,28 +75,16 @@ export interface CourseChapterVO {
     description?: string
     /** 章节内容 */
     content?: string
-    /** 视频资源URL */
-    videoUrl?: string
-    /** 视频时长(秒) */
-    videoDuration?: number
     /** 附件URL列表 */
     attachmentUrls?: string[]
     /** 排序权重 */
     sortOrder?: number
-    /** 章节状态 (0=草稿, 1=发布, 2=下架) */
+    /** 章节状态 (0=草稿, 1=发布) */
     status?: number
     /** 浏览次数 */
     viewCount?: number
     /** 点赞次数 */
     likeCount?: number
-    /** 评论次数 */
-    commentCount?: number
-    /** 是否已点赞 */
-    isLiked?: boolean
-    /** 是否已学习 */
-    isStudied?: boolean
-    /** 学习进度 */
-    studyProgress?: number
     /** 子章节列表（用于树形结构） */
     children?: CourseChapterVO[]
     /** 创建时间 */
@@ -114,13 +98,13 @@ export interface CourseChapterVO {
  * 用于章节列表的分页查询
  */
 export interface CourseChapterQueryParams {
-    /** 课程ID */
+    /** 所属课程ID */
     courseId?: string | null
     /** 章节名称（模糊查询） */
     chapterName?: string | null
     /** 父章节ID */
     parentChapterId?: string | null
-    /** 章节状态 */
+    /** 章节状态 (0=草稿, 1=发布) */
     status?: string | null
     /** 最小浏览次数 */
     minViewCount?: string | null
@@ -134,7 +118,7 @@ export interface CourseChapterQueryParams {
     pageNum?: number
     /** 每页显示记录数 */
     pageSize?: number
-    /** 排序字段 */
+    /** 排序列 */
     orderByColumn?: string | null
     /** 排序的方向，可用值：asc,desc */
     isAsc?: 'asc' | 'desc' | null

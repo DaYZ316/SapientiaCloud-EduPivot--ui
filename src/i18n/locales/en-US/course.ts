@@ -381,8 +381,6 @@ export default {
         loadCourseInfoFailed: 'Failed to load course information',
         loadDraftChaptersFailed: 'Failed to load draft chapters',
         loadPublishedChaptersFailed: 'Failed to load published chapters',
-        deleteConfirmContent: 'Are you sure you want to delete chapter "{chapterName}"? This action cannot be undone.',
-        deleteSuccess: 'Chapter deleted successfully',
         deleteError: 'Failed to delete chapter',
         addChapterNotImplemented: 'Add chapter feature not implemented yet',
         viewChapterNotImplemented: 'View chapter details feature not implemented yet',
@@ -397,6 +395,11 @@ export default {
         sortUpdateError: 'Failed to update chapter sort',
         batchSortUpdateSuccess: 'Batch sort updated successfully',
         batchSortUpdateError: 'Failed to update batch sort',
+        attachmentUploadSuccess: 'Attachment uploaded successfully',
+        attachmentUploadError: 'Failed to upload attachment',
+        attachmentRemoveSuccess: 'Attachment removed successfully',
+        attachmentRemoveError: 'Failed to remove attachment',
+        deleteAttachmentSuccess: 'Attachment deleted successfully',
         actions: {
             addChapter: 'Add Chapter',
             viewChapter: 'View Chapter',
@@ -410,12 +413,28 @@ export default {
             chapterNamePlaceholder: 'Please enter chapter name',
             parentChapterId: 'Parent Chapter',
             parentChapterIdPlaceholder: 'Please select parent chapter (optional)',
-            sortOrder: 'Sort',
+            sortOrder: 'Sort Weight',
             description: 'Description',
             descriptionPlaceholder: 'Please enter description (optional)',
             content: 'Chapter Content',
             contentPlaceholder: 'Please enter chapter content',
-            sortOrderPlaceholder: 'Please enter sort order (0-9999)'
+            sortOrderPlaceholder: 'Please enter sort order (0-9999)',
+            attachments: 'Chapter Attachments',
+            attachmentsPlaceholder: 'Please upload chapter attachments',
+            attachmentsDescription: 'Support uploading documents, images, videos and other files, up to 10 files, single file size limit 50MB',
+            attachmentsTitle: 'Chapter Attachments',
+            noAttachments: 'No attachments',
+            attachmentCount: 'files',
+            attachmentExpired: 'Expired',
+            attachmentValidityPeriod: 'Validity period',
+            attachmentPreview: 'Preview',
+            attachmentDownload: 'Download',
+            attachmentDelete: 'Delete',
+            attachmentUploadError: 'Attachment upload failed',
+            attachmentRemoveError: 'Attachment removal failed',
+            deleteAttachmentConfirm: 'Delete Attachment',
+            deleteAttachmentConfirmContent: 'Are you sure you want to delete the attachment "{fileName}"? This action cannot be undone.',
+            deleteAttachmentSuccess: 'Attachment deleted successfully'
         },
         validation: {
             chapterNameRequired: 'Please enter chapter name',
@@ -428,8 +447,16 @@ export default {
         description: 'Chapter Description',
         content: 'Chapter Content',
         editChapter: 'Edit Chapter',
+        updateChapter: 'Update Chapter',
         deleteChapter: 'Delete Chapter',
         deleteChapterNotImplemented: 'Delete chapter feature not implemented yet',
+        cancelEdit: 'Cancel Edit',
+        deleteConfirm: 'Confirm Delete',
+        deleteConfirmContent: 'Are you sure you want to delete chapter "{chapterName}"? This action cannot be undone.',
+        confirmDelete: 'Confirm Delete',
+        cannotGetChapterInfo: 'Cannot get chapter information',
+        getFileInfoFailed: 'Failed to get file information',
+        saveFailed: 'Save failed, please check form information',
         status: {
             published: 'Published',
             draft: 'Draft',
@@ -440,6 +467,12 @@ export default {
         statusPublished: 'Published',
         addSuccess: 'Chapter added successfully',
         addFailed: 'Failed to add chapter',
+        updateSuccess: 'Chapter updated successfully',
+        updateFailed: 'Failed to update chapter',
+        saveDraftSuccess: 'Draft saved successfully',
+        saveDraftFailed: 'Failed to save draft',
+        deleteSuccess: 'Chapter deleted successfully',
+        deleteFailed: 'Failed to delete chapter',
         publish: 'Publish',
         saveDraft: 'Save Draft'
     },
@@ -449,5 +482,8 @@ export default {
         DRAFT: 'Draft',
         PUBLISHED: 'Published',
         OFFLINE: 'Offline'
-    }
+    },
+
+    // 文件预览
+    previewFeatureDeveloping: 'Preview feature is under development, stay tuned...'
 }

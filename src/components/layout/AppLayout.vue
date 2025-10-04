@@ -87,6 +87,7 @@ import {getMenuOptions, getUserMenuOptions, menuExpandMap, menuRouteMap} from '@
 import {ChevronDownOutline} from '@vicons/ionicons5'
 import {NDropdown, NIcon, NMenu, useDialog, useMessage} from 'naive-ui'
 import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
+import {createCourseMenuHandler} from '@/utils/courseMenu'
 
 // 路由和国际化
 const route = useRoute()
@@ -102,10 +103,39 @@ const userStore = useUserStore()
 const themeStore = useThemeStore()
 const menuStore = useMenuStore()
 
+// 课程菜单处理器
+const courseMenuHandler = createCourseMenuHandler(router, menuStore)
+
 // 计算属性
 const collapsed = computed(() => themeStore.sidebarCollapsed)
-const currentRoute = computed(() => route.name as string)
-const menuOptions = computed(() => getMenuOptions(t, menuStore.getDynamicMenuItems) as any[])
+
+// 根据当前路由确定应该高亮的菜单项
+const getCurrentMenuKey = (routeName: string): string => {
+  // 如果是章节编辑页面，高亮章节选项
+  if (routeName === 'ChapterControl') {
+    return 'CourseChapters'
+  }
+
+  // 如果是课程详情页面（课程概览），高亮课程概览选项
+  if (routeName === 'CourseDetail') {
+    return 'CourseOverview'
+  }
+
+  // 如果是文件预览页面，高亮文件预览选项
+  if (routeName === 'FilePreview') {
+    return 'FilePreview'
+  }
+
+  // 其他情况直接使用路由名称
+  return routeName
+}
+
+const currentRoute = computed(() => getCurrentMenuKey(route.name as string))
+const menuOptions = computed(() => {
+  const dynamicItems = menuStore.getDynamicMenuItems
+  const lastCourse = menuStore.getLastAccessedCourse
+  return getMenuOptions(t, dynamicItems, lastCourse?.courseName, lastCourse?.courseId) as any[]
+})
 const userMenuOptions = computed(() => getUserMenuOptions(t) as any[])
 const displayAppName = computed(() =>
     locale.value === 'en-US' ? t('app.name').replace(' ', '<br>') : t('app.name')
@@ -146,13 +176,14 @@ const checkScreenSize = () => {
 }
 
 const handleMenuSelect = (key: string) => {
+  // 先尝试处理课程相关菜单
+  if (courseMenuHandler.handleCourseMenuSelect(key)) {
+    return
+  }
+
+  // 处理其他菜单项
   const routePath = menuRouteMap[key]
   if (routePath) {
-    // 如果是课程详情菜单项，需要保持当前路由
-    if (key === 'CourseDetail') {
-      // 不进行路由跳转，因为已经在课程详情页面
-      return
-    }
     router.push(routePath)
   }
 }
@@ -161,6 +192,8 @@ const handleMenuSelect = (key: string) => {
 onMounted(() => {
   checkScreenSize()
   window.addEventListener('resize', checkScreenSize)
+  // 加载最后访问的课程信息
+  menuStore.loadLastAccessedCourse()
 })
 
 onUnmounted(() => {
@@ -416,3 +449,4 @@ onUnmounted(() => {
   }
 }
 </style>
+

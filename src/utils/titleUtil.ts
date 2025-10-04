@@ -77,7 +77,32 @@ export class TitleUtil {
             'system/permission': 'system.permission',
             'info/teacher': 'infoManagement.teacher',
             'info/student': 'infoManagement.student',
-            'course': 'course'
+            'course': 'course',
+            'course/my-courses': 'course.myCourses',
+            'course/detail': 'course.courseDetail'
+        }
+
+        // 处理课程详情子页面
+        if (cleanPath.startsWith('course/detail/')) {
+            const pathParts = cleanPath.split('/')
+            if (pathParts.length >= 4) {
+                const subPage = pathParts[3]
+                switch (subPage) {
+                    case 'chapters':
+                        return this.setTitle('course.courseChapters')
+                    case 'forum':
+                        return this.setTitle('course.courseForum')
+                    case 'students':
+                        return this.setTitle('course.courseStudents')
+                    case 'classroom':
+                        return this.setTitle('course.courseClassroom')
+                    case 'control':
+                        return this.setTitle('course.courseChapterControl')
+                    default:
+                        return this.setTitle('course.courseDetail')
+                }
+            }
+            return this.setTitle('course.courseDetail')
         }
 
         const titleKey = pathToTitleMap[cleanPath] || 'default'
@@ -142,7 +167,32 @@ export function useTitle() {
             'system/permission': 'system.permission',
             'info/teacher': 'infoManagement.teacher',
             'info/student': 'infoManagement.student',
-            'course': 'course'
+            'course': 'course',
+            'course/my-courses': 'course.myCourses',
+            'course/detail': 'course.courseDetail'
+        }
+
+        // 处理课程详情子页面
+        if (cleanPath.startsWith('course/detail/')) {
+            const pathParts = cleanPath.split('/')
+            if (pathParts.length >= 4) {
+                const subPage = pathParts[3]
+                switch (subPage) {
+                    case 'chapters':
+                        return setTitle('course.courseChapters')
+                    case 'forum':
+                        return setTitle('course.courseForum')
+                    case 'students':
+                        return setTitle('course.courseStudents')
+                    case 'classroom':
+                        return setTitle('course.courseClassroom')
+                    case 'control':
+                        return setTitle('course.courseChapterControl')
+                    default:
+                        return setTitle('course.courseDetail')
+                }
+            }
+            return setTitle('course.courseDetail')
         }
 
         const titleKey = pathToTitleMap[cleanPath] || 'default'

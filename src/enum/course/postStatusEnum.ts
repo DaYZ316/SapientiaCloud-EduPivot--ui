@@ -4,10 +4,12 @@
 export enum PostStatusEnum {
     /** 正常 */
     NORMAL = 0,
-    /** 锁定 */
-    LOCKED = 1,
     /** 删除 */
-    DELETED = 2
+    DELETED = 1,
+    /** 审核中 */
+    PENDING = 2,
+    /** 审核失败 */
+    REJECTED = 3
 }
 
 /**
@@ -15,8 +17,9 @@ export enum PostStatusEnum {
  */
 export const postStatusLabelMap = {
     [PostStatusEnum.NORMAL]: '正常',
-    [PostStatusEnum.LOCKED]: '锁定',
-    [PostStatusEnum.DELETED]: '删除'
+    [PostStatusEnum.DELETED]: '删除',
+    [PostStatusEnum.PENDING]: '审核中',
+    [PostStatusEnum.REJECTED]: '审核失败'
 };
 
 /**
@@ -24,8 +27,9 @@ export const postStatusLabelMap = {
  */
 export const postStatusEnLabelMap = {
     [PostStatusEnum.NORMAL]: 'Normal',
-    [PostStatusEnum.LOCKED]: 'Locked',
-    [PostStatusEnum.DELETED]: 'Deleted'
+    [PostStatusEnum.DELETED]: 'Deleted',
+    [PostStatusEnum.PENDING]: 'Pending',
+    [PostStatusEnum.REJECTED]: 'Rejected'
 };
 
 /**
@@ -36,8 +40,9 @@ export const postStatusEnLabelMap = {
 export function getPostStatusOptions(t: (key: string) => string) {
     return [
         {label: t('course.postStatus.NORMAL'), value: PostStatusEnum.NORMAL},
-        {label: t('course.postStatus.LOCKED'), value: PostStatusEnum.LOCKED},
-        {label: t('course.postStatus.DELETED'), value: PostStatusEnum.DELETED}
+        {label: t('course.postStatus.DELETED'), value: PostStatusEnum.DELETED},
+        {label: t('course.postStatus.PENDING'), value: PostStatusEnum.PENDING},
+        {label: t('course.postStatus.REJECTED'), value: PostStatusEnum.REJECTED}
     ];
 }
 

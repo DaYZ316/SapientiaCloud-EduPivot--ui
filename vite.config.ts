@@ -6,6 +6,9 @@ import {defaultServerConfig, getProxyTarget} from './src/config/server'
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [vue()],
+    define: {
+        global: 'globalThis',
+    },
     resolve: {
         alias: {
             // 更改为更详细的路径别名配置
@@ -20,11 +23,43 @@ export default defineConfig({
             '@hooks': path.resolve(__dirname, './src/hooks'),
             '@types': path.resolve(__dirname, './src/types'),
             '@i18n': path.resolve(__dirname, './src/i18n'),
-            'three': path.resolve(__dirname, 'node_modules/three')
-        }
+            'three': path.resolve(__dirname, 'node_modules/three'),
+            // 修复 @vue-office 包的入口点问题
+            '@vue-office/pdf': path.resolve(__dirname, 'node_modules/@vue-office/pdf/lib/v3/index.js'),
+            '@vue-office/docx': path.resolve(__dirname, 'node_modules/@vue-office/docx/lib/v3/index.js'),
+            '@vue-office/excel': path.resolve(__dirname, 'node_modules/@vue-office/excel/lib/v3/index.js'),
+            '@vue-office/pptx': path.resolve(__dirname, 'node_modules/@vue-office/pptx/lib/v3/index.js')
+        },
+        dedupe: ['vue', 'vue-router']
     },
     optimizeDeps: {
-        include: ['three']
+        include: [
+            'three',
+            '@vue-office/pdf',
+            '@vue-office/docx',
+            '@vue-office/excel',
+            '@vue-office/pptx'
+        ],
+        force: true,
+        esbuildOptions: {
+            define: {
+                global: 'globalThis'
+            }
+        }
+    },
+    build: {
+        commonjsOptions: {
+            include: [/node_modules/, /@vue-office/],
+            transformMixedEsModules: true
+        },
+        rollupOptions: {
+            external: [],
+            output: {
+                manualChunks: {
+                    'vue-office': ['@vue-office/pdf', '@vue-office/docx', '@vue-office/excel', '@vue-office/pptx']
+                }
+            }
+        }
     },
     server: {
         host: '0.0.0.0', // 允许外部访问

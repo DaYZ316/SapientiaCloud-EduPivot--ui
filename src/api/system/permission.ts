@@ -39,7 +39,7 @@ export function getDefaultSysPermissionDTO(): SysPermissionDTO {
 
 // 分页查询权限列表
 export function sysPermissionList(params: PermissionPageQueryDTO) {
-    return http.get('/system/permission/list', params)
+    return http.getTableData('/system/permission/list', params)
 }
 
 // 查询权限树结构

@@ -79,6 +79,7 @@ import {useRouter} from 'vue-router'
 import {CalendarOutline, LocationOutline} from '@vicons/ionicons5'
 import {CourseStatusEnum} from '@/enum/course'
 import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
+import {getTeacherById} from '@/api/teacher'
 import {computed} from 'vue'
 
 const {t} = useI18n()
@@ -129,10 +130,23 @@ const handleContinueCourse = () => {
 }
 
 // 处理教师信息点击
-const handleTeacherClick = () => {
-  // 跳转到教师个人主页
+const handleTeacherClick = async () => {
+  // 如果有teacherUserId，直接跳转
+  if (props.course.teacherUserId) {
+    router.push(`/user/${props.course.teacherUserId}`)
+    return
+  }
+
+  // 如果没有teacherUserId但有teacherId，先查询教师信息获取sysUserId
   if (props.course.teacherId) {
-    router.push({name: 'TeacherProfile', params: {teacherId: props.course.teacherId}})
+    try {
+      const response = await getTeacherById(props.course.teacherId)
+      if (response.success && response.data?.sysUserId) {
+        router.push(`/user/${response.data.sysUserId}`)
+      }
+    } catch (error) {
+      console.error('获取教师信息失败:', error)
+    }
   }
 }
 

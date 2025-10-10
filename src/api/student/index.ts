@@ -74,7 +74,7 @@ export function getDefaultStudentVO(): StudentVO {
 
 // 分页查询学生列表
 export function listStudent(params: StudentQueryParams) {
-    return http.get('/student/list', params)
+    return http.getTableData('/student/list', params)
 }
 
 // 获取所有学生

@@ -1,6 +1,5 @@
 import http from '@/utils/http'
 import type {CourseDTO, CourseQueryParams, CourseVO} from '@/types/course'
-import type {TableDataResult} from '@/types/common/baseEntity'
 
 // 获取默认课程查询对象
 export function getDefaultCourseQuery(): CourseQueryParams {
@@ -97,5 +96,5 @@ export function listAllCourse() {
  * @returns 分页课程列表
  */
 export function listCourse(params: CourseQueryParams) {
-    return http.get<TableDataResult<CourseVO>>('/course/list', params)
+    return http.getTableData<CourseVO>('/course/list', params)
 }

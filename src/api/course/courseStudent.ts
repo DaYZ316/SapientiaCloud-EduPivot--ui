@@ -1,6 +1,5 @@
 import http from '@/utils/http'
 import type {CourseStudentDTO, CourseStudentQueryParams, CourseStudentVO} from '@/types/course'
-import type {TableDataResult} from '@/types/common/baseEntity'
 
 // 获取默认课程学生DTO
 export function getDefaultCourseStudentDTO(): CourseStudentDTO {
@@ -97,7 +96,7 @@ export function listAllCourseStudentByCourseId(courseId: string) {
  * @returns 选课记录分页列表
  */
 export function listCourseStudent(params: CourseStudentQueryParams) {
-    return http.get<TableDataResult<CourseStudentVO>>('/course/course-student/course/list', params)
+    return http.getTableData<CourseStudentVO>('/course/course-student/course/list', params)
 }
 
 /**

@@ -183,11 +183,42 @@ export default {
         title: 'Course Student Management',
         studentId: 'Student ID',
         studentName: 'Student Name',
+        realName: 'Real Name',
+        avatar: 'Avatar',
         grade: 'Grade',
+        searchPlaceholder: 'Enter student real name',
         enrollmentDate: 'Enrollment Date',
         status: 'Enrollment Status',
+        createTime: 'Create Time',
         updateGrade: 'Update Grade',
-        batchUpdateGrade: 'Batch Update Grade'
+        batchUpdateGrade: 'Batch Update Grade',
+        view: 'View',
+        edit: 'Edit',
+        remove: 'Remove',
+        noStudents: 'No enrolled students',
+        loadError: 'Failed to load student list',
+        removeConfirm: 'Confirm Remove',
+        removeConfirmContent: 'Are you sure you want to remove student "{studentName}"? This action cannot be undone.',
+        removeSuccess: 'Student removed successfully',
+        removeFail: 'Failed to remove student',
+        viewNotImplemented: 'View student details feature not implemented yet',
+        editNotImplemented: 'Edit student information feature not implemented yet',
+        removeNotImplemented: 'Remove student feature not implemented yet',
+        studentNotFound: 'Student information not found',
+        userLoggedOut: 'This user has been logged out and cannot view detailed information',
+        editDialog: {
+            title: 'Edit Student Information',
+            grade: 'Grade',
+            status: 'Enrollment Status',
+            gradePlaceholder: 'Please enter grade',
+            gradeRequired: 'Please enter grade',
+            gradeInvalid: 'Grade must be a number between 0-100',
+            statusRequired: 'Please select enrollment status',
+            cancel: 'Cancel',
+            confirm: 'Confirm',
+            editSuccess: 'Edit successful',
+            editFail: 'Edit failed'
+        }
     },
 
     // Teacher management
@@ -273,11 +304,17 @@ export default {
         fetchCourseError: 'Failed to fetch course information',
         fetchChaptersError: 'Failed to fetch course chapters',
         fetchThreadsError: 'Failed to fetch course threads',
-        fetchStudentsError: 'Failed to fetch enrolled students'
+        fetchStudentsError: 'Failed to fetch enrolled students',
+        loadCourseFailed: 'Failed to load course information'
     },
 
     // Teacher information
     teacherInfo: 'Course Instructor',
+
+    // Post type related
+    postTypeLabel: 'Post Type',
+    postTypePlaceholder: 'Please select post type',
+    postTypeRequired: 'Please select post type',
 
     // Share course
     share: {
@@ -358,10 +395,241 @@ export default {
     },
 
     // Coming soon notice
+    // Course Forum
+    forum: {
+        title: 'Course Forum',
+        createForum: 'Create Forum',
+        createPost: 'Create Post',
+        createFirstForum: 'Create First Forum',
+        noForums: 'No Forums Available',
+        noDescription: 'No Description',
+        posts: 'Posts',
+        replies: 'Replies',
+        anonymous: 'Anonymous',
+        realName: 'Real Name',
+        back: 'Back',
+
+        // Forum Types
+        forumType: {
+            DISCUSSION: 'Discussion',
+            Q_AND_A: 'Q&A',
+            ASSIGNMENT: 'Assignment',
+            ANNOUNCEMENT: 'Announcement'
+        },
+
+        // Forum Status
+        forumStatus: {
+            NORMAL: 'Normal',
+            CLOSED: 'Closed',
+            MAINTENANCE: 'Maintenance'
+        },
+
+
+        // Form Fields
+        forumName: 'Forum Name',
+        forumNamePlaceholder: 'Please enter forum name',
+        forumNameRequired: 'Please enter forum name',
+        description: 'Description',
+        descriptionPlaceholder: 'Please enter description',
+        forumTypeLabel: 'Forum Type',
+        forumTypePlaceholder: 'Please select forum type',
+        forumTypeRequired: 'Please select forum type',
+        isPublic: 'Is Public',
+        isPublicRequired: 'Please select if public',
+        private: 'Course Members Only',
+        public: 'Public',
+        allowAnonymous: 'Allow Anonymous',
+        allowAnonymousRequired: 'Please select if allow anonymous',
+        disallow: 'Disallow',
+        allow: 'Allow',
+        rules: 'Forum Rules',
+        rulesPlaceholder: 'Please enter forum rules',
+
+        // Post Form Fields
+        postTitle: 'Post Title',
+        postTitlePlaceholder: 'Please enter post title',
+        postTitleRequired: 'Please enter post title',
+        postContent: 'Post Content',
+        postContentPlaceholder: 'Please enter post content',
+        postContentRequired: 'Please enter post content',
+        postTypeLabel: 'Post Type',
+        postTypePlaceholder: 'Please select post type',
+        postTypeRequired: 'Please select post type',
+        isAnonymous: 'Is Anonymous',
+        isAnonymousRequired: 'Please select if anonymous',
+        tags: 'Tags',
+        tagsPlaceholder: 'Please enter tags, press Enter to add',
+
+        // Post Types
+        postTypeDiscussion: 'Discussion',
+        postTypeQuestion: 'Question',
+        postTypeAnnouncement: 'Announcement',
+        postTypeAssignment: 'Assignment',
+
+        // Forum Type Labels
+        forumTypeDiscussion: 'Discussion',
+        forumTypeQa: 'Q&A',
+        forumTypeAssignment: 'Assignment',
+        forumTypeAnnouncement: 'Announcement',
+
+        // Other Missing Translations
+        selectForumToView: 'Please select a forum to view',
+        totalPosts: 'Total Posts',
+        loadForumFailed: 'Failed to load forum',
+        loadPostsFailed: 'Failed to load posts',
+        createPostFailed: 'Failed to create post',
+        likePostFailed: 'Failed to like post',
+        shareFeatureComingSoon: 'Share feature coming soon',
+        postDetailComingSoon: 'Post details feature coming soon',
+        noPosts: 'No posts yet',
+        anonymousUser: 'Anonymous user profile not available',
+        userNotFound: 'User information not found',
+
+        // Share Related
+        sharePost: 'Share Post',
+        shareLink: 'Share Link',
+        shareLinkCopied: 'Share link copied to clipboard',
+
+        // Action Messages
+        createForumSuccess: 'Forum created successfully',
+        createPostSuccess: 'Post created successfully',
+        deletePostConfirm: 'Are you sure to delete post "{postTitle}"?',
+        deletePostSuccess: 'Post deleted successfully',
+        editForumNotImplemented: 'Edit forum feature is under development...',
+        editPostNotImplemented: 'Edit post feature is under development...',
+        viewPostNotImplemented: 'Post details feature is under development...',
+
+        // Edit and Delete Related
+        editPost: 'Edit Post',
+        deletePost: 'Delete Post',
+        confirmDeletePost: 'Are you sure to delete this post? This action cannot be undone.',
+        deletePostFailed: 'Failed to delete post',
+        editPostSuccess: 'Post edited successfully',
+        editPostFailed: 'Failed to edit post',
+
+        // Top and Essence Operations
+        setTopPost: 'Set as Top',
+        cancelTopPost: 'Cancel Top',
+        setTopPostSuccess: 'Post set as top successfully',
+        setTopPostFailed: 'Failed to set post as top',
+        cancelTopPostSuccess: 'Post top cancelled successfully',
+        cancelTopPostFailed: 'Failed to cancel post top',
+        setEssencePost: 'Set as Essence',
+        cancelEssencePost: 'Cancel Essence',
+        setEssencePostSuccess: 'Post set as essence successfully',
+        setEssencePostFailed: 'Failed to set post as essence',
+        cancelEssencePostSuccess: 'Post essence cancelled successfully',
+        cancelEssencePostFailed: 'Failed to cancel post essence',
+        editPostComingSoon: 'Edit post feature coming soon',
+        deletePostComingSoon: 'Delete post feature coming soon',
+
+        // Forum Management
+        editForum: 'Edit Forum',
+        deleteForum: 'Delete Forum',
+        deleteForumConfirm: 'Are you sure to delete forum "{forumName}"? This action cannot be undone.',
+        deleteForumSuccess: 'Forum deleted successfully',
+        updateForumSuccess: 'Forum updated successfully',
+        updateForumFail: 'Failed to update forum',
+
+        // Like system
+        likeSystemDeveloping: 'Like system is under development, stay tuned!',
+
+        // Post detail page
+        postNotFound: 'Post not found',
+        loadPostFailed: 'Failed to load post',
+        views: 'Views',
+        likes: 'Likes',
+        like: 'Like',
+        unlike: 'Unlike',
+        likeSuccess: 'Liked successfully',
+        likeFailed: 'Failed to like',
+        unlikeSuccess: 'Unliked successfully',
+        replyIdNotFound: 'Reply ID not found',
+        share: 'Share',
+        shareSuccess: 'Shared successfully',
+        shareFailed: 'Failed to share',
+        collect: 'Collect',
+        uncollect: 'Uncollect',
+        collectSuccess: 'Collected successfully',
+        uncollectSuccess: 'Uncollected successfully',
+        attachments: 'Attachments',
+        images: 'Images',
+        topPost: 'Pinned',
+        essencePost: 'Essence',
+        lockedPost: 'Locked',
+
+        // Combined labels
+        topEssence: 'Pinned·Essence',
+        announcementTop: 'Announcement·Pinned',
+        announcementEssence: 'Announcement·Essence',
+        announcementTopEssence: 'Announcement·Pinned·Essence',
+        unlockPost: 'Unlock Post',
+        lockPost: 'Lock Post',
+        lockPostSuccess: 'Post locked successfully',
+        unlockPostSuccess: 'Post unlocked successfully',
+        toggleLockFailed: 'Failed to toggle lock status',
+        noReplies: 'No replies yet',
+        reply: 'Reply',
+        replyContent: 'Reply Content',
+        replyContentPlaceholder: 'Please enter reply content',
+        replyContentRequired: 'Please enter reply content',
+        replySuccess: 'Reply posted successfully',
+        replyFailed: 'Failed to post reply',
+        confirmDeleteReply: 'Are you sure to delete this reply? This action cannot be undone.',
+        deleteReply: 'Delete Reply',
+        deleteReplySuccess: 'Reply deleted successfully',
+        deleteReplyFailed: 'Failed to delete reply',
+        editReply: 'Edit Reply',
+        editReplyComingSoon: 'Edit reply feature coming soon',
+        replyingTo: 'Replying to',
+        replyToUser: 'Reply to User',
+        submitReply: 'Submit Reply',
+        acceptedAnswer: 'Accepted Answer',
+        loadRepliesFailed: 'Failed to load replies',
+
+        // Lock/Unlock confirmation
+        confirmLockPost: 'Are you sure you want to lock this post? Users will not be able to reply after locking.',
+        confirmUnlockPost: 'Are you sure you want to unlock this post? Users will be able to reply normally after unlocking.',
+
+        // Image loading
+        imageLoadFailed: 'Image load failed',
+        imageExpired: 'Image expired',
+
+        // Reply related
+        cannotReplyToAnonymous: 'Cannot reply to anonymous posts',
+        editReplySuccess: 'Reply edited successfully',
+        editReplyFailed: 'Failed to edit reply',
+        accepted: 'Accepted',
+        childReplies: 'Replies',
+        expand: 'Expand',
+        collapse: 'Collapse',
+        replyTo: 'Reply to',
+        acceptReply: 'Accept Reply',
+        unacceptReply: 'Unaccept Reply',
+        acceptReplySuccess: 'Reply accepted successfully',
+        acceptReplyFailed: 'Failed to accept reply',
+        unacceptReplySuccess: 'Reply unaccepted successfully',
+        unacceptReplyFailed: 'Failed to unaccept reply',
+        loadChildRepliesFailed: 'Failed to load child replies',
+        noChildReplies: 'No child replies',
+        anonymousCannotView: 'Anonymous users cannot be viewed',
+        anonymousCannotReply: 'Anonymous users cannot reply',
+        writeReply: 'Write Reply',
+        restoringState: 'Restoring page state...',
+        messageNotVisible: 'This message is not visible'
+    },
+
+    // Post types
+    postType: {
+        NORMAL: 'Normal Post',
+        ANNOUNCEMENT: 'Announcement'
+    },
+
     comingSoon: {
         title: 'Feature Coming Soon',
         studentsDescription: 'Student management feature is under development, stay tuned!',
-        forumDescription: 'Course forum feature is under development, stay tuned!',
+        forumDescription: 'Forum Description',
+        selectForumToView: 'Please select a forum to view',
         chaptersDescription: 'Course chapters feature is under development, stay tuned!',
         classroomDescription: 'Online classroom feature is under development, stay tuned!'
     },
@@ -485,5 +753,8 @@ export default {
     },
 
     // 文件预览
-    previewFeatureDeveloping: 'Preview feature is under development, stay tuned...'
+    previewFeatureDeveloping: 'Preview feature is under development, stay tuned...',
+
+    // 状态恢复
+    restoringState: 'Restoring page state...'
 }

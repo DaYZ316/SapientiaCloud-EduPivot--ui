@@ -131,13 +131,8 @@ const avatarError = ref(false)
 
 // 处理了解教师按钮点击
 const handleLearnMore = () => {
-  if (props.teacherInfo?.id) {
-    router.push({
-      name: 'TeacherProfile',
-      params: {
-        teacherId: props.teacherInfo.id.toString()
-      }
-    })
+  if (props.teacherInfo?.sysUserId) {
+    router.push(`/user/${props.teacherInfo.sysUserId}`)
   }
 }
 

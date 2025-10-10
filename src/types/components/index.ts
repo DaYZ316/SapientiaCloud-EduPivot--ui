@@ -6,3 +6,5 @@
 export * from './imageUpload'
 // 导出文件上传组件类型
 export * from './fileUpload'
+// 导出高级表格组件类型
+export * from './advancedTable'

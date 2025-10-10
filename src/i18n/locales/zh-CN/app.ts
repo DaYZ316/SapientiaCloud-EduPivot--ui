@@ -20,6 +20,7 @@ export default {
         },
         course: {
             course: '课程管理',
+            myCourses: '我的课程',
             courseDetail: '课程详情',
             courseChapters: '课程章节',
             courseForum: '课程论坛',

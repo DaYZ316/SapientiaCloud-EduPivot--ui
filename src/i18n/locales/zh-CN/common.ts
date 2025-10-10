@@ -12,6 +12,7 @@ export default {
     noData: '暂无数据',
     backToHome: '返回首页',
     operation: '操作',
+    action: '操作',
     save: '保存',
     saveSuccess: '保存成功',
     resetSuccess: '重置成功',
@@ -20,7 +21,9 @@ export default {
     no: '否',
     user: '用户',
     back: '返回',
+    goBack: '返回',
     retry: '重试',
+    error: '错误',
 
     // 头像上传相关
     uploadAvatar: '上传头像',
@@ -187,6 +190,16 @@ export default {
             fileCorrupted: '文件已损坏',
             unsupportedBrowser: '浏览器不支持此文件格式'
         }
+    },
+
+    // 分页相关
+    pagination: {
+        showTotal: '共 {total} 条记录，显示第 {start}-{end} 条',
+        pageSize: '每页显示',
+        total: '共 {total} 条',
+        page: '页',
+        goTo: '跳至',
+        itemsPerPage: '条/页'
     },
 
     // 富文本编辑器相关

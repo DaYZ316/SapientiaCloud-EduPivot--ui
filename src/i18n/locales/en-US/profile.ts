@@ -16,7 +16,7 @@ export default {
     rolePermissions: 'Role Permissions',
     superAdmin: 'Super Administrator',
     superAdminDescription: 'You are a super administrator with all permissions',
-    // 超级管理员相�?    adminRole: 'Admin Role',
+    // 超级管理员相�?    adminRole: 'Admin Role',
     adminPermissions: 'Admin Permissions',
     adminBadge: 'Admin Badge',
     adminSection: 'Admin Section',
@@ -48,5 +48,10 @@ export default {
     educationDoctor: 'Doctor',
     specialization: 'Specialization',
     description: 'Description',
-    createTime: 'Create Time'
+    createTime: 'Create Time',
+    // General user information
+    userInfo: 'User Information',
+    userNotFound: 'User not found',
+    userIdMissing: 'User ID parameter is missing',
+    employeeId: 'Employee ID'
 } 

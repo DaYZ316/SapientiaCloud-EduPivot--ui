@@ -39,10 +39,10 @@ export const forumTypeEnLabelMap = {
  */
 export function getForumTypeOptions(t: (key: string) => string) {
     return [
-        {label: t('course.forumType.DISCUSSION'), value: ForumTypeEnum.DISCUSSION},
-        {label: t('course.forumType.Q_AND_A'), value: ForumTypeEnum.Q_AND_A},
-        {label: t('course.forumType.ASSIGNMENT'), value: ForumTypeEnum.ASSIGNMENT},
-        {label: t('course.forumType.ANNOUNCEMENT'), value: ForumTypeEnum.ANNOUNCEMENT}
+        {label: t('course.forum.forumType.DISCUSSION'), value: ForumTypeEnum.DISCUSSION},
+        {label: t('course.forum.forumType.Q_AND_A'), value: ForumTypeEnum.Q_AND_A},
+        {label: t('course.forum.forumType.ASSIGNMENT'), value: ForumTypeEnum.ASSIGNMENT},
+        {label: t('course.forum.forumType.ANNOUNCEMENT'), value: ForumTypeEnum.ANNOUNCEMENT}
     ];
 }
 

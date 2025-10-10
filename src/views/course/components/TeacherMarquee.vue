@@ -107,10 +107,7 @@ const shouldAnimate = computed(() => assistantTeachers.value.length > 3)
 // 点击教师跳转到个人主页
 const handleTeacherClick = (teacher: TeacherVO) => {
   if (teacher.id) {
-    router.push({
-      name: 'TeacherProfile',
-      params: {teacherId: teacher.id}
-    })
+    router.push(`/user/${teacher.sysUserId}`)
   }
 }
 

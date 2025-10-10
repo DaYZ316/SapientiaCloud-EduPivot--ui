@@ -176,7 +176,7 @@
                 <!-- 章节内容 -->
                 <n-form-item-grid-item :span="24">
                   <RichTextEditor
-                      v-model="chapterForm.content"
+                      v-model="chapterForm.content!"
                       :placeholder="t('course.chapters.form.contentPlaceholder')"
                       upload-path="course-chapters"
                       @change="handleContentChange"
@@ -303,10 +303,11 @@ import {
 } from '@vicons/ionicons5'
 import * as CourseApi from '@/api/course/course'
 import * as CourseChapterApi from '@/api/course/courseChapter'
+import {getDefaultCourseChapterDTO} from '@/api/course/courseChapter'
 import * as MinIOApi from '@/api/minIO'
 import {ChapterStatusEnum} from '@/enum/course/chapterStatusEnum'
 import type {CourseVO} from '@/types/course'
-import type {CourseChapterVO} from '@/types/course/courseChapter'
+import type {CourseChapterAddDTO, CourseChapterDTO, CourseChapterVO} from '@/types/course/courseChapter'
 import type {FileInfoDTO} from '@/types/minIO/file'
 import CourseBreadcrumb from '../../components/CourseBreadcrumb/CourseBreadcrumb.vue'
 import Icon from '@/components/common/Icon.vue'
@@ -337,18 +338,7 @@ const fileInfoList = ref<FileInfoDTO[]>([]) // 文件详细信息列表
 const loadingFileInfo = ref(false) // 加载文件信息状态
 
 // 章节表单数据
-const chapterForm = ref({
-  id: null as string | null,
-  courseId: null as string | null,
-  teacherId: null as string | null,
-  chapterName: '',
-  parentChapterId: null as string | null,
-  description: '',
-  content: '',
-  attachmentUrls: null as string[] | null,
-  sortOrder: 0,
-  status: null as number | null
-})
+const chapterForm = ref<CourseChapterDTO>(getDefaultCourseChapterDTO())
 
 
 // 父章节选项（树形结构）
@@ -726,9 +716,6 @@ const handleAddChapter = () => {
   currentEditingChapter.value = null
   isEditMode.value = false
   resetForm()
-
-  // 设置teacherId为null，由后端处理
-  chapterForm.value.teacherId = null
 }
 
 // 处理章节点击（通用函数）
@@ -744,10 +731,10 @@ const fillFormWithChapterData = (chapter: CourseChapterVO) => {
     id: chapter.id,
     courseId: chapter.courseId,
     teacherId: chapter.teacherId,
-    chapterName: chapter.chapterName || '',
+    chapterName: chapter.chapterName || null,
     parentChapterId: chapter.parentChapterId || null,
-    description: chapter.description || '',
-    content: chapter.content || '',
+    description: chapter.description || null,
+    content: chapter.content || null,
     attachmentUrls: chapter.attachmentUrls || null,
     sortOrder: chapter.sortOrder || 0,
     status: chapter.status || null
@@ -822,8 +809,19 @@ const saveChapter = async (isDraft: boolean = false) => {
       // 编辑模式：更新章节
       res = await CourseChapterApi.updateCourseChapter(chapterForm.value)
     } else {
-      // 新增模式：添加章节
-      res = await CourseChapterApi.addCourseChapter(chapterForm.value)
+      // 新增模式：添加章节 - 使用CourseChapterAddDTO
+      const addData: CourseChapterAddDTO = {
+        courseId: chapterForm.value.courseId,
+        teacherId: chapterForm.value.teacherId,
+        chapterName: chapterForm.value.chapterName,
+        parentChapterId: chapterForm.value.parentChapterId,
+        description: chapterForm.value.description,
+        content: chapterForm.value.content,
+        attachmentUrls: chapterForm.value.attachmentUrls,
+        sortOrder: chapterForm.value.sortOrder,
+        status: chapterForm.value.status
+      }
+      res = await CourseChapterApi.addCourseChapter(addData)
     }
 
     if (res && res.success) {
@@ -888,18 +886,7 @@ const handleDeleteChapter = async () => {
 
 // 重置表单
 const resetForm = () => {
-  chapterForm.value = {
-    id: null,
-    courseId: null,
-    teacherId: null,
-    chapterName: '',
-    parentChapterId: null,
-    description: '',
-    content: '',
-    attachmentUrls: null,
-    sortOrder: 0,
-    status: null
-  }
+  chapterForm.value = getDefaultCourseChapterDTO()
   attachmentFiles.value = []
   isEditMode.value = false
   currentEditingChapter.value = null

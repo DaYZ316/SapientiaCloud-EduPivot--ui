@@ -296,6 +296,7 @@ import {
   WarningOutline
 } from '@vicons/ionicons5'
 import type {FileInfoDTO} from '@/types/minIO/file'
+import {getDefaultFileInfoDTO} from '@/types/minIO/file'
 import type {FilePreviewTypeString} from '@/types/filePreview'
 import Icon from '@/components/common/Icon.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
@@ -321,21 +322,7 @@ const zoom = ref(1)
 const textContent = ref('')
 
 // 文件信息
-const fileInfo = ref<FileInfoDTO>({
-  objectName: '',
-  fileName: '',
-  size: 0,
-  contentType: '',
-  lastModified: '',
-  etag: '',
-  isDir: false,
-  url: '',
-  extension: '',
-  path: '',
-  bucketName: '',
-  error: false,
-  errorMessage: ''
-})
+const fileInfo = ref<FileInfoDTO>(getDefaultFileInfoDTO())
 
 // 配置项
 const showToolbar = ref(true)

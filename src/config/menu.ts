@@ -105,42 +105,8 @@ export const getMenuOptions = (t: (key: string) => string, dynamicMenuItems: Men
                     label: t('menu.courseManagement'),
                     icon: renderIcon(BookOutline)
                 },
-                // 课程详情菜单项 - 常态显示，显示最后访问的课程名称
-                {
-                    key: 'CourseDetail',
-                    label: lastCourseName || t('menu.courseDetail'),
-                    icon: renderIcon(BookOutline),
-                    dynamic: true,
-                    children: lastCourseId ? [
-                        {
-                            key: 'CourseOverview',
-                            label: t('menu.courseOverview'),
-                            icon: renderIcon(BookOutline)
-                        },
-                        {
-                            key: 'CourseChapters',
-                            label: t('menu.courseChapters'),
-                            icon: renderIcon(LibraryOutline)
-                        },
-                        {
-                            key: 'CourseForum',
-                            label: t('menu.courseForum'),
-                            icon: renderIcon(ChatbubblesOutline)
-                        },
-                        {
-                            key: 'CourseStudents',
-                            label: t('menu.courseStudents'),
-                            icon: renderIcon(PeopleCircleOutline)
-                        },
-                        {
-                            key: 'CourseClassroom',
-                            label: t('menu.courseClassroom'),
-                            icon: renderIcon(VideocamOutline)
-                        }
-                    ] : undefined
-                },
                 // 其他动态菜单项会在这里插入
-                ...dynamicMenuItems.filter(item => item.key !== 'CourseDetail')
+                ...dynamicMenuItems
             ]
         },
         {

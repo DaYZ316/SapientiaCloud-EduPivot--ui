@@ -13,6 +13,16 @@
         </router-link>
         <span v-else>{{ courseInfo.courseName }}</span>
       </n-breadcrumb-item>
+      <n-breadcrumb-item v-if="showForumOption">
+        <router-link :to="`/course/detail/${courseId}/forum`">
+          {{ t('course.forum.title') }}
+        </router-link>
+      </n-breadcrumb-item>
+      <n-breadcrumb-item v-if="showPostOption">
+        <router-link :to="`/course/detail/${courseId}/forum/${forumId}`">
+          {{ t('course.forum.posts') }}
+        </router-link>
+      </n-breadcrumb-item>
       <n-breadcrumb-item v-if="currentPage">
         {{ currentPage }}
       </n-breadcrumb-item>
@@ -36,12 +46,18 @@ interface Props {
   courseInfo?: CourseVO | null
   currentPage?: string
   showCourseLink?: boolean
+  showForumOption?: boolean
+  showPostOption?: boolean
+  forumId?: string
 }
 
 withDefaults(defineProps<Props>(), {
   courseInfo: null,
   currentPage: '',
-  showCourseLink: true
+  showCourseLink: true,
+  showForumOption: false,
+  showPostOption: false,
+  forumId: ''
 })
 
 // 路由和国际化

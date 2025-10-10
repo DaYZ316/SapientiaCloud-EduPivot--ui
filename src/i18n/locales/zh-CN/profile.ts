@@ -49,5 +49,10 @@ export default {
     educationDoctor: '博士',
     specialization: '专业方向',
     description: '描述',
-    createTime: '创建时间'
+    createTime: '创建时间',
+    // 通用用户信息
+    userInfo: '用户信息',
+    userNotFound: '用户不存在',
+    userIdMissing: '用户ID参数缺失',
+    employeeId: '员工编号'
 } 

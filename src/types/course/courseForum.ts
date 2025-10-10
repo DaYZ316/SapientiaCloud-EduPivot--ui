@@ -50,6 +50,8 @@ export interface CourseForumVO {
     allowAnonymous?: number
     /** 版主ID列表 */
     moderatorIds?: string[]
+    /** 创建者ID */
+    creatorId?: string
     /** 帖子总数 */
     postCount?: number
     /** 回复总数 */

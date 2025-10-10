@@ -9,16 +9,26 @@ export interface ForumReplyDTO {
     id?: string | null
     /** 所属帖子ID */
     postId: string | null
-    /** 回复用户ID */
+    /** 所属论坛ID */
+    forumId: string | null
+    /** 所属课程ID */
+    courseId: string | null
+    /** 回复人ID */
     sysUserId: string | null
-    /** 父回复ID（用于嵌套回复） */
-    parentReplyId?: string | null
     /** 回复内容 */
     content: string | null
+    /** 父回复ID（用于嵌套回复） */
+    parentReplyId?: string | null
+    /** 回复目标用户ID */
+    replyToUserId?: string | null
     /** 是否匿名回复 (0=实名, 1=匿名) */
     isAnonymous?: number | null
     /** 附件URL列表 */
     attachmentUrls?: string[] | null
+    /** 图片URL列表 */
+    imageUrls?: string[] | null
+    /** 是否被采纳 (0=否, 1=是) */
+    isAccepted?: number | null
     /** 回复状态 (0=正常, 1=删除, 2=审核中, 3=审核失败) */
     status?: ReplyStatusEnum | null
 }
@@ -32,36 +42,52 @@ export interface ForumReplyVO {
     id: string
     /** 所属帖子ID */
     postId: string
-    /** 回复用户ID */
+    /** 所属论坛ID */
+    forumId: string
+    /** 所属课程ID */
+    courseId: string
+    /** 回复人ID */
     sysUserId: string
-    /** 回复用户姓名 */
+    /** 回复人用户名 */
     userName?: string
-    /** 回复用户头像 */
+    /** 回复人头像URL */
     userAvatar?: string
-    /** 父回复ID（用于嵌套回复） */
-    parentReplyId?: string
-    /** 父回复用户姓名 */
-    parentReplyUserName?: string
     /** 回复内容 */
     content: string
+    /** 父回复ID（用于嵌套回复） */
+    parentReplyId?: string
+    /** 回复目标用户ID */
+    replyToUserId?: string
+    /** 回复目标用户名 */
+    replyToUserName?: string
     /** 是否匿名回复 (0=实名, 1=匿名) */
     isAnonymous?: number
     /** 附件URL列表 */
     attachmentUrls?: string[]
-    /** 回复状态 (0=正常, 1=删除, 2=审核中, 3=审核失败) */
-    status?: ReplyStatusEnum
+    /** 图片URL列表 */
+    imageUrls?: string[]
     /** 点赞次数 */
     likeCount?: number
-    /** 是否已点赞 */
-    isLiked?: boolean
-    /** 是否被采纳（问答区专用） */
-    isAccepted?: boolean
+    /** 子回复次数 */
+    replyCount?: number
+    /** 是否被采纳 (0=否, 1=是) */
+    isAccepted?: number
+    /** 楼层号 */
+    floorNumber?: number
+    /** 回复状态 (0=正常, 1=删除, 2=审核中, 3=审核失败) */
+    status?: number
+    /** 发帖IP地址 */
+    ipAddress?: string
+    /** 用户代理信息 */
+    userAgent?: string
     /** 子回复列表 */
     children?: ForumReplyVO[]
     /** 创建时间 */
     createTime?: string
     /** 更新时间 */
     updateTime?: string
+    /** 是否删除 */
+    deleted?: number
 }
 
 /**
@@ -75,7 +101,7 @@ export interface ForumReplyQueryParams {
     forumId?: string | null
     /** 课程ID */
     courseId?: string | null
-    /** 回复用户ID */
+    /** 回复人ID */
     sysUserId?: string | null
     /** 父回复ID */
     parentReplyId?: string | null

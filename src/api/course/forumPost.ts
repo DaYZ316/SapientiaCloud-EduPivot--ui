@@ -1,19 +1,20 @@
 import http from '@/utils/http'
 import type {ForumPostDTO, ForumPostQueryParams, ForumPostVO} from '@/types/course'
-import type {TableDataResult} from '@/types/common/baseEntity'
 
 // 获取默认论坛帖子查询对象
 export function getDefaultForumPostQuery(): ForumPostQueryParams {
     return {
         forumId: null,
         courseId: null,
-        userId: null,
+        sysUserId: null,
         title: null,
         postType: null,
         status: null,
         tags: null,
         isEssence: null,
         isTop: null,
+        isLocked: null,
+        chapterId: null,
         startTime: null,
         endTime: null,
         pageNum: 1,
@@ -29,14 +30,20 @@ export function getDefaultForumPostDTO(): ForumPostDTO {
     return {
         id: null,
         forumId: null,
-        userId: null,
+        courseId: null,
+        sysUserId: null,
         title: null,
         content: null,
         postType: null,
         isAnonymous: null,
         attachmentUrls: null,
-        tags: null,
-        status: null
+        imageUrls: null,
+        tags: [],
+        isTop: null,
+        isEssence: null,
+        isLocked: null,
+        status: null,
+        chapterId: null
     }
 }
 
@@ -88,11 +95,11 @@ export function removeForumPostById(id: string) {
 /**
  * 设置帖子精华
  * @param postId 帖子ID
- * @param isEssence 是否精华
+ * @param isEssence 是否精华 (0: 否, 1: 是)
  * @returns 设置结果
  */
-export function setPostEssence(postId: string, isEssence: boolean) {
-    return http.put(`/course/post/${postId}/essence`, {isEssence})
+export function setPostEssence(postId: string, isEssence: number) {
+    return http.put(`/course/post/${postId}/essence?isEssence=${isEssence}`)
 }
 
 /**
@@ -116,11 +123,11 @@ export function unlikePost(postId: string) {
 /**
  * 锁定/解锁帖子
  * @param postId 帖子ID
- * @param isLocked 是否锁定
+ * @param isLocked 锁定状态 (0: 未锁定, 1: 已锁定)
  * @returns 设置结果
  */
-export function setPostLock(postId: string, isLocked: boolean) {
-    return http.put(`/course/post/${postId}/lock`, {isLocked})
+export function setPostLock(postId: string, isLocked: number) {
+    return http.put(`/course/post/${postId}/lock?isLocked=${isLocked}`)
 }
 
 /**
@@ -145,11 +152,11 @@ export function updatePostStatus(postId: string, status: number) {
 /**
  * 置顶/取消置顶帖子
  * @param postId 帖子ID
- * @param isTop 是否置顶
+ * @param isTop 是否置顶 (0: 否, 1: 是)
  * @returns 设置结果
  */
-export function setPostTop(postId: string, isTop: boolean) {
-    return http.put(`/course/post/${postId}/top`, {isTop})
+export function setPostTop(postId: string, isTop: number) {
+    return http.put(`/course/post/${postId}/top?isTop=${isTop}`)
 }
 
 /**
@@ -167,8 +174,8 @@ export function viewPost(postId: string) {
  * @param params 查询参数
  * @returns 帖子列表
  */
-export function listForumPostByCourseId(courseId: string, params?: ForumPostQueryParams) {
-    return http.get<TableDataResult<ForumPostVO>>(`/course/post/course/${courseId}`, params)
+export function listAllForumPostByCourseId(courseId: string) {
+    return http.get<ForumPostVO[]>(`/course/post/course/${courseId}`)
 }
 
 /**
@@ -177,8 +184,8 @@ export function listForumPostByCourseId(courseId: string, params?: ForumPostQuer
  * @param params 查询参数
  * @returns 帖子列表
  */
-export function listForumPostByForumId(forumId: string, params?: ForumPostQueryParams) {
-    return http.get<TableDataResult<ForumPostVO>>(`/course/post/forum/${forumId}`, params)
+export function listAllForumPostByForumId(forumId: string) {
+    return http.get<ForumPostVO[]>(`/course/post/forum/${forumId}`)
 }
 
 /**
@@ -205,5 +212,5 @@ export function getLatestPosts(params?: ForumPostQueryParams) {
  * @returns 分页帖子列表
  */
 export function listForumPost(params: ForumPostQueryParams) {
-    return http.get<TableDataResult<ForumPostVO>>('/course/post/list', params)
+    return http.getTableData<ForumPostVO>('/course/post/list', params)
 }

@@ -42,7 +42,7 @@ export function getDefaultSysRoleDTO(): SysRoleDTO {
 
 // 分页查询角色列表
 export function sysRoleList(params: RolePageQueryDTO) {
-    return http.get('/system/role/list', params)
+    return http.getTableData('/system/role/list', params)
 }
 
 // 获取所有角色

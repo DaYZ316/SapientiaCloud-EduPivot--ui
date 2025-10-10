@@ -183,11 +183,42 @@ export default {
         title: '课程学生管理',
         studentId: '学生ID',
         studentName: '学生姓名',
+        realName: '真实姓名',
+        avatar: '头像',
         grade: '成绩',
+        searchPlaceholder: '请输入学生真实姓名',
         enrollmentDate: '选课日期',
         status: '选课状态',
+        createTime: '创建时间',
         updateGrade: '更新成绩',
-        batchUpdateGrade: '批量更新成绩'
+        batchUpdateGrade: '批量更新成绩',
+        view: '查看',
+        edit: '编辑',
+        remove: '移除',
+        noStudents: '暂无选课学生',
+        loadError: '加载学生列表失败',
+        removeConfirm: '确认移除',
+        removeConfirmContent: '确定要移除学生"{studentName}"吗？此操作不可恢复。',
+        removeSuccess: '学生移除成功',
+        removeFail: '学生移除失败',
+        viewNotImplemented: '查看学生详情功能暂未实现',
+        editNotImplemented: '编辑学生信息功能暂未实现',
+        removeNotImplemented: '移除学生功能暂未实现',
+        studentNotFound: '学生信息不存在',
+        userLoggedOut: '该用户已注销，无法查看详细信息',
+        editDialog: {
+            title: '编辑学生信息',
+            grade: '成绩',
+            status: '选课状态',
+            gradePlaceholder: '请输入成绩',
+            gradeRequired: '请输入成绩',
+            gradeInvalid: '成绩必须为0-100之间的数字',
+            statusRequired: '请选择选课状态',
+            cancel: '取消',
+            confirm: '确认',
+            editSuccess: '编辑成功',
+            editFail: '编辑失败'
+        }
     },
 
     // 教师管理
@@ -272,6 +303,7 @@ export default {
         fetchChaptersError: '获取课程章节失败',
         fetchThreadsError: '获取课程论坛失败',
         fetchStudentsError: '获取选课学生失败',
+        loadCourseFailed: '课程信息加载失败',
         // 新增的课程详情页面内容
         error: {
             title: '加载失败',
@@ -285,6 +317,11 @@ export default {
 
     // 教师信息
     teacherInfo: '开课教师',
+
+    // 帖子类型相关
+    postTypeLabel: '帖子类型',
+    postTypePlaceholder: '请选择帖子类型',
+    postTypeRequired: '请选择帖子类型',
 
     // 分享课程
     share: {
@@ -363,11 +400,241 @@ export default {
         teachers: '教师'
     },
 
+    // 课程论坛
+    forum: {
+        title: '课程论坛',
+        createForum: '创建论坛',
+        createPost: '发布帖子',
+        createFirstForum: '创建第一个论坛',
+        noForums: '暂无论坛',
+        noDescription: '暂无描述',
+        posts: '帖子',
+        replies: '回复',
+        anonymous: '匿名用户',
+        realName: '实名',
+        back: '返回',
+
+        // 论坛类型
+        forumType: {
+            DISCUSSION: '讨论区',
+            Q_AND_A: '问答区',
+            ASSIGNMENT: '作业区',
+            ANNOUNCEMENT: '公告区'
+        },
+
+        // 论坛状态
+        forumStatus: {
+            NORMAL: '正常',
+            CLOSED: '关闭',
+            MAINTENANCE: '维护'
+        },
+
+        // 表单字段
+        forumName: '论坛名称',
+        forumNamePlaceholder: '请输入论坛名称',
+        forumNameRequired: '请输入论坛名称',
+        description: '论坛描述',
+        descriptionPlaceholder: '请输入论坛描述',
+        forumTypeLabel: '论坛类型',
+        forumTypePlaceholder: '请选择论坛类型',
+        forumTypeRequired: '请选择论坛类型',
+        isPublic: '是否公开',
+        isPublicRequired: '请选择是否公开',
+        private: '仅课程成员',
+        public: '公开',
+        allowAnonymous: '允许匿名',
+        allowAnonymousRequired: '请选择是否允许匿名',
+        disallow: '不允许',
+        allow: '允许',
+        rules: '论坛规则',
+        rulesPlaceholder: '请输入论坛规则',
+
+        // 帖子表单字段
+        postTitle: '帖子标题',
+        postTitlePlaceholder: '请输入帖子标题',
+        postTitleRequired: '请输入帖子标题',
+        postContent: '帖子内容',
+        postContentPlaceholder: '请输入帖子内容',
+        postContentRequired: '请输入帖子内容',
+        postTypeLabel: '帖子类型',
+        postTypePlaceholder: '请选择帖子类型',
+        postTypeRequired: '请选择帖子类型',
+        isAnonymous: '是否匿名',
+        isAnonymousRequired: '请选择是否匿名',
+        tags: '标签',
+        tagsPlaceholder: '请输入标签，按回车添加',
+
+        // 帖子类型
+        postTypeDiscussion: '讨论',
+        postTypeQuestion: '问题',
+        postTypeAnnouncement: '公告',
+        postTypeAssignment: '作业',
+
+        // 论坛类型标签
+        forumTypeDiscussion: '讨论区',
+        forumTypeQa: '问答区',
+        forumTypeAssignment: '作业区',
+        forumTypeAnnouncement: '公告区',
+
+        // 其他缺失的翻译
+        selectForumToView: '请选择要查看的论坛',
+        totalPosts: '总帖子数',
+        loadForumFailed: '加载论坛失败',
+        anonymousUser: '匿名用户无法查看主页',
+        userNotFound: '用户信息不存在',
+        loadPostsFailed: '加载帖子失败',
+        createPostFailed: '发布帖子失败',
+        likePostFailed: '点赞失败',
+        shareFeatureComingSoon: '分享功能即将上线',
+        postDetailComingSoon: '帖子详情功能即将上线',
+        noPosts: '暂无帖子',
+
+        // 分享相关
+        sharePost: '分享帖子',
+        shareLink: '分享链接',
+        shareLinkCopied: '分享链接已复制到剪贴板',
+
+        // 操作消息
+        createForumSuccess: '论坛创建成功',
+        createPostSuccess: '帖子发布成功',
+        deletePostConfirm: '确定要删除帖子"{postTitle}"吗？',
+        deletePostSuccess: '帖子删除成功',
+        editForumNotImplemented: '编辑论坛功能开发中...',
+        editPostNotImplemented: '编辑帖子功能开发中...',
+        viewPostNotImplemented: '帖子详情功能开发中...',
+
+        // 编辑和删除相关
+        editPost: '编辑帖子',
+        deletePost: '删除帖子',
+        confirmDeletePost: '确定要删除这个帖子吗？此操作不可恢复。',
+        deletePostFailed: '删除帖子失败',
+        editPostSuccess: '帖子编辑成功',
+        editPostFailed: '帖子编辑失败',
+
+        // 置顶和精华操作
+        setTopPost: '设为置顶',
+        cancelTopPost: '取消置顶',
+        setTopPostSuccess: '帖子置顶成功',
+        setTopPostFailed: '帖子置顶失败',
+        cancelTopPostSuccess: '取消置顶成功',
+        cancelTopPostFailed: '取消置顶失败',
+        setEssencePost: '设为精华',
+        cancelEssencePost: '取消精华',
+        setEssencePostSuccess: '帖子设为精华成功',
+        setEssencePostFailed: '帖子设为精华失败',
+        cancelEssencePostSuccess: '取消精华成功',
+        cancelEssencePostFailed: '取消精华失败',
+        editPostComingSoon: '编辑帖子功能即将上线',
+        deletePostComingSoon: '删除帖子功能即将上线',
+
+        // 论坛管理
+        editForum: '编辑论坛',
+        deleteForum: '删除论坛',
+        deleteForumConfirm: '确定要删除论坛"{forumName}"吗？此操作不可恢复。',
+        deleteForumSuccess: '论坛删除成功',
+        updateForumSuccess: '论坛更新成功',
+        updateForumFail: '论坛更新失败',
+
+        // 点赞功能
+        likeSystemDeveloping: '点赞系统开发中，敬请期待！',
+
+        // 帖子详情页面
+        postNotFound: '帖子不存在',
+        loadPostFailed: '加载帖子失败',
+        views: '浏览',
+        likes: '点赞',
+        like: '点赞',
+        unlike: '取消点赞',
+        likeSuccess: '点赞成功',
+        likeFailed: '点赞失败',
+        unlikeSuccess: '取消点赞成功',
+        replyIdNotFound: '回复ID不存在',
+        share: '分享',
+        shareSuccess: '分享成功',
+        shareFailed: '分享失败',
+        collect: '收藏',
+        uncollect: '取消收藏',
+        collectSuccess: '收藏成功',
+        uncollectSuccess: '取消收藏成功',
+        attachments: '附件',
+        images: '图片',
+        topPost: '置顶',
+        essencePost: '精华',
+        lockedPost: '已锁定',
+
+        // 组合标签
+        topEssence: '置顶·精华',
+        announcementTop: '公告·置顶',
+        announcementEssence: '公告·精华',
+        announcementTopEssence: '公告·置顶·精华',
+        unlockPost: '解锁帖子',
+        lockPost: '锁定帖子',
+        lockPostSuccess: '锁定帖子成功',
+        unlockPostSuccess: '解锁帖子成功',
+        toggleLockFailed: '切换锁定状态失败',
+        noReplies: '暂无回复',
+        reply: '回复',
+        replyContent: '回复内容',
+        replyContentPlaceholder: '请输入回复内容',
+        replyContentRequired: '请输入回复内容',
+        replySuccess: '回复成功',
+        replyFailed: '回复失败',
+        confirmDeleteReply: '确定要删除这个回复吗？此操作不可恢复。',
+        deleteReply: '删除回复',
+        deleteReplySuccess: '删除回复成功',
+        deleteReplyFailed: '删除回复失败',
+        editReply: '编辑回复',
+        editReplyComingSoon: '编辑回复功能即将上线',
+        replyingTo: '正在回复',
+        replyToUser: '回复用户',
+        submitReply: '提交回复',
+        acceptedAnswer: '已采纳',
+        loadRepliesFailed: '加载回复失败',
+
+        // 锁定/解锁确认
+        confirmLockPost: '确定要锁定帖子吗？锁定后用户将无法回复。',
+        confirmUnlockPost: '确定要解锁帖子吗？解锁后用户将可以正常回复。',
+
+        // 图片加载
+        imageLoadFailed: '图片加载失败',
+        imageExpired: '图片已过期',
+
+        // 回复相关
+        cannotReplyToAnonymous: '匿名发言不能被回复',
+        editReplySuccess: '回复编辑成功',
+        editReplyFailed: '回复编辑失败',
+        accepted: '已采纳',
+        childReplies: '子回复',
+        expand: '展开',
+        collapse: '收回',
+        replyTo: '回复',
+        acceptReply: '采纳回复',
+        unacceptReply: '取消采纳',
+        acceptReplySuccess: '采纳回复成功',
+        acceptReplyFailed: '采纳回复失败',
+        unacceptReplySuccess: '取消采纳成功',
+        unacceptReplyFailed: '取消采纳失败',
+        loadChildRepliesFailed: '加载子回复失败',
+        noChildReplies: '暂无子回复',
+        anonymousCannotView: '匿名用户无法查看',
+        anonymousCannotReply: '匿名用户无法回复',
+        writeReply: '写回复',
+        restoringState: '正在恢复页面状态...',
+        messageNotVisible: '该消息不可见'
+    },
+
+    // 帖子类型
+    postType: {
+        NORMAL: '普通帖子',
+        ANNOUNCEMENT: '公告'
+    },
+
     // 暂未开放提示
     comingSoon: {
         title: '功能暂未开放',
         studentsDescription: '学生管理功能正在开发中，敬请期待！',
-        forumDescription: '课程论坛功能正在开发中，敬请期待！',
+        forumDescription: '论坛描述',
+        selectForumToView: '请选择要查看的论坛',
         chaptersDescription: '课程章节功能正在开发中，敬请期待！',
         classroomDescription: '在线课堂功能正在开发中，敬请期待！'
     },
@@ -491,5 +758,8 @@ export default {
     },
 
     // 文件预览
-    previewFeatureDeveloping: '预览功能开发中，敬请期待...'
+    previewFeatureDeveloping: '预览功能开发中，敬请期待...',
+
+    // 状态恢复
+    restoringState: '正在恢复页面状态...'
 }

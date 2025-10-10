@@ -1,6 +1,5 @@
 import http from '@/utils/http'
 import type {CourseForumDTO, CourseForumQueryParams, CourseForumVO} from '@/types/course'
-import type {TableDataResult} from '@/types/common/baseEntity'
 
 // 获取默认课程论坛查询对象
 export function getDefaultCourseForumQuery(): CourseForumQueryParams {
@@ -115,7 +114,7 @@ export function updateForumStatus(forumId: string, status: number) {
  * @param courseId 课程ID
  * @returns 论坛列表
  */
-export function listCourseForumByCourseId(courseId: string) {
+export function listAllCourseForumByCourseId(courseId: string) {
     return http.get<CourseForumVO[]>(`/course/forum/course/${courseId}`)
 }
 
@@ -125,5 +124,5 @@ export function listCourseForumByCourseId(courseId: string) {
  * @returns 分页论坛列表
  */
 export function listCourseForum(params: CourseForumQueryParams) {
-    return http.get<TableDataResult<CourseForumVO>>('/course/forum/list', params)
+    return http.getTableData<CourseForumVO>('/course/forum/list', params)
 }

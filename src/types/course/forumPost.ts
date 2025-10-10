@@ -7,22 +7,34 @@ export interface ForumPostDTO {
     id?: string | null
     /** 所属论坛ID */
     forumId: string | null
-    /** 发帖用户ID */
-    userId: string | null
+    /** 所属课程ID */
+    courseId: string | null
+    /** 发帖人ID */
+    sysUserId: string | null
     /** 帖子标题 */
     title: string | null
     /** 帖子内容 */
     content: string | null
-    /** 帖子类型 (0=普通帖子, 1=精华帖子, 2=置顶帖子) */
+    /** 帖子类型 (0=普通帖子, 1=置顶帖子, 2=精华帖子, 3=公告) */
     postType?: number | null
     /** 是否匿名发帖 (0=实名, 1=匿名) */
     isAnonymous?: number | null
     /** 附件URL列表 */
     attachmentUrls?: string[] | null
+    /** 图片URL列表 */
+    imageUrls?: string[] | null
     /** 标签列表 */
     tags?: string[] | null
-    /** 帖子状态 (0=正常, 1=锁定, 2=删除) */
+    /** 是否置顶 (0=否, 1=是) */
+    isTop?: number | null
+    /** 是否精华 (0=否, 1=是) */
+    isEssence?: number | null
+    /** 是否锁定 (0=否, 1=是) */
+    isLocked?: number | null
+    /** 帖子状态 (0=正常, 1=删除, 2=审核中, 3=审核失败) */
     status?: number | null
+    /** 关联章节ID */
+    chapterId?: string | null
 }
 
 /**
@@ -34,26 +46,28 @@ export interface ForumPostVO {
     id: string
     /** 所属论坛ID */
     forumId: string
-    /** 发帖用户ID */
-    userId: string
-    /** 发帖用户姓名 */
+    /** 所属课程ID */
+    courseId: string
+    /** 发帖人ID */
+    sysUserId: string
+    /** 发帖人用户名 */
     userName?: string
-    /** 发帖用户头像 */
+    /** 发帖人头像URL */
     userAvatar?: string
     /** 帖子标题 */
     title: string
     /** 帖子内容 */
     content: string
-    /** 帖子类型 (0=普通帖子, 1=精华帖子, 2=置顶帖子) */
+    /** 帖子类型 (0=普通帖子, 1=置顶帖子, 2=精华帖子, 3=公告) */
     postType?: number
     /** 是否匿名发帖 (0=实名, 1=匿名) */
     isAnonymous?: number
     /** 附件URL列表 */
     attachmentUrls?: string[]
+    /** 图片URL列表 */
+    imageUrls?: string[]
     /** 标签列表 */
     tags?: string[]
-    /** 帖子状态 (0=正常, 1=锁定, 2=删除) */
-    status?: number
     /** 浏览次数 */
     viewCount?: number
     /** 点赞次数 */
@@ -62,10 +76,22 @@ export interface ForumPostVO {
     replyCount?: number
     /** 分享次数 */
     shareCount?: number
-    /** 是否已点赞 */
-    isLiked?: boolean
-    /** 是否已收藏 */
-    isFavorited?: boolean
+    /** 是否置顶 (0=否, 1=是) */
+    isTop?: number
+    /** 是否精华 (0=否, 1=是) */
+    isEssence?: number
+    /** 是否锁定 (0=否, 1=是) */
+    isLocked?: number
+    /** 最新回复ID */
+    lastReplyId?: string
+    /** 最新回复时间 */
+    lastReplyTime?: string
+    /** 最新回复用户ID */
+    lastReplyUserId?: string
+    /** 帖子状态 (0=正常, 1=删除, 2=审核中, 3=审核失败) */
+    status?: number
+    /** 关联章节ID */
+    chapterId?: string
     /** 创建时间 */
     createTime?: string
     /** 更新时间 */
@@ -81,8 +107,8 @@ export interface ForumPostQueryParams {
     forumId?: string | null
     /** 课程ID */
     courseId?: string | null
-    /** 发帖用户ID */
-    userId?: string | null
+    /** 发帖人ID */
+    sysUserId?: string | null
     /** 帖子标题（模糊查询） */
     title?: string | null
     /** 帖子类型 */
@@ -95,6 +121,10 @@ export interface ForumPostQueryParams {
     isEssence?: string | null
     /** 是否置顶 */
     isTop?: string | null
+    /** 是否锁定 */
+    isLocked?: string | null
+    /** 关联章节ID */
+    chapterId?: string | null
     /** 起始时间 */
     startTime?: string | null
     /** 结束时间 */

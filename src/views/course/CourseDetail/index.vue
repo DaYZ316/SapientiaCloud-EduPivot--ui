@@ -386,7 +386,7 @@ const handleActionSelect = (key: string) => {
 // 更新课程详情菜单项
 const updateCourseDetailMenuItem = () => {
   if (courseInfo.value?.courseName) {
-    const menuItem = createCourseDetailMenuOption(t, courseInfo.value.courseName)
+    const menuItem = createCourseDetailMenuOption(t, courseInfo.value.courseName, courseInfo.value.id)
     menuStore.addDynamicMenuItem(menuItem)
     // 同时更新最后访问的课程信息
     menuStore.setLastAccessedCourse(courseInfo.value.id, courseInfo.value.courseName)

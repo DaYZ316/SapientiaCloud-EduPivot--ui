@@ -1,12 +1,21 @@
 import type {AxiosInstance, AxiosRequestConfig} from 'axios'
 import axios from 'axios'
 import {nextTick} from 'vue'
-import type {Result} from '@/types/common/baseEntity'
+import type {Result, TableDataResult} from '@/types/common/baseEntity'
 import router from '@/router'
 import {useLoadingBarStore, useUserStore} from '@/store'
 import i18n from '@/i18n'
 import {getDiscreteApi, isApiInitialized} from '@/utils/naiveUIHelper'
 import {defaultServerConfig, getApiBaseUrl, type ServerConfig} from '@/config/server'
+
+// 扩展AxiosRequestConfig类型，添加meta属性
+declare module 'axios' {
+    interface AxiosRequestConfig {
+        meta?: {
+            hideLoading?: boolean
+        }
+    }
+}
 
 /**
  * API请求路径配置类
@@ -112,6 +121,13 @@ class HttpClient {
     }
 
     /**
+     * 分页查询请求 - 直接返回TableDataResult
+     */
+    public getTableData<T = any>(url: string, params?: any, config?: AxiosRequestConfig): Promise<TableDataResult<T>> {
+        return this.instance.get(url, {...config, params}) as unknown as Promise<TableDataResult<T>>
+    }
+
+    /**
      * 重置登录失效处理状态
      * 在用户重新登录后调用，确保下次登录失效时能正常弹出通知
      */
@@ -157,7 +173,7 @@ class HttpClient {
 
                 // 检查响应是否为TableDataResult格式
                 const data = response.data
-                if (data && 'total' in data && 'data' in data && 'code' in data && data.code === 200) {
+                if (data && 'total' in data && 'data' in data && 'code' in data && 'msg' in data && data.code === 200) {
                     // 是TableDataResult格式，直接返回
                     return data
                 }

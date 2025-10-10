@@ -66,3 +66,22 @@ export interface AvatarUploadEmits {
     'upload-error': [error: Error];
     'update-avatar': [url: string];
 }
+
+// 获取默认的FileInfoDTO对象
+export function getDefaultFileInfoDTO(): FileInfoDTO {
+    return {
+        objectName: '',
+        fileName: '',
+        size: 0,
+        contentType: '',
+        lastModified: '',
+        etag: '',
+        isDir: false,
+        url: '',
+        extension: '',
+        path: '',
+        bucketName: '',
+        error: false,
+        errorMessage: ''
+    }
+}

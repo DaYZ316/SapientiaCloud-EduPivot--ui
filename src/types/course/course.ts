@@ -46,6 +46,8 @@ export interface CourseVO {
     location?: string
     /** 主讲教师ID */
     teacherId: string
+    /** 主讲教师用户ID */
+    teacherUserId?: string
     /** 主讲教师姓名 */
     teacherName?: string
     /** 主讲教师头像 */

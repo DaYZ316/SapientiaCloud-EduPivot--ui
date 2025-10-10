@@ -74,7 +74,7 @@ export function getDefaultTeacherVO(): TeacherVO {
 
 // 分页查询教师列表
 export function listTeacher(params: TeacherQueryParams) {
-    return http.get('/teacher/list', params)
+    return http.getTableData('/teacher/list', params)
 }
 
 // 获取所有教师

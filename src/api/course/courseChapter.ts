@@ -1,6 +1,5 @@
 import http from '@/utils/http'
 import type {CourseChapterAddDTO, CourseChapterDTO, CourseChapterQueryParams, CourseChapterVO} from '@/types/course'
-import type {TableDataResult} from '@/types/common/baseEntity'
 
 // 获取默认课程章节查询对象
 export function getDefaultCourseChapterQuery(): CourseChapterQueryParams {
@@ -168,7 +167,7 @@ export function viewChapter(chapterId: string) {
  * @returns 章节列表
  */
 export function listCourseChapterByCourseId(courseId: string, params?: CourseChapterQueryParams) {
-    return http.get<TableDataResult<CourseChapterVO>>(`/course/chapter/course/${courseId}`, params)
+    return http.getTableData<CourseChapterVO>(`/course/chapter/course/${courseId}`, params)
 }
 
 /**
@@ -186,5 +185,5 @@ export function listCourseChapterTree(courseId: string) {
  * @returns 分页章节列表
  */
 export function listCourseChapter(params: CourseChapterQueryParams) {
-    return http.get<TableDataResult<CourseChapterVO>>('/course/chapter/list', params)
+    return http.getTableData<CourseChapterVO>('/course/chapter/list', params)
 }

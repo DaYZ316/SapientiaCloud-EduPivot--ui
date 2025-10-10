@@ -20,6 +20,7 @@ export default {
         },
         course: {
             course: 'Course Management',
+            myCourses: 'My Courses',
             courseDetail: 'Course Detail',
             courseChapters: 'Course Chapters',
             courseForum: 'Course Forum',

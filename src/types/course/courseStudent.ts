@@ -22,24 +22,18 @@ export interface CourseStudentDTO {
 export interface CourseStudentVO {
     /** 学生ID */
     studentId: string
+    /** 学生真实姓名 */
+    realName?: string
+    /** 学生头像 */
+    avatar?: string
+    /** 系统用户ID */
+    sysUserId?: string
     /** 课程ID */
     courseId: string
-    /** 学生姓名 */
-    studentName?: string
-    /** 学生学号 */
-    studentNumber?: string
-    /** 学生头像 */
-    studentAvatar?: string
     /** 成绩 */
     grade?: number
     /** 选课状态 (0=在读, 1=已退课, 2=已完成) */
     status?: EnrollmentStatusEnum
-    /** 选课时间 */
-    enrollmentTime?: string
-    /** 最后学习时间 */
-    lastStudyTime?: string
-    /** 学习进度 */
-    studyProgress?: number
     /** 创建时间 */
     createTime?: string
     /** 更新时间 */
@@ -55,12 +49,8 @@ export interface CourseStudentQueryParams {
     studentId?: string | null
     /** 课程ID */
     courseId?: string | null
-    /** 学生姓名（模糊查询） */
-    studentName?: string | null
-    /** 学生学号（模糊查询） */
-    studentNumber?: string | null
-    /** 选课状态 */
-    status?: string | null
+    /** 学生真实姓名 */
+    realName?: string | null
     /** 起始时间 */
     startTime?: string | null
     /** 结束时间 */

@@ -140,6 +140,24 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
+                path: '/course/detail/:courseId/forum/:forumId',
+                name: 'ForumDetail',
+                component: () => import('@/views/course/CourseDetail/CourseForum/ForumDetail.vue'),
+                meta: {
+                    title: '论坛详情',
+                    requiresAuth: true
+                }
+            },
+            {
+                path: '/course/detail/:courseId/forum/:forumId/post/:postId',
+                name: 'PostDetail',
+                component: () => import('@/views/course/CourseDetail/CourseForum/PostDetail.vue'),
+                meta: {
+                    title: '帖子详情',
+                    requiresAuth: true
+                }
+            },
+            {
                 path: '/course/detail/:courseId/chapters',
                 name: 'CourseChapters',
                 component: () => import('@/views/course/CourseDetail/CourseChapters/index.vue'),
@@ -167,11 +185,11 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
-                path: '/teacher/profile/:teacherId',
-                name: 'TeacherProfile',
-                component: () => import('@/components/common/TeacherProfile.vue'),
+                path: '/user/:userId',
+                name: 'UserProfile',
+                component: () => import('@/components/common/UserProfile.vue'),
                 meta: {
-                    title: '教师主页',
+                    title: '用户主页',
                     requiresAuth: true
                 }
             },

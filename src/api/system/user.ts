@@ -60,7 +60,7 @@ export function getDefaultSysUserProfileDTO(): SysUserProfileDTO {
 
 // 获取用户列表
 export function sysUserList(params: UserPageQueryDTO) {
-    return http.get('/system/user/list', params)
+    return http.getTableData('/system/user/list', params)
 }
 
 // 获取所有用户

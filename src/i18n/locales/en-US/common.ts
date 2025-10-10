@@ -12,6 +12,7 @@ export default {
     noData: 'No Data',
     backToHome: 'Back to Home',
     operation: 'Operation',
+    action: 'Action',
     save: 'Save',
     saveSuccess: 'Saved successfully',
     resetSuccess: 'Reset successfully',
@@ -20,7 +21,9 @@ export default {
     no: 'No',
     user: 'User',
     back: 'Back',
+    goBack: 'Go Back',
     retry: 'Retry',
+    error: 'Error',
 
     // Avatar upload related
     uploadAvatar: 'Upload Avatar',
@@ -186,6 +189,16 @@ export default {
             fileCorrupted: 'File corrupted',
             unsupportedBrowser: 'Browser does not support this file format'
         }
+    },
+
+    // Pagination related
+    pagination: {
+        showTotal: 'Total {total} records, showing {start}-{end}',
+        pageSize: 'Items per page',
+        total: 'Total {total}',
+        page: 'Page',
+        goTo: 'Go to',
+        itemsPerPage: 'items/page'
     },
 
     // Rich text editor related

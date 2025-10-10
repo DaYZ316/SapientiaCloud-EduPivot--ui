@@ -4,12 +4,8 @@
 export enum PostTypeEnum {
     /** 普通帖子 */
     NORMAL = 0,
-    /** 置顶帖子 */
-    TOP = 1,
-    /** 精华帖子 */
-    ESSENCE = 2,
     /** 公告 */
-    ANNOUNCEMENT = 3
+    ANNOUNCEMENT = 1
 }
 
 /**
@@ -17,8 +13,6 @@ export enum PostTypeEnum {
  */
 export const postTypeLabelMap = {
     [PostTypeEnum.NORMAL]: '普通帖子',
-    [PostTypeEnum.TOP]: '置顶帖子',
-    [PostTypeEnum.ESSENCE]: '精华帖子',
     [PostTypeEnum.ANNOUNCEMENT]: '公告'
 };
 
@@ -27,8 +21,6 @@ export const postTypeLabelMap = {
  */
 export const postTypeEnLabelMap = {
     [PostTypeEnum.NORMAL]: 'Normal',
-    [PostTypeEnum.TOP]: 'Top',
-    [PostTypeEnum.ESSENCE]: 'Essence',
     [PostTypeEnum.ANNOUNCEMENT]: 'Announcement'
 };
 
@@ -40,8 +32,6 @@ export const postTypeEnLabelMap = {
 export function getPostTypeOptions(t: (key: string) => string) {
     return [
         {label: t('course.postType.NORMAL'), value: PostTypeEnum.NORMAL},
-        {label: t('course.postType.TOP'), value: PostTypeEnum.TOP},
-        {label: t('course.postType.ESSENCE'), value: PostTypeEnum.ESSENCE},
         {label: t('course.postType.ANNOUNCEMENT'), value: PostTypeEnum.ANNOUNCEMENT}
     ];
 }

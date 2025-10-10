@@ -72,10 +72,10 @@
       </div>
     </div>
 
-    <!-- 文件列表 -->
-    <div v-if="props.showFileList && fileList.length > 0" :style="props.listStyle" class="file-list">
+    <!-- 文件列表 - 只显示正在上传的文件 -->
+    <div v-if="props.showFileList && uploadingFiles.length > 0" :style="props.listStyle" class="file-list">
       <n-list>
-        <n-list-item v-for="file in fileList" :key="file.id" class="file-item">
+        <n-list-item v-for="file in uploadingFiles" :key="file.id" class="file-item">
           <template #prefix>
             <n-icon :color="getFileIconColor(file)" size="20">
               <component :is="getFileIcon(file)"/>
@@ -104,39 +104,9 @@
 
           <template #suffix>
             <n-space>
-              <!-- 预览按钮 -->
+              <!-- 取消上传按钮 -->
               <n-button
-                  v-if="props.showPreviewButton && isPreviewable(file)"
-                  :disabled="file.status !== 'finished'"
-                  size="small"
-                  text
-                  @click="handleFilePreview(file)"
-              >
-                <template #icon>
-                  <n-icon>
-                    <EyeOutline/>
-                  </n-icon>
-                </template>
-              </n-button>
-
-              <!-- 下载按钮 -->
-              <n-button
-                  v-if="props.showDownloadButton && file.status === 'finished'"
-                  size="small"
-                  text
-                  @click="handleFileDownload(file)"
-              >
-                <template #icon>
-                  <n-icon>
-                    <DownloadOutline/>
-                  </n-icon>
-                </template>
-              </n-button>
-
-              <!-- 删除按钮 -->
-              <n-button
-                  v-if="props.showDeleteButton"
-                  :disabled="file.status === 'uploading'"
+                  v-if="file.status === 'uploading'"
                   size="small"
                   text
                   type="error"
@@ -147,6 +117,7 @@
                     <TrashOutline/>
                   </n-icon>
                 </template>
+                {{ t('common.cancel') }}
               </n-button>
             </n-space>
           </template>
@@ -222,7 +193,6 @@ import {
   CloudUploadOutline,
   DocumentOutline,
   DownloadOutline,
-  EyeOutline,
   FolderOutline,
   ImageOutline,
   MusicalNotesOutline,
@@ -276,6 +246,11 @@ const modelValue = computed({
   set: (value: UploadFileInfo[]) => emit('update:modelValue', value)
 })
 
+// 只显示正在上传的文件
+const uploadingFiles = computed(() => {
+  return fileList.value.filter(file => file.status === 'uploading')
+})
+
 // 监听文件列表变化
 watch(fileList, (newFiles) => {
   modelValue.value = newFiles
@@ -319,9 +294,17 @@ const handleCustomRequest = async (options: UploadCustomRequestOptions) => {
     const response = await uploadFile(file.file, props.uploadDir)
 
     if (response && response.data) {
-      // 从文件列表中移除已上传的文件（不显示在组件中）
+      // 更新文件状态为已完成，然后立即从列表中移除
       if (fileIndex !== -1) {
-        fileList.value.splice(fileIndex, 1)
+        fileList.value[fileIndex].status = 'finished'
+        fileList.value[fileIndex].url = response.data.url
+        // 延迟移除，让用户看到完成状态
+        setTimeout(() => {
+          const currentIndex = fileList.value.findIndex(f => f.id === file.id)
+          if (currentIndex !== -1) {
+            fileList.value.splice(currentIndex, 1)
+          }
+        }, 500) // 500ms后移除
       }
 
       // 触发成功事件
@@ -352,6 +335,12 @@ const handleFileRemove = (data: { file: UploadFileInfo; fileList: UploadFileInfo
   const {file} = data
   const index = fileList.value.findIndex(f => f.id === file.id)
   if (index !== -1) {
+    // 如果文件正在上传，需要取消上传
+    if (file.status === 'uploading') {
+      // 这里可以添加取消上传的逻辑，比如取消XMLHttpRequest
+      // 目前直接移除文件
+    }
+
     fileList.value.splice(index, 1)
     emit('file-remove', file)
 
@@ -407,10 +396,6 @@ const isAudioFile = (file: UploadFileInfo): boolean => {
   return getFileType(file) === FileType.AUDIO
 }
 
-const isPreviewable = (file: UploadFileInfo): boolean => {
-  const fileType = getFileType(file)
-  return [FileType.IMAGE, FileType.VIDEO, FileType.AUDIO].includes(fileType)
-}
 
 // 文件图标
 const getFileIcon = (file: UploadFileInfo) => {

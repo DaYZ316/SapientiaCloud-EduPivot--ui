@@ -1,6 +1,5 @@
 import http from '@/utils/http'
 import type {ForumReplyDTO, ForumReplyQueryParams, ForumReplyVO} from '@/types/course'
-import type {TableDataResult} from '@/types/common/baseEntity'
 
 // 获取默认论坛回复查询对象
 export function getDefaultForumReplyQuery(): ForumReplyQueryParams {
@@ -27,11 +26,16 @@ export function getDefaultForumReplyDTO(): ForumReplyDTO {
     return {
         id: null,
         postId: null,
+        forumId: null,
+        courseId: null,
         sysUserId: null,
-        parentReplyId: null,
         content: null,
+        parentReplyId: null,
+        replyToUserId: null,
         isAnonymous: null,
         attachmentUrls: null,
+        imageUrls: null,
+        isAccepted: null,
         status: null
     }
 }
@@ -151,8 +155,8 @@ export function getReplyTree(postId: string) {
  * @param params 查询参数
  * @returns 回复列表
  */
-export function listForumReplyByCourseId(courseId: string, params?: ForumReplyQueryParams) {
-    return http.get<TableDataResult<ForumReplyVO>>(`/course/reply/course/${courseId}`, params)
+export function listAllForumReplyByCourseId(courseId: string) {
+    return http.get<ForumReplyVO[]>(`/course/reply/course/${courseId}`)
 }
 
 /**
@@ -161,8 +165,8 @@ export function listForumReplyByCourseId(courseId: string, params?: ForumReplyQu
  * @param params 查询参数
  * @returns 回复列表
  */
-export function listForumReplyByForumId(forumId: string, params?: ForumReplyQueryParams) {
-    return http.get<TableDataResult<ForumReplyVO>>(`/course/reply/forum/${forumId}`, params)
+export function listAllForumReplyByForumId(forumId: string) {
+    return http.get<ForumReplyVO[]>(`/course/reply/forum/${forumId}`)
 }
 
 /**
@@ -171,7 +175,7 @@ export function listForumReplyByForumId(forumId: string, params?: ForumReplyQuer
  * @returns 分页回复列表
  */
 export function listForumReply(params: ForumReplyQueryParams) {
-    return http.get<TableDataResult<ForumReplyVO>>('/course/reply/list', params)
+    return http.getTableData<ForumReplyVO>('/course/reply/list', params)
 }
 
 /**
@@ -180,6 +184,15 @@ export function listForumReply(params: ForumReplyQueryParams) {
  * @param params 查询参数
  * @returns 回复列表
  */
-export function listForumReplyByPostId(postId: string, params?: ForumReplyQueryParams) {
-    return http.get<TableDataResult<ForumReplyVO>>(`/course/reply/post/${postId}`, params)
+export function listAllForumReplyByPostId(postId: string) {
+    return http.get<ForumReplyVO[]>(`/course/reply/post/${postId}`)
+}
+
+/**
+ * 获取父回复下的所有子回复（平铺的list形式）
+ * @param parentReplyId 父回复ID
+ * @returns 子回复列表
+ */
+export function getAllRepliesByParentId(parentReplyId: string) {
+    return http.get<ForumReplyVO[]>(`/course/reply/${parentReplyId}/all`)
 }

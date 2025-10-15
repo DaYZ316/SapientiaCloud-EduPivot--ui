@@ -19,6 +19,56 @@
       </template>
     </CourseBreadcrumb>
 
+    <!-- 搜索和筛选区域 -->
+    <div class="search-section">
+      <div>
+        <n-form :model="searchForm" inline>
+          <n-form-item :label="t('course.forum.forumName')">
+            <n-input
+                v-model:value="searchForm.forumName"
+                :placeholder="t('course.forum.forumNamePlaceholder')"
+                clearable
+                style="width: 200px"
+            />
+          </n-form-item>
+          <n-form-item :label="t('course.forum.forumTypeLabel')">
+            <n-select
+                v-model:value="searchForm.forumType"
+                :options="forumTypeOptions"
+                :placeholder="t('course.forum.forumTypePlaceholder')"
+                clearable
+                style="width: 180px"
+            />
+          </n-form-item>
+          <n-form-item :label="t('course.forum.isPublic')">
+            <n-select
+                v-model:value="searchForm.isPublic"
+                :options="isPublicOptions"
+                :placeholder="t('course.forum.isPublicPlaceholder')"
+                clearable
+                style="width: 180px"
+            />
+          </n-form-item>
+          <n-form-item>
+            <n-space>
+              <n-button type="primary" @click="handleSearch">
+                <template #icon>
+                  <Icon :component="SearchOutlined"/>
+                </template>
+                {{ t('common.search') }}
+              </n-button>
+              <n-button @click="handleReset">
+                <template #icon>
+                  <Icon :component="ReloadOutlined"/>
+                </template>
+                {{ t('common.reset') }}
+              </n-button>
+            </n-space>
+          </n-form-item>
+        </n-form>
+      </div>
+    </div>
+
     <!-- 论坛内容区域 -->
     <div class="forum-content">
       <!-- 论坛列表 -->
@@ -309,7 +359,9 @@ import {
   FileTextOutlined,
   MessageOutlined,
   MoreOutlined,
-  PlusOutlined
+  PlusOutlined,
+  ReloadOutlined,
+  SearchOutlined
 } from '@vicons/antd'
 
 // 路由和国际化
@@ -338,6 +390,13 @@ const pagination = ref({
 
 // 查询参数
 const queryParams = ref<CourseForumQueryParams>(getDefaultCourseForumQuery())
+
+// 搜索表单数据
+const searchForm = ref({
+  forumName: null,
+  forumType: null,
+  isPublic: null
+})
 
 // 对话框状态
 const showCreateForumDialog = ref(false)
@@ -397,6 +456,12 @@ const courseId = computed(() => route.params.courseId as string)
 // 选项数据
 const forumTypeOptions = computed(() => getForumTypeOptions(t))
 
+// 公开性选项
+const isPublicOptions = computed(() => [
+  { label: t('course.forum.private'), value: 0 },
+  { label: t('course.forum.public'), value: 1 }
+])
+
 // 设置动态标题
 const setCourseForumTitle = () => {
   if (courseInfo.value?.courseName) {
@@ -429,6 +494,7 @@ const getForumTypeTagType = (type: number | undefined) => {
   }
   return typeMap[type] || 'default'
 }
+
 
 // 获取论坛菜单选项
 const getForumMenuOptions = () => {
@@ -480,6 +546,9 @@ const loadForums = async () => {
   queryParams.value.courseId = courseId.value
   queryParams.value.pageNum = pagination.value.pageNum
   queryParams.value.pageSize = pagination.value.pageSize
+  queryParams.value.forumName = searchForm.value.forumName
+  queryParams.value.forumType = searchForm.value.forumType
+  queryParams.value.isPublic = searchForm.value.isPublic
 
   const res = await CourseForumApi.listCourseForum(queryParams.value)
   if (res && res.data) {
@@ -592,6 +661,23 @@ const handlePageChange = (page: number) => {
 const handlePageSizeChange = (pageSize: number) => {
   pagination.value.pageSize = pageSize
   pagination.value.pageNum = 1 // 重置到第一页
+  loadForums()
+}
+
+// 搜索论坛
+const handleSearch = () => {
+  pagination.value.pageNum = 1 // 重置到第一页
+  loadForums()
+}
+
+// 重置搜索
+const handleReset = () => {
+  searchForm.value = {
+    forumName: null,
+    forumType: null,
+    isPublic: null
+  }
+  pagination.value.pageNum = 1
   loadForums()
 }
 

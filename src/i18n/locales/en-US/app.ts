@@ -26,6 +26,8 @@ export default {
             courseForum: 'Course Forum',
             courseStudents: 'Course Students',
             courseClassroom: 'Online Classroom',
+            courseTasks: 'Course Tasks',
+            courseQuestions: 'Course Question Bank',
             courseChapterControl: 'Chapter Management'
         }
     }

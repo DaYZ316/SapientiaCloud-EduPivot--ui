@@ -5,6 +5,16 @@
   min-height: calc(100vh - 48px);
   box-sizing: border-box;
 
+  .search-section {
+    margin-bottom: 24px;
+
+    .n-form {
+      .n-form-item {
+        margin-bottom: 16px;
+      }
+    }
+  }
+
   .forum-content {
     margin-top: 24px;
   }
@@ -282,6 +292,15 @@
 @media (max-width: 768px) {
   .course-forum {
     padding: 16px;
+
+    .search-section {
+      .n-form {
+        .n-form-item {
+          width: 100%;
+          margin-bottom: 12px;
+        }
+      }
+    }
 
     .forum-list {
 

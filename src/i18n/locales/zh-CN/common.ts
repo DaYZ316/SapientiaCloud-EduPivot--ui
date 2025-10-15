@@ -4,7 +4,7 @@ export default {
     submit: '提交',
     reset: '重置',
     search: '搜索',
-    add: '新增',
+    add: '新增题库',
     edit: '编辑',
     delete: '删除',
     success: '操作成功',
@@ -15,10 +15,13 @@ export default {
     action: '操作',
     save: '保存',
     saveSuccess: '保存成功',
+    updateSuccess: '更新成功',
     resetSuccess: '重置成功',
+    featureComingSoon: '功能待开发',
     more: '更多',
     yes: '是',
     no: '否',
+    download: '下载',
     user: '用户',
     back: '返回',
     goBack: '返回',
@@ -108,6 +111,21 @@ export default {
     // 通用状态
     loading: '加载中...',
     unknown: '未知',
+    backToCourseList: '返回课程列表',
+
+    // 难度等级
+    easy: '简单',
+    medium: '中等',
+    hard: '困难',
+
+    // 操作相关
+    view: '查看',
+    actions: '操作',
+    points: '分',
+    minutes: '分钟',
+
+    // 时间相关
+    createTime: '创建时间',
 
     // 联系信息
     phone: '电话',

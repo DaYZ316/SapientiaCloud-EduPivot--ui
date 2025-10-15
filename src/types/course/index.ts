@@ -41,3 +41,38 @@ export type {
     CourseChapterQueryParams
 } from './courseChapter'
 
+// 课程任务类型
+export type {
+    CourseTaskDTO,
+    CourseTaskVO,
+    CourseTaskQueryParams
+} from './courseTask'
+
+// 课程题库类型
+export type {
+    CourseQuestionBankDTO,
+    CourseQuestionBankVO,
+    CourseQuestionBankQueryParams
+} from './courseQuestionBank'
+
+// 题目类型
+export type {
+    QuestionDTO,
+    QuestionVO,
+    QuestionQueryParams
+} from './question'
+
+// 题目答案类型
+export type {
+    QuestionAnswerDTO,
+    QuestionAnswerVO,
+    QuestionAnswerQueryParams
+} from './questionAnswer'
+
+// 题目选项类型
+export type {
+    QuestionOptionDTO,
+    QuestionOptionVO,
+    QuestionOptionQueryParams
+} from './questionOption'
+

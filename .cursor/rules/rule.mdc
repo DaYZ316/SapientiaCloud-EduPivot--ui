@@ -23,3 +23,4 @@ alwaysApply: true
 20.所有的api都在src\api里面，所有的DTO、VO类都在src\types
 21.所有的api都在src\api里面，所有的DTO、VO类都在src\types
 22.所有的文件都不添加try，catch，message.error
+23.所有style颜色变量使用src\assets\styles中的变量

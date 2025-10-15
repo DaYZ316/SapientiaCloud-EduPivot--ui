@@ -565,6 +565,7 @@ const getForumTypeTagType = (type: number | undefined): 'default' | 'success' | 
   return typeMap[type] || 'default'
 }
 
+
 // 获取帖子预览内容
 const getPostPreview = (content: string | null) => {
   if (!content) return ''
@@ -1040,7 +1041,7 @@ onMounted(async () => {
             display: block;
             font-size: 28px;
             font-weight: 700;
-            color: var(--info-color);
+            color: var(--primary-color);
             line-height: 1;
             margin-bottom: 4px;
           }

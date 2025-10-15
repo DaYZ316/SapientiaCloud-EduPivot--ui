@@ -16,3 +16,21 @@ export * from './postStatusEnum';
 export * from './replyStatusEnum';
 // 章节状态枚举导出
 export * from './chapterStatusEnum';
+// 任务类型枚举导出
+export * from './taskTypeEnum';
+// 任务状态枚举导出
+export * from './taskStatusEnum';
+// 任务难度枚举导出
+export * from './taskDifficultyEnum';
+// 题目类型枚举导出
+export * from './questionTypeEnum';
+// 题目状态枚举导出
+export * from './questionStatusEnum';
+// 答案正确性枚举导出
+export * from './answerCorrectnessEnum';
+// 题库类型枚举导出
+export * from './questionBankTypeEnum';
+// 题库难度枚举导出
+export * from './questionBankDifficultyEnum';
+// 题库公开状态枚举导出
+export * from './questionBankPublicEnum';

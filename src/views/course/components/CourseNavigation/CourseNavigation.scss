@@ -48,7 +48,7 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
 
   .navigation-buttons {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
     padding: 24px;
     position: relative;
@@ -139,7 +139,7 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
     }
 
     .navigation-buttons {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, 1fr);
       gap: 12px;
       padding: 20px;
 
@@ -162,6 +162,7 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
 @media (max-width: 480px) {
   .course-navigation {
     .navigation-buttons {
+      grid-template-columns: repeat(2, 1fr);
       padding: 16px;
       gap: 10px;
 

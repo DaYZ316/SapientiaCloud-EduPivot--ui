@@ -57,6 +57,34 @@
           </template>
           {{ $t('course.navigation.classroom') }}
         </n-button>
+
+        <n-button
+            block
+            class="nav-button"
+            size="large"
+            @click="handleNavigation('tasks')"
+        >
+          <template #icon>
+            <n-icon>
+              <CheckmarkCircleOutline/>
+            </n-icon>
+          </template>
+          {{ $t('course.navigation.tasks') }}
+        </n-button>
+
+        <n-button
+            block
+            class="nav-button"
+            size="large"
+            @click="handleNavigation('questions')"
+        >
+          <template #icon>
+            <n-icon>
+              <HelpCircleOutline/>
+            </n-icon>
+          </template>
+          {{ $t('course.navigation.questions') }}
+        </n-button>
       </div>
     </n-card>
   </div>
@@ -64,7 +92,7 @@
 
 <script lang="ts" setup>
 import {useRouter} from 'vue-router'
-import {ChatbubbleOutline, LibraryOutline, PeopleOutline, SchoolOutline} from '@vicons/ionicons5'
+import {ChatbubbleOutline, LibraryOutline, PeopleOutline, SchoolOutline, CheckmarkCircleOutline, HelpCircleOutline} from '@vicons/ionicons5'
 
 // 定义props
 interface Props {
@@ -95,6 +123,12 @@ const handleNavigation = (type: string) => {
       break
     case 'classroom':
       router.push(`/course/detail/${courseIdValue}/classroom`)
+      break
+    case 'tasks':
+      router.push(`/course/detail/${courseIdValue}/tasks`)
+      break
+    case 'questions':
+      router.push(`/course/detail/${courseIdValue}/questions`)
       break
     default:
       break

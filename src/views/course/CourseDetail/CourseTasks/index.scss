@@ -1,0 +1,131 @@
+.course-tasks {
+  width: 100%;
+  min-height: calc(100vh - 48px);
+  box-sizing: border-box;
+
+  .search-and-actions {
+    display: flex;
+    align-items: center;
+
+    .search-section {
+      flex: 1;
+
+      .n-input {
+        max-width: 300px;
+        width: 100%;
+      }
+    }
+
+    .action-buttons {
+      flex-shrink: 0;
+    }
+  }
+
+  // 主要内容区域
+  .main-content {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+    height: calc(100vh - 180px);
+    min-height: 600px;
+  }
+
+  // 左侧任务列表
+  .tasks-sidebar {
+    width: 35%;
+    min-width: 400px;
+    max-width: 500px;
+    border: none;
+    box-shadow: none;
+    border-radius: 8px;
+  }
+
+  // 右侧任务详情
+  .task-detail {
+    width: 70%;
+    border: none;
+    border-radius: 8px;
+    overflow-y: auto;
+    box-shadow: none;
+    height: 100%;
+  }
+}
+
+// 响应式设计
+@media (max-width: 1200px) {
+  .course-tasks {
+    .main-content {
+      .tasks-sidebar {
+        width: 40%;
+        min-width: 350px;
+        max-width: 450px;
+      }
+
+      .task-detail {
+        width: 60%;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .course-tasks {
+    padding: 0;
+
+    .search-and-actions {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+
+      .search-section {
+        .n-input {
+          max-width: 100%;
+        }
+      }
+
+      .action-buttons {
+        display: flex;
+        justify-content: center;
+      }
+    }
+
+    .main-content {
+      flex-direction: column;
+      height: auto;
+      min-height: auto;
+      gap: 16px;
+    }
+
+    .tasks-sidebar {
+      width: 100%;
+      min-width: auto;
+      max-width: none;
+      height: 400px;
+    }
+
+    .task-detail {
+      width: 100%;
+      height: 500px;
+      overflow-y: auto;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .course-tasks {
+    padding: 0;
+
+    .main-content {
+      gap: 12px;
+    }
+
+    .tasks-sidebar {
+      height: 350px;
+    }
+
+    .task-detail {
+      height: 450px;
+      overflow-y: auto;
+    }
+  }
+}

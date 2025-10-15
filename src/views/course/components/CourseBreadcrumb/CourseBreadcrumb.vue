@@ -13,6 +13,11 @@
         </router-link>
         <span v-else>{{ courseInfo.courseName }}</span>
       </n-breadcrumb-item>
+      <n-breadcrumb-item v-if="showQuestionBankOption">
+        <router-link :to="`/course/detail/${courseId}/questions`">
+          {{ t('app.title.course.courseQuestions') }}
+        </router-link>
+      </n-breadcrumb-item>
       <n-breadcrumb-item v-if="showForumOption">
         <router-link :to="`/course/detail/${courseId}/forum`">
           {{ t('course.forum.title') }}
@@ -46,6 +51,7 @@ interface Props {
   courseInfo?: CourseVO | null
   currentPage?: string
   showCourseLink?: boolean
+  showQuestionBankOption?: boolean
   showForumOption?: boolean
   showPostOption?: boolean
   forumId?: string
@@ -55,6 +61,7 @@ withDefaults(defineProps<Props>(), {
   courseInfo: null,
   currentPage: '',
   showCourseLink: true,
+  showQuestionBankOption: false,
   showForumOption: false,
   showPostOption: false,
   forumId: ''

@@ -22,3 +22,18 @@ export * from './forumReply'
 
 // 导出课程章节管理相关API
 export * from './courseChapter'
+
+// 导出课程任务管理相关API
+export * from './courseTask'
+
+// 导出课程题库管理相关API
+export * from './courseQuestionBank'
+
+// 导出题目管理相关API
+export * from './question'
+
+// 导出题目答案管理相关API
+export * from './questionAnswer'
+
+// 导出题目选项管理相关API
+export * from './questionOption'

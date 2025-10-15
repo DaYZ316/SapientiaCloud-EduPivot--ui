@@ -255,7 +255,6 @@ import type {CourseVO} from '@/types/course'
 import type {TeacherVO} from '@/types/teacher'
 import {getCourseStatusOptions, getCourseTypeOptions} from '@/enum/course'
 import {useMenuStore} from '@/store'
-import {createCourseDetailMenuOption} from '@/config/menu'
 import TeacherCard from '../components/TeacherCard/TeacherCard.vue'
 import CourseCard from '../components/CourseCard/CourseCard.vue'
 import TeacherMarquee from '../components/TeacherMarquee.vue'
@@ -383,19 +382,13 @@ const handleActionSelect = (key: string) => {
 
 
 // 菜单管理方法
-// 更新课程详情菜单项
-const updateCourseDetailMenuItem = () => {
+// 更新最后访问的课程信息
+const updateLastAccessedCourse = () => {
   if (courseInfo.value?.courseName) {
-    const menuItem = createCourseDetailMenuOption(t, courseInfo.value.courseName, courseInfo.value.id)
-    menuStore.addDynamicMenuItem(menuItem)
-    // 同时更新最后访问的课程信息
     menuStore.setLastAccessedCourse(courseInfo.value.id, courseInfo.value.courseName)
   }
 }
 
-// const removeCourseDetailMenuItem = () => {
-//   menuStore.removeDynamicMenuItem('CourseDetail')
-// }
 
 // 设置动态标题
 const setCourseDetailTitle = () => {
@@ -422,8 +415,8 @@ const loadCourseInfo = async () => {
   const res = await CourseApi.getCourseById(courseId.value)
   if (res.success && res.data) {
     courseInfo.value = res.data
-    // 加载课程信息成功后，更新动态菜单项
-    updateCourseDetailMenuItem()
+    // 加载课程信息成功后，更新最后访问的课程信息
+    updateLastAccessedCourse()
     // 设置动态标题
     setCourseDetailTitle()
     // 加载教师信息
@@ -678,8 +671,6 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  // 不再移除动态菜单项，保持课程详情菜单常态显示
-  // removeCourseDetailMenuItem()
   // 重置标题为默认标题
   setTitle('default')
 })

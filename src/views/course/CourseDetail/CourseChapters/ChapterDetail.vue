@@ -16,7 +16,7 @@
           <p v-if="chapter.description" class="chapter-description">{{ chapter.description }}</p>
         </div>
         <!-- 操作按钮区域 -->
-        <div class="chapter-actions">
+        <div v-if="canEditChapter" class="chapter-actions">
           <n-button
               :title="t('common.edit')"
               circle
@@ -85,7 +85,7 @@
 </template>
 
 <script lang="ts" setup>
-import {ref, watch} from 'vue'
+import {computed, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useRouter} from 'vue-router'
 import {
@@ -104,14 +104,21 @@ import type {CourseChapterVO} from '@/types/course/courseChapter'
 import type {FileInfoDTO} from '@/types/minIO/file'
 import Icon from '@/components/common/Icon.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
+import {useUserStore} from '@/store/modules/user'
 
 const {message} = getDiscreteApi()
 const {t} = useI18n()
 const router = useRouter()
+const userStore = useUserStore()
 
 // 响应式数据
 const fileInfoList = ref<FileInfoDTO[]>([]) // 文件详细信息列表
 const loadingFileInfo = ref(false) // 加载文件信息状态
+
+// 权限检查
+const canEditChapter = computed(() => {
+  return userStore.hasRole('ADMIN') || userStore.hasRole('TEACHER')
+})
 
 // Props
 interface Props {

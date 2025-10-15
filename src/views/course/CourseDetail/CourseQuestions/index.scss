@@ -1,0 +1,184 @@
+.course-questions {
+  width: 100%;
+  min-height: calc(100vh - 48px);
+  box-sizing: border-box;
+
+  .loading-container,
+  .error-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+  }
+
+  .questions-content {
+    margin-top: 24px;
+  }
+
+  .questions-card {
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      
+      h2 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--text-color);
+      }
+    }
+  }
+
+  .questions-list-container {
+    margin-top: 20px;
+  }
+
+  .questions-list {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+
+  .question-item {
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--background-secondary-color);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      border-color: var(--primary-color);
+    }
+
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      
+      h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-color);
+        flex: 1;
+        margin-right: 12px;
+      }
+    }
+    
+    .question-description {
+      margin: 0 0 12px 0;
+      color: var(--text-color-2);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    
+    .question-meta {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      color: var(--text-color-3);
+      flex-wrap: wrap;
+    }
+    
+    .question-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .course-questions {
+    padding: 16px;
+
+    .questions-card {
+      .card-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+
+        h2 {
+          font-size: 20px;
+        }
+      }
+    }
+
+    .questions-list {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .question-item {
+      .question-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+
+        h3 {
+          margin-right: 0;
+          font-size: 16px;
+        }
+      }
+
+      .question-meta {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .question-actions {
+        justify-content: flex-start;
+      }
+    }
+  }
+}
+
+// 小屏幕优化
+@media (max-width: 480px) {
+  .course-questions {
+    padding: 12px;
+
+    .questions-card {
+      .card-header {
+        h2 {
+          font-size: 18px;
+        }
+      }
+    }
+
+    .question-item {
+      .question-header {
+        h3 {
+          font-size: 15px;
+        }
+      }
+
+      .question-description {
+        font-size: 13px;
+      }
+
+      .question-meta {
+        font-size: 13px;
+      }
+    }
+  }
+}
+
+// 暗色主题适配
+@media (prefers-color-scheme: dark) {
+  .course-questions {
+    .question-item {
+      background: var(--card-color);
+      border-color: var(--border-color);
+
+      &:hover {
+        box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+      }
+    }
+  }
+}

@@ -163,10 +163,10 @@ body {
     right: 0;
     bottom: 0;
     background: radial-gradient(
-                    circle at center,
-                    color-mix(in srgb, var(--primary-color) var(--glow-intensity), transparent) 0%,
-                    color-mix(in srgb, var(--primary-color) calc(var(--glow-intensity) * 0.5), transparent) 50%,
-                    transparent 100%
+      circle at center,
+      color-mix(in srgb, var(--primary-color) var(--glow-intensity), transparent) 0%,
+      color-mix(in srgb, var(--primary-color) calc(var(--glow-intensity) * 0.5), transparent) 50%,
+      transparent 100%
     );
     border-radius: inherit;
     animation: global-glow var(--glow-animation-duration) ease-in-out infinite;

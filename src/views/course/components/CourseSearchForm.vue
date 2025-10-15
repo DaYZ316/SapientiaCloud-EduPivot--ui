@@ -13,7 +13,7 @@
           :options="courseTypeOptions"
           :placeholder="t('course.searchForm.courseTypePlaceholder')"
           clearable
-          style="min-width: 120px;"
+          style="min-width: 180px;"
       />
     </n-form-item>
     <n-form-item :label="t('course.searchForm.courseStatus')" path="status">
@@ -22,7 +22,7 @@
           :options="courseStatusOptions"
           :placeholder="t('course.searchForm.courseStatusPlaceholder')"
           clearable
-          style="min-width: 120px;"
+          style="min-width: 180px;"
       />
     </n-form-item>
     <n-form-item :label="t('course.searchForm.createTimeRange')" path="createTimeRange">

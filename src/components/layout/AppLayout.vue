@@ -121,6 +121,16 @@ const getCurrentMenuKey = (routeName: string): string => {
     return 'CourseOverview'
   }
 
+  // 如果是论坛详情页面，高亮论坛选项
+  if (routeName === 'ForumDetail') {
+    return 'CourseForum'
+  }
+
+  // 如果是帖子详情页面，高亮论坛选项
+  if (routeName === 'PostDetail') {
+    return 'CourseForum'
+  }
+
   // 如果是文件预览页面，高亮文件预览选项
   if (routeName === 'FilePreview') {
     return 'FilePreview'
@@ -132,9 +142,8 @@ const getCurrentMenuKey = (routeName: string): string => {
 
 const currentRoute = computed(() => getCurrentMenuKey(route.name as string))
 const menuOptions = computed(() => {
-  const dynamicItems = menuStore.getDynamicMenuItems
   const lastCourse = menuStore.getLastAccessedCourse
-  return getMenuOptions(t, dynamicItems, lastCourse?.courseName, lastCourse?.courseId) as any[]
+  return getMenuOptions(t, lastCourse?.courseName, lastCourse?.courseId) as any[]
 })
 const userMenuOptions = computed(() => getUserMenuOptions(t) as any[])
 const displayAppName = computed(() =>

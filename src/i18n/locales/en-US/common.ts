@@ -4,7 +4,7 @@ export default {
     submit: 'Submit',
     reset: 'Reset',
     search: 'Search',
-    add: 'Add',
+    add: 'Add Question Bank',
     edit: 'Edit',
     delete: 'Delete',
     success: 'Operation Successful',
@@ -15,10 +15,13 @@ export default {
     action: 'Action',
     save: 'Save',
     saveSuccess: 'Saved successfully',
+    updateSuccess: 'Updated successfully',
     resetSuccess: 'Reset successfully',
+    featureComingSoon: 'Feature coming soon',
     more: 'More',
     yes: 'Yes',
     no: 'No',
+    download: 'Download',
     user: 'User',
     back: 'Back',
     goBack: 'Go Back',
@@ -108,6 +111,21 @@ export default {
     // Common status
     loading: 'Loading...',
     unknown: 'Unknown',
+    backToCourseList: 'Back to Course List',
+
+    // Difficulty levels
+    easy: 'Easy',
+    medium: 'Medium',
+    hard: 'Hard',
+
+    // Operations
+    view: 'View',
+    actions: 'Actions',
+    points: 'Points',
+    minutes: 'Minutes',
+
+    // Time related
+    createTime: 'Create Time',
 
     // Contact information
     phone: 'Phone',

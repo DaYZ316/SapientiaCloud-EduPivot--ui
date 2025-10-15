@@ -39,40 +39,6 @@ function renderIcon(icon: Component) {
     return () => createIcon(icon)
 }
 
-// 创建动态课程详情菜单项
-export const createCourseDetailMenuOption = (t: (key: string) => string, courseName: string, courseId?: string): MenuOption => ({
-    key: 'CourseDetail',
-    label: courseName || t('menu.courseDetail'),
-    icon: renderIcon(BookOutline),
-    dynamic: true,
-    children: courseId ? [
-        {
-            key: 'CourseOverview',
-            label: t('menu.courseOverview'),
-            icon: renderIcon(BookOutline)
-        },
-        {
-            key: 'CourseChapters',
-            label: t('menu.courseChapters'),
-            icon: renderIcon(LibraryOutline)
-        },
-        {
-            key: 'CourseForum',
-            label: t('menu.courseForum'),
-            icon: renderIcon(ChatbubblesOutline)
-        },
-        {
-            key: 'CourseStudents',
-            label: t('menu.courseStudents'),
-            icon: renderIcon(PeopleCircleOutline)
-        },
-        {
-            key: 'CourseClassroom',
-            label: t('menu.courseClassroom'),
-            icon: renderIcon(VideocamOutline)
-        }
-    ] : undefined
-})
 
 // 创建文件预览菜单项
 export const createFilePreviewMenuOption = (t: (key: string) => string): MenuOption => ({
@@ -83,7 +49,7 @@ export const createFilePreviewMenuOption = (t: (key: string) => string): MenuOpt
 })
 
 // 侧边栏菜单配置
-export const getMenuOptions = (t: (key: string) => string, dynamicMenuItems: MenuOption[] = [], lastCourseName?: string, lastCourseId?: string): MenuOption[] => {
+export const getMenuOptions = (t: (key: string) => string, lastCourseName?: string, lastCourseId?: string): MenuOption[] => {
     const baseMenuOptions: MenuOption[] = [
         {
             key: 'Dashboard',
@@ -105,8 +71,49 @@ export const getMenuOptions = (t: (key: string) => string, dynamicMenuItems: Men
                     label: t('menu.courseManagement'),
                     icon: renderIcon(BookOutline)
                 },
-                // 其他动态菜单项会在这里插入
-                ...dynamicMenuItems
+                // 课程详情菜单项（如果有最后访问的课程）
+                ...(lastCourseName && lastCourseId ? [{
+                    key: 'CourseDetail',
+                    label: lastCourseName,
+                    icon: renderIcon(BookOutline),
+                    children: [
+                        {
+                            key: 'CourseOverview',
+                            label: t('menu.courseOverview'),
+                            icon: renderIcon(BookOutline)
+                        },
+                        {
+                            key: 'CourseChapters',
+                            label: t('menu.courseChapters'),
+                            icon: renderIcon(LibraryOutline)
+                        },
+                        {
+                            key: 'CourseForum',
+                            label: t('menu.courseForum'),
+                            icon: renderIcon(ChatbubblesOutline)
+                        },
+                        {
+                            key: 'CourseStudents',
+                            label: t('menu.courseStudents'),
+                            icon: renderIcon(PeopleCircleOutline)
+                        },
+                        {
+                            key: 'CourseClassroom',
+                            label: t('menu.courseClassroom'),
+                            icon: renderIcon(VideocamOutline)
+                        },
+                        {
+                            key: 'CourseTasks',
+                            label: t('menu.courseTasks'),
+                            icon: renderIcon(DocumentTextOutline)
+                        },
+                        {
+                            key: 'CourseQuestions',
+                            label: t('menu.courseQuestions'),
+                            icon: renderIcon(LibraryOutline)
+                        }
+                    ]
+                }] : [])
             ]
         },
         {
@@ -155,8 +162,7 @@ export const getMenuOptions = (t: (key: string) => string, dynamicMenuItems: Men
         }
     ]
 
-    // 将动态菜单项添加到基础菜单选项中
-    return [...baseMenuOptions, ...dynamicMenuItems]
+    return baseMenuOptions
 }
 
 // 用户下拉菜单选项
@@ -190,8 +196,12 @@ export const menuRouteMap: Record<string, string> = {
     'CourseOverview': '/course/detail', // 课程概览
     'CourseChapters': '/course/detail', // 课程章节
     'CourseForum': '/course/detail', // 课程论坛
+    'ForumDetail': '/course/detail', // 论坛详情
+    'PostDetail': '/course/detail', // 帖子详情
     'CourseStudents': '/course/detail', // 课程学生
-    'CourseClassroom': '/course/detail' // 课程课堂
+    'CourseClassroom': '/course/detail', // 课程课堂
+    'CourseTasks': '/course/detail', // 课程任务
+    'CourseQuestions': '/course/detail' // 课程题库
 }
 
 // 菜单展开配置映射
@@ -199,11 +209,15 @@ export const menuExpandMap: Record<string, string[]> = {
     'CourseManagement': ['Course'],
     'MyCourses': ['Course'],
     'CourseDetail': ['Course'], // 课程详情页面展开课程菜单
-    'CourseOverview': ['Course', 'CourseDetail'], // 课程概览页面展开课程和课程详情菜单
-    'CourseChapters': ['Course', 'CourseDetail'], // 课程章节页面展开课程和课程详情菜单
-    'CourseForum': ['Course', 'CourseDetail'], // 课程论坛页面展开课程和课程详情菜单
-    'CourseStudents': ['Course', 'CourseDetail'], // 课程学生页面展开课程和课程详情菜单
-    'CourseClassroom': ['Course', 'CourseDetail'], // 课程课堂页面展开课程和课程详情菜单
+    'CourseOverview': ['Course'], // 课程概览页面展开课程菜单
+    'CourseChapters': ['Course'], // 课程章节页面展开课程菜单
+    'CourseForum': ['Course'], // 课程论坛页面展开课程菜单
+    'ForumDetail': ['Course'], // 论坛详情页面展开课程菜单
+    'PostDetail': ['Course'], // 帖子详情页面展开课程菜单
+    'CourseStudents': ['Course'], // 课程学生页面展开课程菜单
+    'CourseClassroom': ['Course'], // 课程课堂页面展开课程菜单
+    'CourseTasks': ['Course'], // 课程任务页面展开课程菜单
+    'CourseQuestions': ['Course'], // 课程题库页面展开课程菜单
     'Teacher': ['InfoManagement'],
     'Student': ['InfoManagement'],
     'User': ['system'],

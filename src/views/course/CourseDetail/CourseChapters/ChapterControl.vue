@@ -5,7 +5,7 @@
       <!-- 面包屑导航 -->
       <CourseBreadcrumb
           :course-info="courseInfo"
-          :current-page="$t('course.chapters.addChapter')"
+          :current-page="$t('course.chapters.chapterManagement')"
       />
 
       <!-- 返回按钮 -->
@@ -314,12 +314,14 @@ import Icon from '@/components/common/Icon.vue'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
 import FileUpload from '@/components/common/FileUpload.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
+import {useUserStore} from '@/store/modules/user'
 
 const {message} = getDiscreteApi()
 const {t} = useI18n()
 const route = useRoute()
 const router = useRouter()
 const {setTitle} = useTitle()
+const userStore = useUserStore()
 
 // 响应式数据
 const courseInfo = ref<CourseVO | null>(null)
@@ -385,7 +387,7 @@ watch(activeTab, () => {
 const setCourseChapterControlTitle = () => {
   if (courseInfo.value?.courseName) {
     // 设置动态标题：课程名称 - 章节管理
-    const courseChapterControlTitle = t('app.title.course.courseChapterControl')
+    const courseChapterControlTitle = t('course.chapters.chapterManagement')
     setTitle('courseChapterControl', `${courseInfo.value.courseName} - ${courseChapterControlTitle}`)
   } else {
     // 如果课程信息还未加载，使用默认标题
@@ -460,7 +462,11 @@ const flattenChapterTree = (tree: CourseChapterVO[]): CourseChapterVO[] => {
 
 // 过滤草稿章节
 const filterDraftChapters = () => {
-  draftChapters.value = allChapters.value.filter(chapter => chapter.status === ChapterStatusEnum.DRAFT)
+  // 草稿章节需要根据当前用户ID过滤，只显示当前用户创建的草稿
+  draftChapters.value = allChapters.value.filter(chapter => 
+    chapter.status === ChapterStatusEnum.DRAFT && 
+    chapter.teacherId === userStore.userInfo?.id
+  )
 }
 
 // 从树形结构中过滤已发布章节
@@ -1054,6 +1060,7 @@ onMounted(async () => {
 
       .add-icon {
         transition: color 0.2s;
+        margin-top: 4px;
       }
 
       .add-text {

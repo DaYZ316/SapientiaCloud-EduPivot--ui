@@ -26,6 +26,8 @@ export default {
             courseForum: '课程论坛',
             courseStudents: '课程学生',
             courseClassroom: '在线课堂',
+            courseTasks: '课程任务',
+            courseQuestions: '课程题库',
             courseChapterControl: '章节管理'
         }
     }

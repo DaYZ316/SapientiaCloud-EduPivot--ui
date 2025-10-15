@@ -24,7 +24,7 @@
           <span>{{ studentInfo?.mobile || userInfo?.mobile || '-' }}</span>
         </n-descriptions-item>
         <n-descriptions-item :label="t('settings.personal.gender')">
-          <span>{{ getGenderLabel(studentInfo?.gender || userInfo?.gender) }}</span>
+          <span>{{ getGenderText(studentInfo?.gender || userInfo?.gender) }}</span>
         </n-descriptions-item>
         <n-descriptions-item :label="t('profile.birthDate')">
           <span>{{ formatDate(studentInfo?.birthDate) }}</span>
@@ -83,7 +83,7 @@
           <span>{{ teacherInfo?.mobile || userInfo?.mobile || '-' }}</span>
         </n-descriptions-item>
         <n-descriptions-item :label="t('settings.personal.gender')">
-          <span>{{ getGenderLabel(teacherInfo?.gender || userInfo?.gender) }}</span>
+          <span>{{ getGenderText(teacherInfo?.gender || userInfo?.gender) }}</span>
         </n-descriptions-item>
         <n-descriptions-item :label="t('profile.birthDate')">
           <span>{{ formatDate(teacherInfo?.birthDate) }}</span>
@@ -131,7 +131,7 @@
           <span>{{ userInfo?.mobile || '-' }}</span>
         </n-descriptions-item>
         <n-descriptions-item :label="t('settings.personal.gender')">
-          <span>{{ getGenderLabel(userInfo?.gender) }}</span>
+          <span>{{ getGenderText(userInfo?.gender) }}</span>
         </n-descriptions-item>
         <n-descriptions-item :label="t('settings.personal.accountStatus')">
           <n-tag :type="getStatusType(userInfo?.status)">
@@ -157,6 +157,8 @@ import {useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {useUserStore} from '@/store'
 import {AcademicStatusEnum, getAcademicStatusLabel} from '@/enum/student/academicStatusEnum'
+import {GenderEnum, getGenderLabel} from '@/enum/common'
+import {StatusEnum, getStatusLabel} from '@/enum/common'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -177,10 +179,9 @@ const isTeacher = computed(() => {
 })
 
 // 获取性别标签
-function getGenderLabel(gender?: number | null): string {
-  if (gender === 1) return t('settings.personal.genderMale')
-  if (gender === 2) return t('settings.personal.genderFemale')
-  return t('settings.personal.genderUnknown')
+function getGenderText(gender?: number | null): string {
+  if (gender === null || gender === undefined) return t('settings.personal.genderUnknown')
+  return getGenderLabel(gender as GenderEnum, false)
 }
 
 // 格式化日期时间
@@ -259,12 +260,14 @@ function getEducationType(education?: number | null): string {
 
 // 获取状态类型
 function getStatusType(status?: number | null): string {
-  return status === 0 ? 'success' : 'error'
+  if (status === null || status === undefined) return 'default'
+  return status === StatusEnum.NORMAL ? 'success' : 'error'
 }
 
 // 获取状态文本
 function getStatusText(status?: number | null): string {
-  return status === 0 ? t('settings.personal.statusNormal') : t('settings.personal.statusDisabled')
+  if (status === null || status === undefined) return '-'
+  return getStatusLabel(status as StatusEnum, false)
 }
 
 // 跳转到设置页面

@@ -185,6 +185,60 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
+                path: '/course/detail/:courseId/tasks',
+                name: 'CourseTasks',
+                component: () => import('@/views/course/CourseDetail/CourseTasks/index.vue'),
+                meta: {
+                    title: '课程任务',
+                    requiresAuth: true
+                }
+            },
+            {
+                path: '/course/detail/:courseId/tasks/control',
+                name: 'TaskControl',
+                component: () => import('@/views/course/CourseDetail/CourseTasks/TaskControl.vue'),
+                meta: {
+                    title: '任务操作',
+                    requiresAuth: true
+                }
+            },
+            {
+                path: '/course/detail/:courseId/questions',
+                name: 'CourseQuestions',
+                component: () => import('@/views/course/CourseDetail/CourseQuestions/index.vue'),
+                meta: {
+                    title: '课程题库',
+                    requiresAuth: true
+                }
+            },
+            {
+                path: '/course/detail/:courseId/questions/banks',
+                name: 'QuestionBankList',
+                component: () => import('@/views/course/CourseDetail/CourseQuestions/index.vue'),
+                meta: {
+                    title: '题库管理',
+                    requiresAuth: true
+                }
+            },
+            {
+                path: '/course/detail/:courseId/questions/bank/:bankId/questions',
+                name: 'QuestionList',
+                component: () => import('@/views/course/CourseDetail/CourseQuestions/QuestionList.vue'),
+                meta: {
+                    title: '题目管理',
+                    requiresAuth: true
+                }
+            },
+            {
+                path: '/course/detail/:courseId/questions/question/:questionId',
+                name: 'QuestionDetail',
+                component: () => import('@/views/course/CourseDetail/CourseQuestions/QuestionDetail.vue'),
+                meta: {
+                    title: '题目详情',
+                    requiresAuth: true
+                }
+            },
+            {
                 path: '/user/:userId',
                 name: 'UserProfile',
                 component: () => import('@/components/common/UserProfile.vue'),

@@ -18,5 +18,7 @@ export default {
     courseChapters: '章节',
     courseForum: '论坛',
     courseStudents: '学生',
-    courseClassroom: '课堂'
+    courseClassroom: '课堂',
+    courseTasks: '任务',
+    courseQuestions: '题库'
 } 

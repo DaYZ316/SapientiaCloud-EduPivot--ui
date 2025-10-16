@@ -369,9 +369,18 @@ const renderSingleTeacherTag: SelectRenderTag = ({option}) => {
           teacherRealName: option.label as string,
           size: 24,
           round: true,
-          avatarClass: 'mr-3'
+          avatarClass: 'mr-2',
+          style: {
+            marginTop: '4px'
+          }
         }),
-        option.label as string
+        h('span', {
+          style: {
+            marginLeft: '8px',
+            lineHeight: '24px',
+            fontSize: '13px'
+          }
+        }, option.label as string)
       ]
   )
 }
@@ -408,10 +417,17 @@ const renderMultipleTeacherTag: SelectRenderTag = ({
                     avatarSrc: option.avatar as string,
                     teacherRealName: option.label as string,
                     size: 22,
-                    round: true,
-                    avatarClass: 'mr-1'
+                    style: {
+                      marginTop: '4px'
+                    }
                   }),
-                  option.label as string
+                  h('span', {
+                    style: {
+                      marginLeft: '6px',
+                      lineHeight: '22px',
+                      fontSize: '12px'
+                    }
+                  }, option.label as string)
                 ]
             )
       }

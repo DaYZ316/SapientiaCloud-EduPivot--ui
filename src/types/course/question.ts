@@ -1,3 +1,5 @@
+import { QuestionAnswerVO } from "./questionAnswer"
+
 /**
  * 题目数据传输对象
  * 用于题目的新增和更新操作
@@ -68,6 +70,8 @@ export interface QuestionVO {
     status?: number
     /** 选项列表 */
     options?: QuestionOptionVO[]
+    /** 答案列表 */
+    answer?: QuestionAnswerVO
     /** 创建时间 */
     createTime?: string
     /** 更新时间 */

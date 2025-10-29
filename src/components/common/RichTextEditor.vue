@@ -178,7 +178,7 @@
               </n-button>
             </template>
             {{
-              isUploading ? t('common.richTextEditor.upload.uploading') : t('common.richTextEditor.toolbar.insertImage')
+            isUploading ? t('common.richTextEditor.upload.uploading') : t('common.richTextEditor.toolbar.insertImage')
             }}
           </n-tooltip>
           <n-tooltip trigger="hover">
@@ -192,7 +192,8 @@
               </n-button>
             </template>
             {{
-              isVideoUploading ? t('common.richTextEditor.upload.uploading') : t('common.richTextEditor.toolbar.insertVideo')
+            isVideoUploading ? t('common.richTextEditor.upload.uploading') :
+            t('common.richTextEditor.toolbar.insertVideo')
             }}
           </n-tooltip>
         </n-button-group>
@@ -226,7 +227,8 @@
               </n-button>
             </template>
             {{
-              isFullscreen ? t('common.richTextEditor.toolbar.exitFullscreen') : t('common.richTextEditor.toolbar.fullscreen')
+            isFullscreen ? t('common.richTextEditor.toolbar.exitFullscreen') :
+            t('common.richTextEditor.toolbar.fullscreen')
             }}
           </n-tooltip>
         </n-button-group>

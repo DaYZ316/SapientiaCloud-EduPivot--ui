@@ -2,16 +2,18 @@
   <div class="question-list">
     <!-- 面包屑导航 -->
     <CourseBreadcrumb
-      v-if="courseInfo"
-      :course-info="courseInfo"
-      :current-page="$t('course.question.title')"
-      :show-course-link="true"
-      :show-question-bank-option="true"
+        v-if="courseInfo"
+        :course-info="courseInfo"
+        :current-page="$t('course.question.title')"
+        :show-course-link="true"
+        :show-question-bank-option="true"
     >
       <template #actions>
         <n-button type="primary" @click="handleAdd">
           <template #icon>
-            <n-icon><PlusOutlined /></n-icon>
+            <n-icon>
+              <PlusOutlined/>
+            </n-icon>
           </template>
           {{ $t('common.add') }}
         </n-button>
@@ -24,41 +26,45 @@
         <n-form :model="searchForm" inline>
           <n-form-item :label="$t('course.question.questionTitle')">
             <n-input
-              v-model:value="searchForm.questionTitle"
-              :placeholder="$t('course.question.questionTitlePlaceholder')"
-              clearable
-              style="width: 200px"
+                v-model:value="searchForm.questionTitle"
+                :placeholder="$t('course.question.questionTitlePlaceholder')"
+                clearable
+                style="width: 200px"
             />
           </n-form-item>
           <n-form-item :label="$t('course.question.questionType')">
             <n-select
-              v-model:value="searchForm.questionType"
-              :options="questionTypeOptions"
-              :placeholder="$t('course.question.questionTypePlaceholder')"
-              clearable
-              style="width: 180px"
+                v-model:value="searchForm.questionType"
+                :options="questionTypeOptions"
+                :placeholder="$t('course.question.questionTypePlaceholder')"
+                clearable
+                style="width: 180px"
             />
           </n-form-item>
           <n-form-item :label="$t('course.question.difficulty')">
             <n-select
-              v-model:value="searchForm.difficulty"
-              :options="difficultyOptions"
-              :placeholder="$t('course.question.difficultyPlaceholder')"
-              clearable
-              style="width: 180px"
+                v-model:value="searchForm.difficulty"
+                :options="difficultyOptions"
+                :placeholder="$t('course.question.difficultyPlaceholder')"
+                clearable
+                style="width: 180px"
             />
           </n-form-item>
           <n-form-item>
             <n-space>
               <n-button type="primary" @click="handleSearch">
                 <template #icon>
-                  <n-icon><SearchOutlined /></n-icon>
+                  <n-icon>
+                    <SearchOutlined/>
+                  </n-icon>
                 </template>
                 {{ $t('common.search') }}
               </n-button>
               <n-button @click="handleReset">
                 <template #icon>
-                  <n-icon><ReloadOutlined /></n-icon>
+                  <n-icon>
+                    <ReloadOutlined/>
+                  </n-icon>
                 </template>
                 {{ $t('common.reset') }}
               </n-button>
@@ -81,7 +87,8 @@
                     <span class="question-title">{{ question.questionTitle }}</span>
                     <div class="question-stats">
                       <n-text depth="3" style="font-size: 12px;">
-                        {{ $t('course.question.estimatedTime') }}: {{ question.estimatedTime || 0 }} {{ $t('common.minutes') }}
+                        {{ $t('course.question.estimatedTime') }}: {{ question.estimatedTime || 0 }}
+                        {{ $t('common.minutes') }}
                       </n-text>
                       <n-text depth="3" style="font-size: 12px; margin-left: 16px;">
                         {{ $t('course.question.viewCount') }}: {{ question.viewCount || 0 }}
@@ -93,7 +100,7 @@
               <template #header-extra>
                 <div class="question-header-extra">
                   <div class="question-score">
-                    <n-text type="primary" strong>{{ question.score }} {{ $t('common.points') }}</n-text>
+                    <n-text strong type="primary">{{ question.score }} {{ $t('common.points') }}</n-text>
                   </div>
                   <div class="question-meta">
                     <n-tag :type="getQuestionTypeTagType(question.questionType) as any" size="small">
@@ -110,45 +117,51 @@
                 <div class="question-tags-actions">
                   <div v-if="question.tags && question.tags.length" class="question-tags">
                     <n-tag
-                      v-for="tag in question.tags"
-                      :key="tag"
-                      type="info"
-                      size="tiny"
-                      style="margin-right: 4px; margin-bottom: 2px;"
+                        v-for="tag in question.tags"
+                        :key="tag"
+                        size="tiny"
+                        style="margin-right: 4px; margin-bottom: 2px;"
+                        type="info"
                     >
                       {{ tag }}
                     </n-tag>
                   </div>
                   <div class="question-actions">
                     <n-space size="small">
-                      <n-button 
-                        text 
-                        type="primary" 
-                        size="small"
-                        @click="handleEdit(question)"
+                      <n-button
+                          size="small"
+                          text
+                          type="primary"
+                          @click="handleEdit(question)"
                       >
                         <template #icon>
-                          <n-icon><EditOutlined /></n-icon>
+                          <n-icon>
+                            <EditOutlined/>
+                          </n-icon>
                         </template>
                       </n-button>
-                      <n-button 
-                        text 
-                        type="error" 
-                        size="small"
-                        @click="handleDelete(question)"
+                      <n-button
+                          size="small"
+                          text
+                          type="error"
+                          @click="handleDelete(question)"
                       >
                         <template #icon>
-                          <n-icon><DeleteOutlined /></n-icon>
+                          <n-icon>
+                            <DeleteOutlined/>
+                          </n-icon>
                         </template>
                       </n-button>
-                      <n-button 
-                        text 
-                        type="info" 
-                        size="small"
-                        @click="handleShare(question)"
+                      <n-button
+                          size="small"
+                          text
+                          type="info"
+                          @click="handleShare(question)"
                       >
                         <template #icon>
-                          <n-icon><ShareAltOutlined /></n-icon>
+                          <n-icon>
+                            <ShareAltOutlined/>
+                          </n-icon>
                         </template>
                       </n-button>
                     </n-space>
@@ -158,13 +171,15 @@
             </n-thing>
           </n-list-item>
         </n-list>
-        
+
         <!-- 空状态 -->
         <n-empty v-if="!loading && questionList.length === 0" :description="$t('course.question.noData')">
           <template #extra>
             <n-button type="primary" @click="handleAdd">
               <template #icon>
-                <n-icon><PlusOutlined /></n-icon>
+                <n-icon>
+                  <PlusOutlined/>
+                </n-icon>
               </template>
               {{ $t('course.question.createFirst') }}
             </n-button>
@@ -174,58 +189,58 @@
     </div>
 
     <!-- 分页组件 -->
-    <div class="pagination-section" v-if="questionList.length > 0">
+    <div v-if="questionList.length > 0" class="pagination-section">
       <n-pagination
-        v-model:page="pagination.page"
-        v-model:page-size="pagination.pageSize"
-        :total="pagination.total"
-        :show-size-picker="pagination.showSizePicker"
-        :page-sizes="pagination.pageSizes"
-        show-quick-jumper
-        @update:page="handlePageChange"
-        @update:page-size="handlePageSizeChange"
+          v-model:page="pagination.page"
+          v-model:page-size="pagination.pageSize"
+          :page-sizes="pagination.pageSizes"
+          :show-size-picker="pagination.showSizePicker"
+          :total="pagination.total"
+          show-quick-jumper
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
       />
     </div>
 
     <!-- 创建题目对话框 -->
     <n-modal
-      v-model:show="showCreateDialog"
-      :auto-focus="false"
-      :bordered="false"
-      :closable="true"
-      :mask-closable="false"
-      :style="{ width: '100vw', height: '100vh', maxWidth: 'none', maxHeight: 'none' }"
-      :title="t('course.question.createQuestion')"
-      preset="card"
-      size="huge"
-      transform-origin="center"
+        v-model:show="showCreateDialog"
+        :auto-focus="false"
+        :bordered="false"
+        :closable="true"
+        :mask-closable="false"
+        :style="{ width: '100vw', height: '100vh', maxWidth: 'none', maxHeight: 'none' }"
+        :title="t('course.question.createQuestion')"
+        preset="card"
+        size="huge"
+        transform-origin="center"
     >
       <div class="modal-content">
         <n-form
-          ref="createFormRef"
-          :model="createForm"
-          :rules="createFormRules"
-          class="fullscreen-form"
-          label-placement="top"
-          label-width="auto"
+            ref="createFormRef"
+            :model="createForm"
+            :rules="createFormRules"
+            class="fullscreen-form"
+            label-placement="top"
+            label-width="auto"
         >
           <!-- 标题和内容区域 -->
           <div class="form-main-content">
             <n-form-item :label="t('course.question.questionTitle')" class="title-item" path="questionTitle">
               <n-input
-                v-model:value="createForm.questionTitle"
-                :placeholder="t('course.question.questionTitlePlaceholder')"
-                size="large"
+                  v-model:value="createForm.questionTitle"
+                  :placeholder="t('course.question.questionTitlePlaceholder')"
+                  size="large"
               />
             </n-form-item>
 
             <n-form-item :label="t('course.question.questionContent')" class="content-item" path="questionContent">
               <RichTextEditor
-                v-model="createQuestionContent"
-                :max-height="'400px'"
-                :min-height="'200px'"
-                :placeholder="t('course.question.questionContentPlaceholder')"
-                class="fullscreen-editor"
+                  v-model="createQuestionContent"
+                  :max-height="'400px'"
+                  :min-height="'200px'"
+                  :placeholder="t('course.question.questionContentPlaceholder')"
+                  class="fullscreen-editor"
               />
             </n-form-item>
           </div>
@@ -236,32 +251,32 @@
               <n-col :span="8">
                 <n-form-item :label="t('course.question.questionType')" path="questionType">
                   <n-select
-                    v-model:value="createForm.questionType"
-                    :options="questionTypeOptions"
-                    :placeholder="t('course.question.questionTypePlaceholder')"
-                    size="large"
+                      v-model:value="createForm.questionType"
+                      :options="questionTypeOptions"
+                      :placeholder="t('course.question.questionTypePlaceholder')"
+                      size="large"
                   />
                 </n-form-item>
               </n-col>
               <n-col :span="8">
                 <n-form-item :label="t('course.question.difficulty')" path="difficulty">
                   <n-select
-                    v-model:value="createForm.difficulty"
-                    :options="difficultyOptions"
-                    :placeholder="t('course.question.difficultyPlaceholder')"
-                    size="large"
+                      v-model:value="createForm.difficulty"
+                      :options="difficultyOptions"
+                      :placeholder="t('course.question.difficultyPlaceholder')"
+                      size="large"
                   />
                 </n-form-item>
               </n-col>
               <n-col :span="8">
                 <n-form-item :label="t('course.question.score')" path="score">
                   <n-input-number
-                    v-model:value="createForm.score"
-                    :min="0"
-                    :max="100"
-                    :placeholder="t('course.question.scorePlaceholder')"
-                    size="large"
-                    style="width: 100%"
+                      v-model:value="createForm.score"
+                      :max="100"
+                      :min="0"
+                      :placeholder="t('course.question.scorePlaceholder')"
+                      size="large"
+                      style="width: 100%"
                   />
                 </n-form-item>
               </n-col>
@@ -271,22 +286,22 @@
               <n-col :span="8">
                 <n-form-item :label="t('course.question.estimatedTime')">
                   <n-input-number
-                    v-model:value="createForm.estimatedTime"
-                    :min="1"
-                    :max="120"
-                    :placeholder="t('course.question.estimatedTimePlaceholder')"
-                    size="large"
-                    style="width: 100%"
+                      v-model:value="createForm.estimatedTime"
+                      :max="120"
+                      :min="1"
+                      :placeholder="t('course.question.estimatedTimePlaceholder')"
+                      size="large"
+                      style="width: 100%"
                   />
                 </n-form-item>
               </n-col>
               <n-col :span="8">
                 <n-form-item :label="t('course.question.allowPartialCredit')">
                   <n-switch
-                    v-model:value="createForm.allowPartialCredit as any"
-                    :checked-value="1"
-                    :unchecked-value="0"
-                    size="large"
+                      v-model:value="createForm.allowPartialCredit as any"
+                      :checked-value="1"
+                      :unchecked-value="0"
+                      size="large"
                   />
                 </n-form-item>
               </n-col>
@@ -294,9 +309,9 @@
 
             <n-form-item :label="t('course.question.tags')">
               <n-dynamic-tags
-                v-model:value="createForm.tags"
-                :placeholder="t('course.question.tagsPlaceholder')"
-                size="large"
+                  v-model:value="createForm.tags"
+                  :placeholder="t('course.question.tagsPlaceholder')"
+                  size="large"
               />
             </n-form-item>
 
@@ -309,30 +324,32 @@
               <h4>{{ t('course.question.options') }}</h4>
               <n-button type="primary" @click="addOption">
                 <template #icon>
-                  <n-icon><PlusOutlined /></n-icon>
+                  <n-icon>
+                    <PlusOutlined/>
+                  </n-icon>
                 </template>
                 {{ t('course.question.addOption') }}
               </n-button>
             </div>
-            
+
             <div v-for="(option, index) in questionOptions" :key="index" class="option-item">
               <n-row :gutter="12" align="middle">
                 <n-col :span="2">
-                  <n-tag type="info" size="large">{{ option.optionLabel }}</n-tag>
+                  <n-tag size="large" type="info">{{ option.optionLabel }}</n-tag>
                 </n-col>
                 <n-col :span="16">
                   <n-input
-                    v-model:value="option.optionContent"
-                    :placeholder="t('course.question.optionContentPlaceholder')"
-                    size="large"
+                      v-model:value="option.optionContent"
+                      :placeholder="t('course.question.optionContentPlaceholder')"
+                      size="large"
                   />
                 </n-col>
                 <n-col :span="4">
                   <n-switch
-                    v-model:value="option.isCorrect as any"
-                    :checked-value="1"
-                    :unchecked-value="0"
-                    size="large"
+                      v-model:value="option.isCorrect as any"
+                      :checked-value="1"
+                      :unchecked-value="0"
+                      size="large"
                   >
                     <template #checked>{{ t('course.question.correct') }}</template>
                     <template #unchecked>{{ t('course.question.incorrect') }}</template>
@@ -340,12 +357,14 @@
                 </n-col>
                 <n-col :span="2">
                   <n-button
-                    type="error"
-                    size="large"
-                    @click="removeOption(index)"
+                      size="large"
+                      type="error"
+                      @click="removeOption(index)"
                   >
                     <template #icon>
-                      <n-icon><DeleteOutlined /></n-icon>
+                      <n-icon>
+                        <DeleteOutlined/>
+                      </n-icon>
                     </template>
                   </n-button>
                 </n-col>
@@ -361,9 +380,9 @@
               {{ t('common.cancel') }}
             </n-button>
             <n-button
-              :loading="createLoading"
-              type="primary"
-              @click="createQuestion"
+                :loading="createLoading"
+                type="primary"
+                @click="createQuestion"
             >
               {{ t('common.confirm') }}
             </n-button>
@@ -374,43 +393,43 @@
 
     <!-- 编辑题目对话框 -->
     <n-modal
-      v-model:show="showEditDialog"
-      :auto-focus="false"
-      :bordered="false"
-      :closable="true"
-      :mask-closable="false"
-      :style="{ width: '100vw', height: '100vh', maxWidth: 'none', maxHeight: 'none' }"
-      :title="t('course.question.editQuestion')"
-      preset="card"
-      size="huge"
-      transform-origin="center"
+        v-model:show="showEditDialog"
+        :auto-focus="false"
+        :bordered="false"
+        :closable="true"
+        :mask-closable="false"
+        :style="{ width: '100vw', height: '100vh', maxWidth: 'none', maxHeight: 'none' }"
+        :title="t('course.question.editQuestion')"
+        preset="card"
+        size="huge"
+        transform-origin="center"
     >
       <div class="modal-content">
         <n-form
-          ref="editFormRef"
-          :model="editForm"
-          :rules="editFormRules"
-          class="fullscreen-form"
-          label-placement="top"
-          label-width="auto"
+            ref="editFormRef"
+            :model="editForm"
+            :rules="editFormRules"
+            class="fullscreen-form"
+            label-placement="top"
+            label-width="auto"
         >
           <!-- 标题和内容区域 -->
           <div class="form-main-content">
             <n-form-item :label="t('course.question.questionTitle')" class="title-item" path="questionTitle">
               <n-input
-                v-model:value="editForm.questionTitle"
-                :placeholder="t('course.question.questionTitlePlaceholder')"
-                size="large"
+                  v-model:value="editForm.questionTitle"
+                  :placeholder="t('course.question.questionTitlePlaceholder')"
+                  size="large"
               />
             </n-form-item>
 
             <n-form-item :label="t('course.question.questionContent')" class="content-item" path="questionContent">
               <RichTextEditor
-                v-model="editQuestionContent"
-                :max-height="'400px'"
-                :min-height="'200px'"
-                :placeholder="t('course.question.questionContentPlaceholder')"
-                class="fullscreen-editor"
+                  v-model="editQuestionContent"
+                  :max-height="'400px'"
+                  :min-height="'200px'"
+                  :placeholder="t('course.question.questionContentPlaceholder')"
+                  class="fullscreen-editor"
               />
             </n-form-item>
           </div>
@@ -421,32 +440,32 @@
               <n-col :span="8">
                 <n-form-item :label="t('course.question.questionType')" path="questionType">
                   <n-select
-                    v-model:value="editForm.questionType"
-                    :options="questionTypeOptions"
-                    :placeholder="t('course.question.questionTypePlaceholder')"
-                    size="large"
+                      v-model:value="editForm.questionType"
+                      :options="questionTypeOptions"
+                      :placeholder="t('course.question.questionTypePlaceholder')"
+                      size="large"
                   />
                 </n-form-item>
               </n-col>
               <n-col :span="8">
                 <n-form-item :label="t('course.question.difficulty')" path="difficulty">
                   <n-select
-                    v-model:value="editForm.difficulty"
-                    :options="difficultyOptions"
-                    :placeholder="t('course.question.difficultyPlaceholder')"
-                    size="large"
+                      v-model:value="editForm.difficulty"
+                      :options="difficultyOptions"
+                      :placeholder="t('course.question.difficultyPlaceholder')"
+                      size="large"
                   />
                 </n-form-item>
               </n-col>
               <n-col :span="8">
                 <n-form-item :label="t('course.question.score')" path="score">
                   <n-input-number
-                    v-model:value="editForm.score"
-                    :min="0"
-                    :max="100"
-                    :placeholder="t('course.question.scorePlaceholder')"
-                    size="large"
-                    style="width: 100%"
+                      v-model:value="editForm.score"
+                      :max="100"
+                      :min="0"
+                      :placeholder="t('course.question.scorePlaceholder')"
+                      size="large"
+                      style="width: 100%"
                   />
                 </n-form-item>
               </n-col>
@@ -456,22 +475,22 @@
               <n-col :span="8">
                 <n-form-item :label="t('course.question.estimatedTime')">
                   <n-input-number
-                    v-model:value="editForm.estimatedTime"
-                    :min="1"
-                    :max="120"
-                    :placeholder="t('course.question.estimatedTimePlaceholder')"
-                    size="large"
-                    style="width: 100%"
+                      v-model:value="editForm.estimatedTime"
+                      :max="120"
+                      :min="1"
+                      :placeholder="t('course.question.estimatedTimePlaceholder')"
+                      size="large"
+                      style="width: 100%"
                   />
                 </n-form-item>
               </n-col>
               <n-col :span="8">
                 <n-form-item :label="t('course.question.allowPartialCredit')">
                   <n-switch
-                    v-model:value="editForm.allowPartialCredit as any"
-                    :checked-value="1"
-                    :unchecked-value="0"
-                    size="large"
+                      v-model:value="editForm.allowPartialCredit as any"
+                      :checked-value="1"
+                      :unchecked-value="0"
+                      size="large"
                   />
                 </n-form-item>
               </n-col>
@@ -479,9 +498,9 @@
 
             <n-form-item :label="t('course.question.tags')">
               <n-dynamic-tags
-                v-model:value="editForm.tags"
-                :placeholder="t('course.question.tagsPlaceholder')"
-                size="large"
+                  v-model:value="editForm.tags"
+                  :placeholder="t('course.question.tagsPlaceholder')"
+                  size="large"
               />
             </n-form-item>
 
@@ -494,30 +513,32 @@
               <h4>{{ t('course.question.options') }}</h4>
               <n-button type="primary" @click="addEditOption">
                 <template #icon>
-                  <n-icon><PlusOutlined /></n-icon>
+                  <n-icon>
+                    <PlusOutlined/>
+                  </n-icon>
                 </template>
                 {{ t('course.question.addOption') }}
               </n-button>
             </div>
-            
+
             <div v-for="(option, index) in editingOptions" :key="index" class="option-item">
               <n-row :gutter="12" align="middle">
                 <n-col :span="2">
-                  <n-tag type="info" size="large">{{ option.optionLabel }}</n-tag>
+                  <n-tag size="large" type="info">{{ option.optionLabel }}</n-tag>
                 </n-col>
                 <n-col :span="16">
                   <n-input
-                    v-model:value="option.optionContent"
-                    :placeholder="t('course.question.optionContentPlaceholder')"
-                    size="large"
+                      v-model:value="option.optionContent"
+                      :placeholder="t('course.question.optionContentPlaceholder')"
+                      size="large"
                   />
                 </n-col>
                 <n-col :span="4">
                   <n-switch
-                    v-model:value="option.isCorrect as any"
-                    :checked-value="1"
-                    :unchecked-value="0"
-                    size="large"
+                      v-model:value="option.isCorrect as any"
+                      :checked-value="1"
+                      :unchecked-value="0"
+                      size="large"
                   >
                     <template #checked>{{ t('course.question.correct') }}</template>
                     <template #unchecked>{{ t('course.question.incorrect') }}</template>
@@ -525,12 +546,14 @@
                 </n-col>
                 <n-col :span="2">
                   <n-button
-                    type="error"
-                    size="large"
-                    @click="removeEditOption(index)"
+                      size="large"
+                      type="error"
+                      @click="removeEditOption(index)"
                   >
                     <template #icon>
-                      <n-icon><DeleteOutlined /></n-icon>
+                      <n-icon>
+                        <DeleteOutlined/>
+                      </n-icon>
                     </template>
                   </n-button>
                 </n-col>
@@ -546,9 +569,9 @@
               {{ t('common.cancel') }}
             </n-button>
             <n-button
-              :loading="editLoading"
-              type="primary"
-              @click="saveEditQuestion"
+                :loading="editLoading"
+                type="primary"
+                @click="saveEditQuestion"
             >
               {{ t('common.save') }}
             </n-button>
@@ -559,55 +582,58 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
-import { PlusOutlined, SearchOutlined, ReloadOutlined, EditOutlined, DeleteOutlined, ShareAltOutlined } from '@vicons/antd'
-import { 
-  NButton, 
-  NIcon, 
-  NForm, 
-  NFormItem, 
-  NInput, 
-  NInputNumber,
-  NSelect, 
-  NSpace, 
-  NList, 
-  NListItem, 
-  NThing, 
-  NTag, 
-  NText, 
-  NEmpty, 
-  NPagination, 
-  NSpin,
-  NModal,
-  NRow,
+<script lang="ts" setup>
+import {computed, onMounted, reactive, ref} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {useRoute} from 'vue-router'
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+  SearchOutlined,
+  ShareAltOutlined
+} from '@vicons/antd'
+import {
+  NButton,
   NCol,
-  NSwitch,
   NDynamicTags,
-  useMessage,
-  useDialog
+  NEmpty,
+  NForm,
+  NFormItem,
+  NIcon,
+  NInput,
+  NInputNumber,
+  NList,
+  NListItem,
+  NModal,
+  NPagination,
+  NRow,
+  NSelect,
+  NSpace,
+  NSpin,
+  NSwitch,
+  NTag,
+  NText,
+  NThing,
+  useDialog,
+  useMessage
 } from 'naive-ui'
-import { 
-  getCourseById,
-  listQuestion,
-  getDefaultQuestionQuery
-} from '@/api/course'
-import { addQuestion, getDefaultQuestionDTO, removeQuestionById, updateQuestion } from '@/api/course/question'
-import { addQuestionOptions, getDefaultQuestionOptionDTO } from '@/api/course/questionOption'
-import type { CourseVO, QuestionVO, QuestionDTO } from '@/types/course'
-import type { QuestionOptionDTO } from '@/types/course/questionOption'
-import { 
-  getQuestionTypeOptions, 
+import {getCourseById, getDefaultQuestionQuery, listQuestion} from '@/api/course'
+import {addQuestion, getDefaultQuestionDTO, removeQuestionById, updateQuestion} from '@/api/course/question'
+import {addQuestionOptions, getDefaultQuestionOptionDTO} from '@/api/course/questionOption'
+import type {CourseVO, QuestionDTO, QuestionVO} from '@/types/course'
+import type {QuestionOptionDTO} from '@/types/course/questionOption'
+import {
+  getQuestionBankDifficultyLabel,
   getQuestionBankDifficultyOptions,
   getQuestionTypeLabel,
-  getQuestionBankDifficultyLabel
+  getQuestionTypeOptions
 } from '@/enum/course'
 import CourseBreadcrumb from '@/views/course/components/CourseBreadcrumb/CourseBreadcrumb.vue'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
 
-const { t } = useI18n()
+const {t} = useI18n()
 const route = useRoute()
 const message = useMessage()
 const dialog = useDialog()
@@ -677,37 +703,37 @@ const editQuestionContent = computed({
 // 表单验证规则
 const createFormRules = computed(() => ({
   questionTitle: [
-    { required: true, message: t('course.question.questionTitleRequired'), trigger: 'blur' }
+    {required: true, message: t('course.question.questionTitleRequired'), trigger: 'blur'}
   ],
   questionContent: [
-    { required: true, message: t('course.question.questionContentRequired'), trigger: 'blur' }
+    {required: true, message: t('course.question.questionContentRequired'), trigger: 'blur'}
   ],
   questionType: [
-    { required: true, type: 'number' as const, message: t('course.question.questionTypeRequired'), trigger: 'change' }
+    {required: true, type: 'number' as const, message: t('course.question.questionTypeRequired'), trigger: 'change'}
   ],
   difficulty: [
-    { required: true, type: 'number' as const, message: t('course.question.difficultyRequired'), trigger: 'change' }
+    {required: true, type: 'number' as const, message: t('course.question.difficultyRequired'), trigger: 'change'}
   ],
   score: [
-    { required: true, type: 'number' as const, message: t('course.question.scoreRequired'), trigger: 'blur' }
+    {required: true, type: 'number' as const, message: t('course.question.scoreRequired'), trigger: 'blur'}
   ]
 }))
 
 const editFormRules = computed(() => ({
   questionTitle: [
-    { required: true, message: t('course.question.questionTitleRequired'), trigger: 'blur' }
+    {required: true, message: t('course.question.questionTitleRequired'), trigger: 'blur'}
   ],
   questionContent: [
-    { required: true, message: t('course.question.questionContentRequired'), trigger: 'blur' }
+    {required: true, message: t('course.question.questionContentRequired'), trigger: 'blur'}
   ],
   questionType: [
-    { required: true, type: 'number' as const, message: t('course.question.questionTypeRequired'), trigger: 'change' }
+    {required: true, type: 'number' as const, message: t('course.question.questionTypeRequired'), trigger: 'change'}
   ],
   difficulty: [
-    { required: true, type: 'number' as const, message: t('course.question.difficultyRequired'), trigger: 'change' }
+    {required: true, type: 'number' as const, message: t('course.question.difficultyRequired'), trigger: 'change'}
   ],
   score: [
-    { required: true, type: 'number' as const, message: t('course.question.scoreRequired'), trigger: 'blur' }
+    {required: true, type: 'number' as const, message: t('course.question.scoreRequired'), trigger: 'blur'}
   ]
 }))
 
@@ -724,7 +750,7 @@ const loadCourseInfo = async () => {
 // 加载题目列表
 const loadQuestionList = async (showLoading = true) => {
   if (!questionBankId.value) return
-  
+
   if (showLoading) {
     loading.value = true
   }
@@ -736,7 +762,7 @@ const loadQuestionList = async (showLoading = true) => {
     queryParams.difficulty = searchForm.difficulty?.toString() || null
     queryParams.pageNum = pagination.page
     queryParams.pageSize = pagination.pageSize
-    
+
     const response = await listQuestion(queryParams)
     questionList.value = response.data || []
     pagination.total = response.total || 0
@@ -790,7 +816,6 @@ const getDifficultyText = (difficulty: number) => {
 }
 
 
-
 // 获取题目类型标签类型
 const getQuestionTypeTagType = (type: number) => {
   const typeMap = {
@@ -826,7 +851,7 @@ const handleEdit = (question: QuestionVO) => {
     allowPartialCredit: question.allowPartialCredit ?? 0,
     status: question.status || 0
   }
-  
+
   // 如果有选项，填充选项数据
   if (question.options && question.options.length > 0) {
     editingOptions.value = question.options.map(option => ({
@@ -841,7 +866,7 @@ const handleEdit = (question: QuestionVO) => {
   } else {
     editingOptions.value = []
   }
-  
+
   showEditDialog.value = true
 }
 
@@ -866,7 +891,7 @@ const handleDelete = (question: QuestionVO) => {
 const handleShare = (question: QuestionVO) => {
   // 生成分享链接
   const shareUrl = `${window.location.origin}/course/${courseId.value}/question-bank/${questionBankId.value}/question/${question.id}`
-  
+
   // 复制到剪贴板
   navigator.clipboard.writeText(shareUrl).then(() => {
     message.success(t('course.question.shareLinkCopied'))
@@ -892,16 +917,16 @@ const resetCreateForm = () => {
 // 创建题目
 const createQuestion = async () => {
   if (!createFormRef.value) return
-  
+
   try {
     await createFormRef.value.validate()
     createLoading.value = true
-    
+
     // 创建题目
     const response = await addQuestion(createForm.value)
     if (response.code === 200) {
       const questionId = response.data?.id
-      
+
       // 如果有选项，创建选项
       if (questionOptions.value.length > 0 && questionId) {
         const optionsToCreate = questionOptions.value.map(option => ({
@@ -910,7 +935,7 @@ const createQuestion = async () => {
         }))
         await addQuestionOptions(optionsToCreate)
       }
-      
+
       message.success(t('course.question.createSuccess'))
       showCreateDialog.value = false
       resetCreateForm()
@@ -928,18 +953,18 @@ const createQuestion = async () => {
 // 保存编辑的题目
 const saveEditQuestion = async () => {
   if (!editFormRef.value) return
-  
+
   try {
     await editFormRef.value.validate()
     editLoading.value = true
-    
+
     await updateQuestion(editForm.value)
     message.success(t('course.question.editSuccess'))
-    
+
     // 关闭编辑对话框
     showEditDialog.value = false
     editingQuestion.value = null
-    
+
     // 重新加载题目列表
     await loadQuestionList()
   } catch (error) {
@@ -998,8 +1023,6 @@ const getDifficultyTagType = (difficulty: number) => {
   }
   return difficultyMap[difficulty as keyof typeof difficultyMap] || 'default'
 }
-
-
 
 
 // 生命周期

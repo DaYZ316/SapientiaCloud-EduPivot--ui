@@ -463,9 +463,9 @@ const flattenChapterTree = (tree: CourseChapterVO[]): CourseChapterVO[] => {
 // 过滤草稿章节
 const filterDraftChapters = () => {
   // 草稿章节需要根据当前用户ID过滤，只显示当前用户创建的草稿
-  draftChapters.value = allChapters.value.filter(chapter => 
-    chapter.status === ChapterStatusEnum.DRAFT && 
-    chapter.teacherId === userStore.userInfo?.id
+  draftChapters.value = allChapters.value.filter(chapter =>
+      chapter.status === ChapterStatusEnum.DRAFT &&
+      chapter.teacherId === userStore.userInfo?.id
   )
 }
 

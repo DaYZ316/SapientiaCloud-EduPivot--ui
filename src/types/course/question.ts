@@ -1,4 +1,4 @@
-import { QuestionAnswerVO } from "./questionAnswer"
+import {QuestionAnswerVO} from "./questionAnswer"
 
 /**
  * 题目数据传输对象

@@ -7,6 +7,7 @@ import settings from './settings'
 import teacher from './teacher'
 import student from './student'
 import course from './course'
+import chat from './chat'
 
 export default {
     app,
@@ -17,5 +18,6 @@ export default {
     settings,
     teacher,
     student,
-    course
+    course,
+    chat
 } 

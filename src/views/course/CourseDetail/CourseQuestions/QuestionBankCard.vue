@@ -7,17 +7,17 @@
       </div>
       <div class="header-actions">
         <div class="bank-type">
-          <n-icon :component="getBankTypeIcon(bankData.bankType)" />
+          <n-icon :component="getBankTypeIcon(bankData.bankType)"/>
           <span>{{ getBankTypeLabel(bankData.bankType) }}</span>
         </div>
         <n-dropdown
-          :options="dropdownOptions"
-          @select="handleMenuSelect"
-          trigger="hover"
-          placement="bottom-end"
+            :options="dropdownOptions"
+            placement="bottom-end"
+            trigger="hover"
+            @select="handleMenuSelect"
         >
           <div class="three-dots-icon" @click.stop>
-            <n-icon :component="EllipsisVerticalOutline" />
+            <n-icon :component="EllipsisVerticalOutline"/>
           </div>
         </n-dropdown>
       </div>
@@ -26,7 +26,7 @@
     <!-- 中间区域：描述和详细信息 -->
     <div class="card-content">
       <!-- 描述 -->
-      <div class="description" v-if="bankData.description">
+      <div v-if="bankData.description" class="description">
         <p>{{ bankData.description }}</p>
       </div>
 
@@ -35,12 +35,12 @@
         <!-- 教师信息 -->
         <div v-if="bankData.sysUserName" class="info-row teacher-info">
           <div class="info-item teacher-item" @click.stop="handleTeacherClick">
-            <AvatarDisplay 
-              :avatar-src="teacherAvatar"
-              :nick-name="bankData.sysUserName"
-              :username="bankData.sysUserName"
-              class="teacher-avatar"
-              size="small"
+            <AvatarDisplay
+                :avatar-src="teacherAvatar"
+                :nick-name="bankData.sysUserName"
+                :username="bankData.sysUserName"
+                class="teacher-avatar"
+                size="small"
             />
             <span class="teacher-name">{{ bankData.sysUserName }}</span>
           </div>
@@ -50,23 +50,23 @@
       <!-- 统计信息 -->
       <div class="statistics">
         <div class="stat-item">
-          <n-icon :component="DocumentTextOutline" />
+          <n-icon :component="DocumentTextOutline"/>
           <span class="stat-value">{{ bankData.questionCount || 0 }}</span>
         </div>
         <div class="stat-item">
-          <n-icon :component="getDifficultyIcon(bankData.difficulty)" />
+          <n-icon :component="getDifficultyIcon(bankData.difficulty)"/>
           <span class="stat-label">{{ getDifficultyLabel(bankData.difficulty) }}</span>
         </div>
       </div>
 
       <!-- 标签 -->
-      <div class="tags" v-if="bankData.tags && bankData.tags.length > 0">
+      <div v-if="bankData.tags && bankData.tags.length > 0" class="tags">
         <n-tag
-          v-for="tag in bankData.tags"
-          :key="tag"
-          size="small"
-          type="info"
-          round
+            v-for="tag in bankData.tags"
+            :key="tag"
+            round
+            size="small"
+            type="info"
         >
           {{ tag }}
         </n-tag>
@@ -76,48 +76,48 @@
     <!-- 底部区域：时间和状态 -->
     <div class="card-footer">
       <div class="time-info">
-        <n-icon :component="TimeOutline" />
+        <n-icon :component="TimeOutline"/>
         <span>{{ formatTime(bankData.createTime) }}</span>
       </div>
       <div class="public-status">
-        <n-icon :component="getPublicStatusIcon(bankData.isPublic)" />
+        <n-icon :component="getPublicStatusIcon(bankData.isPublic)"/>
         <span>{{ getPublicStatusLabel(bankData.isPublic) }}</span>
       </div>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
-import { computed, h } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
-import { NIcon, NTag, NDropdown } from 'naive-ui'
+<script lang="ts" setup>
+import {computed, h} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {useRouter} from 'vue-router'
+import {NDropdown, NIcon, NTag} from 'naive-ui'
 import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
-import type { CourseQuestionBankVO } from '@/types/course/courseQuestionBank'
-import { 
-  QuestionBankTypeEnum,
+import type {CourseQuestionBankVO} from '@/types/course/courseQuestionBank'
+import {
+  getQuestionBankDifficultyLabel,
+  getQuestionBankPublicLabel,
+  getQuestionBankTypeLabel,
   QuestionBankDifficultyEnum,
   QuestionBankPublicEnum,
-  getQuestionBankTypeLabel,
-  getQuestionBankDifficultyLabel,
-  getQuestionBankPublicLabel
+  QuestionBankTypeEnum
 } from '@/enum/course'
-import { formatDate } from '@/utils/dateUtil'
-import { 
-  DocumentTextOutline,
-  TimeOutline,
-  LockClosedOutline,
-  GlobeOutline,
-  SchoolOutline,
-  TrophyOutline,
+import {formatDate} from '@/utils/dateUtil'
+import {
   BriefcaseOutline,
-  StarOutline,
-  StarHalfOutline,
-  StarSharp,
-  EllipsisVerticalOutline,
-  ShareOutline,
   CreateOutline,
-  TrashOutline
+  DocumentTextOutline,
+  EllipsisVerticalOutline,
+  GlobeOutline,
+  LockClosedOutline,
+  SchoolOutline,
+  ShareOutline,
+  StarHalfOutline,
+  StarOutline,
+  StarSharp,
+  TimeOutline,
+  TrashOutline,
+  TrophyOutline
 } from '@vicons/ionicons5'
 
 // Props
@@ -139,7 +139,7 @@ const emit = defineEmits<{
 }>()
 
 // 国际化
-const { t, locale } = useI18n()
+const {t, locale} = useI18n()
 const router = useRouter()
 
 // 下拉菜单选项
@@ -147,17 +147,17 @@ const dropdownOptions = [
   {
     label: t('course.questionBank.share'),
     key: 'share',
-    icon: () => h(NIcon, { component: ShareOutline })
+    icon: () => h(NIcon, {component: ShareOutline})
   },
   {
     label: t('course.questionBank.edit'),
     key: 'edit',
-    icon: () => h(NIcon, { component: CreateOutline })
+    icon: () => h(NIcon, {component: CreateOutline})
   },
   {
-    label: () => h('span', { style: 'color: #d03050' }, t('course.questionBank.delete')),
+    label: () => h('span', {style: 'color: #d03050'}, t('course.questionBank.delete')),
     key: 'delete',
-    icon: () => h(NIcon, { component: TrashOutline, color: '#d03050' })
+    icon: () => h(NIcon, {component: TrashOutline, color: '#d03050'})
   }
 ]
 

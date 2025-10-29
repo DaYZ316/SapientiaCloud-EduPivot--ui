@@ -16,7 +16,7 @@ export interface ServerConfig {
  * 默认服务器配置
  */
 export const defaultServerConfig: ServerConfig = {
-    ip: '117.72.194.197',
+    ip: '127.0.0.1',
     port: 31600,
     prefix: '/api'
 }

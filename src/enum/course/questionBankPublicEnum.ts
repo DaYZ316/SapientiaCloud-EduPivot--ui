@@ -31,8 +31,8 @@ export const questionBankPublicEnLabelMap = {
  */
 export function getQuestionBankPublicOptions(t: (key: string) => string) {
     return [
-        { label: t('course.questionBank.private'), value: QuestionBankPublicEnum.PRIVATE },
-        { label: t('course.questionBank.public'), value: QuestionBankPublicEnum.PUBLIC }
+        {label: t('course.questionBank.private'), value: QuestionBankPublicEnum.PRIVATE},
+        {label: t('course.questionBank.public'), value: QuestionBankPublicEnum.PUBLIC}
     ];
 }
 

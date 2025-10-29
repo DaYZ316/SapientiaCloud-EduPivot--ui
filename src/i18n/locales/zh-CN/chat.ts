@@ -1,0 +1,45 @@
+export default {
+    welcome: '你好！我是AI助手，有什么可以帮助你的吗？',
+    greeting: '你好，{name}',
+    aiName: '天枢',
+    placeholder: '输入问题询问天枢',
+    askPlaceholder: '输入问题询问天枢',
+    send: '发送',
+    thinking: 'AI正在思考...',
+    loading: '加载中...',
+    retry: '重试',
+    tools: '工具',
+    feedback: {
+        helpful: '有用',
+        notHelpful: '无用',
+        success: '反馈成功'
+    },
+    copy: '复制',
+    copySuccess: '已复制到剪贴板',
+    resend: '重新提问',
+    sidebar: {
+        newChat: '新聊天',
+        myFavorites: '我的收藏',
+        recent: '最近的',
+        settingsAndHelp: '设置和帮助',
+        noSessions: '暂无会话记录',
+        searchPlaceholder: '搜索会话...',
+        collapse: '收起',
+        expand: '展开',
+        fullscreen: '全屏',
+        exitFullscreen: '退出全屏',
+        loadingMore: '加载更多...'
+    },
+    session: {
+        delete: '删除会话',
+        deleteConfirm: '确认删除',
+        deleteConfirmMessage: '确定要删除这个会话吗？删除后无法恢复。',
+        deleteSuccess: '会话删除成功',
+        rename: '重命名',
+        pin: '置顶',
+        unpin: '取消置顶',
+        favorite: '收藏',
+        unfavorite: '取消收藏'
+    }
+}
+

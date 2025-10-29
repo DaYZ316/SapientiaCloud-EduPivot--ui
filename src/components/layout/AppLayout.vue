@@ -7,7 +7,7 @@
     >
       <!-- Logo区域 -->
       <div class="sidebar-header">
-        <div class="logo">
+        <div class="logo" @click="handleLogoClick">
           <img
               alt="SapientiaCloud EduPivot"
               class="logo-image"
@@ -197,6 +197,10 @@ const handleMenuSelect = (key: string) => {
   }
 }
 
+const handleLogoClick = () => {
+  router.push('/ai')
+}
+
 // 生命周期
 onMounted(() => {
   checkScreenSize()
@@ -250,6 +254,8 @@ onUnmounted(() => {
   font-weight: 600;
   font-size: 18px;
   transition: color 0.3s ease;
+  cursor: pointer;
+  user-select: none;
 
   &:hover {
     color: var(--color-primary-light);

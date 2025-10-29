@@ -1,6 +1,6 @@
-import { TaskDifficultyEnum } from '@/enum/course/taskDifficultyEnum'
-import { TaskTypeEnum } from '@/enum/course/taskTypeEnum'
-import { TaskStatusEnum } from '@/enum/course/taskStatusEnum'
+import {TaskDifficultyEnum} from '@/enum/course/taskDifficultyEnum'
+import {TaskTypeEnum} from '@/enum/course/taskTypeEnum'
+import {TaskStatusEnum} from '@/enum/course/taskStatusEnum'
 
 /**
  * 课程任务数据传输对象

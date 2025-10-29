@@ -3,6 +3,7 @@ export default {
     settings: '设置',
     filePreview: '文件预览',
     profile: '个人资料',
+    aiAssistant: 'AI助手',
     system: '系统管理',
     user: '用户管理',
     role: '角色管理',

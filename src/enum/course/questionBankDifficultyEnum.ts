@@ -35,9 +35,9 @@ export const questionBankDifficultyEnLabelMap = {
  */
 export function getQuestionBankDifficultyOptions(t: (key: string) => string) {
     return [
-        { label: t('common.easy'), value: QuestionBankDifficultyEnum.EASY },
-        { label: t('common.medium'), value: QuestionBankDifficultyEnum.MEDIUM },
-        { label: t('common.hard'), value: QuestionBankDifficultyEnum.HARD }
+        {label: t('common.easy'), value: QuestionBankDifficultyEnum.EASY},
+        {label: t('common.medium'), value: QuestionBankDifficultyEnum.MEDIUM},
+        {label: t('common.hard'), value: QuestionBankDifficultyEnum.HARD}
     ];
 }
 

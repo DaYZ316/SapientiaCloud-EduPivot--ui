@@ -38,9 +38,9 @@
       <!-- 左侧任务列表 -->
       <n-card class="tasks-sidebar">
         <TaskList
-            :tasks="filteredTasks"
             :loading="loading"
             :selected-task-id="selectedTaskId"
+            :tasks="filteredTasks"
             @select="handleTaskSelect"
         />
       </n-card>
@@ -48,8 +48,8 @@
       <!-- 右侧任务详情 -->
       <n-card class="task-detail">
         <TaskDetail
-            :task="selectedTask"
             :course-id="courseId"
+            :task="selectedTask"
             @delete="handleTaskDelete"
             @edit="handleTaskEdit"
             @update="handleTaskUpdate"
@@ -141,7 +141,7 @@ const filterPublishedTasks = (tasks: CourseTaskVO[]): CourseTaskVO[] => {
   })
 }
 
-  // 获取第一个任务的辅助函数
+// 获取第一个任务的辅助函数
 const getFirstTask = (tasks: CourseTaskVO[]): CourseTaskVO | null => {
   if (!tasks || tasks.length === 0) {
     return null
@@ -202,9 +202,9 @@ const handleSearch = () => {
 
       const keyword = searchKeyword.value.toLowerCase()
       return (
-        task.taskName?.toLowerCase().includes(keyword) ||
-        task.description?.toLowerCase().includes(keyword) ||
-        task.taskContent?.toLowerCase().includes(keyword)
+          task.taskName?.toLowerCase().includes(keyword) ||
+          task.description?.toLowerCase().includes(keyword) ||
+          task.taskContent?.toLowerCase().includes(keyword)
       )
     })
 
@@ -248,7 +248,7 @@ async function handleTaskDelete(task: CourseTaskVO) {
     if (res.success || res.code === 200) {
       // 显示删除成功消息
       message.success(t('course.tasks.deleteSuccess'))
-      
+
       // 删除成功后重新加载任务列表
       await loadTaskList()
       // 清空当前选中的任务

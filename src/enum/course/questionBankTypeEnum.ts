@@ -35,9 +35,9 @@ export const questionBankTypeEnLabelMap = {
  */
 export function getQuestionBankTypeOptions(t: (key: string) => string) {
     return [
-        { label: t('course.questionBank.practice'), value: QuestionBankTypeEnum.PRACTICE },
-        { label: t('course.questionBank.exam'), value: QuestionBankTypeEnum.EXAM },
-        { label: t('course.questionBank.homework'), value: QuestionBankTypeEnum.HOMEWORK }
+        {label: t('course.questionBank.practice'), value: QuestionBankTypeEnum.PRACTICE},
+        {label: t('course.questionBank.exam'), value: QuestionBankTypeEnum.EXAM},
+        {label: t('course.questionBank.homework'), value: QuestionBankTypeEnum.HOMEWORK}
     ];
 }
 

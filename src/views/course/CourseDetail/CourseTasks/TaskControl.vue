@@ -43,8 +43,8 @@
                     <div
                         v-for="task in publishedTasks"
                         :key="task.id"
-                        class="task-item"
                         :class="{ active: selectedTaskId === task.id }"
+                        class="task-item"
                         @click="selectTask(task)"
                     >
                       <div class="task-info">
@@ -82,8 +82,8 @@
                     <div
                         v-for="task in draftTasks"
                         :key="task.id"
-                        class="task-item"
                         :class="{ active: selectedTaskId === task.id }"
+                        class="task-item"
                         @click="selectTask(task)"
                     >
                       <div class="task-info">
@@ -126,8 +126,8 @@
             <n-form-item :label="t('course.tasks.taskType')" path="taskType">
               <n-select
                   v-model:value="formData.taskType"
-                  :placeholder="t('course.tasks.taskTypePlaceholder')"
                   :options="taskTypeOptions"
+                  :placeholder="t('course.tasks.taskTypePlaceholder')"
                   clearable
               />
             </n-form-item>
@@ -135,8 +135,8 @@
             <n-form-item :label="t('course.tasks.difficultyLabel')" path="difficulty">
               <n-select
                   v-model:value="formData.difficulty"
-                  :placeholder="t('course.tasks.difficultyPlaceholder')"
                   :options="difficultyOptions"
+                  :placeholder="t('course.tasks.difficultyPlaceholder')"
                   clearable
               />
             </n-form-item>
@@ -144,9 +144,9 @@
             <n-form-item :label="t('course.tasks.points')" path="maxScore">
               <n-input-number
                   v-model:value="formData.maxScore"
-                  :placeholder="t('course.tasks.pointsPlaceholder')"
-                  :min="0"
                   :max="150"
+                  :min="0"
+                  :placeholder="t('course.tasks.pointsPlaceholder')"
                   style="width: 100%"
               />
             </n-form-item>
@@ -154,27 +154,27 @@
             <n-form-item :label="t('course.tasks.startTime')" path="startTime">
               <n-date-picker
                   v-model:value="formData.startTime"
-                  type="datetime"
                   :placeholder="t('course.tasks.startTimePlaceholder')"
                   style="width: 100%"
+                  type="datetime"
               />
             </n-form-item>
 
             <n-form-item :label="t('course.tasks.dueDate')" path="endTime">
               <n-date-picker
                   v-model:value="formData.endTime"
-                  type="datetime"
                   :placeholder="t('course.tasks.dueDatePlaceholder')"
                   style="width: 100%"
+                  type="datetime"
               />
             </n-form-item>
 
             <n-form-item :label="t('course.tasks.timeLimit')" path="estimatedTime">
               <n-input-number
                   v-model:value="formData.estimatedTime"
-                  :placeholder="t('course.tasks.timeLimitPlaceholder')"
-                  :min="0"
                   :max="9999"
+                  :min="0"
+                  :placeholder="t('course.tasks.timeLimitPlaceholder')"
                   style="width: 100%"
               />
             </n-form-item>
@@ -182,9 +182,9 @@
             <n-form-item :label="t('course.tasks.description')" path="description">
               <n-input
                   v-model:value="formData.description"
-                  type="textarea"
                   :placeholder="t('course.tasks.descriptionPlaceholder')"
                   :rows="3"
+                  type="textarea"
               />
             </n-form-item>
 
@@ -195,9 +195,9 @@
 
             <!-- 任务内容 -->
             <RichTextEditor
-                style="margin-bottom: 16px;"
                 v-model="taskContentModel"
                 :placeholder="t('course.tasks.contentPlaceholder')"
+                style="margin-bottom: 16px;"
             />
 
             <n-form-item :label="t('course.tasks.attachments')" path="attachments">
@@ -273,27 +273,29 @@
 
               <!-- 右侧其他按钮 -->
               <n-space>
-                <n-button 
-                    v-if="isEdit && currentEditingTask?.status === TaskStatusEnum.PUBLISHED" 
-                    type="default" 
+                <n-button
+                    v-if="isEdit && currentEditingTask?.status === TaskStatusEnum.PUBLISHED"
+                    type="default"
                     @click="handleCancelEdit"
                 >
                   {{ t('course.tasks.cancelEdit') }}
                 </n-button>
-                <n-button 
-                    v-if="!isEdit || currentEditingTask?.status === TaskStatusEnum.DRAFT" 
-                    :loading="saving" 
-                    type="info" 
+                <n-button
+                    v-if="!isEdit || currentEditingTask?.status === TaskStatusEnum.DRAFT"
+                    :loading="saving"
+                    type="info"
                     @click="handleSaveDraft"
                 >
                   {{ t('course.tasks.saveDraft') }}
                 </n-button>
-                <n-button 
-                    :loading="saving" 
-                    type="primary" 
+                <n-button
+                    :loading="saving"
+                    type="primary"
                     @click="handlePublish"
                 >
-                  {{ isEdit && currentEditingTask?.status === TaskStatusEnum.PUBLISHED ? t('course.tasks.updateTask') : t('course.tasks.publish') }}
+                  {{
+                    isEdit && currentEditingTask?.status === TaskStatusEnum.PUBLISHED ? t('course.tasks.updateTask') : t('course.tasks.publish')
+                  }}
                 </n-button>
               </n-space>
             </n-space>
@@ -308,13 +310,13 @@
 import {computed, onMounted, ref} from 'vue'
 import {
   AddOutline,
-  ArrowBackOutline,
-  ListOutline,
   ArchiveOutline,
+  ArrowBackOutline,
   BookOutline,
   DocumentTextOutline,
   FolderOutline,
   ImageOutline,
+  ListOutline,
   MusicalNotesOutline,
   TrashOutline,
   VideocamOutline
@@ -325,10 +327,10 @@ import {useTitle} from '@/utils/titleUtil'
 import {useUserStore} from '@/store/modules/user'
 import * as CourseApi from '@/api/course/course'
 import * as CourseTaskApi from '@/api/course/courseTask'
-import * as MinIOApi from '@/api/minIO'
 import {getDefaultCourseTaskDTO} from '@/api/course/courseTask'
+import * as MinIOApi from '@/api/minIO'
 import type {CourseVO} from '@/types/course'
-import type {CourseTaskVO, CourseTaskDTO} from '@/types/course/courseTask'
+import type {CourseTaskDTO, CourseTaskVO} from '@/types/course/courseTask'
 import type {FileInfoDTO} from '@/types/minIO/file'
 import {TaskStatusEnum} from '@/enum/course/taskStatusEnum'
 import {getTaskTypeOptions} from '@/enum/course/taskTypeEnum'
@@ -447,7 +449,7 @@ const loadTaskList = async () => {
   try {
     const res = await CourseTaskApi.listAllCourseTaskByCourseId(courseId.value)
     let tasks: CourseTaskVO[] = []
-    
+
     if (res.code === 200 && res.data) {
       tasks = Array.isArray(res.data) ? res.data : []
     }
@@ -458,9 +460,9 @@ const loadTaskList = async () => {
     // 按状态分类
     publishedTasks.value = tasks.filter(task => task.status === TaskStatusEnum.PUBLISHED)
     // 草稿任务需要根据当前用户ID过滤，只显示当前用户创建的草稿
-    draftTasks.value = tasks.filter(task => 
-      task.status === TaskStatusEnum.DRAFT && 
-      task.sysUserId === userStore.userInfo?.id
+    draftTasks.value = tasks.filter(task =>
+        task.status === TaskStatusEnum.DRAFT &&
+        task.sysUserId === userStore.userInfo?.id
     )
   } catch (error) {
     message.error(t('course.tasks.loadFailed'))
@@ -468,7 +470,6 @@ const loadTaskList = async () => {
     loading.value = false
   }
 }
-
 
 
 // 处理编辑特定任务
@@ -519,7 +520,7 @@ const fillFormWithTaskData = async (task: CourseTaskVO) => {
     estimatedTime: task.estimatedTime || null,
     status: task.status || null
   }
-  
+
   // 加载文件信息
   if (task.attachmentUrls && task.attachmentUrls.length > 0) {
     await loadFileInfo(task.attachmentUrls)
@@ -551,7 +552,7 @@ const handleSaveDraft = async () => {
   try {
     await formRef.value.validate()
     saving.value = true
-    
+
     const taskData = {
       ...formData.value,
       status: TaskStatusEnum.DRAFT,
@@ -592,7 +593,7 @@ const handlePublish = async () => {
   try {
     await formRef.value.validate()
     saving.value = true
-    
+
     const taskData = {
       ...formData.value,
       status: TaskStatusEnum.PUBLISHED,
@@ -607,9 +608,9 @@ const handlePublish = async () => {
       taskData.id = selectedTaskId.value
       const res = await CourseTaskApi.updateCourseTask(taskData as CourseTaskDTO)
       if (res.success || res.code === 200) {
-        const successMessage = currentEditingTask.value?.status === TaskStatusEnum.PUBLISHED 
-          ? t('course.tasks.updateSuccess') 
-          : t('course.tasks.publishSuccess')
+        const successMessage = currentEditingTask.value?.status === TaskStatusEnum.PUBLISHED
+            ? t('course.tasks.updateSuccess')
+            : t('course.tasks.publishSuccess')
         message.success(successMessage)
         await loadTaskList()
       }
@@ -624,8 +625,8 @@ const handlePublish = async () => {
     }
   } catch (error) {
     const errorMessage = isEdit.value && currentEditingTask.value?.status === TaskStatusEnum.PUBLISHED
-      ? t('course.tasks.updateFailed')
-      : t('course.tasks.publishFailed')
+        ? t('course.tasks.updateFailed')
+        : t('course.tasks.publishFailed')
     message.error(errorMessage)
   } finally {
     saving.value = false
@@ -705,10 +706,10 @@ const handleUrlsUpdated = async (urls: string[]) => {
     // 拼接新URL到现有的attachmentUrls数组中
     const existingUrls = formData.value.attachmentUrls || []
     formData.value.attachmentUrls = [...existingUrls, ...validUrls]
-    
+
     // 重新加载文件信息
     await loadFileInfo(formData.value.attachmentUrls)
-    
+
     // 显示成功消息
     message.success(t('course.tasks.attachmentAddedSuccess'))
   } else {
@@ -741,7 +742,7 @@ const loadFileInfo = async (urls: string[]) => {
 // 获取文件类型图标
 const getFileTypeIcon = (fileInfo: FileInfoDTO) => {
   const extension = fileInfo.fileName.split('.').pop()?.toLowerCase()
-  
+
   switch (extension) {
     case 'pdf':
       return DocumentTextOutline
@@ -816,19 +817,19 @@ const handleDeleteAttachment = async (fileInfo: FileInfoDTO) => {
       try {
         // 从MinIO删除文件
         await MinIOApi.deleteFile(fileInfo.objectName)
-        
+
         // 从文件列表中移除
         const index = fileInfoList.value.findIndex(f => f.objectName === fileInfo.objectName)
         if (index > -1) {
           fileInfoList.value.splice(index, 1)
         }
-        
+
         // 从表单数据中移除URL
         const urlIndex = formData.value.attachmentUrls?.indexOf(fileInfo.url)
         if (urlIndex !== undefined && urlIndex > -1) {
           formData.value.attachmentUrls?.splice(urlIndex, 1)
         }
-        
+
         message.success(t('course.tasks.deleteAttachmentSuccess'))
       } catch (error) {
         message.error(t('course.tasks.deleteAttachmentFailed'))

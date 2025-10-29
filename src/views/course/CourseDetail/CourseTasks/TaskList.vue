@@ -25,13 +25,13 @@
                 </n-tag>
               </div>
             </div>
-            
+
             <div class="task-meta">
               <div class="task-type">
-                <Icon :component="getTaskTypeIcon(task.taskType)" />
+                <Icon :component="getTaskTypeIcon(task.taskType)"/>
                 <span>{{ getTaskTypeText(task.taskType) }}</span>
               </div>
-              <div class="task-create-time" v-if="task.createTime">
+              <div v-if="task.createTime" class="task-create-time">
                 <span>{{ formatToBeijingTime(new Date(task.createTime)) }}</span>
               </div>
             </div>
@@ -45,16 +45,10 @@
 <script lang="ts" setup>
 import {computed} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {
-  ListOutline,
-  BookOutline,
-  CodeOutline,
-  DocumentTextOutline,
-  VideocamOutline
-} from '@vicons/ionicons5'
+import {BookOutline, CodeOutline, DocumentTextOutline, ListOutline, VideocamOutline} from '@vicons/ionicons5'
 import type {CourseTaskVO} from '@/types/course/courseTask'
-import {TaskTypeEnum, getTaskTypeLabel} from '@/enum/course/taskTypeEnum'
-import {TaskDifficultyEnum, getTaskDifficultyLabel, getTaskDifficultyTagType} from '@/enum/course/taskDifficultyEnum'
+import {getTaskTypeLabel, TaskTypeEnum} from '@/enum/course/taskTypeEnum'
+import {getTaskDifficultyLabel, getTaskDifficultyTagType, TaskDifficultyEnum} from '@/enum/course/taskDifficultyEnum'
 import Icon from '@/components/common/Icon.vue'
 import {formatToBeijingTime} from '@/utils/dateUtil'
 
@@ -147,7 +141,7 @@ const handleTaskClick = (task: CourseTaskVO) => {
           border-color: var(--primary-color-light);
           transform: translateY(-2px);
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          
+
           .task-title {
             color: var(--primary-color);
           }
@@ -158,7 +152,7 @@ const handleTaskClick = (task: CourseTaskVO) => {
           background-color: var(--primary-color-light);
           transform: translateY(-2px);
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          
+
           .task-title {
             color: var(--primary-color);
             font-weight: 600;

@@ -2,15 +2,17 @@
   <div class="course-questions">
     <!-- 面包屑导航 -->
     <CourseBreadcrumb
-      v-if="courseInfo"
-      :course-info="courseInfo"
-      :current-page="$t('course.navigation.questions')"
-      :show-course-link="true"
+        v-if="courseInfo"
+        :course-info="courseInfo"
+        :current-page="$t('course.navigation.questions')"
+        :show-course-link="true"
     >
       <template #actions>
         <n-button type="primary" @click="handleAdd">
           <template #icon>
-            <n-icon><PlusOutlined /></n-icon>
+            <n-icon>
+              <PlusOutlined/>
+            </n-icon>
           </template>
           {{ $t('common.add') }}
         </n-button>
@@ -23,50 +25,54 @@
         <n-form :model="searchForm" inline>
           <n-form-item :label="$t('course.questionBank.bankName')">
             <n-input
-              v-model:value="searchForm.bankName"
-              :placeholder="$t('course.questionBank.bankNamePlaceholder')"
-              clearable
-              style="width: 200px"
+                v-model:value="searchForm.bankName"
+                :placeholder="$t('course.questionBank.bankNamePlaceholder')"
+                clearable
+                style="width: 200px"
             />
           </n-form-item>
           <n-form-item :label="$t('course.questionBank.bankType')">
             <n-select
-              v-model:value="searchForm.bankType"
-              :options="bankTypeOptions"
-              :placeholder="$t('course.questionBank.bankTypePlaceholder')"
-              clearable
-              style="width: 180px"
+                v-model:value="searchForm.bankType"
+                :options="bankTypeOptions"
+                :placeholder="$t('course.questionBank.bankTypePlaceholder')"
+                clearable
+                style="width: 180px"
             />
           </n-form-item>
           <n-form-item :label="$t('course.questionBank.difficulty')">
             <n-select
-              v-model:value="searchForm.difficulty"
-              :options="difficultyOptions"
-              :placeholder="$t('course.questionBank.difficultyPlaceholder')"
-              clearable
-              style="width: 180px"
+                v-model:value="searchForm.difficulty"
+                :options="difficultyOptions"
+                :placeholder="$t('course.questionBank.difficultyPlaceholder')"
+                clearable
+                style="width: 180px"
             />
           </n-form-item>
           <n-form-item :label="$t('course.questionBank.isPublic')">
             <n-select
-              v-model:value="searchForm.isPublic"
-              :options="isPublicOptions"
-              :placeholder="$t('course.questionBank.isPublicPlaceholder')"
-              clearable
-              style="width: 180px"
+                v-model:value="searchForm.isPublic"
+                :options="isPublicOptions"
+                :placeholder="$t('course.questionBank.isPublicPlaceholder')"
+                clearable
+                style="width: 180px"
             />
           </n-form-item>
           <n-form-item>
             <n-space>
               <n-button type="primary" @click="handleSearch">
                 <template #icon>
-                  <n-icon><SearchOutlined /></n-icon>
+                  <n-icon>
+                    <SearchOutlined/>
+                  </n-icon>
                 </template>
                 {{ $t('common.search') }}
               </n-button>
               <n-button @click="handleReset">
                 <template #icon>
-                  <n-icon><ReloadOutlined /></n-icon>
+                  <n-icon>
+                    <ReloadOutlined/>
+                  </n-icon>
                 </template>
                 {{ $t('common.reset') }}
               </n-button>
@@ -83,22 +89,24 @@
         <n-grid :cols="4" :x-gap="16" :y-gap="16">
           <n-gi v-for="bank in questionBankList" :key="bank.id">
             <QuestionBankCard
-              :bank-data="bank"
-              :clickable="true"
-              @click="handleBankClick"
-              @share="handleShare"
-              @edit="handleEdit"
-              @delete="handleDelete"
+                :bank-data="bank"
+                :clickable="true"
+                @click="handleBankClick"
+                @delete="handleDelete"
+                @edit="handleEdit"
+                @share="handleShare"
             />
           </n-gi>
         </n-grid>
-        
+
         <!-- 空状态 -->
         <n-empty v-if="!loading && questionBankList.length === 0" :description="$t('course.questionBank.noData')">
           <template #extra>
             <n-button type="primary" @click="handleAdd">
               <template #icon>
-                <n-icon><PlusOutlined /></n-icon>
+                <n-icon>
+                  <PlusOutlined/>
+                </n-icon>
               </template>
               {{ $t('course.questionBank.createFirst') }}
             </n-button>
@@ -108,65 +116,66 @@
     </div>
 
     <!-- 分页组件 -->
-    <div class="pagination-section" v-if="questionBankList.length > 0">
+    <div v-if="questionBankList.length > 0" class="pagination-section">
       <n-pagination
-        v-model:page="pagination.page"
-        v-model:page-size="pagination.pageSize"
-        :total="pagination.total"
-        :show-size-picker="pagination.showSizePicker"
-        :page-sizes="pagination.pageSizes"
-        show-quick-jumper
-        @update:page="handlePageChange"
-        @update:page-size="handlePageSizeChange"
+          v-model:page="pagination.page"
+          v-model:page-size="pagination.pageSize"
+          :page-sizes="pagination.pageSizes"
+          :show-size-picker="pagination.showSizePicker"
+          :total="pagination.total"
+          show-quick-jumper
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
       />
     </div>
 
     <!-- 添加/编辑题库对话框 -->
-    <n-modal v-model:show="showModal" :title="modalTitle" preset="card" size="huge" style="width: 100vw; height: 100vh;">
+    <n-modal v-model:show="showModal" :title="modalTitle" preset="card" size="huge"
+             style="width: 100vw; height: 100vh;">
       <n-form
-        ref="formRef"
-        :model="formData"
-        :rules="formRules"
-        label-placement="left"
-        label-width="120px"
+          ref="formRef"
+          :model="formData"
+          :rules="formRules"
+          label-placement="left"
+          label-width="120px"
       >
         <n-form-item :label="$t('course.questionBank.bankName')" path="bankName">
           <n-input
-            v-model:value="formData.bankName"
-            :placeholder="$t('course.questionBank.bankNamePlaceholder')"
+              v-model:value="formData.bankName"
+              :placeholder="$t('course.questionBank.bankNamePlaceholder')"
           />
         </n-form-item>
         <n-form-item :label="$t('course.questionBank.bankDescription')" path="description">
           <n-input
-            v-model:value="formData.description"
-            type="textarea"
-            :placeholder="$t('course.questionBank.descriptionPlaceholder')"
-            :rows="3"
+              v-model:value="formData.description"
+              :placeholder="$t('course.questionBank.descriptionPlaceholder')"
+              :rows="3"
+              type="textarea"
           />
         </n-form-item>
         <n-form-item :label="$t('course.questionBank.bankType')" path="bankType">
           <n-select
-            v-model:value="formData.bankType"
-            :options="bankTypeOptions"
-            :placeholder="$t('course.questionBank.bankTypePlaceholder')"
+              v-model:value="formData.bankType"
+              :options="bankTypeOptions"
+              :placeholder="$t('course.questionBank.bankTypePlaceholder')"
           />
         </n-form-item>
         <n-form-item :label="$t('course.questionBank.difficulty')" path="difficulty">
           <n-select
-            v-model:value="formData.difficulty"
-            :options="difficultyOptions"
-            :placeholder="$t('course.questionBank.difficultyPlaceholder')"
+              v-model:value="formData.difficulty"
+              :options="difficultyOptions"
+              :placeholder="$t('course.questionBank.difficultyPlaceholder')"
           />
         </n-form-item>
         <n-form-item :label="$t('course.questionBank.tags')" path="tags">
-          <n-dynamic-tags v-model:value="formData.tags as string[]" />
+          <n-dynamic-tags v-model:value="formData.tags as string[]"/>
         </n-form-item>
         <n-form-item :label="$t('course.questionBank.isPublic')" path="isPublic">
           <n-radio-group v-model:value="formData.isPublic">
-            <n-radio 
-              v-for="option in isPublicOptions" 
-              :key="option.value" 
-              :value="option.value"
+            <n-radio
+                v-for="option in isPublicOptions"
+                :key="option.value"
+                :value="option.value"
             >
               {{ option.label }}
             </n-radio>
@@ -183,32 +192,47 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
-import { PlusOutlined, SearchOutlined, ReloadOutlined } from '@vicons/antd'
-import { NButton, NIcon, NModal, NForm, NFormItem, NInput, NSelect, NRadioGroup, NRadio, NSpace, NDynamicTags, NGrid, NGi, NEmpty, NPagination, NSpin, useMessage, useDialog } from 'naive-ui'
-import type { FormInst, FormRules } from 'naive-ui'
-import { 
-  addCourseQuestionBank, 
-  updateCourseQuestionBank, 
-  removeCourseQuestionBankById,
-  getDefaultCourseQuestionBankDTO,
+<script lang="ts" setup>
+import {computed, onMounted, reactive, ref} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {useRouter} from 'vue-router'
+import {PlusOutlined, ReloadOutlined, SearchOutlined} from '@vicons/antd'
+import type {FormInst, FormRules} from 'naive-ui'
+import {
+  NButton,
+  NDynamicTags,
+  NEmpty,
+  NForm,
+  NFormItem,
+  NGi,
+  NGrid,
+  NIcon,
+  NInput,
+  NModal,
+  NPagination,
+  NRadio,
+  NRadioGroup,
+  NSelect,
+  NSpace,
+  NSpin,
+  useDialog,
+  useMessage
+} from 'naive-ui'
+import {
+  addCourseQuestionBank,
   getCourseById,
+  getDefaultCourseQuestionBankDTO,
+  getDefaultCourseQuestionBankQuery,
   listCourseQuestionBank,
-  getDefaultCourseQuestionBankQuery
+  removeCourseQuestionBankById,
+  updateCourseQuestionBank
 } from '@/api/course'
-import type { CourseQuestionBankVO, CourseQuestionBankDTO, CourseVO } from '@/types/course'
-import { 
-  getQuestionBankTypeOptions, 
-  getQuestionBankDifficultyOptions, 
-  getQuestionBankPublicOptions 
-} from '@/enum/course'
+import type {CourseQuestionBankDTO, CourseQuestionBankVO, CourseVO} from '@/types/course'
+import {getQuestionBankDifficultyOptions, getQuestionBankPublicOptions, getQuestionBankTypeOptions} from '@/enum/course'
 import CourseBreadcrumb from '../../components/CourseBreadcrumb/CourseBreadcrumb.vue'
 import QuestionBankCard from './QuestionBankCard.vue'
 
-const { t } = useI18n()
+const {t} = useI18n()
 const router = useRouter()
 const message = useMessage()
 const dialog = useDialog()
@@ -262,27 +286,24 @@ const difficultyOptions = getQuestionBankDifficultyOptions(t)
 const isPublicOptions = getQuestionBankPublicOptions(t)
 
 
-
 // 计算属性
 const modalTitle = computed(() => isEdit.value ? t('common.edit') : t('common.add'))
 
 // 表单验证规则
 const formRules: FormRules = {
   bankName: [
-    { required: true, message: t('course.questionBank.bankNameRequired'), trigger: 'blur' }
+    {required: true, message: t('course.questionBank.bankNameRequired'), trigger: 'blur'}
   ],
   bankType: [
-    { required: true, type: 'number', message: t('course.questionBank.bankTypeRequired'), trigger: 'change' }
+    {required: true, type: 'number', message: t('course.questionBank.bankTypeRequired'), trigger: 'change'}
   ],
   difficulty: [
-    { required: true, type: 'number', message: t('course.questionBank.difficultyRequired'), trigger: 'change' }
+    {required: true, type: 'number', message: t('course.questionBank.difficultyRequired'), trigger: 'change'}
   ],
   isPublic: [
-    { required: true, type: 'number', message: t('course.questionBank.isPublicRequired'), trigger: 'change' }
+    {required: true, type: 'number', message: t('course.questionBank.isPublicRequired'), trigger: 'change'}
   ]
 }
-
-
 
 
 // 方法
@@ -298,7 +319,7 @@ const loadCourseInfo = async (courseId: string) => {
 // 加载题库列表
 const loadQuestionBankList = async () => {
   if (!courseId.value) return
-  
+
   loading.value = true
   try {
     const queryParams = getDefaultCourseQuestionBankQuery()
@@ -309,7 +330,7 @@ const loadQuestionBankList = async () => {
     queryParams.isPublic = searchForm.isPublic
     queryParams.pageNum = pagination.page
     queryParams.pageSize = pagination.pageSize
-    
+
     const response = await listCourseQuestionBank(queryParams)
     questionBankList.value = response.data || []
     pagination.total = response.total || 0
@@ -363,7 +384,6 @@ const handlePageSizeChange = (pageSize: number) => {
 }
 
 
-
 const handleAdd = () => {
   isEdit.value = false
   currentEditBank.value = null
@@ -373,15 +393,11 @@ const handleAdd = () => {
 }
 
 
-
-
-
-
 // 处理编辑题库
 const handleEdit = (bankData: CourseQuestionBankVO) => {
   isEdit.value = true
   currentEditBank.value = bankData
-  
+
   // 填充表单数据
   Object.assign(formData, {
     id: bankData.id,
@@ -393,7 +409,7 @@ const handleEdit = (bankData: CourseQuestionBankVO) => {
     difficulty: bankData.difficulty,
     isPublic: bankData.isPublic
   })
-  
+
   showModal.value = true
 }
 
@@ -401,7 +417,7 @@ const handleEdit = (bankData: CourseQuestionBankVO) => {
 const handleDelete = async (bankData: CourseQuestionBankVO) => {
   dialog.warning({
     title: t('course.questionBank.deleteConfirm'),
-    content: t('course.questionBank.deleteConfirmContent', { bankName: bankData.bankName }),
+    content: t('course.questionBank.deleteConfirmContent', {bankName: bankData.bankName}),
     positiveText: t('common.confirm'),
     negativeText: t('common.cancel'),
     onPositiveClick: async () => {
@@ -421,13 +437,13 @@ const handleDelete = async (bankData: CourseQuestionBankVO) => {
 
 const handleSubmit = async () => {
   if (!formRef.value) return
-  
+
   try {
     await formRef.value.validate()
-    
-    const submitData = { ...formData }
+
+    const submitData = {...formData}
     submitData.courseId = courseId.value
-    
+
     if (isEdit.value) {
       await updateCourseQuestionBank(submitData)
       message.success(t('common.updateSuccess'))
@@ -435,7 +451,7 @@ const handleSubmit = async () => {
       await addCourseQuestionBank(submitData)
       message.success(t('common.addSuccess'))
     }
-    
+
     showModal.value = false
     // 重新加载题库列表
     loadQuestionBankList()

@@ -3,6 +3,7 @@ export default {
     settings: 'Settings',
     filePreview: 'File Preview',
     profile: 'Profile',
+    aiAssistant: 'AI Assistant',
     system: 'System Management',
     user: 'User Management',
     role: 'Role Management',

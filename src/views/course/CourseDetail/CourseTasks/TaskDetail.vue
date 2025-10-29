@@ -19,7 +19,7 @@
           </div>
           <div class="task-meta-info">
             <div class="task-type-info">
-              <Icon :component="getTaskTypeIcon(task.taskType)" />
+              <Icon :component="getTaskTypeIcon(task.taskType)"/>
               <span>{{ getTaskTypeText(task.taskType) }}</span>
             </div>
             <div class="task-difficulty-info">
@@ -98,15 +98,15 @@
             <div class="stat-label">{{ t('course.tasks.points') }}</div>
             <div class="stat-value">{{ task.maxScore || 0 }}</div>
           </div>
-          <div class="stat-item" v-if="task.startTime">
+          <div v-if="task.startTime" class="stat-item">
             <div class="stat-label">{{ t('course.tasks.startTime') }}</div>
             <div class="stat-value">{{ formatDate(task.startTime) }}</div>
           </div>
-          <div class="stat-item" v-if="task.endTime">
+          <div v-if="task.endTime" class="stat-item">
             <div class="stat-label">{{ t('course.tasks.dueDate') }}</div>
             <div class="stat-value">{{ formatDate(task.endTime) }}</div>
           </div>
-          <div class="stat-item" v-if="task.estimatedTime">
+          <div v-if="task.estimatedTime" class="stat-item">
             <div class="stat-label">{{ t('course.tasks.timeLimit') }}</div>
             <div class="stat-value">{{ task.estimatedTime }} {{ t('course.tasks.minutes') }}</div>
           </div>
@@ -122,27 +122,27 @@
 </template>
 
 <script lang="ts" setup>
-import {ref, watch, computed} from 'vue'
+import {computed, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useRouter} from 'vue-router'
 import {
   ArchiveOutline,
-  ListOutline,
-  CreateOutline,
-  TrashOutline,
   BookOutline,
   CodeOutline,
+  CreateOutline,
   DocumentTextOutline,
   FolderOutline,
   ImageOutline,
+  ListOutline,
   MusicalNotesOutline,
+  TrashOutline,
   VideocamOutline
 } from '@vicons/ionicons5'
 import type {CourseTaskVO} from '@/types/course/courseTask'
 import type {FileInfoDTO} from '@/types/minIO/file'
 import * as MinIOApi from '@/api/minIO'
-import {TaskTypeEnum, getTaskTypeLabel} from '@/enum/course/taskTypeEnum'
-import {TaskDifficultyEnum, getTaskDifficultyLabel, getTaskDifficultyTagType} from '@/enum/course/taskDifficultyEnum'
+import {getTaskTypeLabel, TaskTypeEnum} from '@/enum/course/taskTypeEnum'
+import {getTaskDifficultyLabel, getTaskDifficultyTagType, TaskDifficultyEnum} from '@/enum/course/taskDifficultyEnum'
 import Icon from '@/components/common/Icon.vue'
 import {formatDate} from '@/utils/dateUtil'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
@@ -155,7 +155,9 @@ interface Props {
 
 interface Emits {
   (e: 'delete', task: CourseTaskVO): void
+
   (e: 'edit', task: CourseTaskVO): void
+
   (e: 'update'): void
 }
 

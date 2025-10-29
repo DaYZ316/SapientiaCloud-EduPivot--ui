@@ -15,3 +15,6 @@ export * from './student/index'
 
 // 导出course模块API
 export * from './course/index'
+
+// 导出celestialHub模块API
+export * from './celestialHub/index'

@@ -37,6 +37,41 @@
   // 荧光效果相关变量
   --glow-intensity: 0.1;
   --glow-animation-duration: 3s;
+
+  // Markdown专用变量
+  --markdown-font-size: 16px;
+  --markdown-line-height: 1.6;
+  --markdown-text-color: var(--text-color);
+  --markdown-bg-color: var(--background-color);
+  --markdown-heading-color: var(--text-color);
+  --markdown-code-bg: var(--background-tertiary-color);
+  --markdown-code-text: var(--text-color);
+  --markdown-border-color: var(--border-color);
+  --markdown-link-color: var(--color-primary-dark);
+  --markdown-link-hover-color: var(--color-primary-dark);
+  --markdown-blockquote-border: var(--border-color);
+  --markdown-blockquote-bg: var(--background-tertiary-color);
+  --markdown-table-border: var(--border-color);
+  --markdown-table-header-bg: var(--background-tertiary-color);
+  --markdown-text-secondary-color: var(--text-secondary-color);
+  --markdown-container-info-bg: color-mix(in srgb, var(--info-color) 10%, var(--background-color));
+  --markdown-container-info-border: var(--info-color);
+  --markdown-container-info-text: color-mix(in srgb, var(--info-color) 80%, var(--text-color));
+  --markdown-container-warning-bg: color-mix(in srgb, var(--warning-color) 10%, var(--background-color));
+  --markdown-container-warning-border: var(--warning-color);
+  --markdown-container-warning-text: color-mix(in srgb, var(--warning-color-dark) 80%, var(--text-color));
+  --markdown-container-error-bg: color-mix(in srgb, var(--error-color) 10%, var(--background-color));
+  --markdown-container-error-border: var(--error-color);
+  --markdown-container-error-text: color-mix(in srgb, var(--error-color) 80%, var(--text-color));
+  --markdown-container-success-bg: color-mix(in srgb, var(--success-color) 10%, var(--background-color));
+  --markdown-container-success-border: var(--success-color);
+  --markdown-container-success-text: color-mix(in srgb, var(--success-color) 80%, var(--text-color));
+  --markdown-container-tip-bg: color-mix(in srgb, var(--primary-color) 10%, var(--background-color));
+  --markdown-container-tip-border: var(--primary-color);
+  --markdown-container-tip-text: color-mix(in srgb, var(--primary-color) 80%, var(--text-color));
+  --markdown-container-note-bg: var(--background-tertiary-color);
+  --markdown-container-note-border: var(--border-color);
+  --markdown-container-note-text: var(--text-secondary-color);
 }
 
 // 暗色主题变量
@@ -77,6 +112,41 @@
   // 荧光效果相关变量（暗色主题下增强）
   --glow-intensity: 0.2;
   --glow-animation-duration: 2.5s;
+
+  // Markdown专用变量（暗色主题）
+  --markdown-font-size: 16px;
+  --markdown-line-height: 1.6;
+  --markdown-text-color: var(--text-color);
+  --markdown-bg-color: var(--background-color);
+  --markdown-heading-color: var(--text-color);
+  --markdown-code-bg: var(--background-tertiary-color);
+  --markdown-code-text: var(--text-color);
+  --markdown-border-color: var(--border-color);
+  --markdown-link-color: var(--color-primary-light);
+  --markdown-link-hover-color: var(--color-primary);
+  --markdown-blockquote-border: var(--border-color);
+  --markdown-blockquote-bg: var(--background-tertiary-color);
+  --markdown-table-border: var(--border-color);
+  --markdown-table-header-bg: var(--background-tertiary-color);
+  --markdown-text-secondary-color: var(--text-secondary-color);
+  --markdown-container-info-bg: color-mix(in srgb, var(--info-color) 15%, var(--background-color));
+  --markdown-container-info-border: var(--info-color);
+  --markdown-container-info-text: color-mix(in srgb, var(--info-color) 70%, var(--text-color));
+  --markdown-container-warning-bg: color-mix(in srgb, var(--warning-color) 15%, var(--background-color));
+  --markdown-container-warning-border: var(--warning-color);
+  --markdown-container-warning-text: color-mix(in srgb, var(--warning-color-light) 70%, var(--text-color));
+  --markdown-container-error-bg: color-mix(in srgb, var(--error-color) 15%, var(--background-color));
+  --markdown-container-error-border: var(--error-color);
+  --markdown-container-error-text: color-mix(in srgb, var(--error-color) 70%, var(--text-color));
+  --markdown-container-success-bg: color-mix(in srgb, var(--success-color) 15%, var(--background-color));
+  --markdown-container-success-border: var(--success-color);
+  --markdown-container-success-text: color-mix(in srgb, var(--success-color) 70%, var(--text-color));
+  --markdown-container-tip-bg: color-mix(in srgb, var(--primary-color) 15%, var(--background-color));
+  --markdown-container-tip-border: var(--primary-color);
+  --markdown-container-tip-text: color-mix(in srgb, var(--primary-color) 70%, var(--text-color));
+  --markdown-container-note-bg: var(--background-tertiary-color);
+  --markdown-container-note-border: var(--border-color);
+  --markdown-container-note-text: var(--text-secondary-color);
 }
 
 // 全局基础样式

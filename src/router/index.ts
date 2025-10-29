@@ -41,6 +41,15 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
+                path: '/ai',
+                name: 'AI',
+                component: () => import('@/views/celestialHub/index.vue'),
+                meta: {
+                    title: 'AI助手',
+                    requiresAuth: true
+                }
+            },
+            {
                 path: '/settings',
                 name: 'Settings',
                 component: () => import('@/views/settings/index.vue'),

@@ -2,15 +2,17 @@
   <div class="question-detail">
     <!-- 面包屑导航 -->
     <CourseBreadcrumb
-      v-if="courseInfo"
-      :course-info="courseInfo"
-      :current-page="questionInfo.questionTitle || $t('course.question.detail')"
-      :show-course-link="true"
+        v-if="courseInfo"
+        :course-info="courseInfo"
+        :current-page="questionInfo.questionTitle || $t('course.question.detail')"
+        :show-course-link="true"
     >
       <template #actions>
         <n-button @click="handleBack">
           <template #icon>
-            <n-icon><ArrowLeftOutlined /></n-icon>
+            <n-icon>
+              <ArrowLeftOutlined/>
+            </n-icon>
           </template>
           {{ $t('common.back') }}
         </n-button>
@@ -49,15 +51,15 @@
         <div class="question-content">
           <h4>{{ $t('course.question.questionContent') }}</h4>
           <div class="content-text" v-html="questionInfo.questionContent"></div>
-          
+
           <div v-if="questionInfo.tags && questionInfo.tags.length" class="tags-section">
             <h4>{{ $t('course.question.tags') }}</h4>
             <n-tag
-              v-for="tag in questionInfo.tags"
-              :key="tag"
-              type="info"
-              size="small"
-              style="margin-right: 8px; margin-bottom: 4px;"
+                v-for="tag in questionInfo.tags"
+                :key="tag"
+                size="small"
+                style="margin-right: 8px; margin-bottom: 4px;"
+                type="info"
             >
               {{ tag }}
             </n-tag>
@@ -72,26 +74,28 @@
         <div class="options-header">
           <n-button type="primary" @click="handleAddOption">
             <template #icon>
-              <n-icon><PlusOutlined /></n-icon>
+              <n-icon>
+                <PlusOutlined/>
+              </n-icon>
             </template>
             {{ $t('course.question.addOption') }}
           </n-button>
         </div>
-        
+
         <div class="options-list">
           <div
-            v-for="option in optionsList"
-            :key="option.id"
-            class="option-item"
-            :class="{ 'correct-option': option.isCorrect === 1 }"
+              v-for="option in optionsList"
+              :key="option.id"
+              :class="{ 'correct-option': option.isCorrect === 1 }"
+              class="option-item"
           >
             <div class="option-header">
               <span class="option-label">{{ option.optionLabel }}</span>
               <div class="option-actions">
-                <n-button size="small" type="info" text @click="handleEditOption(option)">
+                <n-button size="small" text type="info" @click="handleEditOption(option)">
                   {{ $t('common.edit') }}
                 </n-button>
-                <n-button size="small" type="error" text @click="handleDeleteOption(option)">
+                <n-button size="small" text type="error" @click="handleDeleteOption(option)">
                   {{ $t('common.delete') }}
                 </n-button>
               </div>
@@ -108,26 +112,28 @@
         <div class="answers-header">
           <n-button type="primary" @click="handleAddAnswer">
             <template #icon>
-              <n-icon><PlusOutlined /></n-icon>
+              <n-icon>
+                <PlusOutlined/>
+              </n-icon>
             </template>
             {{ $t('course.question.addAnswer') }}
           </n-button>
         </div>
-        
+
         <div class="answers-list">
           <div
-            v-for="answer in answersList"
-            :key="answer.id"
-            class="answer-item"
-            :class="{ 'correct-answer': answer.isCorrect === 1 }"
+              v-for="answer in answersList"
+              :key="answer.id"
+              :class="{ 'correct-answer': answer.isCorrect === 1 }"
+              class="answer-item"
           >
             <div class="answer-header">
               <span class="answer-score">{{ answer.score }} {{ $t('common.points') }}</span>
               <div class="answer-actions">
-                <n-button size="small" type="info" text @click="handleEditAnswer(answer)">
+                <n-button size="small" text type="info" @click="handleEditAnswer(answer)">
                   {{ $t('common.edit') }}
                 </n-button>
-                <n-button size="small" type="error" text @click="handleDeleteAnswer(answer)">
+                <n-button size="small" text type="error" @click="handleDeleteAnswer(answer)">
                   {{ $t('common.delete') }}
                 </n-button>
               </div>
@@ -145,24 +151,24 @@
     <!-- 选项编辑对话框 -->
     <n-modal v-model:show="showOptionModal" :title="optionModalTitle" preset="dialog">
       <n-form
-        ref="optionFormRef"
-        :model="optionFormData"
-        :rules="optionFormRules"
-        label-placement="left"
-        label-width="100px"
+          ref="optionFormRef"
+          :model="optionFormData"
+          :rules="optionFormRules"
+          label-placement="left"
+          label-width="100px"
       >
         <n-form-item :label="$t('course.question.optionLabel')" path="optionLabel">
           <n-input
-            v-model:value="optionFormData.optionLabel"
-            :placeholder="$t('course.question.optionLabelPlaceholder')"
+              v-model:value="optionFormData.optionLabel"
+              :placeholder="$t('course.question.optionLabelPlaceholder')"
           />
         </n-form-item>
         <n-form-item :label="$t('course.question.optionContent')" path="optionContent">
           <n-input
-            v-model:value="optionFormData.optionContent"
-            type="textarea"
-            :placeholder="$t('course.question.optionContentPlaceholder')"
-            :rows="3"
+              v-model:value="optionFormData.optionContent"
+              :placeholder="$t('course.question.optionContentPlaceholder')"
+              :rows="3"
+              type="textarea"
           />
         </n-form-item>
         <n-form-item :label="$t('course.question.isCorrect')" path="isCorrect">
@@ -173,11 +179,11 @@
         </n-form-item>
         <n-form-item :label="$t('course.question.optionScore')" path="score">
           <n-input-number
-            v-model:value="optionFormData.score"
-            :placeholder="$t('course.question.optionScorePlaceholder')"
-            :min="0"
-            :precision="1"
-            style="width: 100%"
+              v-model:value="optionFormData.score"
+              :min="0"
+              :placeholder="$t('course.question.optionScorePlaceholder')"
+              :precision="1"
+              style="width: 100%"
           />
         </n-form-item>
       </n-form>
@@ -192,40 +198,40 @@
     <!-- 答案编辑对话框 -->
     <n-modal v-model:show="showAnswerModal" :title="answerModalTitle" preset="dialog">
       <n-form
-        ref="answerFormRef"
-        :model="answerFormData"
-        :rules="answerFormRules"
-        label-placement="left"
-        label-width="100px"
+          ref="answerFormRef"
+          :model="answerFormData"
+          :rules="answerFormRules"
+          label-placement="left"
+          label-width="100px"
       >
         <n-form-item :label="$t('course.question.answerContent')" path="answerContent">
           <n-input
-            v-model:value="answerFormData.answerContent"
-            type="textarea"
-            :placeholder="$t('course.question.answerContentPlaceholder')"
-            :rows="3"
+              v-model:value="answerFormData.answerContent"
+              :placeholder="$t('course.question.answerContentPlaceholder')"
+              :rows="3"
+              type="textarea"
           />
         </n-form-item>
         <n-form-item :label="$t('course.question.answerText')" path="answerText">
           <n-input
-            v-model:value="answerFormData.answerText"
-            :placeholder="$t('course.question.answerTextPlaceholder')"
+              v-model:value="answerFormData.answerText"
+              :placeholder="$t('course.question.answerTextPlaceholder')"
           />
         </n-form-item>
         <n-form-item :label="$t('course.question.isCorrect')" path="isCorrect">
           <n-select
-            v-model:value="answerFormData.isCorrect"
-            :options="answerCorrectnessOptions"
-            :placeholder="$t('course.question.isCorrectPlaceholder')"
+              v-model:value="answerFormData.isCorrect"
+              :options="answerCorrectnessOptions"
+              :placeholder="$t('course.question.isCorrectPlaceholder')"
           />
         </n-form-item>
         <n-form-item :label="$t('course.question.answerScore')" path="score">
           <n-input-number
-            v-model:value="answerFormData.score"
-            :placeholder="$t('course.question.answerScorePlaceholder')"
-            :min="0"
-            :precision="1"
-            style="width: 100%"
+              v-model:value="answerFormData.score"
+              :min="0"
+              :placeholder="$t('course.question.answerScorePlaceholder')"
+              :precision="1"
+              style="width: 100%"
           />
         </n-form-item>
       </n-form>
@@ -239,31 +245,55 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
-import { ArrowLeftOutlined, PlusOutlined } from '@vicons/antd'
-import { NButton, NIcon, NCard, NDescriptions, NDescriptionsItem, NTag, NModal, NForm, NFormItem, NInput, NRadioGroup, NRadio, NInputNumber, NSelect, NSpace, useMessage } from 'naive-ui'
-import type { FormInst, FormRules } from 'naive-ui'
-import { 
-  getQuestionById,
-  listAllQuestionOptionByQuestionId,
-  listAllQuestionAnswerByQuestionId,
-  addQuestionOption,
-  updateQuestionOption,
-  removeQuestionOptionById,
+<script lang="ts" setup>
+import {computed, onMounted, reactive, ref} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {useRoute} from 'vue-router'
+import {ArrowLeftOutlined, PlusOutlined} from '@vicons/antd'
+import type {FormInst, FormRules} from 'naive-ui'
+import {
+  NButton,
+  NCard,
+  NDescriptions,
+  NDescriptionsItem,
+  NForm,
+  NFormItem,
+  NIcon,
+  NInput,
+  NInputNumber,
+  NModal,
+  NRadio,
+  NRadioGroup,
+  NSelect,
+  NSpace,
+  NTag,
+  useMessage
+} from 'naive-ui'
+import {
   addQuestionAnswer,
-  updateQuestionAnswer,
-  removeQuestionAnswerById,
-  getDefaultQuestionOptionDTO,
+  addQuestionOption,
+  getCourseById,
   getDefaultQuestionAnswerDTO,
-  getCourseById
+  getDefaultQuestionOptionDTO,
+  getQuestionById,
+  listAllQuestionAnswerByQuestionId,
+  listAllQuestionOptionByQuestionId,
+  removeQuestionAnswerById,
+  removeQuestionOptionById,
+  updateQuestionAnswer,
+  updateQuestionOption
 } from '@/api/course'
-import type { QuestionVO, QuestionOptionVO, QuestionAnswerVO, QuestionOptionDTO, QuestionAnswerDTO, CourseVO } from '@/types/course'
+import type {
+  CourseVO,
+  QuestionAnswerDTO,
+  QuestionAnswerVO,
+  QuestionOptionDTO,
+  QuestionOptionVO,
+  QuestionVO
+} from '@/types/course'
 import CourseBreadcrumb from '../../components/CourseBreadcrumb/CourseBreadcrumb.vue'
 
-const { t } = useI18n()
+const {t} = useI18n()
 const message = useMessage()
 const route = useRoute()
 
@@ -306,9 +336,9 @@ const answerFormData = reactive<QuestionAnswerDTO>({
 
 // 答案正确性选项
 const answerCorrectnessOptions = [
-  { label: t('course.question.incorrect'), value: 0 },
-  { label: t('course.question.correct'), value: 1 },
-  { label: t('course.question.partiallyCorrect'), value: 2 }
+  {label: t('course.question.incorrect'), value: 0},
+  {label: t('course.question.correct'), value: 1},
+  {label: t('course.question.partiallyCorrect'), value: 2}
 ]
 
 // 计算属性
@@ -326,25 +356,25 @@ const answerModalTitle = computed(() => isEditAnswer.value ? t('common.edit') : 
 // 表单验证规则
 const optionFormRules: FormRules = {
   optionLabel: [
-    { required: true, message: t('course.question.optionLabelRequired'), trigger: 'blur' }
+    {required: true, message: t('course.question.optionLabelRequired'), trigger: 'blur'}
   ],
   optionContent: [
-    { required: true, message: t('course.question.optionContentRequired'), trigger: 'blur' }
+    {required: true, message: t('course.question.optionContentRequired'), trigger: 'blur'}
   ],
   isCorrect: [
-    { required: true, type: 'number', message: t('course.question.isCorrectRequired'), trigger: 'change' }
+    {required: true, type: 'number', message: t('course.question.isCorrectRequired'), trigger: 'change'}
   ]
 }
 
 const answerFormRules: FormRules = {
   answerContent: [
-    { required: true, message: t('course.question.answerContentRequired'), trigger: 'blur' }
+    {required: true, message: t('course.question.answerContentRequired'), trigger: 'blur'}
   ],
   isCorrect: [
-    { required: true, type: 'number', message: t('course.question.isCorrectRequired'), trigger: 'change' }
+    {required: true, type: 'number', message: t('course.question.isCorrectRequired'), trigger: 'change'}
   ],
   score: [
-    { required: true, type: 'number', message: t('course.question.answerScoreRequired'), trigger: 'blur' }
+    {required: true, type: 'number', message: t('course.question.answerScoreRequired'), trigger: 'blur'}
   ]
 }
 
@@ -452,10 +482,10 @@ const handleDeleteOption = async (option: QuestionOptionVO) => {
 
 const handleSubmitOption = async () => {
   if (!optionFormRef.value) return
-  
+
   try {
     await optionFormRef.value.validate()
-    
+
     if (isEditOption.value) {
       await updateQuestionOption(optionFormData)
       message.success(t('common.updateSuccess'))
@@ -463,7 +493,7 @@ const handleSubmitOption = async () => {
       await addQuestionOption(optionFormData)
       message.success(t('common.addSuccess'))
     }
-    
+
     showOptionModal.value = false
     loadOptions(questionInfo.value.id)
   } catch (error) {
@@ -503,10 +533,10 @@ const handleDeleteAnswer = async (answer: QuestionAnswerVO) => {
 
 const handleSubmitAnswer = async () => {
   if (!answerFormRef.value) return
-  
+
   try {
     await answerFormRef.value.validate()
-    
+
     if (isEditAnswer.value) {
       await updateQuestionAnswer(answerFormData)
       message.success(t('common.updateSuccess'))
@@ -514,7 +544,7 @@ const handleSubmitAnswer = async () => {
       await addQuestionAnswer(answerFormData)
       message.success(t('common.addSuccess'))
     }
-    
+
     showAnswerModal.value = false
     loadAnswers(questionInfo.value.id)
   } catch (error) {

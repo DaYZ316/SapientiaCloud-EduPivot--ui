@@ -458,8 +458,8 @@ const forumTypeOptions = computed(() => getForumTypeOptions(t))
 
 // 公开性选项
 const isPublicOptions = computed(() => [
-  { label: t('course.forum.private'), value: 0 },
-  { label: t('course.forum.public'), value: 1 }
+  {label: t('course.forum.private'), value: 0},
+  {label: t('course.forum.public'), value: 1}
 ])
 
 // 设置动态标题

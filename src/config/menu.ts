@@ -183,6 +183,7 @@ export const getUserMenuOptions = (t: (key: string) => string): UserMenuOption[]
 export const menuRouteMap: Record<string, string> = {
     'Dashboard': '/dashboard',
     'Profile': '/profile',
+    'AI': '/ai',
     'Settings': '/settings',
     'FilePreview': '/file/preview',
     'User': '/system/user',

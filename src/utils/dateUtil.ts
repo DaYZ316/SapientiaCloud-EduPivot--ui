@@ -80,7 +80,7 @@ export function handleDateRangeChange(
  */
 export function formatDate(dateString: string | null): string {
     if (!dateString) return ''
-    
+
     try {
         const date = new Date(dateString)
         return formatToBeijingDate(date)

@@ -157,8 +157,7 @@ import {useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {useUserStore} from '@/store'
 import {AcademicStatusEnum, getAcademicStatusLabel} from '@/enum/student/academicStatusEnum'
-import {GenderEnum, getGenderLabel} from '@/enum/common'
-import {StatusEnum, getStatusLabel} from '@/enum/common'
+import {GenderEnum, getGenderLabel, getStatusLabel, StatusEnum} from '@/enum/common'
 
 const router = useRouter()
 const userStore = useUserStore()

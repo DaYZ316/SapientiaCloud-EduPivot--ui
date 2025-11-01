@@ -301,12 +301,10 @@ import {
   TrashOutline,
   VideocamOutline
 } from '@vicons/ionicons5'
-import * as CourseApi from '@/api/course/course'
 import * as CourseChapterApi from '@/api/course/courseChapter'
 import {getDefaultCourseChapterDTO} from '@/api/course/courseChapter'
 import * as MinIOApi from '@/api/minIO'
 import {ChapterStatusEnum} from '@/enum/course/chapterStatusEnum'
-import type {CourseVO} from '@/types/course'
 import type {CourseChapterAddDTO, CourseChapterDTO, CourseChapterVO} from '@/types/course/courseChapter'
 import type {FileInfoDTO} from '@/types/minIO/file'
 import CourseBreadcrumb from '../../components/CourseBreadcrumb/CourseBreadcrumb.vue'
@@ -315,6 +313,7 @@ import RichTextEditor from '@/components/common/RichTextEditor.vue'
 import FileUpload from '@/components/common/FileUpload.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {useUserStore} from '@/store/modules/user'
+import {useCourseStore} from '@/store'
 
 const {message} = getDiscreteApi()
 const {t} = useI18n()
@@ -322,9 +321,10 @@ const route = useRoute()
 const router = useRouter()
 const {setTitle} = useTitle()
 const userStore = useUserStore()
+const courseStore = useCourseStore()
 
 // 响应式数据
-const courseInfo = ref<CourseVO | null>(null)
+const courseInfo = computed(() => courseStore.currentCourseInfo)
 const allChapters = ref<CourseChapterVO[]>([]) // 存储所有章节数据（扁平化）
 const originalChapterTree = ref<CourseChapterVO[]>([]) // 存储原始树形数据
 const draftChapters = ref<CourseChapterVO[]>([]) // 草稿章节（从allChapters过滤）
@@ -402,16 +402,9 @@ const loadCourseInfo = async () => {
     return
   }
 
-  try {
-    const res = await CourseApi.getCourseById(courseId.value)
-    if (res.success && res.data) {
-      courseInfo.value = res.data
-      // 设置动态标题
-      setCourseChapterControlTitle()
-    }
-  } catch (error) {
-    message.error(t('course.chapters.loadCourseInfoFailed'))
-  }
+  await courseStore.setCurrentCourseId(courseId.value, true)
+  // 设置动态标题
+  setCourseChapterControlTitle()
 }
 
 // 加载所有章节数据（使用树形接口）

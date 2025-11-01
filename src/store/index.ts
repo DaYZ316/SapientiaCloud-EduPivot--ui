@@ -10,4 +10,5 @@ export default pinia
 export * from './modules/user'
 export * from './modules/theme'
 export * from './modules/menu'
-export * from './modules/loadingBar' 
+export * from './modules/loadingBar'
+export * from './modules/course' 

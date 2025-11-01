@@ -126,6 +126,7 @@ export default {
 
     // Time related
     createTime: 'Create Time',
+    time: 'Time',
 
     // Contact information
     phone: 'Phone',
@@ -136,6 +137,11 @@ export default {
 
     // User related
     userCode: 'USER CODE',
+
+    // Common fields
+    course: 'Course',
+    teacher: 'Teacher',
+    modelType: 'Model Type',
 
     // File related
     files: 'files',

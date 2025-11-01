@@ -344,10 +344,9 @@ import {useUserStore} from '@/store/modules/user'
 import {useTitle} from '@/utils/titleUtil'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {formatToBeijingTime} from '@/utils/dateUtil'
-import * as CourseApi from '@/api/course/course'
 import * as CourseForumApi from '@/api/course/courseForum'
 import {getDefaultCourseForumDTO, getDefaultCourseForumQuery} from '@/api/course/courseForum'
-import type {CourseForumDTO, CourseForumQueryParams, CourseForumVO, CourseVO} from '@/types/course'
+import type {CourseForumDTO, CourseForumQueryParams, CourseForumVO} from '@/types/course'
 import type {FormInst, FormRules} from 'naive-ui'
 import CourseBreadcrumb from '../../components/CourseBreadcrumb/CourseBreadcrumb.vue'
 import Icon from '@/components/common/Icon.vue'
@@ -363,6 +362,7 @@ import {
   ReloadOutlined,
   SearchOutlined
 } from '@vicons/antd'
+import {useCourseStore} from '@/store'
 
 // 路由和国际化
 const route = useRoute()
@@ -371,9 +371,10 @@ const {t} = useI18n()
 const {setTitle} = useTitle()
 const {message} = getDiscreteApi()
 const userStore = useUserStore()
+const courseStore = useCourseStore()
 
 // 响应式数据
-const courseInfo = ref<CourseVO | null>(null)
+const courseInfo = computed(() => courseStore.currentCourseInfo)
 const forumList = ref<CourseForumVO[]>([])
 const currentUserId = ref<string | null>(null)
 const isTeacher = ref(false)
@@ -529,13 +530,10 @@ const loadCourseInfo = async () => {
     return
   }
 
-  const res = await CourseApi.getCourseById(courseId.value)
-  if (res.success && res.data) {
-    courseInfo.value = res.data
-    setCourseForumTitle()
-    // 加载论坛列表
-    await loadForums()
-  }
+  await courseStore.setCurrentCourseId(courseId.value, true)
+  setCourseForumTitle()
+  // 加载论坛列表
+  await loadForums()
 }
 
 // 加载论坛列表

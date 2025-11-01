@@ -619,10 +619,10 @@ import {
   useDialog,
   useMessage
 } from 'naive-ui'
-import {getCourseById, getDefaultQuestionQuery, listQuestion} from '@/api/course'
+import {getDefaultQuestionQuery, listQuestion} from '@/api/course'
 import {addQuestion, getDefaultQuestionDTO, removeQuestionById, updateQuestion} from '@/api/course/question'
 import {addQuestionOptions, getDefaultQuestionOptionDTO} from '@/api/course/questionOption'
-import type {CourseVO, QuestionDTO, QuestionVO} from '@/types/course'
+import type {QuestionDTO, QuestionVO} from '@/types/course'
 import type {QuestionOptionDTO} from '@/types/course/questionOption'
 import {
   getQuestionBankDifficultyLabel,
@@ -632,16 +632,18 @@ import {
 } from '@/enum/course'
 import CourseBreadcrumb from '@/views/course/components/CourseBreadcrumb/CourseBreadcrumb.vue'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
+import {useCourseStore} from '@/store'
 
 const {t} = useI18n()
 const route = useRoute()
 const message = useMessage()
 const dialog = useDialog()
+const courseStore = useCourseStore()
 
 // 获取路由参数
 const courseId = ref<string>(route.params.courseId as string)
 const questionBankId = ref<string>(route.params.bankId as string)
-const courseInfo = ref<CourseVO | null>(null)
+const courseInfo = computed(() => courseStore.currentCourseInfo)
 const questionList = ref<QuestionVO[]>([])
 const loading = ref(false)
 
@@ -739,12 +741,7 @@ const editFormRules = computed(() => ({
 
 // 方法
 const loadCourseInfo = async () => {
-  try {
-    const response = await getCourseById(courseId.value)
-    courseInfo.value = response.data
-  } catch (error) {
-    message.error(t('common.loadError'))
-  }
+  await courseStore.setCurrentCourseId(courseId.value, true)
 }
 
 // 加载题目列表

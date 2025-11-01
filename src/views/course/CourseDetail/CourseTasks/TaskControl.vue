@@ -325,11 +325,9 @@ import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {useTitle} from '@/utils/titleUtil'
 import {useUserStore} from '@/store/modules/user'
-import * as CourseApi from '@/api/course/course'
 import * as CourseTaskApi from '@/api/course/courseTask'
 import {getDefaultCourseTaskDTO} from '@/api/course/courseTask'
 import * as MinIOApi from '@/api/minIO'
-import type {CourseVO} from '@/types/course'
 import type {CourseTaskDTO, CourseTaskVO} from '@/types/course/courseTask'
 import type {FileInfoDTO} from '@/types/minIO/file'
 import {TaskStatusEnum} from '@/enum/course/taskStatusEnum'
@@ -340,6 +338,7 @@ import Icon from '@/components/common/Icon.vue'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
 import FileUpload from '@/components/common/FileUpload.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
+import {useCourseStore} from '@/store'
 
 const {message} = getDiscreteApi()
 const {t} = useI18n()
@@ -347,9 +346,10 @@ const route = useRoute()
 const router = useRouter()
 const {setTitle} = useTitle()
 const userStore = useUserStore()
+const courseStore = useCourseStore()
 
 // 响应式数据
-const courseInfo = ref<CourseVO | null>(null)
+const courseInfo = computed(() => courseStore.currentCourseInfo)
 const allTasks = ref<CourseTaskVO[]>([]) // 存储所有任务数据
 const publishedTasks = ref<CourseTaskVO[]>([])
 const draftTasks = ref<CourseTaskVO[]>([])
@@ -432,11 +432,8 @@ const loadCourseInfo = async () => {
     return
   }
 
-  const res = await CourseApi.getCourseById(courseId.value)
-  if (res.success && res.data) {
-    courseInfo.value = res.data
-    setTaskControlTitle()
-  }
+  await courseStore.setCurrentCourseId(courseId.value, true)
+  setTaskControlTitle()
 }
 
 // 加载任务列表

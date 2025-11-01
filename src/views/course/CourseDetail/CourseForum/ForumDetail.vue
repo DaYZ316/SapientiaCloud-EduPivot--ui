@@ -433,7 +433,6 @@ import RichTextEditor from '@/components/common/RichTextEditor.vue'
 import CourseBreadcrumb from '@/views/course/components/CourseBreadcrumb/CourseBreadcrumb.vue'
 import {CourseForumVO} from '@/types/course/courseForum'
 import {ForumPostDTO, ForumPostQueryParams, ForumPostVO} from '@/types/course/forumPost'
-import {CourseVO} from '@/types/course'
 import {getCourseForumById} from '@/api/course/courseForum'
 import {
   addForumPost,
@@ -445,10 +444,10 @@ import {
   setPostTop,
   updateForumPost
 } from '@/api/course/forumPost'
-import {getCourseById} from '@/api/course'
 import {formatToBeijingTime} from '@/utils/dateUtil'
 import {ForumTypeEnum} from '@/enum/course/forumTypeEnum'
 import {getPostTypeOptions} from '@/enum/course/postTypeEnum'
+import {useCourseStore} from '@/store'
 
 // 路由和国际化
 const route = useRoute()
@@ -457,10 +456,11 @@ const {t} = useI18n()
 const message = useMessage()
 const dialog = useDialog()
 const userStore = useUserStore()
+const courseStore = useCourseStore()
 
 // 响应式数据
 const forum = ref<CourseForumVO | null>(null)
-const courseInfo = ref<CourseVO | null>(null)
+const courseInfo = computed(() => courseStore.currentCourseInfo)
 const postList = ref<ForumPostVO[]>([])
 const postTotal = ref(0)
 const createPostLoading = ref(false)
@@ -626,16 +626,7 @@ const loadCourseInfo = async () => {
   const courseId = route.params.courseId as string
   if (!courseId) return
 
-  try {
-    const response = await getCourseById(courseId)
-    if (response.code === 200) {
-      courseInfo.value = response.data
-    } else {
-      message.error(response.message || t('course.loadCourseFailed'))
-    }
-  } catch (error) {
-    message.error(t('course.loadCourseFailed'))
-  }
+  await courseStore.setCurrentCourseId(courseId, true)
 }
 
 // 加载论坛信息

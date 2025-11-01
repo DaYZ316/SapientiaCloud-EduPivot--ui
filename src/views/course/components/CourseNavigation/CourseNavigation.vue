@@ -92,14 +92,7 @@
 
 <script lang="ts" setup>
 import {useRouter} from 'vue-router'
-import {
-  ChatbubbleOutline,
-  CheckmarkCircleOutline,
-  HelpCircleOutline,
-  LibraryOutline,
-  PeopleOutline,
-  SchoolOutline
-} from '@vicons/ionicons5'
+import {ChatbubbleOutline, LibraryOutline, PeopleOutline, SchoolOutline, CheckmarkCircleOutline, HelpCircleOutline} from '@vicons/ionicons5'
 
 // 定义props
 interface Props {

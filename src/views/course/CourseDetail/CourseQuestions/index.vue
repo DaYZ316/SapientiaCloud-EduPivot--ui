@@ -220,28 +220,29 @@ import {
 } from 'naive-ui'
 import {
   addCourseQuestionBank,
-  getCourseById,
   getDefaultCourseQuestionBankDTO,
   getDefaultCourseQuestionBankQuery,
   listCourseQuestionBank,
   removeCourseQuestionBankById,
   updateCourseQuestionBank
 } from '@/api/course'
-import type {CourseQuestionBankDTO, CourseQuestionBankVO, CourseVO} from '@/types/course'
+import type {CourseQuestionBankDTO, CourseQuestionBankVO} from '@/types/course'
 import {getQuestionBankDifficultyOptions, getQuestionBankPublicOptions, getQuestionBankTypeOptions} from '@/enum/course'
 import CourseBreadcrumb from '../../components/CourseBreadcrumb/CourseBreadcrumb.vue'
 import QuestionBankCard from './QuestionBankCard.vue'
+import {useCourseStore} from '@/store'
 
 const {t} = useI18n()
 const router = useRouter()
 const message = useMessage()
 const dialog = useDialog()
+const courseStore = useCourseStore()
 
 // 获取课程ID
 const courseId = ref<string>(router.currentRoute.value.params.courseId as string)
 
 // 响应式数据
-const courseInfo = ref<CourseVO | null>(null)
+const courseInfo = computed(() => courseStore.currentCourseInfo)
 const showModal = ref(false)
 const formRef = ref<FormInst | null>(null)
 const isEdit = ref(false)
@@ -308,12 +309,7 @@ const formRules: FormRules = {
 
 // 方法
 const loadCourseInfo = async (courseId: string) => {
-  try {
-    const response = await getCourseById(courseId)
-    courseInfo.value = response.data
-  } catch (error) {
-    message.error(t('common.loadError'))
-  }
+  await courseStore.setCurrentCourseId(courseId, true)
 }
 
 // 加载题库列表

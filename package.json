@@ -74,6 +74,7 @@
     "markdown-it-sup": "^2.0.0",
     "markdown-it-task-lists": "^2.1.1",
     "markdown-it-toc-done-right": "^4.2.0",
+    "mitt": "^3.0.1",
     "motion-v": "^1.7.4",
     "naive-ui": "2.43.1",
     "pinia": "^3.0.3",

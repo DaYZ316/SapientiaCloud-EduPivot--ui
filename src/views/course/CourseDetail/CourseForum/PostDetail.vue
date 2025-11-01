@@ -594,7 +594,6 @@ import CourseBreadcrumb from '@/views/course/components/CourseBreadcrumb/CourseB
 import ReplyCard from './ReplyCard.vue'
 import {ForumPostDTO, ForumPostVO} from '@/types/course/forumPost'
 import {ForumReplyDTO, ForumReplyVO} from '@/types/course/forumReply'
-import {CourseVO} from '@/types/course'
 import {FileInfoDTO} from '@/types/minIO/file'
 import {
   getDefaultForumPostDTO,
@@ -607,11 +606,11 @@ import {
   viewPost
 } from '@/api/course/forumPost'
 import {addForumReply, getDefaultForumReplyDTO, listForumReply, removeForumReplyById} from '@/api/course/forumReply'
-import {getCourseById} from '@/api/course'
 import * as MinIOApi from '@/api/minIO'
 import {formatToBeijingTime} from '@/utils/dateUtil'
 import {getPostTypeOptions} from '@/enum/course/postTypeEnum'
 import Icon from '@/components/common/Icon.vue'
+import {useCourseStore} from '@/store'
 
 // 路由和国际化
 const route = useRoute()
@@ -620,12 +619,13 @@ const {t} = useI18n()
 const message = useMessage()
 const dialog = useDialog()
 const userStore = useUserStore()
+const courseStore = useCourseStore()
 
 
 // 响应式数据
 const loading = ref(false)
 const post = ref<ForumPostVO | null>(null)
-const courseInfo = ref<CourseVO | null>(null)
+const courseInfo = computed(() => courseStore.currentCourseInfo)
 const isLiked = ref(false)
 const isCollected = ref(false)
 const likeLoading = ref(false)
@@ -749,14 +749,7 @@ const loadCourseInfo = async () => {
   const courseId = route.params.courseId as string
   if (!courseId) return
 
-  try {
-    const response = await getCourseById(courseId)
-    if (response.code === 200) {
-      courseInfo.value = response.data
-    }
-  } catch (error) {
-    message.error(t('course.loadCourseFailed'))
-  }
+  await courseStore.setCurrentCourseId(courseId, true)
 }
 
 // 加载帖子详情

@@ -66,9 +66,7 @@ import {AddOutline, SearchOutline} from '@vicons/ionicons5'
 import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {useTitle} from '@/utils/titleUtil'
-import * as CourseApi from '@/api/course/course'
 import * as CourseTaskApi from '@/api/course/courseTask'
-import type {CourseVO} from '@/types/course'
 import type {CourseTaskVO} from '@/types/course/courseTask'
 import {TaskStatusEnum} from '@/enum/course/taskStatusEnum'
 import CourseBreadcrumb from '../../components/CourseBreadcrumb/CourseBreadcrumb.vue'
@@ -77,6 +75,7 @@ import TaskDetail from './TaskDetail.vue'
 import Icon from '@/components/common/Icon.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {useUserStore} from '@/store/modules/user'
+import {useCourseStore} from '@/store'
 
 const {message} = getDiscreteApi()
 const {t} = useI18n()
@@ -84,9 +83,10 @@ const route = useRoute()
 const router = useRouter()
 const {setTitle} = useTitle()
 const userStore = useUserStore()
+const courseStore = useCourseStore()
 
 // 响应式数据
-const courseInfo = ref<CourseVO | null>(null)
+const courseInfo = computed(() => courseStore.currentCourseInfo)
 const taskList = ref<CourseTaskVO[]>([])
 const filteredTasks = ref<CourseTaskVO[]>([])
 const searchKeyword = ref('')
@@ -121,12 +121,9 @@ const loadCourseInfo = async () => {
     return
   }
 
-  const res = await CourseApi.getCourseById(courseId.value)
-  if (res.success && res.data) {
-    courseInfo.value = res.data
-    // 设置动态标题
-    setCourseTasksTitle()
-  }
+  await courseStore.setCurrentCourseId(courseId.value, true)
+  // 设置动态标题
+  setCourseTasksTitle()
 }
 
 // 过滤发布状态任务的辅助函数

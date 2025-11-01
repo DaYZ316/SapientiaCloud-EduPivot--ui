@@ -106,7 +106,6 @@ import {useI18n} from 'vue-i18n'
 import {useTitle} from '@/utils/titleUtil'
 import {type FormInst, type FormRules, NButton, NForm, NFormItem, NIcon, NInput, useDialog, useMessage} from 'naive-ui'
 import {CloseOutlined, SearchOutlined} from '@vicons/antd'
-import * as CourseApi from '@/api/course/course'
 import {
   getDefaultCourseStudentDTO,
   getDefaultCourseStudentQuery,
@@ -115,11 +114,12 @@ import {
   updateCourseStudent
 } from '@/api/course/courseStudent'
 import {getStudentById} from '@/api/student'
-import type {CourseStudentDTO, CourseStudentQueryParams, CourseStudentVO, CourseVO} from '@/types/course'
+import type {CourseStudentDTO, CourseStudentQueryParams, CourseStudentVO} from '@/types/course'
 import type {ActionClickEvent, AdvancedTableColumn} from '@/types/components'
 import {EnrollmentStatusEnum, getEnrollmentStatusOptions} from '@/enum/course'
 import CourseBreadcrumb from '../../components/CourseBreadcrumb/CourseBreadcrumb.vue'
 import AdvancedTable from '@/components/common/AdvancedTable.vue'
+import {useCourseStore} from '@/store'
 
 // 路由和国际化
 const route = useRoute()
@@ -128,9 +128,10 @@ const {t} = useI18n()
 const {setTitle} = useTitle()
 const message = useMessage()
 const dialog = useDialog()
+const courseStore = useCourseStore()
 
 // 响应式数据
-const courseInfo = ref<CourseVO | null>(null)
+const courseInfo = computed(() => courseStore.currentCourseInfo)
 
 // 搜索表单
 const searchForm = reactive<CourseStudentQueryParams>(getDefaultCourseStudentQuery())
@@ -358,12 +359,9 @@ const loadCourseInfo = async () => {
     return
   }
 
-  const res = await CourseApi.getCourseById(courseId.value)
-  if (res.success && res.data) {
-    courseInfo.value = res.data
-    // 设置动态标题
-    setCourseStudentsTitle()
-  }
+  await courseStore.setCurrentCourseId(courseId.value, true)
+  // 设置动态标题
+  setCourseStudentsTitle()
 }
 
 // 打开编辑对话框

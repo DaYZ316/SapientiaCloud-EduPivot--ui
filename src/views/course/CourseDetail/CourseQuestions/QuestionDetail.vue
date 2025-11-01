@@ -272,7 +272,6 @@ import {
 import {
   addQuestionAnswer,
   addQuestionOption,
-  getCourseById,
   getDefaultQuestionAnswerDTO,
   getDefaultQuestionOptionDTO,
   getQuestionById,
@@ -284,7 +283,6 @@ import {
   updateQuestionOption
 } from '@/api/course'
 import type {
-  CourseVO,
   QuestionAnswerDTO,
   QuestionAnswerVO,
   QuestionOptionDTO,
@@ -292,10 +290,12 @@ import type {
   QuestionVO
 } from '@/types/course'
 import CourseBreadcrumb from '../../components/CourseBreadcrumb/CourseBreadcrumb.vue'
+import {useCourseStore} from '@/store'
 
 const {t} = useI18n()
 const message = useMessage()
 const route = useRoute()
+const courseStore = useCourseStore()
 
 // 获取题目ID参数
 const questionId = ref<string>(route.params.questionId as string)
@@ -303,7 +303,7 @@ const courseId = ref<string>(route.params.courseId as string)
 
 // 响应式数据
 const questionInfo = ref<QuestionVO>({} as QuestionVO)
-const courseInfo = ref<CourseVO | null>(null)
+const courseInfo = computed(() => courseStore.currentCourseInfo)
 const optionsList = ref<QuestionOptionVO[]>([])
 const answersList = ref<QuestionAnswerVO[]>([])
 const showOptionModal = ref(false)
@@ -380,12 +380,7 @@ const answerFormRules: FormRules = {
 
 // 方法
 const loadCourseInfo = async (courseId: string) => {
-  try {
-    const response = await getCourseById(courseId)
-    courseInfo.value = response.data
-  } catch (error) {
-    message.error(t('common.loadError'))
-  }
+  await courseStore.setCurrentCourseId(courseId, true)
 }
 
 const loadQuestionInfo = async (questionId: string) => {

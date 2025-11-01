@@ -88,24 +88,24 @@ import {AddOutline, BookOutline, SearchOutline} from '@vicons/ionicons5'
 import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {useTitle} from '@/utils/titleUtil'
-import * as CourseApi from '@/api/course/course'
 import * as CourseChapterApi from '@/api/course/courseChapter'
-import type {CourseVO} from '@/types/course'
 import type {CourseChapterVO} from '@/types/course/courseChapter'
 import {ChapterStatusEnum} from '@/enum/course/chapterStatusEnum'
 import CourseBreadcrumb from '../../components/CourseBreadcrumb/CourseBreadcrumb.vue'
 import ChapterDetail from './ChapterDetail.vue'
 import Icon from '@/components/common/Icon.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
+import {useCourseStore} from '@/store'
 
 const {message} = getDiscreteApi()
 const {t} = useI18n()
 const route = useRoute()
 const router = useRouter()
 const {setTitle} = useTitle()
+const courseStore = useCourseStore()
 
 // 响应式数据
-const courseInfo = ref<CourseVO | null>(null)
+const courseInfo = computed(() => courseStore.currentCourseInfo)
 const chapterTree = ref<CourseChapterVO[]>([])
 const filteredChapterTree = ref<CourseChapterVO[]>([])
 const searchKeyword = ref('')
@@ -136,12 +136,9 @@ const loadCourseInfo = async () => {
     return
   }
 
-  const res = await CourseApi.getCourseById(courseId.value)
-  if (res.success && res.data) {
-    courseInfo.value = res.data
-    // 设置动态标题
-    setCourseChaptersTitle()
-  }
+  await courseStore.setCurrentCourseId(courseId.value, true)
+  // 设置动态标题
+  setCourseChaptersTitle()
 }
 
 // 过滤发布状态章节的辅助函数

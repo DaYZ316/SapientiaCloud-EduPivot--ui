@@ -126,6 +126,7 @@ export default {
 
     // 时间相关
     createTime: '创建时间',
+    time: '时间',
 
     // 联系信息
     phone: '电话',
@@ -137,6 +138,11 @@ export default {
     // 用户相关
     userId: '用户ID',
     userCode: '用户编码',
+
+    // 通用字段
+    course: '课程',
+    teacher: '教师',
+    modelType: '模型类型',
 
     // 文件相关
     files: '文件',

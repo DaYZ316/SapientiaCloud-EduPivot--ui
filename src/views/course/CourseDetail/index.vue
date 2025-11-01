@@ -251,10 +251,9 @@ import {NTag, NText, useDialog, useMessage} from 'naive-ui'
 import {CreateOutline, EllipsisHorizontalOutline, ShareSocialOutline, TrashOutline} from '@vicons/ionicons5'
 import * as CourseApi from '@/api/course/course'
 import * as TeacherApi from '@/api/teacher'
-import type {CourseVO} from '@/types/course'
 import type {TeacherVO} from '@/types/teacher'
 import {getCourseStatusOptions, getCourseTypeOptions} from '@/enum/course'
-import {useMenuStore} from '@/store'
+import {useMenuStore, useCourseStore} from '@/store'
 import TeacherCard from '../components/TeacherCard/TeacherCard.vue'
 import CourseCard from '../components/CourseCard/CourseCard.vue'
 import TeacherMarquee from '../components/TeacherMarquee.vue'
@@ -282,10 +281,10 @@ const {setTitle} = useTitle()
 
 // 菜单状态管理
 const menuStore = useMenuStore()
+const courseStore = useCourseStore()
 
 // 响应式数据
 const loading = ref(false)
-const courseInfo = ref<CourseVO | null>(null)
 const teacherLoading = ref(false)
 const teacherInfo = ref<TeacherVO | null>(null)
 const shareDialogVisible = ref(false)
@@ -309,6 +308,7 @@ const teacherLoadingForForm = ref(false)
 
 // 计算属性
 const courseId = computed(() => route.params.courseId as string)
+const courseInfo = computed(() => courseStore.currentCourseInfo)
 const courseTypeOptions = computed(() => getCourseTypeOptions(t))
 const courseStatusOptions = computed(() => getCourseStatusOptions(t))
 
@@ -389,7 +389,6 @@ const updateLastAccessedCourse = () => {
   }
 }
 
-
 // 设置动态标题
 const setCourseDetailTitle = () => {
   if (courseInfo.value?.courseName) {
@@ -409,19 +408,22 @@ const loadCourseInfo = async () => {
   // 检查courseId是否有效
   if (!courseId.value || courseId.value === 'undefined') {
     router.push('/course')
+    loading.value = false
     return
   }
 
-  const res = await CourseApi.getCourseById(courseId.value)
-  if (res.success && res.data) {
-    courseInfo.value = res.data
-    // 加载课程信息成功后，更新最后访问的课程信息
-    updateLastAccessedCourse()
-    // 设置动态标题
-    setCourseDetailTitle()
-    // 加载教师信息
+  // 使用 courseStore 设置课程ID并获取课程信息
+  await courseStore.setCurrentCourseId(courseId.value, true)
+  
+  // 加载课程信息成功后，更新最后访问的课程信息
+  updateLastAccessedCourse()
+  // 设置动态标题
+  setCourseDetailTitle()
+  // 加载教师信息
+  if (courseInfo.value?.teacherId) {
     await loadTeacherInfo(courseId.value)
   }
+  
   loading.value = false
 }
 
@@ -500,8 +502,16 @@ const handleEditSubmit = async () => {
   showEditModal.value = false
   resetEditForm()
 
-  // 重新加载课程信息
-  await loadCourseInfo()
+  // 使用 courseStore 刷新课程信息
+  await courseStore.refreshCourseInfo()
+  // 更新最后访问的课程信息和标题
+  updateLastAccessedCourse()
+  setCourseDetailTitle()
+  // 重新加载教师信息
+  if (courseInfo.value?.teacherId) {
+    await loadTeacherInfo(courseId.value)
+  }
+  
   editSubmitting.value = false
 }
 
@@ -665,6 +675,13 @@ watch(() => courseInfo.value?.courseName, () => {
   setCourseDetailTitle()
 })
 
+// 监听 courseId 变化，更新课程信息
+watch(() => courseId.value, async (newCourseId) => {
+  if (newCourseId && newCourseId !== 'undefined') {
+    await loadCourseInfo()
+  }
+})
+
 // 生命周期
 onMounted(async () => {
   await loadCourseInfo()
@@ -672,6 +689,9 @@ onMounted(async () => {
 
 onUnmounted(() => {
   // 重置标题为默认标题
+  // 可以选择在组件卸载时清除当前课程信息
+  // 如果希望在页面间切换时保持状态，可以注释掉以下代码
+  // courseStore.setCurrentCourseId(null)
   setTitle('default')
 })
 </script>
@@ -679,4 +699,3 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 @use './index.scss';
 </style>
-

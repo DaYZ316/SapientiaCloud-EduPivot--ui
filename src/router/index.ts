@@ -187,7 +187,16 @@ const routes: RouteRecordRaw[] = [
             {
                 path: '/course/detail/:courseId/classroom',
                 name: 'CourseClassroom',
-                component: () => import('@/views/course/CourseDetail/CourseClassroom/index.vue'),
+                component: () => import('@/views/classroom/ClassroomSelect.vue'),
+                meta: {
+                    title: '教室管理',
+                    requiresAuth: true
+                }
+            },
+            {
+                path: '/course/:courseId/classroom/:courseRecordId',
+                name: 'Classroom3D',
+                component: () => import('@/views/classroom/Classroom3DDetail.vue'),
                 meta: {
                     title: '在线课堂',
                     requiresAuth: true

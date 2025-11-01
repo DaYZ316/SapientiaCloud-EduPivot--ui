@@ -412,11 +412,10 @@ const saveInfo = async (
         res = await updateFn(updateData)
         if (res.success && res.data) {
           message.success(t('settings.personal.updateSuccess'))
-          // 更新成功后刷新用户信息
-          await userStore.refreshUserInfo()
+          // 更新成功后刷新用户信息（强制刷新）
+          await userStore.refreshUserInfo(true)
           // 重新初始化表单数据
           initFn()
-        } else {
         }
       } else {
         // 添加信息
@@ -428,7 +427,6 @@ const saveInfo = async (
           await userStore.fetchUserRoleInfo(userInfo.value?.id || '')
           // 重新初始化表单数据
           initFn()
-        } else {
         }
       }
     }

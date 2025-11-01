@@ -12,7 +12,6 @@
               :username="userInfo?.username"
               @update:model-value="(value: string) => personalForm.avatar = value"
               @upload-success="handleAvatarUploadSuccess"
-              @upload-error="handleAvatarUploadError"
           />
         </div>
         <div class="user-info-brief">
@@ -46,7 +45,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, reactive, ref, watch} from 'vue'
+import {computed, reactive, ref, watch} from 'vue'
 import {useUserStore} from '@/store'
 import {useI18n} from 'vue-i18n'
 import {getDefaultSysUserProfileDTO} from '@/api/system/user'
@@ -97,23 +96,9 @@ const handleAvatarUploadSuccess = async (url: string) => {
     basicInfoRef.value.updateAvatar(url)
   }
 
-  // 立即刷新用户信息到store，确保头像实时更新
-  await userStore.refreshUserInfo()
+  // 立即刷新用户信息到store，确保头像实时更新（强制刷新）
+  await userStore.refreshUserInfo(true)
 }
-
-// 头像上传失败处理
-const handleAvatarUploadError = (error: Error) => {
-  // 可以在这里添加错误处理逻辑
-}
-
-// 初始化头像数据
-onMounted(async () => {
-  // 确保用户信息已加载
-  if (!userInfo.value) {
-    await userStore.refreshUserInfo()
-  }
-  initAvatarData()
-})
 </script>
 
 <style lang="scss" scoped>

@@ -1,5 +1,5 @@
 import http from '@/utils/http'
-import type {SysUserLoginDTO, SysUserMobileLoginDTO, SysUserPasswordDTO, SysUserRegisterDTO} from '@/types/auth'
+import type {SysUserLoginDTO, SysUserMobileLoginDTO, SysUserPasswordDTO, SysUserRegisterDTO, SendVerificationCodeDTO, SelectIdentityDTO} from '@/types/auth'
 
 // 获取默认用户登录DTO
 export function getDefaultSysUserLoginDTO(): SysUserLoginDTO {
@@ -16,7 +16,9 @@ export function getDefaultSysUserRegisterDTO(): SysUserRegisterDTO {
         password: null,
         confirmPassword: null,
         avatar: null,
-        nickName: null
+        nickName: null,
+        mobile: null,
+        verificationCode: null
     }
 }
 
@@ -70,4 +72,45 @@ export function getDefaultSysUserMobileLoginDTO(): SysUserMobileLoginDTO {
 // 手机验证码登录
 export function mobileLogin(params: SysUserMobileLoginDTO) {
     return http.post('/auth/mobile-login', params)
+}
+
+// 获取默认发送验证码DTO
+export function getDefaultSendVerificationCodeDTO(): SendVerificationCodeDTO {
+    return {
+        mobile: null
+    }
+}
+
+// 发送手机验证码
+export function sendVerificationCode(params: SendVerificationCodeDTO) {
+    return http.post('/auth/send-code', params)
+}
+
+// 检查用户名是否可用
+export function checkUsername(username: string) {
+    return http.get('/auth/check-username', {username})
+}
+
+// 获取默认身份选择DTO
+export function getDefaultSelectIdentityDTO(): SelectIdentityDTO {
+    return {
+        identityType: null,
+        studentInfo: null,
+        teacherInfo: null
+    }
+}
+
+// 选择身份并创建对应的学生或教师记录
+export function selectIdentity(params: SelectIdentityDTO) {
+    return http.post('/auth/identity/select', params)
+}
+
+// OAuth2 授权
+export function authorize(provider: string) {
+    return http.get(`/auth/oauth2/authorize/${provider}`)
+}
+
+// OAuth2 回调
+export function oauth2Callback(provider: string, code: string, state: string) {
+    return http.get(`/auth/oauth2/callback/${provider}`, {code, state})
 } 

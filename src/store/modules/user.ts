@@ -1,5 +1,5 @@
 import {defineStore} from 'pinia'
-import {ref} from 'vue'
+import {computed, ref} from 'vue'
 import type {StudentVO, SysPermissionVO, SysRoleVO, SysUserLoginVO, TeacherVO} from '@/types'
 import * as AuthApi from '@/api/auth/auth'
 import * as StudentApi from '@/api/student'
@@ -19,12 +19,27 @@ export const useUserStore = defineStore('user', () => {
     const roles = ref<SysRoleVO[]>([])
     const studentInfo = ref<StudentVO | null>(null)
     const teacherInfo = ref<TeacherVO | null>(null)
+    
+    // 防止重复刷新的标志
+    const isRefreshing = ref<boolean>(false)
+    const lastRefreshedUserId = ref<string | null>(null)
 
     // 计算属性
     const isLogin = ref<boolean>(!!token.value)
 
     const hasRole = (roleKey: string): boolean =>
         roles.value.some((role: SysRoleVO) => role.roleKey === roleKey)
+
+    /**
+     * 检查是否需要填写信息
+     * 如果登录后的学生和教师信息都没有，则需要填写信息
+     */
+    const needsIdentityInfo = computed<boolean>(() => {
+        if (!isLogin.value || !userInfo.value) return false
+        
+        // 如果既没有学生信息也没有教师信息，则需要填写信息
+        return studentInfo.value === null && teacherInfo.value === null
+    })
 
     /**
      * 检查一个权限是否是另一个权限的父权限
@@ -153,6 +168,8 @@ export const useUserStore = defineStore('user', () => {
         studentInfo.value = null
         teacherInfo.value = null
         isLogin.value = false
+        lastRefreshedUserId.value = null
+        isRefreshing.value = false
 
         // 清除本地存储中的token
         localStorage.removeItem(TOKEN_KEY)
@@ -172,8 +189,15 @@ export const useUserStore = defineStore('user', () => {
     /**
      * 根据用户ID查询学生和教师信息
      * @param sysUserId 系统用户ID
+     * @param forceRefresh 是否强制刷新，即使用户ID相同
      */
-    const fetchUserRoleInfo = async (sysUserId: string): Promise<void> => {
+    const fetchUserRoleInfo = async (sysUserId: string, forceRefresh: boolean = false): Promise<void> => {
+        // 如果用户ID没有变化且已有信息，且不是强制刷新，则跳过查询
+        if (!forceRefresh && lastRefreshedUserId.value === sysUserId && 
+            (studentInfo.value !== null || teacherInfo.value !== null)) {
+            return
+        }
+        
         // 直接查询学生和教师信息，不依赖角色判断
         // 这样可以确保在角色绑定完成后能立即获取到最新的信息
         const tasks = [
@@ -195,39 +219,67 @@ export const useUserStore = defineStore('user', () => {
         teacherInfo.value = teacherRes.status === 'fulfilled' &&
         teacherRes.value.success && teacherRes.value.data ?
             teacherRes.value.data : null
+        
+        // 更新最后刷新的用户ID
+        lastRefreshedUserId.value = sysUserId
     }
 
     /**
      * 刷新用户信息
+     * @param forceRefresh 是否强制刷新，即使数据已存在
      * @returns 是否成功获取用户信息
      */
-    const refreshUserInfo = async (): Promise<boolean> => {
+    const refreshUserInfo = async (forceRefresh: boolean = false): Promise<boolean> => {
         if (!token.value) return false
-
-        const res = await AuthApi.getUserInfo()
-        if (res.success && res.data) {
-            const userData = res.data
-
-            // 更新用户信息
-            userInfo.value = userData
-
-            // 更新角色和权限
-            roles.value = userData.roles || []
-
-            // 合并所有权限
-            const userPermissions: SysPermissionVO[] = [
-                ...(userData.permissions || []),
-                ...(userData.roles || []).flatMap((role: SysRoleVO) => role.permissions || [])
-            ]
-
-            permissions.value = userPermissions
-
-            // 查询学生和教师信息
-            await fetchUserRoleInfo(userData.id)
-
+        
+        // 如果正在刷新中，等待当前刷新完成
+        if (isRefreshing.value) {
+            // 等待刷新完成
+            while (isRefreshing.value) {
+                await new Promise(resolve => setTimeout(resolve, 50))
+            }
+            // 如果用户信息已存在，返回成功
+            if (userInfo.value) return true
+        }
+        
+        // 如果用户信息已存在且不是强制刷新，跳过
+        if (!forceRefresh && userInfo.value && lastRefreshedUserId.value === userInfo.value.id) {
             return true
         }
-        return false
+        
+        isRefreshing.value = true
+        
+        try {
+            const res = await AuthApi.getUserInfo()
+            if (res.success && res.data) {
+                const userData = res.data
+
+                // 更新用户信息
+                userInfo.value = userData
+
+                // 更新角色和权限
+                roles.value = userData.roles || []
+
+                // 合并所有权限
+                const userPermissions: SysPermissionVO[] = [
+                    ...(userData.permissions || []),
+                    ...(userData.roles || []).flatMap((role: SysRoleVO) => role.permissions || [])
+                ]
+
+                permissions.value = userPermissions
+
+                // 查询学生和教师信息（只在用户ID变化或强制刷新时）
+                const shouldFetchRoleInfo = forceRefresh || lastRefreshedUserId.value !== userData.id
+                if (shouldFetchRoleInfo) {
+                    await fetchUserRoleInfo(userData.id, forceRefresh)
+                }
+
+                return true
+            }
+            return false
+        } finally {
+            isRefreshing.value = false
+        }
     }
 
     return {
@@ -239,6 +291,9 @@ export const useUserStore = defineStore('user', () => {
         studentInfo,
         teacherInfo,
         isLogin,
+
+        // 计算属性
+        needsIdentityInfo,
 
         // 方法
         login,

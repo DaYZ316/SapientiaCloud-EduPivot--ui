@@ -219,13 +219,11 @@ class HttpClient {
         nextTick(() => {
             try {
                 // 尝试使用 Vue Router 跳转
-                router.push('/login').catch((error) => {
-                    console.warn('Vue Router 跳转失败，使用 window.location 强制跳转:', error)
+                router.push('/login').catch(() => {
                     // 如果路由跳转失败，使用 window.location 强制跳转
                     this.forceNavigateToLogin()
                 })
-            } catch (error) {
-                console.warn('路由跳转异常，使用 window.location 强制跳转:', error)
+            } catch {
                 this.forceNavigateToLogin()
             }
         })
@@ -238,8 +236,7 @@ class HttpClient {
         try {
             // 使用 window.location 强制跳转
             window.location.href = '/login'
-        } catch (error) {
-            console.error('强制跳转失败:', error)
+        } catch {
             // 最后的回退方案：重新加载页面到登录页
             window.location.reload()
         }
@@ -295,23 +292,42 @@ class HttpClient {
     }
 
     /**
+     * 检查是否应该显示403错误提示
+     */
+    private shouldShowForbiddenError(): boolean {
+        const userStore = useUserStore()
+        // 如果userStore没有两个角色信息（既没有studentInfo也没有teacherInfo），不显示权限提示
+        return userStore.studentInfo !== null || userStore.teacherInfo !== null
+    }
+
+    /**
+     * 显示403错误提示
+     */
+    private showForbiddenError(): void {
+        const {message: messageApi, notification: notificationApi} = getDiscreteApi()
+        if (notificationApi) {
+            notificationApi.warning({
+                title: i18n.global.t('common.http.forbiddenTitle'),
+                content: i18n.global.t('common.http.forbiddenContent'),
+                duration: 5000,
+                keepAliveOnHover: true
+            })
+        } else if (messageApi) {
+            messageApi.error(i18n.global.t('common.http.forbidden'))
+        }
+    }
+
+    /**
      * 处理业务错误码
      */
     private handleErrorCode(code: number, message: string): void {
-        const {message: messageApi, notification: notificationApi} = getDiscreteApi()
+        const {message: messageApi} = getDiscreteApi()
 
         // 根据不同错误码处理
         switch (code) {
             case 403:
-                if (notificationApi) {
-                    notificationApi.warning({
-                        title: i18n.global.t('common.http.forbiddenTitle'),
-                        content: i18n.global.t('common.http.forbiddenContent'),
-                        duration: 5000,
-                        keepAliveOnHover: true
-                    })
-                } else if (messageApi) {
-                    messageApi.error(i18n.global.t('common.http.forbidden'))
+                if (this.shouldShowForbiddenError()) {
+                    this.showForbiddenError()
                 }
                 break
             default:
@@ -325,7 +341,7 @@ class HttpClient {
      * 处理HTTP错误
      */
     private handleHttpError(error: any): void {
-        const {message: messageApi, notification: notificationApi} = getDiscreteApi()
+        const {message: messageApi} = getDiscreteApi()
 
         if (error.response) {
             const status = error.response.status
@@ -341,15 +357,8 @@ class HttpClient {
                     this.handleUnauthorized()
                     break
                 case 403:
-                    if (notificationApi) {
-                        notificationApi.warning({
-                            title: i18n.global.t('common.http.forbiddenTitle'),
-                            content: i18n.global.t('common.http.forbiddenContent'),
-                            duration: 5000,
-                            keepAliveOnHover: true
-                        })
-                    } else if (messageApi) {
-                        messageApi.error(i18n.global.t('common.http.forbidden'))
+                    if (this.shouldShowForbiddenError()) {
+                        this.showForbiddenError()
                     }
                     break
                 case 404:

@@ -43,11 +43,13 @@ export default {
 
     // 注册相关
     registerSuccess: 'Registration Successful',
+    registerSuccessTitle: 'Registration successful, do you want to go to login?',
     registerFailed: 'Registration Failed',
     registerInProgress: 'Registering...',
     registerButton: 'Register',
     uploadAvatar: 'Upload Avatar',
     usernameLengthError: 'Username must be between 3-20 characters',
+    usernameFormatError: 'Username must contain only 4-20 letters or numbers',
     passwordLengthError: 'Password must be between 6-20 characters',
     confirmPasswordRequired: 'Please confirm your password',
     passwordMismatch: 'Passwords do not match',
@@ -55,7 +57,7 @@ export default {
     nickNameRequired: 'Please enter your nickname',
     sendVerificationCode: 'Send Code',
 
-    // 验证码登录相�?    verificationCodeSentSuccess: 'Verification code sent successfully',
+    // 验证码登录相�?    verificationCodeSentSuccess: 'Verification code sent successfully',
     verificationCodeCountdown: 'seconds to resend',
     verificationCodeLoginSuccess: 'Verification code login successful',
     verificationCodeLoginFailed: 'Verification code login failed',
@@ -67,5 +69,24 @@ export default {
     phoneNumberHint: 'Please enter 11-digit phone number',
     loginWithVerificationCode: 'Login with verification code',
     switchToPasswordLogin: 'Switch to password login',
-    switchToVerificationCodeLogin: 'Switch to verification code login'
+    switchToVerificationCodeLogin: 'Switch to verification code login',
+    orLoginWith: 'Or login with',
+    githubLogin: 'Login with GitHub',
+    slogan: 'Smart Education, Start Your Future Learning Journey',
+
+    // Register step related
+    registerSteps: {
+        step1: {
+            title: 'Basic Info'
+        },
+        step2: {
+            title: 'Details'
+        },
+        step3: {
+            title: 'Bind Phone Number'
+        },
+        nextStep: 'Next',
+        prevStep: 'Previous',
+        notSet: 'Not Set'
+    }
 } 

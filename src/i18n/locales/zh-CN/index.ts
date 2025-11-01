@@ -8,6 +8,7 @@ import teacher from './teacher'
 import student from './student'
 import course from './course'
 import chat from './chat'
+import info from './info'
 
 export default {
     app,
@@ -19,5 +20,6 @@ export default {
     teacher,
     student,
     course,
-    chat
+    chat,
+    info
 } 

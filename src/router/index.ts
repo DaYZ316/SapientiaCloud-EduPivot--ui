@@ -268,6 +268,15 @@ const routes: RouteRecordRaw[] = [
         }
     },
     {
+        path: '/info/select',
+        name: 'IdentitySelect',
+        component: () => import('@/views/info/select/index.vue'),
+        meta: {
+            title: '身份选择',
+            requiresAuth: true
+        }
+    },
+    {
         path: '/:pathMatch(.*)*',
         name: 'NotFound',
         component: () => import('@/components/common/NotFound.vue'),
@@ -301,37 +310,57 @@ router.beforeEach(async (to, _from, next) => {
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
     const userStore = useUserStore()
 
-    // 如果有token但用户信息不完整，尝试验证token
-    if (userStore.token && !userStore.isLogin) {
-        // 验证token有效性
-        const isValid = await userStore.validateToken()
-        if (isValid) {
-            // 尝试恢复用户信息
-            await userStore.refreshUserInfo()
+    // 如果有token，确保用户信息已加载
+    if (userStore.token) {
+        // 如果登录状态未设置或用户信息未加载，尝试验证并刷新用户信息
+        if (!userStore.isLogin || !userStore.userInfo) {
+            // 验证token有效性
+            const isValid = await userStore.validateToken()
+            if (isValid) {
+                // 尝试刷新用户信息
+                await userStore.refreshUserInfo()
+            } else {
+                // token无效，清除状态
+                userStore.resetUserState()
+            }
         }
     }
 
     // 根路径特殊处理，检查JWT并重定向
     if (to.path === '/') {
-        if (userStore.token) {
-            // 验证token有效性
-            const isValid = await userStore.validateToken()
-            if (isValid) {
-                // 如果JWT存在且有效，直接重定向到主页
-                return next('/dashboard')
-            } else {
-                // 如果JWT无效，重定向到登录页
-                return next('/login')
+        if (userStore.token && userStore.isLogin) {
+            // 如果JWT存在且有效，检查是否需要填写信息
+            if (userStore.needsIdentityInfo) {
+                return next('/info/select')
             }
+            // 如果JWT存在且有效，直接重定向到主页
+            return next('/dashboard')
         } else {
-            // 如果JWT不存在，重定向到登录页
+            // 如果JWT不存在或无效，重定向到登录页
             return next('/login')
         }
     }
 
+    // 如果已登录且需要填写信息，拦截所有跳转（登录页面除外）
+    if (userStore.token && userStore.isLogin && userStore.needsIdentityInfo) {
+        // 允许访问登录页面（用于退出登录）
+        if (to.name === 'Login') {
+            next()
+            return
+        }
+        // 如果目标页面就是身份选择页面，允许访问
+        if (to.name === 'IdentitySelect') {
+            next()
+            return
+        }
+        // 拦截所有其他跳转，重定向到信息填写选择页面
+        next('/info/select')
+        return
+    }
+
     if (requiresAuth && !userStore.isLogin) {
         next({name: 'Login', query: {redirect: to.fullPath}})
-    } else if (to.name === 'Login' && userStore.isLogin) {
+    } else if (to.name === 'Login' && userStore.isLogin && !userStore.needsIdentityInfo) {
         next({name: 'Dashboard'})
     } else {
         next()

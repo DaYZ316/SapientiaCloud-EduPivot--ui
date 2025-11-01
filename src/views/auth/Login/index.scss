@@ -1,111 +1,314 @@
+@use '@/assets/styles/index.scss' as *;
+
 .login-card {
-  background: var(--card-background-color);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 32px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  background: color-mix(in srgb, var(--background-color) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
+  border-radius: 36px;
+  padding: 24px 36px;
+  box-shadow: 0 8px 32px 0 var(--shadow-secondary-color);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   width: 100%;
+  transition: box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
 
-  .brand-section {
-    text-align: center;
-    margin-bottom: 32px;
-
-    .brand-title {
-      font-size: 1.75rem;
-      font-weight: 600;
-      color: var(--text-color);
-      margin: 0;
+  .login-card-header {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    position: relative;
+    padding-bottom: 16px;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--border-color);
+    }
+    
+    .n-button-group {
+      width: 100%;
+      display: flex;
+      gap: 8px;
+      
+      .n-button {
+        flex: 1;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 500;
+        height: 42px;
+        transition: all 0.3s ease;
+      }
     }
   }
 
-  .login-form {
+  .n-form {
+    margin-top: 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+
     .n-form-item {
-      margin-bottom: 20px;
+      margin-bottom: 0;
+
+      // 下半部分的元素之间的间距
+      &:has(.login-button) {
+        margin-bottom: 8px;
+      }
+
+      &:has(.social-login-divider) {
+        margin-bottom: 8px;
+      }
+
+      &:has(.github-login-button) {
+        margin-bottom: 0;
+      }
+
+      &:last-child {
+        padding-bottom: 0;
+        margin-bottom: 0;
+      }
 
       .n-input {
-        border-radius: 8px;
+        border-radius: 10px;
+        background: transparent;
+        border-color: var(--primary-color) !important;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+
+        &:hover {
+          border-color: var(--primary-color) !important;
+          box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 20%, transparent);
+        }
+
+        &:focus,
+        &:focus-within {
+          border-color: var(--primary-color) !important;
+        }
 
         &:focus-within {
-          border-color: var(--primary-color);
-          box-shadow: 0 0 0 2px rgba(24, 160, 88, 0.2);
+          box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 20%, transparent);
+        }
+
+        :deep(*) {
+          border-color: var(--primary-color) !important;
         }
       }
     }
 
-    .form-options {
+    .login-options {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
+      justify-content: space-between;
+      padding-top: 0;
+      width: 100%;
 
       .n-checkbox {
         color: var(--text-secondary-color);
       }
+    }
 
-      .n-button {
-        color: var(--primary-color);
+    .verification-code-wrapper {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      width: 100%;
+      
+      .n-input-otp {
+        flex: 1;
+        min-width: 0;
 
-        &:hover {
-          color: var(--primary-color);
-          opacity: 0.8;
+        :deep(.n-input) {
+          background: transparent;
+          transition: border-color 0.3s ease, box-shadow 0.3s ease;
+
+          .n-input__border {
+            border-color: var(--primary-color) !important;
+          }
+        }
+
+        :deep(.n-input:hover) {
+          box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 20%, transparent);
+        }
+
+        :deep(.n-input:hover .n-input__border),
+        :deep(.n-input:focus-within .n-input__border) {
+          border-color: var(--primary-color) !important;
+        }
+
+        :deep(.n-input:focus-within) {
+          box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 20%, transparent);
         }
       }
+
+      .n-button {
+        flex-shrink: 0;
+        border-radius: 10px;
+        white-space: nowrap;
+      }
     }
 
-    .n-button[type="primary"] {
+    .login-button {
       width: 100%;
       height: 44px;
-      border-radius: 8px;
+      border-radius: 10px;
       font-weight: 500;
+      font-size: 15px;
       background: var(--primary-color);
       border-color: var(--primary-color);
+      transition: all 0.3s ease;
+      margin-top: 0;
+      margin-bottom: 0;
+      box-shadow: 0 2px 8px color-mix(in srgb, var(--primary-color) 30%, transparent);
 
-      &:hover {
-        background: var(--primary-color);
-        opacity: 0.9;
+      &:hover:not(:disabled):not(.n-button--loading) {
+        background: var(--color-primary-light);
+        border-color: var(--color-primary-light);
+        box-shadow: 0 4px 12px color-mix(in srgb, var(--primary-color) 40%, transparent);
+        transform: translateY(-1px);
       }
 
-      &:active {
-        background: var(--primary-color);
-        opacity: 0.8;
+      &:active:not(:disabled):not(.n-button--loading) {
+        background: var(--color-primary-dark);
+        border-color: var(--color-primary-dark);
+        box-shadow: 0 2px 6px color-mix(in srgb, var(--primary-color) 30%, transparent);
+        transform: translateY(0);
+      }
+
+      &:disabled,
+      &.n-button--loading {
+        opacity: 0.7;
+        cursor: not-allowed;
       }
     }
-  }
 
-  .register-section {
-    text-align: center;
-    margin-top: 24px;
-    padding-top: 24px;
-    border-top: 1px solid var(--border-color);
+    .social-login-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      margin: 8px 0;
+      gap: 12px;
 
-    span {
-      color: var(--text-secondary-color);
-      margin-right: 8px;
+      .divider-line {
+        flex: 1;
+        height: 1px;
+        background: var(--border-color);
+      }
+
+      .divider-text {
+        color: var(--text-secondary-color);
+        font-size: 13px;
+        white-space: nowrap;
+      }
     }
 
-    .n-button {
-      color: var(--primary-color);
+    .github-login-button {
+      width: 100%;
+      height: 44px;
+      border-radius: 10px;
+      font-weight: 500;
+      font-size: 15px;
+      transition: all 0.3s ease;
+      margin-top: 0;
+      margin-bottom: 0;
+      background: color-mix(in srgb, var(--background-color) 5%, transparent);
+      border-color: color-mix(in srgb, var(--border-color) 20%, transparent);
+      color: var(--text-color);
 
-      &:hover {
-        color: var(--primary-color);
-        opacity: 0.8;
+      &:hover:not(:disabled) {
+        background: color-mix(in srgb, var(--background-color) 10%, transparent);
+        border-color: color-mix(in srgb, var(--border-color) 30%, transparent);
+      }
+
+      &:active:not(:disabled) {
+        background: color-mix(in srgb, var(--background-color) 15%, transparent);
+      }
+
+      .n-icon {
+        margin-right: 8px;
       }
     }
   }
 }
 
 // 响应式设计
-@media (max-width: 480px) {
+@media (max-width: 768px) {
   .login-card {
-    padding: 24px;
-    margin: 16px;
+    padding: 20px 24px;
+    border-radius: 24px;
 
-    .brand-section .brand-title {
-      font-size: 1.5rem;
+    .login-card-header {
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+
+      .n-button-group {
+        .n-button {
+          height: 40px;
+          font-size: 14px;
+        }
+      }
     }
 
-    .login-form .n-button[type="primary"] {
-      height: 40px;
+    .n-form {
+      .n-form-item {
+        padding-bottom: 8px;
+      }
+
+      .login-button {
+        height: 42px;
+        font-size: 14px;
+      }
+
+      .social-login-divider {
+        margin: 6px 0;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 18px 20px;
+    margin: 16px;
+    border-radius: 20px;
+
+    .login-card-header {
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+
+      .n-button-group {
+        gap: 6px;
+
+        .n-button {
+          height: 38px;
+          font-size: 13px;
+        }
+      }
+    }
+
+    .n-form {
+      .n-form-item {
+        padding-bottom: 6px;
+      }
+
+      .verification-code-wrapper {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .login-button {
+        height: 42px;
+        font-size: 14px;
+      }
+
+      .social-login-divider {
+        margin: 6px 0;
+      }
     }
   }
 }

@@ -43,11 +43,13 @@ export default {
 
     // 注册相关
     registerSuccess: '注册成功',
+    registerSuccessTitle: '您已注册成功，是否前往登录？',
     registerFailed: '注册失败',
     registerInProgress: '注册中...',
     registerButton: '注册',
     uploadAvatar: '上传头像',
     usernameLengthError: '用户名长度应在3-20个字符之间',
+    usernameFormatError: '用户名只能包含4-20个英文字母或数字',
     passwordLengthError: '密码长度应在6-20个字符之间',
     confirmPasswordRequired: '请确认密码',
     passwordMismatch: '两次输入的密码不一致',
@@ -68,5 +70,24 @@ export default {
     phoneNumberHint: '请输入11位手机号',
     loginWithVerificationCode: '使用验证码登录',
     switchToPasswordLogin: '切换到密码登录',
-    switchToVerificationCodeLogin: '切换到验证码登录'
+    switchToVerificationCodeLogin: '切换到验证码登录',
+    orLoginWith: '或使用以下方式登录',
+    githubLogin: 'GitHub登录',
+    slogan: '智慧教育，开启未来学习之旅',
+
+    // 注册步骤相关
+    registerSteps: {
+        step1: {
+            title: '基本信息'
+        },
+        step2: {
+            title: '详细信息'
+        },
+        step3: {
+            title: '绑定手机号'
+        },
+        nextStep: '下一步',
+        prevStep: '上一步',
+        notSet: '未设置'
+    }
 } 

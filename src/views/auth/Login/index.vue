@@ -1,72 +1,187 @@
 <template>
-  <!-- 登录卡片 -->
   <div class="login-card">
-    <!-- 登录标题 -->
-    <div class="brand-section">
-      <h1 class="brand-title">{{ t('auth.login') }}</h1>
-    </div>
-
-    <!-- 登录表单 -->
-    <n-form ref="formRef" :model="loginForm" :rules="rules" class="login-form" size="large"
-            @keyup.enter="handleLogin">
-      <n-form-item :show-label="false" path="username">
-        <n-input v-model:value="loginForm.username" :placeholder="t('auth.username')"
-                 clearable>
-          <template #prefix>
-            <n-icon>
-              <Icon :component="PersonOutline"/>
-            </n-icon>
-          </template>
-        </n-input>
-      </n-form-item>
-
-      <n-form-item :show-label="false" path="password">
-        <n-input v-model:value="loginForm.password" :placeholder="t('auth.password')" clearable
-                 show-password-on="click" type="password">
-          <template #prefix>
-            <n-icon>
-              <Icon :component="LockClosedOutline"/>
-            </n-icon>
-          </template>
-        </n-input>
-      </n-form-item>
-
-      <!-- 记住我和忘记密码 -->
-      <div class="form-options">
-        <n-checkbox v-model:checked="rememberMe">
-          {{ t('auth.rememberMe') }}
-        </n-checkbox>
-        <n-button text>
-          {{ t('auth.forgotPassword') }}
+    <div class="login-card-header">
+      <n-button-group size="large">
+        <n-button
+          :type="loginType === 'password' ? 'primary' : 'default'"
+          @click="loginType = 'password'; handleLoginTypeChange('password')"
+        >
+          {{ t('auth.passwordLogin') }}
         </n-button>
-      </div>
-
-      <!-- 登录按钮 -->
-      <n-button :loading="loading" size="large" style="width: 100%;" type="primary" @click="handleLogin">
-        {{ loading ? t('auth.loginInProgress') : t('auth.login') }}
-      </n-button>
-    </n-form>
-
-    <!-- 注册链接 -->
-    <div class="register-section">
-      <span>{{ t('auth.noAccount') }}</span>
-      <n-button text @click="$emit('switchToRegister')">
-        {{ t('auth.register') }}
-      </n-button>
+        <n-button
+          :type="loginType === 'verification' ? 'primary' : 'default'"
+          @click="loginType = 'verification'; handleLoginTypeChange('verification')"
+        >
+          {{ t('auth.verificationCodeLogin') }}
+        </n-button>
+      </n-button-group>
     </div>
+    <!-- 密码登录表单 -->
+    <n-form
+      v-if="loginType === 'password'"
+      ref="passwordFormRef"
+      :model="passwordForm"
+      :rules="passwordRules"
+      size="large"
+      :show-label="false"
+    >
+      <n-form-item path="username">
+        <n-input
+          v-model:value="passwordForm.username"
+          :placeholder="t('auth.username')"
+          clearable
+        />
+      </n-form-item>
+      <n-form-item path="password">
+        <n-input
+          v-model:value="passwordForm.password"
+          type="password"
+          :placeholder="t('auth.password')"
+          show-password-on="click"
+          clearable
+          @keyup.enter="handlePasswordLogin"
+        />
+      </n-form-item>
+      <n-form-item>
+        <div class="login-options">
+          <n-checkbox v-model:checked="rememberMe">
+            {{ t('auth.rememberMe') }}
+          </n-checkbox>
+          <n-button text type="primary">
+            {{ t('auth.forgotPassword') }}
+          </n-button>
+        </div>
+      </n-form-item>
+      <n-form-item>
+        <n-button
+          class="login-button"
+          type="primary"
+          size="large"
+          block
+          :loading="loading"
+          @click="handlePasswordLogin"
+        >
+          {{ t('auth.login') }}
+        </n-button>
+      </n-form-item>
+      <n-form-item>
+        <div class="social-login-divider">
+          <span class="divider-line"></span>
+          <span class="divider-text">{{ t('auth.orLoginWith') }}</span>
+          <span class="divider-line"></span>
+        </div>
+      </n-form-item>
+      <n-form-item>
+        <n-button
+          class="github-login-button"
+          size="large"
+          block
+          :disabled="loading"
+          @click="handleGithubLogin"
+        >
+          <template #icon>
+            <n-icon>
+              <Icon :component="LogoGithub" />
+            </n-icon>
+          </template>
+          {{ t('auth.githubLogin') }}
+        </n-button>
+      </n-form-item>
+    </n-form>
+    <!-- 验证码登录表单 -->
+    <n-form
+      v-else
+      ref="verificationFormRef"
+      :model="verificationForm"
+      :rules="verificationRules"
+      size="large"
+      :show-label="false"
+    >
+      <n-form-item path="mobile">
+        <n-input
+          v-model:value="verificationForm.mobile"
+          :placeholder="t('auth.phone')"
+          clearable
+          maxlength="11"
+        />
+      </n-form-item>
+      <n-form-item path="verificationCode">
+        <div class="verification-code-wrapper">
+          <n-input-otp
+            v-model:value="verificationForm.verificationCode"
+            :length="6"
+            size="large"
+            @keyup.enter="handleVerificationLogin"
+          />
+          <n-button
+            :disabled="countdown > 0 || !verificationForm.mobile || verificationForm.mobile.length !== 11"
+            :loading="sendingCode"
+            size="large"
+            @click="sendVerificationCode"
+          >
+            {{ countdown > 0 ? `${countdown}${t('auth.verificationCodeCountdown')}` : t('auth.sendVerificationCode') }}
+          </n-button>
+        </div>
+      </n-form-item>
+      <n-form-item>
+        <div class="login-options">
+          <n-checkbox v-model:checked="rememberMe">
+            {{ t('auth.rememberMe') }}
+          </n-checkbox>
+          <n-button text type="primary">
+            {{ t('auth.forgotPassword') }}
+          </n-button>
+        </div>
+      </n-form-item>
+      <n-form-item>
+        <n-button
+          class="login-button"
+          type="primary"
+          size="large"
+          block
+          :loading="loading"
+          @click="handleVerificationLogin"
+        >
+          {{ t('auth.login') }}
+        </n-button>
+      </n-form-item>
+      <n-form-item>
+        <div class="social-login-divider">
+          <span class="divider-line"></span>
+          <span class="divider-text">{{ t('auth.orLoginWith') }}</span>
+          <span class="divider-line"></span>
+        </div>
+      </n-form-item>
+      <n-form-item>
+        <n-button
+          class="github-login-button"
+          size="large"
+          block
+          :disabled="loading"
+          @click="handleGithubLogin"
+        >
+          <template #icon>
+            <n-icon>
+              <Icon :component="LogoGithub" />
+            </n-icon>
+          </template>
+          {{ t('auth.githubLogin') }}
+        </n-button>
+      </n-form-item>
+    </n-form>
   </div>
 </template>
 
 <script lang="ts" setup>
-import {reactive, ref} from 'vue'
+import {onUnmounted, reactive, ref} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useRouter} from 'vue-router'
 import {type FormInst, type FormRules, useMessage} from 'naive-ui'
 import Icon from '@/components/common/Icon.vue'
-import {LockClosedOutline, PersonOutline} from '@vicons/ionicons5'
+import {LogoGithub} from '@vicons/ionicons5'
 import {useUserStore} from '@/store'
-import {getDefaultSysUserLoginDTO} from '@/api/auth'
-import type {SysUserLoginDTO} from '@/types/auth'
+import {getDefaultSysUserLoginDTO, getDefaultSysUserMobileLoginDTO, sendVerificationCode as sendVerificationCodeAPI, getDefaultSendVerificationCodeDTO} from '@/api/auth'
+import type {SysUserLoginDTO, SysUserMobileLoginDTO} from '@/types/auth'
 
 // 定义事件
 defineEmits<{
@@ -79,16 +194,33 @@ const router = useRouter()
 const message = useMessage()
 const {t} = useI18n()
 
+// 登录方式
+const loginType = ref<'password' | 'verification'>('password')
+
 // 表单引用和状态
-const formRef = ref<FormInst | null>(null)
+const passwordFormRef = ref<FormInst | null>(null)
+const verificationFormRef = ref<FormInst | null>(null)
 const loading = ref(false)
+const sendingCode = ref(false)
 const rememberMe = ref(false)
+const countdown = ref(0)
+let countdownTimer: NodeJS.Timeout | null = null
 
-// 登录表单数据
-const loginForm = reactive<SysUserLoginDTO>(getDefaultSysUserLoginDTO())
+// 密码登录表单数据
+const passwordForm = reactive<SysUserLoginDTO>(getDefaultSysUserLoginDTO())
 
-// 登录表单验证规则
-const rules: FormRules = {
+// 验证码登录表单数据
+// n-input-otp 返回的是数组类型，但在提交时需要转换为字符串
+interface VerificationForm extends Omit<SysUserMobileLoginDTO, 'verificationCode'> {
+  verificationCode: string | string[] | null
+}
+const verificationForm = reactive<VerificationForm>({
+  ...getDefaultSysUserMobileLoginDTO(),
+  verificationCode: null
+})
+
+// 密码登录表单验证规则
+const passwordRules: FormRules = {
   username: [
     {
       required: true,
@@ -105,34 +237,139 @@ const rules: FormRules = {
   ]
 }
 
-// 处理登录
-const handleLogin = async () => {
-  if (!formRef.value || loading.value) return
+// 验证码登录表单验证规则
+const verificationRules: FormRules = {
+  mobile: [
+    {
+      required: true,
+      message: t('auth.phoneRequired'),
+      trigger: 'blur'
+    },
+    {
+      pattern: /^1[3-9]\d{9}$/,
+      message: t('auth.phoneFormatError'),
+      trigger: 'blur'
+    }
+  ],
+  verificationCode: [
+    {
+      required: true,
+      message: t('auth.verificationCodeRequired'),
+      trigger: 'blur',
+      validator: (_rule, value) => {
+        const code = Array.isArray(value) ? value.join('') : value || ''
+        if (!code || code.length === 0) {
+          return new Error(t('auth.verificationCodeRequired'))
+        }
+        if (!/^\d{6}$/.test(code)) {
+          return new Error(t('auth.verificationCodeFormatError'))
+        }
+        return true
+      }
+    }
+  ]
+}
 
-  await formRef.value.validate()
+// 发送验证码
+const sendVerificationCode = async () => {
+  if (!verificationForm.mobile || verificationForm.mobile.length !== 11 || sendingCode.value) {
+    return
+  }
 
-  // 开始登录，设置loading状态
+  sendingCode.value = true
+
+  const params = getDefaultSendVerificationCodeDTO()
+  params.mobile = verificationForm.mobile
+
+  const result = await sendVerificationCodeAPI(params).catch(() => null)
+
+  if (result) {
+    message.success(t('auth.verificationCodeSentSuccess'))
+    startCountdown()
+  }
+
+  sendingCode.value = false
+}
+
+// 开始倒计时
+const startCountdown = () => {
+  countdown.value = 60
+  countdownTimer = setInterval(() => {
+    countdown.value--
+    if (countdown.value <= 0) {
+      if (countdownTimer) {
+        clearInterval(countdownTimer)
+        countdownTimer = null
+      }
+    }
+  }, 1000)
+}
+
+// 处理密码登录
+const handlePasswordLogin = async () => {
+  if (!passwordFormRef.value || loading.value) return
+
+  const valid = await passwordFormRef.value.validate().catch(() => false)
+  if (!valid) {
+    return
+  }
+
+  if (loading.value) return
+
   loading.value = true
 
   const success = await userStore.login(
-      loginForm.username || '',
-      loginForm.password || ''
-  )
+      passwordForm.username || '',
+      passwordForm.password || ''
+  ).catch(() => false)
 
   if (success) {
-    // 记住我功能
     if (rememberMe.value) {
-      localStorage.setItem('rememberedUsername', loginForm.username || '')
+      localStorage.setItem('rememberedUsername', passwordForm.username || '')
     } else {
       localStorage.removeItem('rememberedUsername')
     }
 
     message.success(t('auth.loginSuccess'))
-    // 跳转到首页
     router.push('/dashboard')
   }
 
-  // 无论成功还是失败，都要关闭loading状态
+  loading.value = false
+}
+
+// 处理验证码登录
+const handleVerificationLogin = async () => {
+  if (!verificationFormRef.value || loading.value) return
+
+  const valid = await verificationFormRef.value.validate().catch(() => false)
+  if (!valid) {
+    return
+  }
+
+  if (loading.value) return
+
+  loading.value = true
+
+  const verificationCode = Array.isArray(verificationForm.verificationCode)
+    ? verificationForm.verificationCode.join('')
+    : verificationForm.verificationCode || ''
+
+  const success = await userStore.loginWithVerificationCode(
+      verificationForm.mobile || '',
+      verificationCode
+  ).catch(() => false)
+
+  if (success) {
+    if (rememberMe.value) {
+      localStorage.setItem('rememberedPhone', verificationForm.mobile || '')
+    } else {
+      localStorage.removeItem('rememberedPhone')
+    }
+
+    message.success(t('auth.verificationCodeLoginSuccess'))
+    router.push('/dashboard')
+  }
+
   loading.value = false
 }
 
@@ -140,13 +377,45 @@ const handleLogin = async () => {
 const initRememberedUsername = () => {
   const rememberedUsername = localStorage.getItem('rememberedUsername')
   if (rememberedUsername) {
-    loginForm.username = rememberedUsername
+    passwordForm.username = rememberedUsername
     rememberMe.value = true
   }
 }
 
+// 初始化记住的手机号
+const initRememberedPhone = () => {
+  const rememberedPhone = localStorage.getItem('rememberedPhone')
+  if (rememberedPhone) {
+    verificationForm.mobile = rememberedPhone
+    rememberMe.value = true
+  }
+}
+
+// 监听登录方式切换
+const handleLoginTypeChange = (value: 'password' | 'verification') => {
+  if (value === 'password') {
+    initRememberedUsername()
+  } else {
+    initRememberedPhone()
+  }
+}
+
+// 处理GitHub登录
+const handleGithubLogin = () => {
+  // TODO: 实现GitHub OAuth登录逻辑
+  // window.location.href = '/api/auth/github'
+}
+
 // 组件挂载时初始化
 initRememberedUsername()
+
+// 组件卸载时清理定时器
+onUnmounted(() => {
+  if (countdownTimer) {
+    clearInterval(countdownTimer)
+    countdownTimer = null
+  }
+})
 </script>
 
 <style lang="scss" scoped>

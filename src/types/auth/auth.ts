@@ -3,6 +3,8 @@
  */
 import type {SysRoleVO} from '../system/role'
 import type {SysPermissionVO} from '../system/permission'
+import type {StudentAddDTO} from '../student'
+import type {TeacherAddDTO} from '../teacher'
 
 /**
  * 系统用户登录请求DTO
@@ -93,7 +95,11 @@ export interface SysUserRegisterDTO {
     /** 用户头像URL */
     avatar?: string | null
     /** 用户昵称 */
-    nickName: string | null
+    nickName?: string | null
+    /** 手机号码，用于接收短信验证码 */
+    mobile: string | null
+    /** 注册验证码（短信或邮件验证码） */
+    verificationCode: string | null
 }
 
 /**
@@ -116,4 +122,24 @@ export interface SysUserMobileLoginDTO {
     mobile: string | null
     /** 手机验证码 */
     verificationCode: string | null
+}
+
+/**
+ * 发送验证码DTO
+ */
+export interface SendVerificationCodeDTO {
+    /** 手机号码，用于接收短信验证码 */
+    mobile: string | null
+}
+
+/**
+ * 身份选择DTO
+ */
+export interface SelectIdentityDTO {
+    /** 身份类型 (student=学生, teacher=教师) */
+    identityType: string | null
+    /** 学生添加信息数据传输对象 */
+    studentInfo?: StudentAddDTO | null
+    /** 教师添加信息数据传输对象 */
+    teacherInfo?: TeacherAddDTO | null
 }

@@ -154,12 +154,9 @@ const savePersonalSettings = () => {
 
       const res = await updateUserProfile(userData)
       if (res.success && res.data) {
-        // 更新成功后刷新用户信息到store
-        await userStore.refreshUserInfo()
-        // 重新初始化表单数据，确保显示最新信息
-        initFormData()
+        // 更新成功后刷新用户信息到store（强制刷新）
+        await userStore.refreshUserInfo(true)
         message.success(t('settings.personal.updateSuccess'))
-      } else {
       }
     }
   })

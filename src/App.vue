@@ -1,8 +1,10 @@
 <script lang="ts" setup>
 import {darkTheme} from 'naive-ui'
 import {useThemeStore, useUserStore} from '@/store'
-import {computed, nextTick, onMounted, ref} from 'vue'
+import {computed, nextTick, onBeforeMount, onMounted, ref} from 'vue'
 import {setGlobalApis} from '@/utils/naiveUIHelper'
+import AuthTransition from '@/components/common/AuthTransition.vue'
+import {setThemeTransitionClass} from '@/utils/themeAnimation'
 
 const themeStore = useThemeStore()
 const userStore = useUserStore()
@@ -16,6 +18,11 @@ const loadingBarProviderRef = ref()
 
 // 初始化主题
 themeStore.initSettings()
+
+// 提升暗黑主题下页面刷新视觉体验
+onBeforeMount(() => {
+  setThemeTransitionClass(true)
+})
 
 // 计算当前主题
 const currentTheme = computed(() => {
@@ -46,6 +53,9 @@ const initGlobalApis = () => {
 
 // 在应用启动时检查登录状态并刷新用户信息
 onMounted(async () => {
+  // 提升暗黑主题下页面刷新视觉体验
+  setThemeTransitionClass(false)
+
   // 首先确保DOM渲染完成并初始化全局API
   await nextTick()
   initGlobalApis()
@@ -71,10 +81,46 @@ onMounted(async () => {
       <n-dialog-provider ref="dialogProviderRef">
         <n-notification-provider ref="notificationProviderRef">
           <n-loading-bar-provider ref="loadingBarProviderRef">
-            <router-view/>
+            <AuthTransition />
+            <router-view v-slot="{ Component }">
+              <transition mode="out-in" name="slide-fade">
+                <component :is="Component"/>
+              </transition>
+            </router-view>
           </n-loading-bar-provider>
         </n-notification-provider>
       </n-dialog-provider>
     </n-message-provider>
   </n-config-provider>
 </template>
+
+<style lang="scss">
+// 过渡动画 - 右渐出左渐进
+.slide-fade-enter-active {
+  transition: all 0.35s ease-out;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.3s ease-in;
+}
+
+.slide-fade-enter-from {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+.slide-fade-enter-to {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.slide-fade-leave-from {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.slide-fade-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+</style>

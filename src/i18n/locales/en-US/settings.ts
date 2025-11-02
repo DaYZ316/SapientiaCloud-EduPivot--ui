@@ -80,6 +80,12 @@ export default {
         passwordChangeSuccess: 'Password changed successfully',
         passwordChangeFail: 'Failed to change password',
         passwordChangeRedirect: 'Password has been changed, you need to login again',
+        changePasswordByCode: 'Change Password by Code',
+        passwordByCodeDesc: 'Change password via mobile verification code without entering current password',
+        verificationCode: 'Verification Code',
+        verificationCodePlaceholder: 'Please enter verification code',
+        verificationCodeRequired: 'Verification code is required',
+        verificationCodeFormatError: 'Invalid verification code format',
         accountStatus: 'Account Status',
         statusNormal: 'Normal',
         statusDisabled: 'Disabled',
@@ -161,7 +167,8 @@ export default {
             add: 'Add User',
             edit: 'Edit',
             delete: 'Delete',
-            assignRole: 'Assign Role'
+            assignRole: 'Assign Role',
+            resetPassword: 'Reset Password'
         },
         table: {
             userId: 'User ID',
@@ -210,7 +217,9 @@ export default {
             teacherInfoSuccess: 'Teacher information added successfully',
             teacherInfoFail: 'Failed to add teacher information',
             studentInfoExists: 'User already has student information, completing role assignment',
-            teacherInfoExists: 'User already has teacher information, completing role assignment'
+            teacherInfoExists: 'User already has teacher information, completing role assignment',
+            resetPasswordConfirm: 'Are you sure you want to reset this user\'s password to 123456?',
+            resetPasswordSuccess: 'Password reset successfully'
         },
         addUser: {
             title: 'Add User',

@@ -1,5 +1,5 @@
 import http from '@/utils/http'
-import type {SysUserAdminDTO, SysUserDTO, SysUserProfileDTO, UserPageQueryDTO} from '@/types/system/user'
+import type {SysUserAdminDTO, SysUserDTO, SysUserProfileDTO, SysUserMobileLoginDTO, UserPageQueryDTO} from '@/types/system/user'
 
 // 获取默认用户查询对象
 export function getDefaultUserQuery(): UserPageQueryDTO {
@@ -101,4 +101,22 @@ export function addSysUser(data: SysUserAdminDTO) {
 // 更新用户个人信息
 export function updateUserProfile(data: SysUserProfileDTO) {
     return http.put('/system/user/profile', data)
+}
+
+// 获取默认手机登录DTO
+export function getDefaultSysUserMobileLoginDTO(): SysUserMobileLoginDTO {
+    return {
+        mobile: null,
+        verificationCode: null
+    }
+}
+
+// 手机验证码登录
+export function mobileLogin(params: SysUserMobileLoginDTO) {
+    return http.post('/system/user/mobile-login', params)
+}
+
+// 重置用户密码
+export function resetPassword(id: string) {
+    return http.put(`/system/user/${id}/reset-password`)
 }

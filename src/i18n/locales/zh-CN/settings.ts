@@ -80,6 +80,12 @@ export default {
         passwordChangeSuccess: '密码修改成功',
         passwordChangeFail: '密码修改失败',
         passwordChangeRedirect: '密码已修改，需要重新登录',
+        changePasswordByCode: '验证码修改密码',
+        passwordByCodeDesc: '通过手机验证码修改密码，无需输入当前密码',
+        verificationCode: '验证码',
+        verificationCodePlaceholder: '请输入验证码',
+        verificationCodeRequired: '验证码不能为空',
+        verificationCodeFormatError: '验证码格式不正确',
         accountStatus: '账号状态',
         statusNormal: '正常',
         statusDisabled: '已禁用',
@@ -161,7 +167,8 @@ export default {
             add: '新增用户',
             edit: '编辑',
             delete: '删除',
-            assignRole: '分配角色'
+            assignRole: '分配角色',
+            resetPassword: '重置密码'
         },
         table: {
             userId: '用户ID',
@@ -214,7 +221,9 @@ export default {
             studentRoleAssignSuccess: '学生角色分配成功',
             studentRoleAssignFail: '学生角色分配失败',
             teacherRoleAssignSuccess: '教师角色分配成功',
-            teacherRoleAssignFail: '教师角色分配失败'
+            teacherRoleAssignFail: '教师角色分配失败',
+            resetPasswordConfirm: '确定要重置该用户的密码为123456吗？',
+            resetPasswordSuccess: '重置密码成功'
         },
         addUser: {
             title: '添加用户',

@@ -73,6 +73,8 @@ export default {
     switchToVerificationCodeLogin: '切换到验证码登录',
     orLoginWith: '或使用以下方式登录',
     githubLogin: 'GitHub登录',
+    oauth2Processing: '正在处理OAuth2登录...',
+    oauth2CallbackFailed: 'OAuth2登录失败',
     slogan: '智慧教育，开启未来学习之旅',
 
     // 注册步骤相关

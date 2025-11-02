@@ -1,5 +1,5 @@
 import http from '@/utils/http'
-import type {SysUserLoginDTO, SysUserMobileLoginDTO, SysUserPasswordDTO, SysUserRegisterDTO, SendVerificationCodeDTO, SelectIdentityDTO} from '@/types/auth'
+import type {SysUserLoginDTO, SysUserMobileLoginDTO, SysUserPasswordDTO, SysUserRegisterDTO, SendVerificationCodeDTO, SelectIdentityDTO, BindMobileDTO, SysUserMobilePasswordDTO} from '@/types/auth'
 
 // 获取默认用户登录DTO
 export function getDefaultSysUserLoginDTO(): SysUserLoginDTO {
@@ -105,12 +105,36 @@ export function selectIdentity(params: SelectIdentityDTO) {
     return http.post('/auth/identity/select', params)
 }
 
-// OAuth2 授权
-export function authorize(provider: string) {
-    return http.get(`/auth/oauth2/authorize/${provider}`)
+// 获取默认绑定手机号DTO
+export function getDefaultBindMobileDTO(): BindMobileDTO {
+    return {
+        mobile: null,
+        verificationCode: null,
+        userId: null
+    }
 }
 
-// OAuth2 回调
-export function oauth2Callback(provider: string, code: string, state: string) {
-    return http.get(`/auth/oauth2/callback/${provider}`, {code, state})
+// 绑定手机号
+export function bindMobile(params: BindMobileDTO) {
+    return http.post('/auth/bind-mobile', params)
+}
+
+// 检查手机号是否可用
+export function checkMobile(mobile: string) {
+    return http.get('/auth/check-mobile', {mobile})
+}
+
+// 获取默认手机修改密码DTO
+export function getDefaultSysUserMobilePasswordDTO(): SysUserMobilePasswordDTO {
+    return {
+        mobile: null,
+        verificationCode: null,
+        newPassword: null,
+        confirmPassword: null
+    }
+}
+
+// 通过手机验证码修改密码
+export function updatePasswordByMobile(data: SysUserMobilePasswordDTO) {
+    return http.put('/auth/mobile-password', data)
 } 

@@ -143,3 +143,29 @@ export interface SelectIdentityDTO {
     /** 教师添加信息数据传输对象 */
     teacherInfo?: TeacherAddDTO | null
 }
+
+/**
+ * 绑定手机号DTO
+ */
+export interface BindMobileDTO {
+    /** 手机号码 */
+    mobile: string | null
+    /** 手机验证码 */
+    verificationCode: string | null
+    /** 用户ID（可选，如果不传则从当前登录用户获取，或用于第三方登录场景） */
+    userId?: string | null
+}
+
+/**
+ * 通过手机验证码修改密码DTO
+ */
+export interface SysUserMobilePasswordDTO {
+    /** 手机号码 */
+    mobile: string | null
+    /** 手机验证码 */
+    verificationCode: string | null
+    /** 新密码 */
+    newPassword: string | null
+    /** 确认密码 */
+    confirmPassword: string | null
+}

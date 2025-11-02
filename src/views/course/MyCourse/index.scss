@@ -7,9 +7,12 @@
   margin-bottom: 16px;
   gap: 16px;
 
+  .search-form {
+    flex: 1;
+  }
+
   .enroll-course-btn {
     flex-shrink: 0;
-    height: 34px;
   }
 }
 

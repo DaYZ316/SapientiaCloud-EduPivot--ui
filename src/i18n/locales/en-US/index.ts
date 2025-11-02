@@ -10,6 +10,7 @@ import course from './course'
 import chat from './chat'
 import info from './info'
 import classroom from './classroom'
+import header from './header'
 
 export default {
     app,
@@ -23,5 +24,6 @@ export default {
     course,
     chat,
     info,
-    classroom
+    classroom,
+    header
 } 

@@ -17,3 +17,14 @@
 .password-card, .security-card {
   margin-bottom: 16px;
 }
+
+.verification-code-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+
+  .n-input-otp {
+    flex: 1;
+  }
+}

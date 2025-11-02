@@ -1,13 +1,6 @@
 <template>
   <div class="user-management-container">
-    <div class="page-header">
-      <n-button circle quaternary @click="goBack">
-        <template #icon>
-          <Icon :component="ArrowBackOutline"/>
-        </template>
-      </n-button>
-      <h1 class="page-title">{{ t('menu.user') }}</h1>
-    </div>
+    <PageHeader :title="t('menu.user')"/>
 
     <n-card size="small">
       <!-- 搜索表单 -->
@@ -224,7 +217,7 @@ import {computed, h, reactive, ref} from 'vue'
 import {NEllipsis, NSwitch} from 'naive-ui'
 import {
   AddOutline,
-  ArrowBackOutline,
+  KeyOutline,
   PeopleOutline,
   RefreshOutline,
   SearchOutline,
@@ -233,8 +226,8 @@ import {
 import * as userApi from '@/api/system/user'
 import type * as userType from '@/types/system/user'
 import {useI18n} from 'vue-i18n'
-import {useRouter} from 'vue-router'
 import {GenderEnum, getGenderLabel, StatusEnum} from '@/enum/common'
+import PageHeader from '@/components/common/PageHeader.vue'
 import {getAcademicStatusOptions} from '@/enum/student'
 import {getEducationOptions} from '@/enum/teacher'
 import Icon from '@/components/common/Icon.vue'
@@ -249,7 +242,6 @@ import {useUserStore} from '@/store'
 
 const {message, dialog} = getDiscreteApi()
 const {t, locale} = useI18n()
-const router = useRouter()
 const userStore = useUserStore()
 
 // 是否为英文环境
@@ -299,11 +291,6 @@ const addUserForm = reactive<userType.SysUserAdminDTO>(userApi.getDefaultSysUser
 // 使用角色分配 composable
 const roleAssignment = useRoleAssignment()
 
-// 返回上一页
-function goBack() {
-  router.back()
-}
-
 // 更新用户状态
 async function updateUserStatus(row: userType.SysUserVO, value: boolean) {
   const newStatus = value ? StatusEnum.NORMAL : StatusEnum.DISABLED;
@@ -346,6 +333,14 @@ const renderStatusControl = (row: userType.SysUserVO) => {
 
 const renderActions = (row: userType.SysUserVO) => {
   return [
+    h('button', {
+      class: 'n-button n-button--text',
+      style: {marginRight: '8px'},
+      onClick: () => handleResetPassword(row)
+    }, [
+      renderIcon(KeyOutline)(),
+      ' ' + t('settings.user.actions.resetPassword')
+    ]),
     h('button', {
       class: 'n-button n-button--text',
       style: {marginRight: '8px'},
@@ -400,6 +395,20 @@ function onDateRangeChange(value: [number, number] | null) {
 // 数据更新处理函数
 function onDataUpdate(data: userType.SysUserVO[]) {
   userList.value = data
+}
+
+// 重置密码
+async function handleResetPassword(row: userType.SysUserVO) {
+  dialog.warning({
+    title: t('settings.user.actions.resetPassword'),
+    content: t('settings.user.messages.resetPasswordConfirm'),
+    positiveText: t('common.confirm'),
+    negativeText: t('common.cancel'),
+    onPositiveClick: async () => {
+      await userApi.resetPassword(row.id)
+      message.success(t('settings.user.messages.resetPasswordSuccess'))
+    }
+  })
 }
 
 // 删除用户

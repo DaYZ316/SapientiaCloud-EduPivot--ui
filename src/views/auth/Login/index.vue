@@ -182,6 +182,7 @@ import {LogoGithub} from '@vicons/ionicons5'
 import {useUserStore} from '@/store'
 import {getDefaultSysUserLoginDTO, getDefaultSysUserMobileLoginDTO, sendVerificationCode as sendVerificationCodeAPI, getDefaultSendVerificationCodeDTO} from '@/api/auth'
 import type {SysUserLoginDTO, SysUserMobileLoginDTO} from '@/types/auth'
+import {getApiBaseUrl, defaultServerConfig} from '@/config/server'
 
 // 定义事件
 defineEmits<{
@@ -402,8 +403,8 @@ const handleLoginTypeChange = (value: 'password' | 'verification') => {
 
 // 处理GitHub登录
 const handleGithubLogin = () => {
-  // TODO: 实现GitHub OAuth登录逻辑
-  // window.location.href = '/api/auth/github'
+  const baseUrl = import.meta.env.DEV ? '/api' : getApiBaseUrl(defaultServerConfig)
+  window.location.href = `${baseUrl}/auth/oauth2/authorize/github`
 }
 
 // 组件挂载时初始化

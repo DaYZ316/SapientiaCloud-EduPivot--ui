@@ -21,7 +21,7 @@ export function getDefaultSysRoleAddDTO(): SysRoleAddDTO {
     return {
         roleName: null,
         roleKey: null,
-        sort: null,
+        sort: 0,
         status: null,
         description: null
     }
@@ -33,7 +33,7 @@ export function getDefaultSysRoleDTO(): SysRoleDTO {
         id: null,
         roleName: null,
         roleKey: null,
-        sort: null,
+        sort: 0,
         status: null,
         description: null,
         admin: null

@@ -72,6 +72,8 @@ export default {
     switchToVerificationCodeLogin: 'Switch to verification code login',
     orLoginWith: 'Or login with',
     githubLogin: 'Login with GitHub',
+    oauth2Processing: 'Processing OAuth2 login...',
+    oauth2CallbackFailed: 'OAuth2 login failed',
     slogan: 'Smart Education, Start Your Future Learning Journey',
 
     // Register step related

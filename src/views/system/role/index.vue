@@ -1,13 +1,6 @@
 <template>
   <div class="role-management-container">
-    <div class="page-header">
-      <n-button circle quaternary @click="goBack">
-        <template #icon>
-          <Icon :component="ArrowBackOutline"/>
-        </template>
-      </n-button>
-      <h1 class="page-title">{{ t('menu.role') }}</h1>
-    </div>
+    <PageHeader :title="t('menu.role')"/>
 
     <n-card size="small">
       <!-- 搜索表单 -->
@@ -226,7 +219,6 @@ import {computed, h, reactive, ref} from 'vue'
 import type {FormInst, FormRules} from 'naive-ui'
 import {
   AddOutline,
-  ArrowBackOutline,
   CreateOutline,
   KeyOutline,
   RefreshOutline,
@@ -238,8 +230,8 @@ import {getPermissionTree} from '@/api/system/permission'
 import type * as roleType from '@/types/system/role'
 import type {SysPermissionVO} from '@/types/system/permission'
 import {useI18n} from 'vue-i18n'
-import {useRouter} from 'vue-router'
 import {StatusEnum} from '@/enum/common'
+import PageHeader from '@/components/common/PageHeader.vue'
 import StatusDisplay from '@/components/common/StatusDisplay.vue'
 import Icon from '@/components/common/Icon.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
@@ -248,8 +240,6 @@ import {handleDateRangeChange} from '@/utils/dateUtil'
 
 const {message, dialog} = getDiscreteApi()
 const {t} = useI18n()
-const router = useRouter()
-
 
 // 状态选项
 const statusOptions = [
@@ -305,11 +295,6 @@ const roleFormRules = reactive<FormRules>({
     {required: true, type: 'number', message: t('settings.role.rules.statusRequired'), trigger: ['blur', 'change']}
   ]
 })
-
-// 返回上一页
-function goBack() {
-  router.back()
-}
 
 // 表格列定义
 const columns = computed(() => [

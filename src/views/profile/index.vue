@@ -1,12 +1,6 @@
 <template>
   <div class="profile-container">
-    <div class="page-header">
-      <n-button circle quaternary @click="goBack">
-        <template #icon>
-          <Icon :component="ArrowBackOutline"/>
-        </template>
-      </n-button>
-    </div>
+    <PageHeader/>
     <div class="profile-header">
       <div class="profile-bg"></div>
       <div class="profile-avatar-container">
@@ -64,17 +58,14 @@
 </template>
 
 <script lang="ts" setup>
-import {useRouter} from 'vue-router'
-import {ArrowBackOutline} from '@vicons/ionicons5'
 import {useI18n} from 'vue-i18n'
-import Icon from '@/components/common/Icon.vue'
 import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 import BasicInfoTab from './components/BasicInfoTab.vue'
 import RoleInfoTab from './components/RoleInfoTab.vue'
 import PermissionInfoTab from './components/PermissionInfoTab.vue'
 import {useProfileUtils} from './composables/useProfileUtils'
 
-const router = useRouter()
 const {t} = useI18n()
 
 // 使用公共工具函数
@@ -87,11 +78,6 @@ const {
   isAdmin,
   accountAgeDays
 } = useProfileUtils()
-
-// 返回上一页
-function goBack() {
-  router.back()
-}
 </script>
 
 <style lang="scss" scoped>

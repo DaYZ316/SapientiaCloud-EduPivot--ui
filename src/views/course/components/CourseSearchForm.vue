@@ -121,8 +121,6 @@ function handleResetSearch() {
 
 <style lang="scss" scoped>
 .search-form {
-  margin-bottom: 16px;
-
   .search-reset-btn {
     margin-left: 8px;
   }

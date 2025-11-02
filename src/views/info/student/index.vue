@@ -1,13 +1,6 @@
 <template>
   <div class="student-management-container">
-    <div class="page-header">
-      <n-button circle quaternary @click="goBack">
-        <template #icon>
-          <Icon :component="ArrowBackOutline"/>
-        </template>
-      </n-button>
-      <h1 class="page-title">{{ t('student.title') }}</h1>
-    </div>
+    <PageHeader :title="t('student.title')"/>
 
     <n-card size="small">
       <!-- 搜索表单 -->
@@ -234,7 +227,6 @@ import {computed, h, reactive, ref} from 'vue'
 import {NEllipsis} from 'naive-ui'
 import {
   AddOutline,
-  ArrowBackOutline,
   CreateOutline,
   RefreshOutline,
   SearchOutline,
@@ -244,15 +236,14 @@ import * as studentApi from '@/api/student'
 import type * as studentType from '@/types/student'
 import {AcademicStatus} from '@/types/student'
 import {useI18n} from 'vue-i18n'
-import {useRouter} from 'vue-router'
 import Icon from '@/components/common/Icon.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {renderIcon} from '@/utils/iconUtil'
 import {handleDateRangeChange} from '@/utils/dateUtil'
 
 const {message, dialog} = getDiscreteApi()
 const {t} = useI18n()
-const router = useRouter()
 
 // 是否为英文环境 (暂时保留，可能用于后续功能)
 // const isEnglish = computed(() => locale.value === 'en-US')
@@ -289,11 +280,6 @@ const addStudentForm = reactive<studentType.StudentAddDTO>(studentApi.getDefault
 const showEditModal = ref(false)
 const editFormRef = ref()
 const editStudentForm = reactive<studentType.StudentDTO>(studentApi.getDefaultStudentDTO())
-
-// 返回上一页
-function goBack() {
-  router.back()
-}
 
 // 表格列定义
 const columns = computed(() => [

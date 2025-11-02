@@ -1,25 +1,28 @@
 <template>
   <div class="page-header">
-    <n-button circle quaternary @click="goBack">
+    <n-button type="text" quaternary class="back-button" @click="goBack">
       <template #icon>
         <Icon :component="ArrowBackOutline"/>
       </template>
+      {{ t('common.back') }}
     </n-button>
-    <h1 class="page-title">{{ title }}</h1>
+    <h1 v-if="title" class="page-title">{{ title }}</h1>
   </div>
 </template>
 
 <script lang="ts" setup>
 import {ArrowBackOutline} from '@vicons/ionicons5'
 import {useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
 import Icon from '@/components/common/Icon.vue'
 
 interface Props {
-  title: string
+  title?: string
 }
 
 defineProps<Props>()
 
+const {t} = useI18n()
 const router = useRouter()
 
 function goBack() {
@@ -31,13 +34,20 @@ function goBack() {
 .page-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 16px;
 
+  .back-button {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
   .page-title {
-    margin: 0 0 0 12px;
+    margin: 0;
     font-size: 24px;
     font-weight: 600;
     color: var(--primary-color);
   }
 }
 </style>
+

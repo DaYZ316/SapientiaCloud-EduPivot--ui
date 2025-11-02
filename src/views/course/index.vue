@@ -42,7 +42,7 @@ import {useI18n} from 'vue-i18n'
 import Icon from '@/components/common/Icon.vue'
 import CourseManage from './CourseManage/index.vue'
 import CourseSearchForm from './components/CourseSearchForm.vue'
-import PageHeader from './components/PageHeader.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 import * as courseApi from '@/api/course'
 import {useUserStore} from '@/store/modules/user'
 

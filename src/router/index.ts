@@ -1,6 +1,6 @@
 ﻿import type {RouteRecordRaw} from 'vue-router'
 import {createRouter, createWebHistory} from 'vue-router'
-import {useLoadingBarStore, useUserStore} from '@/store'
+import {useLoadingBarStore, useTransitionStore, useUserStore} from '@/store'
 import {TitleUtil} from '@/utils'
 
 /**
@@ -307,7 +307,28 @@ const router = createRouter({
 /**
  * 路由守卫
  */
-router.beforeEach(async (to, _from, next) => {
+router.beforeEach(async (to, from, next) => {
+    // 检测登录/登出操作和页面刷新
+    const transitionStore = useTransitionStore()
+    const userStore = useUserStore()
+    
+    // 检测是否是刷新页面：from.path等于to.path或from.path是根路径，且sessionStorage中已有该路径的记录
+    const lastPath = sessionStorage.getItem('router:lastPath')
+    const isPageRefresh = lastPath === to.path && (from.path === to.path || from.path === '/')
+    
+    // 检测路由切换（排除刷新和首次访问）
+    const hasFromPath = from.path && from.path !== to.path && from.path !== '/'
+    const isLoginTransition = hasFromPath && from.path === '/login' && to.path !== '/login'
+    const isLogoutTransition = hasFromPath && from.path !== '/login' && to.path === '/login'
+    
+    // 检测刷新时的过渡动画：登录页刷新，或已登录用户在非登录页刷新
+    const isLoginPageRefresh = isPageRefresh && to.path === '/login'
+    const isAuthPageRefresh = isPageRefresh && to.path !== '/login' && userStore.isLogin
+    
+    if (isLoginTransition || isLogoutTransition || isLoginPageRefresh || isAuthPageRefresh) {
+        transitionStore.show()
+    }
+
     // 开始加载条
     const loadingBarStore = useLoadingBarStore()
     loadingBarStore.start()
@@ -317,7 +338,6 @@ router.beforeEach(async (to, _from, next) => {
 
     // 检查是否需要登录权限
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-    const userStore = useUserStore()
 
     // 如果有token，确保用户信息已加载
     if (userStore.token) {
@@ -379,10 +399,35 @@ router.beforeEach(async (to, _from, next) => {
 /**
  * 路由后置守卫
  */
-router.afterEach((_to, _from) => {
+router.afterEach((to, from) => {
     // 完成加载条
     const loadingBarStore = useLoadingBarStore()
     loadingBarStore.finish()
+
+    // 记录当前路径到sessionStorage，用于下次判断是否是刷新（必须在检测之前保存）
+    // 但我们需要在beforeEach中就能读取到刷新前的路径，所以这里保存的是新的路径
+    // 在beforeEach中已经读取了刷新前的路径，所以这里可以更新了
+    const lastPath = sessionStorage.getItem('router:lastPath')
+    const wasPageRefresh = lastPath === to.path && (from.path === to.path || from.path === '/')
+    sessionStorage.setItem('router:lastPath', to.path)
+
+    // 检测登录/登出操作完成和页面刷新完成
+    const transitionStore = useTransitionStore()
+    const userStore = useUserStore()
+    
+    // 检测路由切换（排除刷新和首次访问）
+    const hasFromPath = from.path && from.path !== to.path && from.path !== '/'
+    const isLoginTransition = hasFromPath && from.path === '/login' && to.path !== '/login'
+    const isLogoutTransition = hasFromPath && from.path !== '/login' && to.path === '/login'
+    
+    // 检测刷新时的过渡动画完成：登录页刷新，或已登录用户在非登录页刷新
+    const isLoginPageRefresh = wasPageRefresh && to.path === '/login'
+    const isAuthPageRefresh = wasPageRefresh && to.path !== '/login' && userStore.isLogin
+    
+    if (isLoginTransition || isLogoutTransition || isLoginPageRefresh || isAuthPageRefresh) {
+        // 隐藏过渡动画，确保至少持续1秒
+        transitionStore.hide(1250)
+    }
 })
 
 export default router

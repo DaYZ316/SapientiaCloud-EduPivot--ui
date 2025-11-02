@@ -1,13 +1,6 @@
 <template>
   <div class="settings-container">
-    <div class="page-header">
-      <n-button circle quaternary @click="goBack">
-        <template #icon>
-          <Icon :component="ArrowBackOutline"/>
-        </template>
-      </n-button>
-      <h1 class="page-title">{{ t('menu.settings') }}</h1>
-    </div>
+    <PageHeader :title="t('menu.settings')"/>
 
     <n-tabs animated type="line">
       <!-- 个人设置 -->
@@ -25,24 +18,16 @@
 
 <script lang="ts" setup>
 import {defineAsyncComponent, onMounted} from 'vue'
-import {useRouter} from 'vue-router'
-import {ArrowBackOutline} from '@vicons/ionicons5'
-import Icon from '@/components/common/Icon.vue'
 import {useI18n} from 'vue-i18n'
 import {useUserStore} from '@/store'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const {t} = useI18n()
-const router = useRouter()
 const userStore = useUserStore()
 
 // 使用异步组件加载各个设置模块
 const PersonalSettings = defineAsyncComponent(() => import('./components/PersonalSettings/index.vue'))
 const SystemSettings = defineAsyncComponent(() => import('./components/SystemSettings.vue'))
-
-// 返回上一页
-function goBack() {
-  router.back()
-}
 
 // 确保页面加载时用户信息已准备好
 onMounted(async () => {

@@ -1,13 +1,6 @@
 <template>
   <div class="user-management-container">
-    <div class="page-header">
-      <n-button circle quaternary @click="goBack">
-        <template #icon>
-          <Icon :component="ArrowBackOutline"/>
-        </template>
-      </n-button>
-      <h1 class="page-title">{{ t('menu.user') }}</h1>
-    </div>
+    <PageHeader :title="t('menu.user')"/>
 
     <n-card size="small">
       <!-- 搜索表单 -->
@@ -224,7 +217,6 @@ import {computed, h, reactive, ref} from 'vue'
 import {NEllipsis, NSwitch} from 'naive-ui'
 import {
   AddOutline,
-  ArrowBackOutline,
   PeopleOutline,
   RefreshOutline,
   SearchOutline,
@@ -233,8 +225,8 @@ import {
 import * as userApi from '@/api/system/user'
 import type * as userType from '@/types/system/user'
 import {useI18n} from 'vue-i18n'
-import {useRouter} from 'vue-router'
 import {GenderEnum, getGenderLabel, StatusEnum} from '@/enum/common'
+import PageHeader from '@/components/common/PageHeader.vue'
 import {getAcademicStatusOptions} from '@/enum/student'
 import {getEducationOptions} from '@/enum/teacher'
 import Icon from '@/components/common/Icon.vue'
@@ -249,7 +241,6 @@ import {useUserStore} from '@/store'
 
 const {message, dialog} = getDiscreteApi()
 const {t, locale} = useI18n()
-const router = useRouter()
 const userStore = useUserStore()
 
 // 是否为英文环境
@@ -298,11 +289,6 @@ const addUserForm = reactive<userType.SysUserAdminDTO>(userApi.getDefaultSysUser
 
 // 使用角色分配 composable
 const roleAssignment = useRoleAssignment()
-
-// 返回上一页
-function goBack() {
-  router.back()
-}
 
 // 更新用户状态
 async function updateUserStatus(row: userType.SysUserVO, value: boolean) {

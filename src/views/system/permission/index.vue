@@ -1,13 +1,6 @@
 <template>
   <div class="permission-management-container">
-    <div class="page-header">
-      <n-button circle quaternary @click="goBack">
-        <template #icon>
-          <Icon :component="ArrowBackOutline"/>
-        </template>
-      </n-button>
-      <h1 class="page-title">{{ t('menu.permission') }}</h1>
-    </div>
+    <PageHeader :title="t('menu.permission')"/>
 
     <n-card size="small">
       <!-- 搜索表单 -->
@@ -182,7 +175,6 @@ import {computed, h, reactive, ref} from 'vue'
 import type {FormInst, FormRules, TreeSelectOption} from 'naive-ui'
 import {
   AddOutline,
-  ArrowBackOutline,
   CreateOutline,
   RefreshOutline,
   SearchOutline,
@@ -191,15 +183,14 @@ import {
 import * as permissionApi from '@/api/system/permission'
 import type * as permissionType from '@/types/system/permission'
 import {useI18n} from 'vue-i18n'
-import {useRouter} from 'vue-router'
 import Icon from '@/components/common/Icon.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {renderIcon} from '@/utils/iconUtil'
 import {handleDateRangeChange} from '@/utils/dateUtil'
 
 const {message, dialog} = getDiscreteApi()
 const {t} = useI18n()
-const router = useRouter()
 
 // 搜索表单
 const searchForm = reactive<permissionType.PermissionPageQueryDTO>(permissionApi.getDefaultPermissionQuery())
@@ -257,11 +248,6 @@ const permissionFormRules = reactive<FormRules>({
     {min: 2, max: 100, message: t('settings.permission.rules.permissionKeyLength'), trigger: 'blur'}
   ]
 })
-
-// 返回上一页
-function goBack() {
-  router.back()
-}
 
 // 表格列定义
 const columns = computed(() => [

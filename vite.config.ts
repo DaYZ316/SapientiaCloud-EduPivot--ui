@@ -73,6 +73,20 @@ export default defineConfig({
                 changeOrigin: true,
                 secure: false,
                 rewrite: (path) => path,
+                bypass(req) {
+                    // 检查请求头，区分API请求和浏览器直接访问
+                    // API请求（axios）的Accept头通常是application/json或*/*
+                    // 浏览器直接访问的Accept头通常是text/html
+                    const accept = (req.headers.accept || '').toLowerCase()
+                    if (req.url?.startsWith('/api/auth/oauth2/callback/')) {
+                        // 如果Accept头包含text/html，说明是浏览器直接访问，由前端路由处理
+                        if (accept.includes('text/html')) {
+                            return req.url
+                        }
+                        // 否则是API请求，正常代理到后端（返回null或undefined）
+                        return null
+                    }
+                },
                 configure: (proxy) => {
                     proxy.on('error', (err) => {
                         // Proxy error handling

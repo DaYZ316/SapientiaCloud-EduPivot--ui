@@ -17,6 +17,15 @@ const routes: RouteRecordRaw[] = [
         }
     },
     {
+        path: '/api/auth/oauth2/callback/:provider',
+        name: 'OAuthRedirect',
+        component: () => import('@/views/auth/OAuthRedirect.vue'),
+        meta: {
+            title: 'OAuth回调',
+            requiresAuth: false
+        }
+    },
+    {
         path: '/',
         name: 'Layout',
         component: () => import('@/components/layout/AppLayout.vue'),
@@ -358,8 +367,8 @@ router.beforeEach(async (to, from, next) => {
     // 根路径特殊处理，检查JWT并重定向
     if (to.path === '/') {
         if (userStore.token && userStore.isLogin) {
-            // 如果JWT存在且有效，检查是否需要填写信息
-            if (userStore.needsIdentityInfo) {
+            // 如果JWT存在且有效，检查是否需要填写信息或没有手机号
+            if (userStore.needsIdentityInfo || !userStore.userInfo?.mobile) {
                 return next('/info/select')
             }
             // 如果JWT存在且有效，直接重定向到主页
@@ -370,8 +379,8 @@ router.beforeEach(async (to, from, next) => {
         }
     }
 
-    // 如果已登录且需要填写信息，拦截所有跳转（登录页面除外）
-    if (userStore.token && userStore.isLogin && userStore.needsIdentityInfo) {
+    // 如果已登录且需要填写信息或没有手机号，拦截所有跳转（登录页面除外）
+    if (userStore.token && userStore.isLogin && (userStore.needsIdentityInfo || !userStore.userInfo?.mobile)) {
         // 允许访问登录页面（用于退出登录）
         if (to.name === 'Login') {
             next()
@@ -389,7 +398,7 @@ router.beforeEach(async (to, from, next) => {
 
     if (requiresAuth && !userStore.isLogin) {
         next({name: 'Login', query: {redirect: to.fullPath}})
-    } else if (to.name === 'Login' && userStore.isLogin && !userStore.needsIdentityInfo) {
+    } else if (to.name === 'Login' && userStore.isLogin && !userStore.needsIdentityInfo && userStore.userInfo?.mobile) {
         next({name: 'Dashboard'})
     } else {
         next()

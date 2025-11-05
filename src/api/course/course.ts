@@ -1,5 +1,5 @@
 import http from '@/utils/http'
-import type {CourseDTO, CourseQueryParams, CourseVO} from '@/types/course'
+import type {CourseDTO, CourseQueryParams, CourseVO, PublicCourseVO} from '@/types/course'
 
 // 获取默认课程查询对象
 export function getDefaultCourseQuery(): CourseQueryParams {
@@ -97,4 +97,32 @@ export function listAllCourse() {
  */
 export function listCourse(params: CourseQueryParams) {
     return http.getTableData<CourseVO>('/course/list', params)
+}
+
+/**
+ * 获取公开课程列表
+ * 该接口无需权限验证，可供未登录用户访问，仅返回正常状态的课程，不包含敏感信息
+ * @returns 公开课程列表
+ */
+export function listPublicCourse() {
+    return http.get<PublicCourseVO[]>('/course/public/list')
+}
+
+/**
+ * 获取默认公开课程VO
+ * @returns 默认公开课程VO对象
+ */
+export function getDefaultPublicCourseVO(): PublicCourseVO {
+    return {
+        id: null,
+        courseName: null,
+        description: null,
+        coverImageUrl: null,
+        courseType: null,
+        semester: null,
+        location: null,
+        teacherName: null,
+        teacherAvatar: null,
+        createTime: null
+    }
 }

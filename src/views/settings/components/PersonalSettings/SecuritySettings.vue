@@ -172,7 +172,7 @@ import type {SendVerificationCodeDTO, SysUserMobilePasswordDTO, SysUserPasswordD
 
 const userStore = useUserStore()
 const router = useRouter()
-const {dialog} = getDiscreteApi()
+const {dialog, message} = getDiscreteApi()
 const {t} = useI18n()
 const passwordFormRef = ref<FormInst | null>(null)
 const mobilePasswordFormRef = ref<FormInst | null>(null)
@@ -306,7 +306,8 @@ const sendVerificationCode = async () => {
 
   const result = await sendVerificationCodeAPI(params).catch(() => null)
 
-  if (result) {
+  if (result && result.success) {
+    message.success(t('auth.verificationCodeSentSuccess'))
     startCountdown()
   }
 
@@ -340,8 +341,8 @@ const changePassword = () => {
         confirmPassword: passwordForm.confirmPassword
       }
 
-      const res = await updatePassword(passwordData)
-      if (res.success && res.data) {
+      const res = await updatePassword(passwordData).catch(() => null)
+      if (res && res.success && res.data) {
         showPasswordModal.value = false
 
         // 显示成功对话?
@@ -350,22 +351,13 @@ const changePassword = () => {
           content: t('settings.personal.passwordChangeRedirect'),
           positiveText: t('common.confirm'),
           onPositiveClick: async () => {
-            try {
-              // 登出当前用户
-              await logout()
-
-              // 清除用户状?
-              userStore.resetUserState()
-
-              // 跳转到登录页
-              router.push('/login')
-            } catch (error) {
-              // 即使登出失败也跳转到登录?
-              router.push('/login')
-            }
+            await logout().catch(() => null)
+            // 清除用户状?
+            userStore.resetUserState()
+            // 跳转到登录页
+            router.push('/login')
           }
         })
-      } else {
       }
     }
   })
@@ -386,8 +378,8 @@ const changePasswordByMobile = () => {
         confirmPassword: mobilePasswordForm.confirmPassword
       }
 
-      const res = await updatePasswordByMobile(passwordData)
-      if (res.success && res.data) {
+      const res = await updatePasswordByMobile(passwordData).catch(() => null)
+      if (res && res.success && res.data) {
         showMobilePasswordModal.value = false
 
         // 显示成功对话?
@@ -396,22 +388,13 @@ const changePasswordByMobile = () => {
           content: t('settings.personal.passwordChangeRedirect'),
           positiveText: t('common.confirm'),
           onPositiveClick: async () => {
-            try {
-              // 登出当前用户
-              await logout()
-
-              // 清除用户状?
-              userStore.resetUserState()
-
-              // 跳转到登录页
-              router.push('/login')
-            } catch (error) {
-              // 即使登出失败也跳转到登录?
-              router.push('/login')
-            }
+            await logout().catch(() => null)
+            // 清除用户状?
+            userStore.resetUserState()
+            // 跳转到登录页
+            router.push('/login')
           }
         })
-      } else {
       }
     }
   })

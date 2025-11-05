@@ -2,6 +2,7 @@
 export type {
     CourseDTO,
     CourseVO,
+    PublicCourseVO,
     CourseQueryParams
 } from './course'
 

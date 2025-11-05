@@ -12,12 +12,57 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue'
+import { computed, watch, onBeforeUnmount } from 'vue'
 import { useTransitionStore } from '@/store/modules/transition'
 
 const transitionStore = useTransitionStore()
 
 const show = computed(() => transitionStore.showTransition)
+
+// 保存原始的overflow样式，用于恢复
+let originalBodyOverflow: string | null = null
+let originalHtmlOverflow: string | null = null
+
+// 监听过渡动画状态，控制页面滚动
+watch(show, (newValue) => {
+  if (newValue) {
+    // 保存原始样式
+    originalBodyOverflow = document.body.style.overflow
+    originalHtmlOverflow = document.documentElement.style.overflow
+    
+    // 禁止滚动
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
+  } else {
+    // 恢复原始样式
+    if (originalBodyOverflow !== null) {
+      document.body.style.overflow = originalBodyOverflow
+    } else {
+      document.body.style.overflow = ''
+    }
+    
+    if (originalHtmlOverflow !== null) {
+      document.documentElement.style.overflow = originalHtmlOverflow
+    } else {
+      document.documentElement.style.overflow = ''
+    }
+  }
+}, { immediate: true })
+
+// 组件卸载时恢复滚动
+onBeforeUnmount(() => {
+  if (originalBodyOverflow !== null) {
+    document.body.style.overflow = originalBodyOverflow
+  } else {
+    document.body.style.overflow = ''
+  }
+  
+  if (originalHtmlOverflow !== null) {
+    document.documentElement.style.overflow = originalHtmlOverflow
+  } else {
+    document.documentElement.style.overflow = ''
+  }
+})
 </script>
 
 <style lang="scss" scoped>

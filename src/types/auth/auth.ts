@@ -38,6 +38,10 @@ export interface SysUserLoginVO {
     status: number
     /** 最后登录时间 */
     lastLoginTime: string
+    /** GitHub用户ID */
+    githubId?: string
+    /** 微信OpenID */
+    wechatId?: string
     /** 角色列表 */
     roles: SysRoleVO[]
     /** 权限列表 */
@@ -76,6 +80,10 @@ export interface SysUserInternalVO {
     updateTime: string
     /** 最后登录时间 */
     lastLoginTime: string
+    /** GitHub用户ID */
+    githubId?: string
+    /** 微信OpenID */
+    wechatId?: string
     /** 角色列表 */
     roles?: SysRoleVO[]
     /** 权限列表 */
@@ -168,4 +176,74 @@ export interface SysUserMobilePasswordDTO {
     newPassword: string | null
     /** 确认密码 */
     confirmPassword: string | null
+}
+
+/**
+ * 绑定手机号确认DTO
+ */
+export interface BindMobileConfirmDTO {
+    /** 手机号码 */
+    mobile: string | null
+    /** 临时账户ID */
+    userId: string | null
+    /** 是否为同一账户（true=是，false=不是） */
+    isSameAccount: boolean | null
+}
+
+/**
+ * 用户基本信息VO（脱敏）
+ */
+export interface SysUserBasicInfoVO {
+    /** 用户ID */
+    id: string
+    /** 用户名 */
+    username: string
+    /** 用户昵称 */
+    nickName: string
+    /** 用户头像URL */
+    avatar: string
+    /** 创建时间 */
+    createTime: string
+}
+
+/**
+ * 绑定手机号结果DTO
+ */
+export interface BindMobileResultDTO {
+    /** 是否成功 */
+    success: boolean
+    /** 是否需要确认 */
+    needConfirm: boolean
+    /** 用户基本信息（脱敏） */
+    existingUserInfo?: SysUserBasicInfoVO | null
+}
+
+/**
+ * 注册状态信息DTO
+ */
+export interface RegistrationStatusDTO {
+    /** 是否为新用户 */
+    isNewUser: boolean
+    /** 是否需要绑定手机号 */
+    needBindMobile: boolean
+    /** 是否需要选择身份 */
+    needSelectIdentity: boolean
+    /** 是否需要完善信息 */
+    needCompleteInfo: boolean
+    /** 当前步骤: bindMobile | selectIdentity | completeInfo | completed */
+    currentStep: string
+}
+
+/**
+ * OAuth2回调结果DTO
+ */
+export interface OAuth2CallbackResultDTO {
+    /** 访问令牌 */
+    accessToken: string
+    /** 刷新令牌 */
+    refreshToken: string
+    /** 系统用户内部数据传输对象 (VO) */
+    user: SysUserInternalVO
+    /** 注册状态信息 */
+    registrationStatus: RegistrationStatusDTO
 }

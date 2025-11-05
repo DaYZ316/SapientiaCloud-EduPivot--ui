@@ -81,6 +81,33 @@ export interface CourseVO {
 }
 
 /**
+ * 公开课程视图对象
+ * 用于公开课程信息的展示，无需权限验证
+ */
+export interface PublicCourseVO {
+    /** 课程ID */
+    id: string | null
+    /** 课程名称 */
+    courseName: string | null
+    /** 课程描述 */
+    description?: string | null
+    /** 课程封面图片URL */
+    coverImageUrl?: string | null
+    /** 课程类型 (0=必修, 1=选修) */
+    courseType?: CourseTypeEnum | null
+    /** 开设学期 */
+    semester?: string | null
+    /** 上课地点 */
+    location?: string | null
+    /** 授课教师姓名 */
+    teacherName?: string | null
+    /** 授课教师头像 */
+    teacherAvatar?: string | null
+    /** 创建时间 */
+    createTime?: string | null
+}
+
+/**
  * 课程查询参数
  * 用于课程列表的分页查询
  */

@@ -1,5 +1,5 @@
 import http from '@/utils/http'
-import type {SysUserLoginDTO, SysUserMobileLoginDTO, SysUserPasswordDTO, SysUserRegisterDTO, SendVerificationCodeDTO, SelectIdentityDTO, BindMobileDTO, SysUserMobilePasswordDTO} from '@/types/auth'
+import type {SysUserLoginDTO, SysUserMobileLoginDTO, SysUserPasswordDTO, SysUserRegisterDTO, SendVerificationCodeDTO, SelectIdentityDTO, BindMobileDTO, BindMobileConfirmDTO, SysUserMobilePasswordDTO} from '@/types/auth'
 
 // 获取默认用户登录DTO
 export function getDefaultSysUserLoginDTO(): SysUserLoginDTO {
@@ -117,6 +117,20 @@ export function getDefaultBindMobileDTO(): BindMobileDTO {
 // 绑定手机号
 export function bindMobile(params: BindMobileDTO) {
     return http.post('/auth/bind-mobile', params)
+}
+
+// 获取默认绑定手机号确认DTO
+export function getDefaultBindMobileConfirmDTO(): BindMobileConfirmDTO {
+    return {
+        mobile: null,
+        userId: null,
+        isSameAccount: null
+    }
+}
+
+// 确认绑定手机号
+export function bindMobileConfirm(params: BindMobileConfirmDTO) {
+    return http.post('/auth/bind-mobile/confirm', params)
 }
 
 // 检查手机号是否可用

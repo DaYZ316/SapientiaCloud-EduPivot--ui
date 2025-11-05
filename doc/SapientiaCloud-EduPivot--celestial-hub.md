@@ -2693,3 +2693,250 @@
 	}
 ]
 ```
+
+
+## getStreamConnection
+
+
+**接口地址**:`/api/celestial-hub/message/stream/{requestId}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`text/event-stream,*/*`
+
+
+**接口描述**:<p>通过requestId建立SSE连接，接收AI流式响应（异步架构）</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|requestId|请求ID|path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|SseEmitter|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|timeout||integer(int64)|integer(int64)|
+
+
+**响应示例**:
+```javascript
+{
+	"timeout": 0
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## chatStreamAsync
+
+
+**接口地址**:`/api/celestial-hub/message/stream/async`
+
+
+**请求方式**:`POST`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>发送消息到Kafka并立即返回requestId（异步架构）</p>
+
+
+
+**请求示例**:
+
+
+```javascript
+{
+  "sessionId": "",
+  "message": "",
+  "courseId": "",
+  "chapterId": "",
+  "sessionType": 0,
+  "useRag": true,
+  "stream": true,
+  "temperature": 0,
+  "maxTokens": 0,
+  "attachments": []
+}
+```
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|chatRequestDTO|AI对话请求|body|true|ChatRequestDTO|ChatRequestDTO|
+|&emsp;&emsp;sessionId|会话ID（新对话时可为空）||false|string(uuid)||
+|&emsp;&emsp;message|用户消息内容||true|string||
+|&emsp;&emsp;courseId|课程ID（课程相关问答时提供）||false|string(uuid)||
+|&emsp;&emsp;chapterId|章节ID（章节相关问答时提供）||false|string(uuid)||
+|&emsp;&emsp;sessionType|会话类型: 0-普通对话, 1-课程问答, 2-题目辅导, 3-知识检索||false|integer(int32)||
+|&emsp;&emsp;useRag|是否使用RAG检索||false|boolean||
+|&emsp;&emsp;stream|是否流式输出||false|boolean||
+|&emsp;&emsp;temperature|温度参数(0.0-1.0)||false|number(double)||
+|&emsp;&emsp;maxTokens|最大token数||false|integer(int32)||
+|&emsp;&emsp;attachments|附件URL列表||false|array|string|
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultMapStringObject|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```

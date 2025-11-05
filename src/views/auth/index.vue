@@ -54,6 +54,7 @@ import RollingGallery from '@/components/common/RollingGallery.vue'
 import AuthHeader from '@/views/auth/components/AuthHeader.vue'
 import Login from '@/views/auth/Login/index.vue'
 import Register from '@/views/auth/Register/index.vue'
+import { listPublicCourse } from '@/api/course/course'
 import image1 from '@/assets/image/course-test/1.png'
 import image2 from '@/assets/image/course-test/2.png'
 import image3 from '@/assets/image/course-test/3.png'
@@ -69,6 +70,16 @@ const liquidEtherRef = ref<InstanceType<typeof LiquidEther> | null>(null)
 const rollingGalleryRef = ref<InstanceType<typeof RollingGallery> | null>(null)
 const showRegister = ref(false)
 const isPageLoaded = ref(false)
+
+// 默认图片数组，作为后备
+const defaultImages = [
+  image1,
+  image2,
+  image3,
+  image4,
+  image5,
+  image6
+]
 
 // 生成渐变样式
 const colorVariants = computed(() => {
@@ -91,21 +102,37 @@ const getCssVariable = (varName: string): string => {
     .trim() || ''
 }
 
-onMounted(() => {
+// 加载公开课程封面图片
+const loadPublicCourseImages = async () => {
+  const response = await listPublicCourse().catch(() => null)
+  
+  if (response && response.data && response.data.length > 0) {
+    // 提取有封面图片的课程
+    const courseImages = response.data
+      .map(course => course.coverImageUrl)
+      .filter((url): url is string => url !== null && url !== undefined && url !== '')
+    
+    // 如果有课程封面图片，使用课程图片；否则使用默认图片
+    customImages.value = courseImages.length > 0 ? courseImages : defaultImages
+  } else {
+    // 接口失败或没有数据，使用默认图片
+    customImages.value = defaultImages
+  }
+}
+
+onMounted(async () => {
   const primary = getCssVariable('--color-primary') || '#1890ff'
   const primaryLight = getCssVariable('--color-primary-light') || '#40a9ff'
   const primaryDark = getCssVariable('--color-primary-dark') || '#096dd9'
   const info = getCssVariable('--info-color') || '#1890ff'
   
   fluidColors.value = [primary, primaryLight, primaryDark, info]
-  customImages.value = [
-    image1,
-    image2,
-    image3,
-    image4,
-    image5,
-    image6
-  ]
+  
+  // 先设置默认图片，避免页面加载时没有图片
+  customImages.value = defaultImages
+  
+  // 异步加载公开课程图片
+  await loadPublicCourseImages()
 
   // 触发页面加载动画
   setTimeout(() => {

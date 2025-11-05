@@ -2,11 +2,88 @@
   <div class="identity-select-container">
     <div class="identity-select-card">
       <div class="header">
+        <div class="header-top">
+          <n-button quaternary @click="handleLogout">
+            <template #icon>
+              <Icon :component="LogOutOutline"/>
+            </template>
+            {{ t('auth.logout') }}
+          </n-button>
+        </div>
         <h1 class="title">{{ t('info.select.title') }}</h1>
         <p class="description">{{ t('info.select.description') }}</p>
       </div>
 
-      <n-card :bordered="false" class="form-card">
+      <!-- 流程步骤 -->
+      <div class="flow-header">
+        <n-steps :current="needsMobileBind ? currentStep : 2" size="small" :status="stepStatus">
+          <n-step :title="t('info.select.step1.title')" :status="needsMobileBind ? undefined : 'finish'" />
+          <n-step :title="t('info.select.step2.title')" />
+        </n-steps>
+      </div>
+
+      <!-- 步骤内容 -->
+      <Transition :name="stepTransitionName" mode="out-in">
+        <!-- 步骤1: 手机号绑定 -->
+        <div v-if="currentStep === 1 && needsMobileBind" key="step1" class="step-content">
+          <n-card :bordered="false" class="mobile-bind-card">
+            <n-alert type="warning" :title="t('info.select.mobileBindRequired')" :show-icon="true">
+              <template #header>
+                {{ t('info.select.mobileBindRequired') }}
+              </template>
+              <template #default>
+                {{ t('info.select.mobileBindDescription') }}
+              </template>
+            </n-alert>
+            <div class="mobile-bind-form">
+              <n-form
+                ref="mobileBindFormRef"
+                :model="mobileBindForm"
+                :rules="mobileBindRules"
+                label-placement="left"
+                label-width="100"
+              >
+                <n-form-item :label="t('auth.phone')" path="mobile">
+                  <n-input
+                    v-model:value="mobileBindForm.mobile"
+                    :placeholder="t('auth.phoneNumberHint')"
+                    clearable
+                    maxlength="11"
+                  />
+                </n-form-item>
+                <n-form-item :label="t('auth.verificationCode')" path="verificationCode">
+                  <div class="verification-code-wrapper">
+                    <n-input-otp
+                      v-model:value="mobileBindForm.verificationCode"
+                      :length="6"
+                    />
+                    <n-button
+                      :disabled="countdown > 0 || !mobileBindForm.mobile || mobileBindForm.mobile.length !== 11"
+                      :loading="sendingCode"
+                      @click="handleSendVerificationCode"
+                    >
+                      {{ countdown > 0 ? `${countdown}${t('auth.verificationCodeCountdown')}` : t('auth.sendVerificationCode') }}
+                    </n-button>
+                  </div>
+                </n-form-item>
+                <n-form-item>
+                  <n-button
+                    :loading="bindingMobile"
+                    type="primary"
+                    block
+                    @click="handleBindMobile"
+                  >
+                    {{ t('info.select.bindMobile') }}
+                  </n-button>
+                </n-form-item>
+              </n-form>
+            </div>
+          </n-card>
+        </div>
+
+        <!-- 步骤2: 身份选择和信息填写 -->
+        <div v-else-if="currentStep === 2 || (!needsMobileBind && currentStep === 1)" key="step2" class="step-content">
+          <n-card :bordered="false" class="form-card">
         <n-form
           ref="formRef"
           :model="currentFormData"
@@ -161,24 +238,29 @@
           </template>
         </n-form>
 
-        <div class="actions">
-          <n-space justify="space-between">
-            <n-button @click="handleLogout">{{ t('auth.logout') }}</n-button>
-            <n-button :loading="submitting" type="primary" @click="handleSubmit">
-              {{ t('info.select.submit') }}
-            </n-button>
-          </n-space>
+            <div class="actions">
+              <n-space justify="space-between">
+                <n-button @click="handleLogout">{{ t('auth.logout') }}</n-button>
+                <n-button :loading="submitting" type="primary" @click="handleSubmit">
+                  {{ t('info.select.submit') }}
+                </n-button>
+              </n-space>
+            </div>
+          </n-card>
         </div>
-      </n-card>
+      </Transition>
     </div>
+
+    <!-- 手机号绑定确认对话框（保留用于处理账号冲突） -->
   </div>
 </template>
 
 <script setup lang="ts">
-import {computed, onMounted, reactive, ref, watch} from 'vue'
+import {computed, h, onMounted, onUnmounted, reactive, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useRouter} from 'vue-router'
-import {NButton, NCard, NDatePicker, NForm, NFormItem, NGrid, NGridItem, NInput, NInputNumber, NRadio, NRadioGroup, NSelect, NSpace, useDialog, useMessage} from 'naive-ui'
+import {NAlert, NButton, NCard, NDatePicker, NForm, NFormItem, NGrid, NGridItem, NInput, NInputNumber, NInputOtp, NRadio, NRadioGroup, NSelect, NSpace, NStep, NSteps, NThing, useDialog, useMessage} from 'naive-ui'
+import {LogOutOutline} from '@vicons/ionicons5'
 import {useUserStore} from '@/store'
 import * as AuthApi from '@/api/auth/auth'
 import {getAcademicStatusOptions} from '@/enum/student'
@@ -186,6 +268,9 @@ import {getEducationOptions} from '@/enum/teacher'
 import type {FormInst} from 'naive-ui'
 import type {StudentAddDTO} from '@/types/student'
 import type {TeacherAddDTO} from '@/types/teacher'
+import type {SysUserBasicInfoVO} from '@/types/auth'
+import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
+import Icon from '@/components/common/Icon.vue'
 
 const {t, locale} = useI18n()
 const router = useRouter()
@@ -195,6 +280,48 @@ const message = useMessage()
 
 const formRef = ref<FormInst | null>(null)
 const submitting = ref(false)
+
+// 流程步骤相关
+const currentStep = ref(1)
+const needsMobileBind = computed(() => !userStore.userInfo?.mobile)
+
+// 手机号绑定相关
+const mobileBindFormRef = ref<FormInst | null>(null)
+const bindingMobile = ref(false)
+const sendingCode = ref(false)
+const countdown = ref(0)
+const existingUserInfo = ref<SysUserBasicInfoVO | null>(null)
+let countdownTimer: number | null = null
+
+// n-input-otp 返回的是数组类型，但在提交时需要转换为字符串
+const mobileBindForm = reactive({
+  mobile: null as string | null,
+  verificationCode: null as string[] | null
+})
+
+const mobileBindRules = computed(() => ({
+  mobile: [
+    {required: true, message: t('auth.phoneRequired'), trigger: 'blur'},
+    {pattern: /^1[3-9]\d{9}$/, message: t('auth.phoneFormatError'), trigger: 'blur'}
+  ],
+  verificationCode: [
+    {
+      required: true,
+      message: t('auth.verificationCodeRequired'),
+      trigger: 'blur',
+      validator: (_rule: any, value: any) => {
+        const code = Array.isArray(value) ? value.join('') : value || ''
+        if (!code || code.length === 0) {
+          return new Error(t('auth.verificationCodeRequired'))
+        }
+        if (!/^\d{6}$/.test(code)) {
+          return new Error(t('auth.verificationCodeFormatError'))
+        }
+        return true
+      }
+    }
+  ]
+}))
 
 const formData = reactive({
   identityType: null as string | null
@@ -367,6 +494,37 @@ const formatDateForAPI = (timestamp: number | null): string | null => {
   return `${year}-${month}-${day}`
 }
 
+// 步骤状态
+const stepStatus = computed(() => {
+  if (needsMobileBind.value && currentStep.value === 1) {
+    return 'process'
+  }
+  if (needsMobileBind.value && currentStep.value === 2) {
+    return 'finish'
+  }
+  return 'process'
+})
+
+// 步骤切换动画名称（只允许前进）
+const stepTransitionName = computed(() => 'step-slide-next')
+
+// 进入下一步
+const goToNextStep = () => {
+  if (needsMobileBind.value) {
+    currentStep.value = 2
+  }
+}
+
+// 监听手机号绑定状态，自动进入下一步
+watch(
+  () => userStore.userInfo?.mobile,
+  (mobile) => {
+    if (mobile && needsMobileBind.value && currentStep.value === 1) {
+      goToNextStep()
+    }
+  }
+)
+
 const handleSubmit = async () => {
   if (!formRef.value) return
 
@@ -396,9 +554,9 @@ const handleSubmit = async () => {
       }
     }
 
-    const res = await AuthApi.selectIdentity(selectIdentityDTO)
+    const res = await AuthApi.selectIdentity(selectIdentityDTO).catch(() => null)
 
-    if (res.success) {
+    if (res && res.success) {
       message.success(t('info.select.submitSuccess'))
       // 强制刷新用户信息，因为刚刚提交了身份信息
       await userStore.refreshUserInfo(true)
@@ -425,21 +583,193 @@ const handleLogout = () => {
   })
 }
 
-// 监听路由变化，如果用户已经不需要填写信息，重定向到主页
+// 监听路由变化，如果用户已经不需要填写信息且有手机号，重定向到主页
 watch(
-  () => userStore.needsIdentityInfo,
-  (needsInfo) => {
-    if (!needsInfo && userStore.isLogin) {
+  () => [userStore.needsIdentityInfo, userStore.userInfo?.mobile],
+  ([needsInfo, mobile]) => {
+    if (!needsInfo && mobile && userStore.isLogin) {
       router.push('/dashboard')
     }
   }
 )
 
+// 发送验证码
+const handleSendVerificationCode = async () => {
+  if (!mobileBindForm.mobile || mobileBindForm.mobile.length !== 11) {
+    return
+  }
+
+  sendingCode.value = true
+  const sendCodeDTO = AuthApi.getDefaultSendVerificationCodeDTO()
+  sendCodeDTO.mobile = mobileBindForm.mobile
+
+  const res = await AuthApi.sendVerificationCode(sendCodeDTO).catch(() => null)
+  sendingCode.value = false
+
+  if (res && res.success) {
+    message.success(t('auth.verificationCodeSentSuccess'))
+    countdown.value = 60
+    countdownTimer = window.setInterval(() => {
+      countdown.value--
+      if (countdown.value <= 0) {
+        if (countdownTimer) {
+          clearInterval(countdownTimer)
+          countdownTimer = null
+        }
+      }
+    }, 1000)
+  }
+}
+
+// 绑定手机号
+const handleBindMobile = async () => {
+  if (!mobileBindFormRef.value) return
+
+  mobileBindFormRef.value.validate(async (errors) => {
+    if (errors) return
+
+    bindingMobile.value = true
+
+    // 检查手机号是否可用
+    const checkRes = await AuthApi.checkMobile(mobileBindForm.mobile!).catch(() => null)
+    
+    if (!checkRes) {
+      bindingMobile.value = false
+      return
+    }
+
+    const bindResult = checkRes.data
+    const isAvailable = checkRes.success && bindResult && bindResult.success
+
+    if (!isAvailable && bindResult && bindResult.existingUserInfo) {
+      // 手机号已被占用，保存用户信息并询问用户
+      existingUserInfo.value = bindResult.existingUserInfo
+      bindingMobile.value = false
+      
+      // 判断是否为同一账号
+      const isSameAccount = existingUserInfo.value?.id === userStore.userInfo?.id
+      
+      dialog.warning({
+        title: t('info.select.mobileAlreadyBound'),
+        content: () => h('div', {class: 'existing-user-dialog-content'}, [
+          h('p', {class: 'dialog-message'}, t('info.select.mobileAlreadyBoundMessage')),
+          h('div', {class: 'user-info-card'}, [
+            h(NThing, {
+              class: 'user-info-item'
+            }, {
+              avatar: () => h(AvatarDisplay, {
+                avatarSrc: existingUserInfo.value?.avatar,
+                username: existingUserInfo.value?.username,
+                nickName: existingUserInfo.value?.nickName,
+                size: 'medium',
+                round: true
+              }),
+              header: () => h('div', {class: 'user-info-header'}, [
+                h('div', {class: 'user-name'}, existingUserInfo.value?.nickName || existingUserInfo.value?.username),
+                h('div', {class: 'user-username'}, `@${existingUserInfo.value?.username}`)
+              ]),
+              description: () => h('div', {class: 'user-info-description'}, [
+                h('div', {class: 'user-id'}, `${t('info.select.userId')}: ${existingUserInfo.value?.id}`),
+                existingUserInfo.value?.createTime ? h('div', {class: 'user-create-time'}, `${t('info.select.createTime')}: ${existingUserInfo.value.createTime}`) : null
+              ])
+            })
+          ]),
+          // 如果不是同一账号，显示警告文字
+          !isSameAccount ? h('p', {class: 'dialog-warning', style: {color: 'var(--error-color)', marginTop: '16px', fontWeight: 'bold'}}, t('info.select.accountDeleteWarning')) : null
+        ]),
+        positiveText: t('info.select.mergeAccount'),
+        negativeText: t('info.select.overwriteBind'),
+        onPositiveClick: async () => {
+          // 合并账号：调用 bindMobileConfirm，如果是合并操作，返回true
+          await performBindMobileConfirm(true)
+        },
+        onNegativeClick: async () => {
+          // 覆盖绑定：调用 bindMobileConfirm，判断是否为同一账号
+          await performBindMobileConfirm(false)
+        }
+      })
+      return
+    }
+
+    // 手机号可用，直接绑定
+    await performBindMobile()
+  })
+}
+
+// 执行绑定手机号确认
+const performBindMobileConfirm = async (isMerge: boolean = false) => {
+  bindingMobile.value = true
+
+  // 判断是否为同一账号
+  // 如果 existingUserInfo.value?.id 等于 userStore.userInfo?.id，则为同一账号
+  // 如果是合并操作，返回true而不是false
+  const isSameAccount = isMerge ? true : (existingUserInfo.value?.id === userStore.userInfo?.id)
+
+  const confirmDTO = AuthApi.getDefaultBindMobileConfirmDTO()
+  confirmDTO.mobile = mobileBindForm.mobile
+  confirmDTO.userId = userStore.userInfo?.id || null
+  confirmDTO.isSameAccount = isSameAccount
+
+  const res = await AuthApi.bindMobileConfirm(confirmDTO).catch(() => null)
+  bindingMobile.value = false
+
+  if (res && res.success) {
+    // 如果是合并账号操作，显示提示并让用户重新登录
+    if (isMerge) {
+      dialog.warning({
+        title: t('info.select.mergeAccountSuccess'),
+        content: '',
+        positiveText: t('auth.login'),
+        onPositiveClick: () => {
+          router.push('/login')
+        }
+      })
+      return
+    }
+    
+    message.success(t('info.select.bindMobileSuccess'))
+    mobileBindForm.mobile = null
+    mobileBindForm.verificationCode = null
+    existingUserInfo.value = null
+    await userStore.refreshUserInfo(true)
+    // 绑定成功后自动进入下一步
+    goToNextStep()
+  }
+}
+
+// 执行绑定手机号
+const performBindMobile = async () => {
+  bindingMobile.value = true
+
+  const bindDTO = AuthApi.getDefaultBindMobileDTO()
+  bindDTO.mobile = mobileBindForm.mobile
+  bindDTO.userId = userStore.userInfo?.id || null
+  
+  // n-input-otp 返回的是数组类型，需要转换为字符串
+  const verificationCode = Array.isArray(mobileBindForm.verificationCode)
+    ? mobileBindForm.verificationCode.join('')
+    : mobileBindForm.verificationCode || ''
+  bindDTO.verificationCode = verificationCode
+
+  const res = await AuthApi.bindMobile(bindDTO).catch(() => null)
+  bindingMobile.value = false
+
+  if (res && res.success) {
+    message.success(t('info.select.bindMobileSuccess'))
+    mobileBindForm.mobile = null
+    mobileBindForm.verificationCode = null
+    existingUserInfo.value = null
+    await userStore.refreshUserInfo(true)
+    // 绑定成功后自动进入下一步
+    goToNextStep()
+  }
+}
+
 // 组件挂载时检查用户状态
 onMounted(async () => {
   // 路由守卫已经处理了用户信息刷新，这里只检查状态
-  // 如果用户已经不需要填写信息，重定向到主页
-  if (userStore.isLogin && !userStore.needsIdentityInfo) {
+  // 如果用户已经不需要填写信息且有手机号，重定向到主页
+  if (userStore.isLogin && !userStore.needsIdentityInfo && userStore.userInfo?.mobile) {
     router.push('/dashboard')
     return
   }
@@ -447,6 +777,20 @@ onMounted(async () => {
   // 如果用户未登录，重定向到登录页
   if (!userStore.isLogin) {
     router.push('/login')
+    return
+  }
+
+  // 初始化步骤：如果不需要绑定手机号，直接进入第二步
+  if (!needsMobileBind.value) {
+    currentStep.value = 2
+  }
+})
+
+// 组件卸载时清理定时器
+onUnmounted(() => {
+  if (countdownTimer) {
+    clearInterval(countdownTimer)
+    countdownTimer = null
   }
 })
 </script>
@@ -466,11 +810,28 @@ onMounted(async () => {
 .identity-select-card {
   width: 100%;
   max-width: 800px;
+  background: color-mix(in srgb, var(--background-secondary-color) 95%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
+  border-radius: 36px;
+  padding: 24px 36px;
+  box-shadow: 0 8px 32px 0 var(--shadow-secondary-color);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .header {
   text-align: center;
   margin-bottom: 32px;
+  position: relative;
+
+  .header-top {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
 
   .title {
     font-size: 28px;
@@ -486,10 +847,90 @@ onMounted(async () => {
   }
 }
 
+.flow-header {
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
+
+  :deep(.n-steps) {
+    .n-step-header {
+      .n-step-header__title {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-color);
+      }
+
+      .n-step-header__indicator {
+        .n-step-header__indicator-wrapper {
+          border-color: var(--border-color);
+        }
+
+        &.n-step-header__indicator--active {
+          .n-step-header__indicator-wrapper {
+            border-color: var(--primary-color);
+            background-color: var(--primary-color);
+          }
+        }
+
+        &.n-step-header__indicator--finish {
+          .n-step-header__indicator-wrapper {
+            border-color: var(--success-color);
+            background-color: var(--success-color);
+          }
+        }
+      }
+    }
+  }
+}
+
+// 步骤切换动画 - 前进（从右滑入）
+.step-slide-next-enter-active,
+.step-slide-next-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.step-slide-next-enter-from {
+  opacity: 0;
+  transform: translateX(30px) scale(0.95);
+}
+
+.step-slide-next-enter-to {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+
+.step-slide-next-leave-from {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+
+.step-slide-next-leave-to {
+  opacity: 0;
+  transform: translateX(-30px) scale(0.95);
+}
+
+.step-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-bind-card {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.mobile-bind-form {
+  margin-top: 24px;
+}
+
 .form-card {
-  background: var(--background-secondary-color);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px var(--shadow-color);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
 }
 
 .actions {
@@ -505,6 +946,80 @@ onMounted(async () => {
 :deep(.n-form-item-label) {
   font-weight: 500;
   color: var(--text-color);
+}
+
+
+.verification-code-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+
+  :deep(.n-input-otp) {
+    flex: 1;
+  }
+}
+</style>
+
+<style lang="scss">
+@use '@/assets/styles/index.scss' as *;
+
+.existing-user-dialog-content {
+  .dialog-message {
+    margin: 0 0 16px 0;
+    color: var(--text-color);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .user-info-card {
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--background-secondary-color);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+
+    .user-info-item {
+      :deep(.n-thing) {
+        .n-thing-main {
+          .n-thing-header {
+            .user-info-header {
+              display: flex;
+              flex-direction: column;
+              gap: 4px;
+
+              .user-name {
+                font-size: 16px;
+                font-weight: 600;
+                color: var(--text-color);
+              }
+
+              .user-username {
+                font-size: 14px;
+                color: var(--text-secondary-color);
+              }
+            }
+          }
+
+          .n-thing-main__content {
+            .user-info-description {
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+              margin-top: 12px;
+
+              .user-id,
+              .user-create-time {
+                font-size: 13px;
+                color: var(--text-secondary-color);
+                line-height: 1.5;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }
 </style>
 

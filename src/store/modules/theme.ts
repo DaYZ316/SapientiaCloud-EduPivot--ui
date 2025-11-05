@@ -13,7 +13,10 @@ export const useThemeStore = defineStore('theme', {
     state: (): ThemeState => ({
         themeMode: localStorage.getItem('themeMode') as 'light' | 'dark' | 'system' || 'light',
         primaryColor: localStorage.getItem('primaryColor') || '#1890ff',
-        sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true' || false
+        sidebarCollapsed: (() => {
+            const saved = localStorage.getItem('sidebarCollapsed')
+            return saved !== null ? saved === 'true' : true
+        })()
     }),
 
     getters: {
@@ -134,7 +137,7 @@ export const useThemeStore = defineStore('theme', {
         resetSettings() {
             this.setThemeMode('system')
             this.setPrimaryColor('#1890ff')
-            this.setSidebarCollapsed(false)
+            this.setSidebarCollapsed(true)
         },
 
         // 初始化设置

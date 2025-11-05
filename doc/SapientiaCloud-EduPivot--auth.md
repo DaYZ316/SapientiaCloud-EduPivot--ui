@@ -4,7 +4,7 @@
 **简介**:SapientiaCloud-EduPivot--auth API
 
 
-**HOST**:http://192.168.1.21:31602
+**HOST**:http://172.21.0.1:31602
 
 
 **联系人**:DaYZ
@@ -73,7 +73,7 @@
 
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
-|200|OK|ResultBoolean|
+|200|OK|ResultBindMobileResultDTO|
 
 
 **响应参数**:
@@ -84,7 +84,15 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|boolean||
+|data||BindMobileResultDTO|BindMobileResultDTO|
+|&emsp;&emsp;success|是否成功|boolean||
+|&emsp;&emsp;needConfirm|是否需要确认|boolean||
+|&emsp;&emsp;existingUserInfo|用户基本信息（脱敏）|SysUserBasicInfoVO|SysUserBasicInfoVO|
+|&emsp;&emsp;&emsp;&emsp;id|用户ID|string||
+|&emsp;&emsp;&emsp;&emsp;username|用户名|string||
+|&emsp;&emsp;&emsp;&emsp;nickName|用户昵称|string||
+|&emsp;&emsp;&emsp;&emsp;avatar|用户头像URL|string||
+|&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
 
 
 **响应示例**:
@@ -93,7 +101,107 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": true
+	"data": {
+		"success": true,
+		"needConfirm": true,
+		"existingUserInfo": {
+			"id": "",
+			"username": "",
+			"nickName": "",
+			"avatar": "",
+			"createTime": ""
+		}
+	}
+}
+```
+
+
+## bindMobileConfirm
+
+
+**接口地址**:`/api/auth/bind-mobile/confirm`
+
+
+**请求方式**:`POST`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>确认绑定手机号（当手机号已被使用时，用户确认是否为同一账户）</p>
+
+
+
+**请求示例**:
+
+
+```javascript
+{
+  "mobile": "13812345678",
+  "userId": "123e4567-e89b-12d3-a456-426614174000",
+  "isSameAccount": true
+}
+```
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|bindMobileConfirmDTO|绑定手机号确认请求的数据模型|body|true|BindMobileConfirmDTO|BindMobileConfirmDTO|
+|&emsp;&emsp;mobile|手机号码||true|string||
+|&emsp;&emsp;userId|临时账户ID||true|string(uuid)||
+|&emsp;&emsp;isSameAccount|是否为同一账户（true=是，false=不是）||true|boolean||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultBindMobileResultDTO|
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data||BindMobileResultDTO|BindMobileResultDTO|
+|&emsp;&emsp;success|是否成功|boolean||
+|&emsp;&emsp;needConfirm|是否需要确认|boolean||
+|&emsp;&emsp;existingUserInfo|用户基本信息（脱敏）|SysUserBasicInfoVO|SysUserBasicInfoVO|
+|&emsp;&emsp;&emsp;&emsp;id|用户ID|string||
+|&emsp;&emsp;&emsp;&emsp;username|用户名|string||
+|&emsp;&emsp;&emsp;&emsp;nickName|用户昵称|string||
+|&emsp;&emsp;&emsp;&emsp;avatar|用户头像URL|string||
+|&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"success": true,
+		"needConfirm": true,
+		"existingUserInfo": {
+			"id": "",
+			"username": "",
+			"nickName": "",
+			"avatar": "",
+			"createTime": ""
+		}
+	}
 }
 ```
 
@@ -113,7 +221,7 @@
 **响应数据类型**:`*/*`
 
 
-**接口描述**:<p>检查手机号是否可用</p>
+**接口描述**:<p>检查手机号是否可用，如果已被使用则返回已存在用户的基本信息</p>
 
 
 
@@ -130,7 +238,7 @@
 
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
-|200|OK|ResultBoolean|
+|200|OK|ResultBindMobileResultDTO|
 
 
 **响应参数**:
@@ -141,7 +249,15 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|boolean||
+|data||BindMobileResultDTO|BindMobileResultDTO|
+|&emsp;&emsp;success|是否成功|boolean||
+|&emsp;&emsp;needConfirm|是否需要确认|boolean||
+|&emsp;&emsp;existingUserInfo|用户基本信息（脱敏）|SysUserBasicInfoVO|SysUserBasicInfoVO|
+|&emsp;&emsp;&emsp;&emsp;id|用户ID|string||
+|&emsp;&emsp;&emsp;&emsp;username|用户名|string||
+|&emsp;&emsp;&emsp;&emsp;nickName|用户昵称|string||
+|&emsp;&emsp;&emsp;&emsp;avatar|用户头像URL|string||
+|&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
 
 
 **响应示例**:
@@ -150,7 +266,17 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": true
+	"data": {
+		"success": true,
+		"needConfirm": true,
+		"existingUserInfo": {
+			"id": "",
+			"username": "",
+			"nickName": "",
+			"avatar": "",
+			"createTime": ""
+		}
+	}
 }
 ```
 
@@ -265,6 +391,8 @@
 |&emsp;&emsp;avatar|用户头像URL|string||
 |&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer(int32)||
 |&emsp;&emsp;lastLoginTime|最后登录时间|string(date-time)||
+|&emsp;&emsp;githubId|GitHub用户ID|string||
+|&emsp;&emsp;wechatId|微信OpenID|string||
 |&emsp;&emsp;roles|系统角色视图对象 (VO)|array|SysRoleVO|
 |&emsp;&emsp;&emsp;&emsp;id|角色ID|string||
 |&emsp;&emsp;&emsp;&emsp;roleName|角色名称|string||
@@ -312,6 +440,8 @@
 		"avatar": "",
 		"status": 0,
 		"lastLoginTime": "",
+		"githubId": "",
+		"wechatId": "",
 		"roles": [
 			{
 				"id": "",
@@ -427,6 +557,8 @@
 |&emsp;&emsp;avatar|用户头像URL|string||
 |&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer(int32)||
 |&emsp;&emsp;lastLoginTime|最后登录时间|string(date-time)||
+|&emsp;&emsp;githubId|GitHub用户ID|string||
+|&emsp;&emsp;wechatId|微信OpenID|string||
 |&emsp;&emsp;roles|系统角色视图对象 (VO)|array|SysRoleVO|
 |&emsp;&emsp;&emsp;&emsp;id|角色ID|string||
 |&emsp;&emsp;&emsp;&emsp;roleName|角色名称|string||
@@ -475,6 +607,8 @@
 		"avatar": "",
 		"status": 0,
 		"lastLoginTime": "",
+		"githubId": "",
+		"wechatId": "",
 		"roles": [
 			{
 				"id": "",
@@ -670,6 +804,8 @@
 |&emsp;&emsp;avatar|用户头像URL|string||
 |&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer(int32)||
 |&emsp;&emsp;lastLoginTime|最后登录时间|string(date-time)||
+|&emsp;&emsp;githubId|GitHub用户ID|string||
+|&emsp;&emsp;wechatId|微信OpenID|string||
 |&emsp;&emsp;roles|系统角色视图对象 (VO)|array|SysRoleVO|
 |&emsp;&emsp;&emsp;&emsp;id|角色ID|string||
 |&emsp;&emsp;&emsp;&emsp;roleName|角色名称|string||
@@ -718,6 +854,8 @@
 		"avatar": "",
 		"status": 0,
 		"lastLoginTime": "",
+		"githubId": "",
+		"wechatId": "",
 		"roles": [
 			{
 				"id": "",
@@ -1248,6 +1386,8 @@
 |&emsp;&emsp;avatar|用户头像URL|string||
 |&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer(int32)||
 |&emsp;&emsp;lastLoginTime|最后登录时间|string(date-time)||
+|&emsp;&emsp;githubId|GitHub用户ID|string||
+|&emsp;&emsp;wechatId|微信OpenID|string||
 |&emsp;&emsp;roles|系统角色视图对象 (VO)|array|SysRoleVO|
 |&emsp;&emsp;&emsp;&emsp;id|角色ID|string||
 |&emsp;&emsp;&emsp;&emsp;roleName|角色名称|string||
@@ -1296,6 +1436,8 @@
 		"avatar": "",
 		"status": 0,
 		"lastLoginTime": "",
+		"githubId": "",
+		"wechatId": "",
 		"roles": [
 			{
 				"id": "",
@@ -1452,7 +1594,7 @@
 
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
-|200|OK|ResultMapStringObject|
+|200|OK|ResultOAuth2CallbackResultDTO|
 
 
 **响应参数**:
@@ -1463,7 +1605,58 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|object||
+|data||OAuth2CallbackResultDTO|OAuth2CallbackResultDTO|
+|&emsp;&emsp;accessToken|访问令牌|string||
+|&emsp;&emsp;refreshToken|刷新令牌|string||
+|&emsp;&emsp;user|系统用户内部数据传输对象 (VO)|SysUserInternalVO|SysUserInternalVO|
+|&emsp;&emsp;&emsp;&emsp;createTime|创建时间 (系统自动生成)|string||
+|&emsp;&emsp;&emsp;&emsp;updateTime|更新时间 (系统自动生成)|string||
+|&emsp;&emsp;&emsp;&emsp;id|用户ID|string||
+|&emsp;&emsp;&emsp;&emsp;username|用户名|string||
+|&emsp;&emsp;&emsp;&emsp;nickName|用户昵称|string||
+|&emsp;&emsp;&emsp;&emsp;email|邮箱|string||
+|&emsp;&emsp;&emsp;&emsp;mobile|手机号|string||
+|&emsp;&emsp;&emsp;&emsp;gender|性别 (0=未知, 1=男, 2=女)|integer||
+|&emsp;&emsp;&emsp;&emsp;avatar|用户头像URL|string||
+|&emsp;&emsp;&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer||
+|&emsp;&emsp;&emsp;&emsp;lastLoginTime|最后登录时间|string||
+|&emsp;&emsp;&emsp;&emsp;githubId|GitHub用户ID|string||
+|&emsp;&emsp;&emsp;&emsp;wechatId|微信OpenID|string||
+|&emsp;&emsp;&emsp;&emsp;roles|系统角色视图对象 (VO)|array|SysRoleVO|
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;id|角色ID|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;roleName|角色名称|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;roleKey|角色标识|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permissions|系统权限视图对象 (VO)|array|SysPermissionVO|
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;id|权限ID|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;parentId|父级权限ID|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permissionName|权限名称|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permissionKey|权限标识|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;children|子权限列表|array|SysPermissionVO|
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;sort|排序|integer||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;sort|排序|integer||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;description|描述|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
+|&emsp;&emsp;&emsp;&emsp;permissions|系统权限视图对象 (VO)|array|SysPermissionVO|
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;id|权限ID|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;parentId|父级权限ID|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permissionName|权限名称|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;permissionKey|权限标识|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;children|子权限列表|array|SysPermissionVO|
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;sort|排序|integer||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
+|&emsp;&emsp;registrationStatus|注册状态信息|RegistrationStatusDTO|RegistrationStatusDTO|
+|&emsp;&emsp;&emsp;&emsp;isNewUser|是否为新用户|boolean||
+|&emsp;&emsp;&emsp;&emsp;needBindMobile|是否需要绑定手机号|boolean||
+|&emsp;&emsp;&emsp;&emsp;needSelectIdentity|是否需要选择身份|boolean||
+|&emsp;&emsp;&emsp;&emsp;needCompleteInfo|是否需要完善信息|boolean||
+|&emsp;&emsp;&emsp;&emsp;currentStep|当前步骤: bindMobile | selectIdentity | completeInfo | completed|string||
 
 
 **响应示例**:
@@ -1472,6 +1665,71 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": {}
+	"data": {
+		"accessToken": "",
+		"refreshToken": "",
+		"user": {
+			"id": "",
+			"username": "",
+			"nickName": "",
+			"email": "",
+			"mobile": "",
+			"gender": 0,
+			"avatar": "",
+			"status": 0,
+			"lastLoginTime": "",
+			"githubId": "",
+			"wechatId": "",
+			"roles": [
+				{
+					"id": "",
+					"roleName": "",
+					"roleKey": "",
+					"permissions": [
+						{
+							"id": "",
+							"parentId": "",
+							"permissionName": "",
+							"permissionKey": "",
+							"children": [
+								{
+									"id": "",
+									"parentId": "",
+									"permissionName": "",
+									"permissionKey": "",
+									"children": [
+										{}
+									],
+									"sort": 0,
+									"status": 0,
+									"createTime": "",
+									"updateTime": ""
+								}
+							],
+							"sort": 0,
+							"status": 0,
+							"createTime": "",
+							"updateTime": ""
+						}
+					],
+					"sort": 0,
+					"status": 0,
+					"description": "",
+					"createTime": "",
+					"updateTime": ""
+				}
+			],
+			"permissions": [
+				{}
+			]
+		},
+		"registrationStatus": {
+			"isNewUser": true,
+			"needBindMobile": true,
+			"needSelectIdentity": true,
+			"needCompleteInfo": true,
+			"currentStep": ""
+		}
+	}
 }
 ```

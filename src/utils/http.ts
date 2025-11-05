@@ -165,16 +165,15 @@ class HttpClient {
         // 响应拦截器
         this.instance.interceptors.response.use(
             (response): any => {
-                // 完成加载条（如果请求没有隐藏加载条）
-                if (!response.config.meta?.hideLoading) {
-                    const loadingBarStore = useLoadingBarStore()
-                    loadingBarStore.finish()
-                }
-
                 // 检查响应是否为TableDataResult格式
                 const data = response.data
                 if (data && 'total' in data && 'data' in data && 'code' in data && 'msg' in data && data.code === 200) {
                     // 是TableDataResult格式，直接返回
+                    // 完成加载条（如果请求没有隐藏加载条）
+                    if (!response.config.meta?.hideLoading) {
+                        const loadingBarStore = useLoadingBarStore()
+                        loadingBarStore.finish()
+                    }
                     return data
                 }
 
@@ -183,11 +182,27 @@ class HttpClient {
                 if (!res.success && res.code !== 200) {
                     // 检查是否为401未授权错误
                     if (res.code === 401) {
+                        // 如果是401错误，直接完成进度条
+                        if (!response.config.meta?.hideLoading) {
+                            const loadingBarStore = useLoadingBarStore()
+                            loadingBarStore.finish()
+                        }
                         this.handleUnauthorized()
                     } else {
+                        // 完成加载条（如果请求没有隐藏加载条）
+                        if (!response.config.meta?.hideLoading) {
+                            const loadingBarStore = useLoadingBarStore()
+                            loadingBarStore.finish()
+                        }
                         this.handleErrorCode(res.code || 500, res.message || i18n.global.t('common.http.requestFailed'))
                     }
                     return Promise.reject(res)
+                }
+                
+                // 成功响应，完成加载条
+                if (!response.config.meta?.hideLoading) {
+                    const loadingBarStore = useLoadingBarStore()
+                    loadingBarStore.finish()
                 }
                 return res
             },
@@ -195,7 +210,12 @@ class HttpClient {
                 // 完成加载条（如果请求没有隐藏加载条）
                 if (!error.config?.meta?.hideLoading) {
                     const loadingBarStore = useLoadingBarStore()
-                    loadingBarStore.error()
+                    // 如果是401错误，直接完成进度条，否则显示错误状态
+                    if (error.response?.status === 401) {
+                        loadingBarStore.finish()
+                    } else {
+                        loadingBarStore.error()
+                    }
                 }
 
                 // HTTP错误处理

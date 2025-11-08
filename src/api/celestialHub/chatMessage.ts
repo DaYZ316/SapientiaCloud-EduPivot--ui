@@ -110,7 +110,7 @@ export function chatStream(data: ChatRequestDTO, callbacks: SSEEventCallbacks): 
     const baseURL = apiConfig.getBaseUrl()
 
     // 构建完整URL
-    const fullURL = `${baseURL}/celestial-hub/message/stream`
+    const fullURL = `${baseURL}/celestial-hub/message/stream/kafka`
 
     // 创建AbortController用于控制连接
     const abortController = new AbortController()

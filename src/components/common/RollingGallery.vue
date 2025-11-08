@@ -11,21 +11,22 @@
           @mouseleave="handleMouseLeave"
           @mousedown="handleMouseDown"
         >
-          <div
-            v-for="(url, i) in displayImages"
-            :key="`gallery-${i}`"
-            :style="getItemStyle(i)"
-            class="rolling-gallery__item"
-          >
-            <img
-              :src="url"
-              alt="gallery"
-              loading="lazy"
-              decoding="async"
-              class="rolling-gallery__image"
-              :style="imageStyle"
-            />
-          </div>
+          <template v-for="(url, i) in displayImages" :key="`gallery-${i}`">
+            <div
+              :style="getItemStyle(i)"
+              class="rolling-gallery__item"
+            >
+              <img
+                :src="getImageUrl(url)"
+                alt="gallery"
+                loading="lazy"
+                decoding="async"
+                class="rolling-gallery__image"
+                :style="imageStyle"
+                @error="handleImageError(url, $event)"
+              />
+            </div>
+          </template>
         </Motion>
       </div>
     </div>
@@ -36,6 +37,7 @@
   import { Motion } from 'motion-v';
   import { useThemeStore } from '@/store';
   import { ColorUtils } from '@/utils/colorAlgorithm';
+  import defaultCourseImage from '@/assets/image/default-course.png';
   
   interface RollingGalleryProps {
     autoplay?: boolean;
@@ -69,6 +71,7 @@
   const dragStartX = ref(0);
   const dragStartRotation = ref(0);
   const isRotatingOnce = ref(false);
+  const failedImages = ref<Set<string>>(new Set());
   
   const displayImages = computed(() => {
     const sourceImages = props.images.length > 0 ? props.images : DEFAULT_IMAGES.value;
@@ -164,6 +167,18 @@
   
   let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
   let hoverTimeout: ReturnType<typeof setTimeout> | null = null;
+  
+  function getImageUrl(url: string): string {
+    return failedImages.value.has(url) ? defaultCourseImage : url;
+  }
+
+  function handleImageError(url: string, event: Event) {
+    failedImages.value.add(url);
+    const img = event.target as HTMLImageElement;
+    if (img && img.src !== defaultCourseImage) {
+      img.src = defaultCourseImage;
+    }
+  }
   
   function checkScreenSize() {
     isScreenSizeSm.value = window.innerWidth <= 640;
@@ -330,6 +345,13 @@
       }
     }
   );
+  
+  watch(
+    () => props.images,
+    () => {
+      failedImages.value.clear();
+    }
+  );
 
   // 执行一次完整的旋转（转半圈）
   function rotateOnce() {
@@ -397,15 +419,22 @@
   backface-visibility: hidden;
   will-change: transform;
   pointer-events: none;
+  box-sizing: border-box;
 }
 
 .rolling-gallery__image {
   pointer-events: auto;
-  height: 220px;
-  width: 550px;
+  height: 240px;
+  width: 320px;
+  min-height: 240px;
+  min-width: 320px;
+  max-height: 240px;
+  max-width: 320px;
   border-radius: 15px;
   border: 1px solid;
   object-fit: cover;
+  display: block;
+  overflow: hidden;
   transition: transform 300ms ease-in-out, box-shadow 300ms ease-in-out;
   will-change: transform;
 

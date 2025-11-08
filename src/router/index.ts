@@ -367,6 +367,10 @@ router.beforeEach(async (to, from, next) => {
     // 根路径特殊处理，检查JWT并重定向
     if (to.path === '/') {
         if (userStore.token && userStore.isLogin) {
+            // 如果是admin角色，直接重定向到主页，不拦截
+            if (userStore.hasRole('ADMIN')) {
+                return next('/dashboard')
+            }
             // 如果JWT存在且有效，检查是否需要填写信息或没有手机号
             if (userStore.needsIdentityInfo || !userStore.userInfo?.mobile) {
                 return next('/info/select')
@@ -380,7 +384,8 @@ router.beforeEach(async (to, from, next) => {
     }
 
     // 如果已登录且需要填写信息或没有手机号，拦截所有跳转（登录页面除外）
-    if (userStore.token && userStore.isLogin && (userStore.needsIdentityInfo || !userStore.userInfo?.mobile)) {
+    // admin角色用户不拦截
+    if (userStore.token && userStore.isLogin && (userStore.needsIdentityInfo || !userStore.userInfo?.mobile) && !userStore.hasRole('ADMIN')) {
         // 允许访问登录页面（用于退出登录）
         if (to.name === 'Login') {
             next()

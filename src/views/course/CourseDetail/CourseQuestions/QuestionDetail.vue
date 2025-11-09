@@ -1,87 +1,126 @@
 <template>
-  <div class="question-detail">
-    <!-- 面包屑导航 -->
-    <CourseBreadcrumb
-        v-if="courseInfo"
-        :course-info="courseInfo"
-        :current-page="questionInfo.questionTitle || $t('course.question.detail')"
-        :show-course-link="true"
-    >
-      <template #actions>
-        <n-button @click="handleBack">
-          <template #icon>
-            <n-icon>
-              <ArrowLeftOutlined/>
-            </n-icon>
-          </template>
-          {{ $t('common.back') }}
-        </n-button>
-      </template>
-    </CourseBreadcrumb>
+  <div class="question-detail-content">
+    <n-card v-if="!question" class="no-selection-card">
+      <n-empty :description="t('course.question.selectQuestionToView')">
+        <template #icon>
+          <Icon :component="ListOutline"/>
+        </template>
+      </n-empty>
+    </n-card>
 
-    <!-- 题目基本信息 -->
-    <div class="question-info-section">
-      <n-card :title="$t('course.question.basicInfo')" class="info-card">
-        <n-descriptions :column="2" bordered>
-          <n-descriptions-item :label="$t('course.question.questionTitle')">
-            {{ questionInfo.questionTitle }}
-          </n-descriptions-item>
-          <n-descriptions-item :label="$t('course.question.questionType')">
-            {{ getQuestionTypeText(questionInfo.questionType) }}
-          </n-descriptions-item>
-          <n-descriptions-item :label="$t('course.question.difficulty')">
-            {{ getDifficultyText(questionInfo.difficulty) }}
-          </n-descriptions-item>
-          <n-descriptions-item :label="$t('course.question.score')">
-            {{ questionInfo.score }}
-          </n-descriptions-item>
-          <n-descriptions-item :label="$t('course.question.status')">
-            {{ getStatusText(questionInfo.status || 0) }}
-          </n-descriptions-item>
-          <n-descriptions-item :label="$t('course.question.estimatedTime')">
-            {{ questionInfo.estimatedTime || 0 }} {{ $t('common.minutes') }}
-          </n-descriptions-item>
-        </n-descriptions>
-      </n-card>
-    </div>
+    <n-card v-else class="question-info-card">
 
-    <!-- 题目内容 -->
-    <div class="question-content-section">
-      <n-card :title="$t('course.question.content')" class="content-card">
-        <div class="question-content">
-          <h4>{{ $t('course.question.questionContent') }}</h4>
-          <div class="content-text" v-html="questionInfo.questionContent"></div>
-
-          <div v-if="questionInfo.tags && questionInfo.tags.length" class="tags-section">
-            <h4>{{ $t('course.question.tags') }}</h4>
-            <n-tag
-                v-for="tag in questionInfo.tags"
-                :key="tag"
-                size="small"
-                style="margin-right: 8px; margin-bottom: 4px;"
-                type="info"
-            >
-              {{ tag }}
-            </n-tag>
+      <!-- 题目标题和基本信息 -->
+      <div class="question-header">
+        <div class="question-title-section">
+          <h2 class="question-title">{{ question.questionTitle }}</h2>
+          <!-- 题目描述 -->
+          <div class="question-meta-info">
+            <div class="question-type-info">
+              <n-tag :type="getQuestionTypeTagType(question.questionType)" size="medium">
+                {{ getQuestionTypeText(question.questionType) }}
+              </n-tag>
+            </div>
+            <div class="question-difficulty-info">
+              <n-tag :type="getDifficultyTagType(question.difficulty)" size="medium">
+                <span>{{ getDifficultyText(question.difficulty) }}</span>
+              </n-tag>
+            </div>
+            <div class="question-score-info">
+              <span class="score-label">{{ $t('course.question.score') }}:</span>
+              <span class="score-value">{{ question.score }} {{ $t('common.points') }}</span>
+            </div>
+            <div v-if="question.estimatedTime" class="question-time-info">
+              <span class="time-label">{{ $t('course.question.estimatedTime') }}:</span>
+              <span class="time-value">{{ question.estimatedTime }} {{ $t('common.minutes') }}</span>
+            </div>
+            <div v-if="question.viewCount !== undefined" class="question-view-info">
+              <span class="view-label">{{ $t('course.question.viewCount') }}:</span>
+              <span class="view-value">{{ question.viewCount || 0 }} {{ $t('common.times') }}</span>
+            </div>
+            <div class="question-status-info">
+              <n-tag :type="question.status === 1 ? 'success' : 'default'" size="medium">
+                {{ getStatusText(question.status) }}
+              </n-tag>
+            </div>
           </div>
         </div>
-      </n-card>
-    </div>
-
-    <!-- 题目选项 -->
-    <div v-if="showOptions" class="question-options-section">
-      <n-card :title="$t('course.question.options')" class="options-card">
-        <div class="options-header">
-          <n-button type="primary" @click="handleAddOption">
+        <!-- 操作按钮区域 -->
+        <div v-if="canEditQuestion" class="question-actions">
+          <n-button
+              v-if="question.status === 1"
+              :title="t('course.question.unpublish')"
+              circle
+              quaternary
+              size="small"
+              type="warning"
+              @click="handleUnpublish"
+          >
+              <template #icon>
+                <Icon :component="CloseCircleOutline"/>
+              </template>
+          </n-button>
+          <n-button
+              v-else
+              :title="t('course.question.publish')"
+              circle
+              quaternary
+              size="small"
+              type="success"
+              @click="handlePublish"
+          >
+              <template #icon>
+                <Icon :component="CheckmarkCircleOutline"/>
+              </template>
+          </n-button>
+          <n-button
+              :title="t('common.edit')"
+              circle
+              quaternary
+              size="small"
+              @click="handleEdit"
+          >
             <template #icon>
-              <n-icon>
-                <PlusOutlined/>
-              </n-icon>
+              <Icon :component="CreateOutline"/>
             </template>
-            {{ $t('course.question.addOption') }}
+          </n-button>
+          <n-button
+              :title="t('common.delete')"
+              circle
+              quaternary
+              size="small"
+              type="error"
+              @click="handleDelete"
+          >
+            <template #icon>
+              <Icon :component="TrashOutline"/>
+            </template>
           </n-button>
         </div>
+      </div>
 
+      <!-- 题目内容 -->
+      <div v-if="question.questionContent" class="question-content">
+        <h3 class="section-title">{{ $t('course.question.questionContent') }}</h3>
+        <div class="content-body" v-html="question.questionContent"></div>
+
+        <div v-if="question.tags && question.tags.length" class="tags-section">
+          <h4>{{ $t('course.question.tags') }}</h4>
+          <n-tag
+              v-for="tag in question.tags"
+              :key="tag"
+              size="small"
+              style="margin-right: 8px; margin-bottom: 4px;"
+              type="info"
+          >
+            {{ tag }}
+          </n-tag>
+        </div>
+      </div>
+
+      <!-- 题目选项 -->
+      <div v-if="showOptions" class="question-options">
+        <h3 class="section-title">{{ $t('course.question.options') }}</h3>
         <div class="options-list">
           <div
               v-for="option in optionsList"
@@ -89,63 +128,31 @@
               :class="{ 'correct-option': option.isCorrect === 1 }"
               class="option-item"
           >
-            <div class="option-header">
-              <span class="option-label">{{ option.optionLabel }}</span>
-              <div class="option-actions">
-                <n-button size="small" text type="info" @click="handleEditOption(option)">
-                  {{ $t('common.edit') }}
-                </n-button>
-                <n-button size="small" text type="error" @click="handleDeleteOption(option)">
-                  {{ $t('common.delete') }}
-                </n-button>
-              </div>
+            <div class="option-wrapper">
+              <n-tag :type="option.isCorrect === 1 ? 'success' : 'default'" size="large" class="option-label-tag">
+                {{ option.optionLabel }}
+              </n-tag>
+              <div class="option-content">{{ option.optionContent }}</div>
             </div>
-            <div class="option-content">{{ option.optionContent }}</div>
           </div>
         </div>
-      </n-card>
-    </div>
+      </div>
 
-    <!-- 题目答案 -->
-    <div v-if="showAnswers" class="question-answers-section">
-      <n-card :title="$t('course.question.answers')" class="answers-card">
-        <div class="answers-header">
-          <n-button type="primary" @click="handleAddAnswer">
-            <template #icon>
-              <n-icon>
-                <PlusOutlined/>
-              </n-icon>
-            </template>
-            {{ $t('course.question.addAnswer') }}
-          </n-button>
-        </div>
-
-        <div class="answers-list">
+      <!-- 题目答案 -->
+      <div v-if="showAnswers && answersList.length > 0" class="question-answers">
+        <h3 class="section-title">{{ $t('course.question.answers') }}</h3>
+        <div class="content-body">
           <div
               v-for="answer in answersList"
               :key="answer.id"
-              :class="{ 'correct-answer': answer.isCorrect === 1 }"
-              class="answer-item"
+              class="answer-display-item"
           >
-            <div class="answer-header">
-              <span class="answer-score">{{ answer.score }} {{ $t('common.points') }}</span>
-              <div class="answer-actions">
-                <n-button size="small" text type="info" @click="handleEditAnswer(answer)">
-                  {{ $t('common.edit') }}
-                </n-button>
-                <n-button size="small" text type="error" @click="handleDeleteAnswer(answer)">
-                  {{ $t('common.delete') }}
-                </n-button>
-              </div>
-            </div>
-            <div class="answer-content">{{ answer.answerContent }}</div>
-            <div v-if="answer.answerText" class="answer-text">
-              <strong>{{ $t('course.question.answerText') }}:</strong> {{ answer.answerText }}
-            </div>
+            <div class="answer-text-content">{{ answer.answerText || answer.answerContent }}</div>
           </div>
         </div>
-      </n-card>
-    </div>
+      </div>
+
+    </n-card>
 
 
     <!-- 选项编辑对话框 -->
@@ -246,19 +253,17 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, reactive, ref} from 'vue'
+import {computed, nextTick, onMounted, reactive, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {useRoute} from 'vue-router'
-import {ArrowLeftOutlined, PlusOutlined} from '@vicons/antd'
+import {useRouter} from 'vue-router'
+import {AddOutline, CreateOutline, ListOutline, TrashOutline, CheckmarkCircleOutline, CloseCircleOutline} from '@vicons/ionicons5'
 import type {FormInst, FormRules} from 'naive-ui'
 import {
   NButton,
   NCard,
-  NDescriptions,
-  NDescriptionsItem,
+  NEmpty,
   NForm,
   NFormItem,
-  NIcon,
   NInput,
   NInputNumber,
   NModal,
@@ -272,38 +277,50 @@ import {
 import {
   addQuestionAnswer,
   addQuestionOption,
-  getCourseById,
   getDefaultQuestionAnswerDTO,
   getDefaultQuestionOptionDTO,
   getQuestionById,
   listAllQuestionAnswerByQuestionId,
   listAllQuestionOptionByQuestionId,
+  publishQuestion,
   removeQuestionAnswerById,
   removeQuestionOptionById,
+  unpublishQuestion,
   updateQuestionAnswer,
-  updateQuestionOption
+  updateQuestionOption,
+  viewQuestion
 } from '@/api/course'
 import type {
-  CourseVO,
   QuestionAnswerDTO,
   QuestionAnswerVO,
   QuestionOptionDTO,
   QuestionOptionVO,
   QuestionVO
 } from '@/types/course'
-import CourseBreadcrumb from '../../components/CourseBreadcrumb/CourseBreadcrumb.vue'
+import {QuestionStatusEnum, getQuestionStatusLabel} from '@/enum/course/questionStatusEnum'
+import Icon from '@/components/common/Icon.vue'
+import {getDiscreteApi} from '@/utils/naiveUIHelper'
+import {useUserStore} from '@/store/modules/user'
 
+interface Props {
+  question: QuestionVO | null
+  courseId: string
+}
+
+interface Emits {
+  (e: 'delete', question: QuestionVO): void
+  (e: 'edit', question: QuestionVO): void
+  (e: 'update'): void
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits<Emits>()
 const {t} = useI18n()
-const message = useMessage()
-const route = useRoute()
-
-// 获取题目ID参数
-const questionId = ref<string>(route.params.questionId as string)
-const courseId = ref<string>(route.params.courseId as string)
+const {dialog, message} = getDiscreteApi()
+const router = useRouter()
+const userStore = useUserStore()
 
 // 响应式数据
-const questionInfo = ref<QuestionVO>({} as QuestionVO)
-const courseInfo = ref<CourseVO | null>(null)
 const optionsList = ref<QuestionOptionVO[]>([])
 const answersList = ref<QuestionAnswerVO[]>([])
 const showOptionModal = ref(false)
@@ -312,6 +329,12 @@ const optionFormRef = ref<FormInst | null>(null)
 const answerFormRef = ref<FormInst | null>(null)
 const isEditOption = ref(false)
 const isEditAnswer = ref(false)
+const viewCountCache = ref<Map<string, number>>(new Map())
+
+// 权限检查
+const canEditQuestion = computed(() => {
+  return userStore.hasRole('ADMIN') || userStore.hasRole('TEACHER')
+})
 
 // 选项表单数据
 const optionFormData = reactive<QuestionOptionDTO>({
@@ -341,15 +364,6 @@ const answerCorrectnessOptions = [
   {label: t('course.question.partiallyCorrect'), value: 2}
 ]
 
-// 计算属性
-const showOptions = computed(() => {
-  return questionInfo.value.questionType === 0 || questionInfo.value.questionType === 1
-})
-
-const showAnswers = computed(() => {
-  return questionInfo.value.questionType === 2 || questionInfo.value.questionType === 3 || questionInfo.value.questionType === 4
-})
-
 const optionModalTitle = computed(() => isEditOption.value ? t('common.edit') : t('common.add'))
 const answerModalTitle = computed(() => isEditAnswer.value ? t('common.edit') : t('common.add'))
 
@@ -378,43 +392,16 @@ const answerFormRules: FormRules = {
   ]
 }
 
-// 方法
-const loadCourseInfo = async (courseId: string) => {
-  try {
-    const response = await getCourseById(courseId)
-    courseInfo.value = response.data
-  } catch (error) {
-    message.error(t('common.loadError'))
-  }
-}
+// 计算属性
+const showOptions = computed(() => {
+  return props.question?.questionType === 0 || props.question?.questionType === 1
+})
 
-const loadQuestionInfo = async (questionId: string) => {
-  try {
-    const response = await getQuestionById(questionId)
-    questionInfo.value = response.data
-  } catch (error) {
-    message.error(t('common.loadError'))
-  }
-}
+const showAnswers = computed(() => {
+  return props.question?.questionType === 2 || props.question?.questionType === 3 || props.question?.questionType === 4
+})
 
-const loadOptions = async (questionId: string) => {
-  try {
-    const response = await listAllQuestionOptionByQuestionId(questionId)
-    optionsList.value = response.data
-  } catch (error) {
-    message.error(t('common.loadError'))
-  }
-}
-
-const loadAnswers = async (questionId: string) => {
-  try {
-    const response = await listAllQuestionAnswerByQuestionId(questionId)
-    answersList.value = response.data
-  } catch (error) {
-    message.error(t('common.loadError'))
-  }
-}
-
+// 获取题目类型文本
 const getQuestionTypeText = (type: number) => {
   const typeMap = {
     0: t('course.question.singleChoice'),
@@ -426,6 +413,18 @@ const getQuestionTypeText = (type: number) => {
   return typeMap[type as keyof typeof typeMap] || '-'
 }
 
+// 获取题目类型标签类型
+const getQuestionTypeTagType = (type: number) => {
+  const typeMap = {
+    0: 'info',    // 单选题
+    1: 'success', // 多选题
+    2: 'warning', // 判断题
+    3: 'error',   // 填空题
+    4: 'default'  // 简答题
+  }
+  return typeMap[type as keyof typeof typeMap] || 'default'
+}
+
 const getDifficultyText = (difficulty: number) => {
   const difficultyMap = {
     1: t('common.easy'),
@@ -435,24 +434,135 @@ const getDifficultyText = (difficulty: number) => {
   return difficultyMap[difficulty as keyof typeof difficultyMap] || '-'
 }
 
-const getStatusText = (status: number) => {
-  const statusMap = {
-    0: t('course.question.draft'),
-    1: t('course.question.published'),
-    2: t('course.question.disabled')
+// 获取难度标签类型
+const getDifficultyTagType = (difficulty: number) => {
+  const difficultyMap = {
+    1: 'success', // 简单
+    2: 'warning', // 中等
+    3: 'error'    // 困难
   }
-  return statusMap[status as keyof typeof statusMap] || '-'
+  return difficultyMap[difficulty as keyof typeof difficultyMap] || 'default'
 }
 
-const handleBack = () => {
-  // 返回上一页
-  // router.back()
+// 获取状态文本
+const getStatusText = (status?: number) => {
+  if (status === undefined || status === null) {
+    return t('course.question.draft')
+  }
+  return getQuestionStatusLabel(status, false)
+}
+
+// 处理编辑
+const handleEdit = () => {
+  if (props.question) {
+    emit('edit', props.question)
+  }
+}
+
+// 处理删除
+const handleDelete = () => {
+  if (!props.question) return
+
+  dialog.warning({
+    title: t('common.delete'),
+    content: t('course.question.deleteConfirmContent'),
+    positiveText: t('common.confirm'),
+    negativeText: t('common.cancel'),
+    onPositiveClick: () => {
+      emit('delete', props.question!)
+    }
+  })
+}
+
+// 处理发布
+const handlePublish = () => {
+  if (!props.question) return
+
+  dialog.warning({
+    title: t('common.confirm'),
+    content: t('course.question.confirmPublish'),
+    positiveText: t('common.confirm'),
+    negativeText: t('common.cancel'),
+    onPositiveClick: async () => {
+      try {
+        await publishQuestion(props.question!.id)
+        message.success(t('course.question.publishSuccess'))
+        emit('update')
+      } catch (error) {
+        message.error(t('course.question.publishFailed'))
+      }
+    }
+  })
+}
+
+// 处理取消发布
+const handleUnpublish = () => {
+  if (!props.question) return
+
+  dialog.warning({
+    title: t('common.confirm'),
+    content: t('course.question.confirmUnpublish'),
+    positiveText: t('common.confirm'),
+    negativeText: t('common.cancel'),
+    onPositiveClick: async () => {
+      try {
+        await unpublishQuestion(props.question!.id)
+        message.success(t('course.question.unpublishSuccess'))
+        emit('update')
+      } catch (error) {
+        message.error(t('course.question.unpublishFailed'))
+      }
+    }
+  })
+}
+
+// 增加浏览次数
+const incrementViewCount = async (questionId: string) => {
+  // 检查缓存，10分钟内不重复调用
+  const cacheKey = `view_${questionId}`
+  const cachedTime = viewCountCache.value.get(cacheKey)
+  const now = Date.now()
+  const cacheDuration = 10 * 60 * 1000 // 10分钟
+
+  if (cachedTime && (now - cachedTime) < cacheDuration) {
+    return // 10分钟内已调用过，不重复调用
+  }
+
+  try {
+    await viewQuestion(questionId)
+    viewCountCache.value.set(cacheKey, now)
+    // 更新本地显示
+    if (props.question && props.question.id === questionId) {
+      props.question.viewCount = (props.question.viewCount || 0) + 1
+    }
+  } catch (error) {
+    // 静默失败，不影响用户体验
+  }
+}
+
+const loadOptions = async (questionId: string) => {
+  try {
+    const response = await listAllQuestionOptionByQuestionId(questionId)
+    optionsList.value = response.data || []
+  } catch (error) {
+    message.error(t('common.loadError'))
+  }
+}
+
+const loadAnswers = async (questionId: string) => {
+  try {
+    const response = await listAllQuestionAnswerByQuestionId(questionId)
+    answersList.value = response.data || []
+  } catch (error) {
+    message.error(t('common.loadError'))
+  }
 }
 
 const handleAddOption = () => {
+  if (!props.question) return
   isEditOption.value = false
   Object.assign(optionFormData, getDefaultQuestionOptionDTO())
-  optionFormData.questionId = questionInfo.value.id
+  optionFormData.questionId = props.question.id
   showOptionModal.value = true
 }
 
@@ -474,7 +584,10 @@ const handleDeleteOption = async (option: QuestionOptionVO) => {
   try {
     await removeQuestionOptionById(option.id)
     message.success(t('common.deleteSuccess'))
-    loadOptions(questionInfo.value.id)
+    if (props.question) {
+      loadOptions(props.question.id)
+      emit('update')
+    }
   } catch (error) {
     message.error(t('common.deleteError'))
   }
@@ -495,16 +608,20 @@ const handleSubmitOption = async () => {
     }
 
     showOptionModal.value = false
-    loadOptions(questionInfo.value.id)
+    if (props.question) {
+      loadOptions(props.question.id)
+      emit('update')
+    }
   } catch (error) {
     message.error(t('common.submitError'))
   }
 }
 
 const handleAddAnswer = () => {
+  if (!props.question) return
   isEditAnswer.value = false
   Object.assign(answerFormData, getDefaultQuestionAnswerDTO())
-  answerFormData.questionId = questionInfo.value.id
+  answerFormData.questionId = props.question.id
   showAnswerModal.value = true
 }
 
@@ -525,7 +642,10 @@ const handleDeleteAnswer = async (answer: QuestionAnswerVO) => {
   try {
     await removeQuestionAnswerById(answer.id)
     message.success(t('common.deleteSuccess'))
-    loadAnswers(questionInfo.value.id)
+    if (props.question) {
+      loadAnswers(props.question.id)
+      emit('update')
+    }
   } catch (error) {
     message.error(t('common.deleteError'))
   }
@@ -546,141 +666,263 @@ const handleSubmitAnswer = async () => {
     }
 
     showAnswerModal.value = false
-    loadAnswers(questionInfo.value.id)
+    if (props.question) {
+      loadAnswers(props.question.id)
+      emit('update')
+    }
   } catch (error) {
     message.error(t('common.submitError'))
   }
 }
 
-// 生命周期
-onMounted(() => {
-  // 从路由参数获取题目ID并加载数据
-  if (questionId.value) {
-    loadQuestionInfo(questionId.value)
-    loadOptions(questionId.value)
-    loadAnswers(questionId.value)
+// 监听题目变化，重新加载选项和答案
+watch(() => props.question, (newQuestion) => {
+  if (newQuestion) {
+    loadOptions(newQuestion.id)
+    loadAnswers(newQuestion.id)
+    // 页面加载完成后自动增加浏览次数
+    nextTick(() => {
+      incrementViewCount(newQuestion.id)
+    })
+  } else {
+    optionsList.value = []
+    answersList.value = []
   }
-  // 加载课程信息
-  if (courseId.value) {
-    loadCourseInfo(courseId.value)
-  }
-})
+}, {immediate: true})
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/index.scss' as *;
+.question-detail-content {
+  height: 100%;
+  overflow: hidden;
 
-.question-detail {
-  padding: 24px;
-  background-color: var(--background-color);
-  min-height: 100vh;
-
-
-  .question-info-section,
-  .question-content-section,
-  .question-options-section,
-  .question-answers-section {
-    margin-bottom: 24px;
-
-    .info-card,
-    .content-card,
-    .options-card,
-    .answers-card {
-      border: 1px solid var(--border-secondary-color);
-      border-radius: 8px;
-
-      :deep(.n-card-header) {
-        background: var(--background-tertiary-color);
-        border-bottom: 1px solid var(--border-secondary-color);
-      }
-    }
-  }
-
-  .question-content {
-    .content-text {
-      margin-bottom: 16px;
-      line-height: 1.6;
-      color: var(--text-color);
-    }
-
-    .tags-section {
-      margin-top: 16px;
-
-      h4 {
-        margin: 0 0 8px 0;
-        color: var(--text-color);
-        font-size: 14px;
-        font-weight: 600;
-      }
-    }
-  }
-
-  .options-header,
-  .answers-header {
-    margin-bottom: 16px;
+  .no-selection-card {
+    height: 100%;
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    box-shadow: none;
   }
 
-  .options-list,
-  .answers-list {
-    .option-item,
-    .answer-item {
-      margin-bottom: 16px;
-      padding: 16px;
-      background: var(--background-secondary-color);
-      border: 1px solid var(--border-secondary-color);
-      border-radius: 8px;
-      transition: all 0.3s ease;
+  .question-info-card {
+    height: 100%;
+    overflow: auto;
+    border: none;
+    box-shadow: none;
 
-      &:hover {
-        border-color: var(--primary-color);
-        box-shadow: 0 2px 8px var(--shadow-secondary-color);
-      }
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 
-      &.correct-option,
-      &.correct-answer {
-        border-color: var(--success-color);
-        background: color-mix(in srgb, var(--success-color) 5%, var(--background-secondary-color));
-      }
+    &::-webkit-scrollbar {
+      display: none;
+    }
 
-      .option-header,
-      .answer-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 8px;
 
-        .option-label {
-          font-weight: 600;
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+
+      .question-title-section {
+        flex: 1;
+        margin-right: 16px;
+
+        .question-title {
+          font-size: 24px;
+          font-weight: 700;
           color: var(--text-color);
+          margin: 0 0 8px 0;
+          line-height: 1.3;
         }
 
-        .answer-score {
-          font-weight: 600;
-          color: var(--success-color);
-        }
-
-        .option-actions,
-        .answer-actions {
+        .question-meta-info {
           display: flex;
-          gap: 8px;
+          gap: 16px;
+          align-items: center;
+          flex-wrap: wrap;
+          margin-top: 12px;
+
+          .question-type-info,
+          .question-difficulty-info,
+          .question-score-info,
+          .question-time-info,
+          .question-view-info,
+          .question-status-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: var(--text-secondary-color);
+
+            .score-label,
+            .time-label,
+            .view-label {
+              color: var(--text-secondary-color);
+            }
+
+            .score-value {
+              font-weight: 600;
+              color: var(--primary-color);
+            }
+
+            .time-value,
+            .view-value {
+              color: var(--text-color);
+            }
+          }
         }
       }
 
-      .option-content,
-      .answer-content {
-        margin-bottom: 8px;
+      .question-actions {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-color);
+      margin: 0 0 12px 0;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--color-primary);
+    }
+
+    .question-content {
+      margin-bottom: 24px;
+
+      .content-body {
+        font-size: 15px;
         line-height: 1.6;
         color: var(--text-color);
+        margin-bottom: 16px;
+
+        :deep(h1), :deep(h2), :deep(h3), :deep(h4), :deep(h5), :deep(h6) {
+          color: var(--text-color);
+          margin-top: 16px;
+          margin-bottom: 8px;
+        }
+
+        :deep(p) {
+          margin-bottom: 12px;
+        }
+
+        :deep(ul), :deep(ol) {
+          padding-left: 20px;
+          margin-bottom: 12px;
+        }
+
+        :deep(li) {
+          margin-bottom: 4px;
+        }
+
+        :deep(blockquote) {
+          border-left: 4px solid var(--color-primary);
+          padding-left: 16px;
+          margin: 16px 0;
+          color: var(--text-secondary-color);
+        }
+
+        :deep(code) {
+          background: var(--background-secondary-color);
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-family: 'Courier New', monospace;
+        }
+
+        :deep(pre) {
+          background: var(--background-secondary-color);
+          padding: 12px;
+          border-radius: 6px;
+          overflow-x: auto;
+          margin: 12px 0;
+        }
       }
 
-      .answer-text {
-        font-size: 12px;
-        color: var(--text-secondary-color);
-        line-height: 1.4;
+      .tags-section {
+        margin-top: 16px;
 
-        strong {
+        h4 {
+          margin: 0 0 8px 0;
+          color: var(--text-color);
+          font-size: 14px;
+          font-weight: 600;
+        }
+      }
+    }
+
+    .question-options {
+      margin-bottom: 24px;
+
+      .options-list {
+        .option-item {
+          margin-bottom: 16px;
+          padding: 16px;
+          background: var(--background-secondary-color);
+          border: 1px solid var(--border-color);
+          border-radius: 8px;
+          transition: all 0.3s ease;
+
+          &:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          }
+
+          &.correct-option {
+            border-color: var(--success-color);
+            background: color-mix(in srgb, var(--success-color) 5%, var(--background-secondary-color));
+          }
+
+          .option-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+
+            .option-label-tag {
+              flex-shrink: 0;
+              min-width: 40px;
+              text-align: center;
+              font-weight: 600;
+              font-size: 16px;
+            }
+
+            .option-content {
+              flex: 1;
+              line-height: 1.6;
+              color: var(--text-color);
+              font-size: 15px;
+              padding-top: 2px;
+            }
+          }
+        }
+      }
+    }
+
+    .question-answers {
+      margin-bottom: 24px;
+
+      .content-body {
+        font-size: 15px;
+        line-height: 1.6;
+        color: var(--text-color);
+        background: var(--background-secondary-color);
+        padding: 16px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        margin-bottom: 16px;
+      }
+
+      .answer-display-item {
+        margin-bottom: 12px;
+
+        .answer-text-content {
+          font-size: 15px;
+          line-height: 1.6;
           color: var(--text-color);
         }
       }
@@ -690,33 +932,60 @@ onMounted(() => {
 
 // 响应式设计
 @media (max-width: 768px) {
-  .question-detail {
-    padding: 16px;
+  .question-detail-content {
+    .question-info-card {
+      .question-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
 
-    .page-header {
-      flex-direction: column;
-      gap: 16px;
-      align-items: stretch;
+        .question-title-section {
+          margin-right: 0;
 
-      .header-actions {
-        justify-content: flex-end;
+          .question-title {
+            font-size: 20px;
+          }
+
+          .question-meta-info {
+            gap: 12px;
+            font-size: 13px;
+          }
+        }
+
+        .question-actions {
+          justify-content: flex-end;
+        }
       }
-    }
 
-    .options-list,
-    .answers-list {
-      .option-item,
-      .answer-item {
-        .option-header,
-        .answer-header {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 8px;
+      .section-title {
+        font-size: 16px;
+      }
 
-          .option-actions,
-          .answer-actions {
-            width: 100%;
-            justify-content: flex-end;
+      .question-content {
+        .content-body {
+          font-size: 14px;
+          padding: 12px;
+        }
+      }
+
+      .question-options,
+      .question-answers {
+        .options-list,
+        .answers-list {
+          .option-item,
+          .answer-item {
+            .option-wrapper {
+              gap: 8px;
+
+              .option-label-tag {
+                min-width: 36px;
+                font-size: 14px;
+              }
+
+              .option-content {
+                font-size: 14px;
+              }
+            }
           }
         }
       }

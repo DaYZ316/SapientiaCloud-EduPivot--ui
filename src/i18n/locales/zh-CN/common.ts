@@ -4,7 +4,7 @@ export default {
     submit: '提交',
     reset: '重置',
     search: '搜索',
-    add: '新增题库',
+    add: '新增题目',
     edit: '编辑',
     delete: '删除',
     success: '操作成功',
@@ -123,6 +123,8 @@ export default {
     actions: '操作',
     points: '分',
     minutes: '分钟',
+    times: '次',
+    selectAll: '全选',
 
     // 时间相关
     createTime: '创建时间',

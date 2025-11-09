@@ -1005,9 +1005,14 @@ export default {
         deleteConfirmContent: 'Are you sure you want to delete question "{questionTitle}"? This action cannot be undone.',
         deleteSuccess: 'Question deleted successfully',
         deleteFailed: 'Failed to delete question',
+        createSuccess: 'Question created successfully',
+        editSuccess: 'Question edited successfully',
         viewCount: 'View count',
         createQuestion: 'Create Question',
-        editQuestion: 'Edit Question'
+        editQuestion: 'Edit Question',
+        optionsMinRequired: 'Multiple choice questions require at least two options',
+        singleChoiceMustHaveOneCorrect: 'Single choice questions must have exactly one correct option',
+        multipleChoiceMustHaveAtLeastOneCorrect: 'Multiple choice questions must have at least one correct option'
     },
 
     // Question status

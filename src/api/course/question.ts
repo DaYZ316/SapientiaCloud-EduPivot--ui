@@ -31,7 +31,8 @@ export function getDefaultQuestionDTO(): QuestionDTO {
         tags: [],
         imageUrls: null,
         allowPartialCredit: null,
-        status: null
+        status: null,
+        options: null
     }
 }
 
@@ -104,4 +105,31 @@ export function listQuestion(params: QuestionQueryParams) {
  */
 export function listQuestionByQuestionBankId(questionBankId: string) {
     return http.get<QuestionVO[]>(`/course/question/question-bank/${questionBankId}`)
+}
+
+/**
+ * 发布题目
+ * @param id 题目ID
+ * @returns 发布结果
+ */
+export function publishQuestion(id: string) {
+    return http.put<boolean>(`/course/question/${id}/publish`)
+}
+
+/**
+ * 取消发布题目
+ * @param id 题目ID
+ * @returns 取消发布结果
+ */
+export function unpublishQuestion(id: string) {
+    return http.put<boolean>(`/course/question/${id}/unpublish`)
+}
+
+/**
+ * 增加题目浏览次数
+ * @param id 题目ID
+ * @returns 更新结果
+ */
+export function viewQuestion(id: string) {
+    return http.put<boolean>(`/course/question/${id}/view`)
 }

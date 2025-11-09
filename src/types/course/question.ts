@@ -1,4 +1,5 @@
 import {QuestionAnswerVO} from "./questionAnswer"
+import {QuestionOptionDTO} from "./questionOption"
 
 /**
  * 题目数据传输对象
@@ -29,6 +30,8 @@ export interface QuestionDTO {
     allowPartialCredit?: number | null
     /** 题目状态 (0=草稿, 1=发布, 2=停用) */
     status?: number | null
+    /** 选项列表 (选择题、判断题使用) */
+    options?: QuestionOptionDTO[] | null
 }
 
 /**

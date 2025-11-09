@@ -1,5 +1,5 @@
 <template>
-  <div class="question-list">
+  <div class="course-questions">
     <!-- 面包屑导航 -->
     <CourseBreadcrumb
         v-if="courseInfo"
@@ -21,8 +21,22 @@
     </CourseBreadcrumb>
 
     <!-- 搜索和筛选区域 -->
-    <div class="search-section">
-      <div>
+    <div class="search-and-actions">
+      <!-- 批量操作栏 -->
+      <div v-if="selectedQuestionIds.length > 0" class="batch-actions-bar">
+        <div class="batch-info">
+          <span>{{ t('course.question.selectedCount', { count: selectedQuestionIds.length }) }}</span>
+        </div>
+        <n-button type="error" @click="handleBatchDelete">
+          <template #icon>
+            <n-icon>
+              <DeleteOutlined/>
+            </n-icon>
+          </template>
+          {{ t('course.question.batchDelete') }}
+        </n-button>
+      </div>
+      <div class="search-section">
         <n-form :model="searchForm" inline>
           <n-form-item :label="$t('course.question.questionTitle')">
             <n-input
@@ -74,132 +88,42 @@
       </div>
     </div>
 
-    <!-- 题目列表 -->
-    <div class="question-list-content">
-      <!-- 加载状态 -->
-      <n-spin :show="loading" size="large">
-        <n-list v-if="questionList.length > 0" bordered>
-          <n-list-item v-for="question in questionList" :key="question.id">
-            <n-thing>
-              <template #header>
-                <div class="question-header">
-                  <div class="question-title-section">
-                    <span class="question-title">{{ question.questionTitle }}</span>
-                    <div class="question-stats">
-                      <n-text depth="3" style="font-size: 12px;">
-                        {{ $t('course.question.estimatedTime') }}: {{ question.estimatedTime || 0 }}
-                        {{ $t('common.minutes') }}
-                      </n-text>
-                      <n-text depth="3" style="font-size: 12px; margin-left: 16px;">
-                        {{ $t('course.question.viewCount') }}: {{ question.viewCount || 0 }}
-                      </n-text>
-                    </div>
-                  </div>
-                </div>
-              </template>
-              <template #header-extra>
-                <div class="question-header-extra">
-                  <div class="question-score">
-                    <n-text strong type="primary">{{ question.score }} {{ $t('common.points') }}</n-text>
-                  </div>
-                  <div class="question-meta">
-                    <n-tag :type="getQuestionTypeTagType(question.questionType) as any" size="small">
-                      {{ getQuestionTypeText(question.questionType) }}
-                    </n-tag>
-                    <n-tag :type="getDifficultyTagType(question.difficulty) as any" size="small">
-                      {{ getDifficultyText(question.difficulty) }}
-                    </n-tag>
-                  </div>
-                </div>
-              </template>
-              <template #description>
-                <div class="question-content" v-html="question.questionContent"></div>
-                <div class="question-tags-actions">
-                  <div v-if="question.tags && question.tags.length" class="question-tags">
-                    <n-tag
-                        v-for="tag in question.tags"
-                        :key="tag"
-                        size="tiny"
-                        style="margin-right: 4px; margin-bottom: 2px;"
-                        type="info"
-                    >
-                      {{ tag }}
-                    </n-tag>
-                  </div>
-                  <div class="question-actions">
-                    <n-space size="small">
-                      <n-button
-                          size="small"
-                          text
-                          type="primary"
-                          @click="handleEdit(question)"
-                      >
-                        <template #icon>
-                          <n-icon>
-                            <EditOutlined/>
-                          </n-icon>
-                        </template>
-                      </n-button>
-                      <n-button
-                          size="small"
-                          text
-                          type="error"
-                          @click="handleDelete(question)"
-                      >
-                        <template #icon>
-                          <n-icon>
-                            <DeleteOutlined/>
-                          </n-icon>
-                        </template>
-                      </n-button>
-                      <n-button
-                          size="small"
-                          text
-                          type="info"
-                          @click="handleShare(question)"
-                      >
-                        <template #icon>
-                          <n-icon>
-                            <ShareAltOutlined/>
-                          </n-icon>
-                        </template>
-                      </n-button>
-                    </n-space>
-                  </div>
-                </div>
-              </template>
-            </n-thing>
-          </n-list-item>
-        </n-list>
+    <!-- 主要内容区域：左右分栏布局 -->
+    <div class="main-content">
+      <!-- 左侧题目列表 -->
+      <n-card class="questions-sidebar">
+        <div class="sidebar-header">
+          <n-checkbox
+              :checked="isAllSelected"
+              :indeterminate="isIndeterminate"
+              @update:checked="handleSelectAll"
+          >
+            {{ t('common.selectAll') }}
+          </n-checkbox>
+        </div>
+        <QuestionListSidebar
+            ref="sidebarRef"
+            :loading="loading"
+            :selected-question-id="selectedQuestionId"
+            :questions="questionList"
+            :pagination="sidebarPagination"
+            @select="handleQuestionSelect"
+            @page-change="handleSidebarPageChange"
+            @selection-change="handleSelectionChange"
+            @update="handleQuestionUpdate"
+        />
+      </n-card>
 
-        <!-- 空状态 -->
-        <n-empty v-if="!loading && questionList.length === 0" :description="$t('course.question.noData')">
-          <template #extra>
-            <n-button type="primary" @click="handleAdd">
-              <template #icon>
-                <n-icon>
-                  <PlusOutlined/>
-                </n-icon>
-              </template>
-              {{ $t('course.question.createFirst') }}
-            </n-button>
-          </template>
-        </n-empty>
-      </n-spin>
-    </div>
-
-    <!-- 分页组件 -->
-    <div v-if="questionList.length > 0" class="pagination-section">
-      <n-pagination
-          v-model:page="pagination.page"
-          v-model:page-size="pagination.pageSize"
-          :page-sizes="pagination.pageSizes"
-          :show-size-picker="pagination.showSizePicker"
-          :total="pagination.total"
-          show-quick-jumper
-          @update:page="handlePageChange"
-          @update:page-size="handlePageSizeChange"
-      />
+      <!-- 右侧题目详情 -->
+      <n-card class="question-detail">
+        <QuestionDetail
+            :course-id="courseId"
+            :question="selectedQuestion"
+            @delete="handleQuestionDelete"
+            @edit="handleQuestionEdit"
+            @update="handleQuestionUpdate"
+        />
+      </n-card>
     </div>
 
     <!-- 创建题目对话框 -->
@@ -318,8 +242,8 @@
 
           </div>
 
-          <!-- 题目选项区域 -->
-          <div v-if="createForm.questionType === 0 || createForm.questionType === 1" class="form-options">
+          <!-- 题目选项区域（选择题） -->
+          <div v-if="createForm.questionType === 0 || createForm.questionType === 1" ref="formOptionsRef" class="form-options">
             <div class="options-header">
               <h4>{{ t('course.question.options') }}</h4>
               <n-button type="primary" @click="addOption">
@@ -332,7 +256,7 @@
               </n-button>
             </div>
 
-            <div v-for="(option, index) in questionOptions" :key="index" class="option-item">
+            <div v-for="(option, index) in questionOptions" :key="index" :ref="el => { if (el && index === questionOptions.length - 1) lastOptionItemRef = el as HTMLElement }" class="option-item">
               <n-row :gutter="12" align="middle">
                 <n-col :span="2">
                   <n-tag size="large" type="info">{{ option.optionLabel }}</n-tag>
@@ -350,6 +274,7 @@
                       :checked-value="1"
                       :unchecked-value="0"
                       size="large"
+                      @update:value="handleChoiceCorrectChange"
                   >
                     <template #checked>{{ t('course.question.correct') }}</template>
                     <template #unchecked>{{ t('course.question.incorrect') }}</template>
@@ -369,6 +294,75 @@
                   </n-button>
                 </n-col>
               </n-row>
+            </div>
+            <div v-if="choiceAnswerError" ref="choiceAnswerErrorRef" class="answer-error">
+              <n-text type="error">{{ choiceAnswerError }}</n-text>
+            </div>
+          </div>
+
+          <!-- 判断题答案录入区域 -->
+          <div v-if="createForm.questionType === 2" class="form-answer">
+            <div class="answer-header">
+              <h4>{{ t('course.question.trueFalseAnswer') }}</h4>
+            </div>
+            <n-form-item :label="t('course.question.trueFalseAnswer')" path="trueFalseAnswer">
+              <n-radio-group
+                  v-model:value="trueFalseAnswer"
+                  size="large"
+                  @update:value="() => { trueFalseAnswerError = '' }"
+              >
+                <n-space>
+                  <n-radio :value="true" :label="t('course.question.trueOption')">
+                    {{ t('course.question.trueOption') }}
+                  </n-radio>
+                  <n-radio :value="false" :label="t('course.question.falseOption')">
+                    {{ t('course.question.falseOption') }}
+                  </n-radio>
+                </n-space>
+              </n-radio-group>
+            </n-form-item>
+            <div v-if="trueFalseAnswerError" class="answer-error">
+              <n-text type="error">{{ trueFalseAnswerError }}</n-text>
+            </div>
+          </div>
+
+          <!-- 填空题答案录入区域 -->
+          <div v-if="createForm.questionType === 3" ref="fillBlankAnswerRef" class="form-answer">
+            <div class="answer-header">
+              <h4>{{ t('course.question.fillBlankAnswer') }}</h4>
+            </div>
+            <n-form-item path="fillBlankAnswer">
+              <n-input
+                  v-model:value="fillBlankAnswer"
+                  :placeholder="t('course.question.fillBlankAnswerPlaceholder')"
+                  size="large"
+                  type="textarea"
+                  :rows="3"
+                  @update:value="() => { fillBlankAnswerError = '' }"
+              />
+            </n-form-item>
+            <div v-if="fillBlankAnswerError" class="answer-error">
+              <n-text type="error">{{ fillBlankAnswerError }}</n-text>
+            </div>
+          </div>
+
+          <!-- 简答题答案录入区域 -->
+          <div v-if="createForm.questionType === 4" ref="shortAnswerRef" class="form-answer">
+            <div class="answer-header">
+              <h4>{{ t('course.question.shortAnswerContent') }}</h4>
+            </div>
+            <n-form-item path="shortAnswerContent">
+              <n-input
+                  v-model:value="shortAnswerContent"
+                  :placeholder="t('course.question.shortAnswerContentPlaceholder')"
+                  size="large"
+                  type="textarea"
+                  :rows="6"
+                  @update:value="() => { shortAnswerError = '' }"
+              />
+            </n-form-item>
+            <div v-if="shortAnswerError" class="answer-error">
+              <n-text type="error">{{ shortAnswerError }}</n-text>
             </div>
           </div>
         </n-form>
@@ -507,7 +501,7 @@
 
           </div>
 
-          <!-- 题目选项区域 -->
+          <!-- 题目选项区域（选择题） -->
           <div v-if="editForm.questionType === 0 || editForm.questionType === 1" class="form-options">
             <div class="options-header">
               <h4>{{ t('course.question.options') }}</h4>
@@ -560,6 +554,51 @@
               </n-row>
             </div>
           </div>
+
+          <!-- 判断题答案录入区域 -->
+          <div v-if="editForm.questionType === 2" class="form-answer">
+            <div class="answer-header">
+              <h4>{{ t('course.question.trueFalseAnswer') }}</h4>
+            </div>
+            <n-form-item path="editTrueFalseAnswer">
+              <n-radio-group
+                  v-model:value="editTrueFalseAnswer"
+                  size="large"
+                  @update:value="() => { editTrueFalseAnswerError = '' }"
+              >
+                <n-space>
+                  <n-radio :value="true" :label="t('course.question.trueOption')">
+                    {{ t('course.question.trueOption') }}
+                  </n-radio>
+                  <n-radio :value="false" :label="t('course.question.falseOption')">
+                    {{ t('course.question.falseOption') }}
+                  </n-radio>
+                </n-space>
+              </n-radio-group>
+            </n-form-item>
+            <div v-if="editTrueFalseAnswerError" class="answer-error">
+              <n-text type="error">{{ editTrueFalseAnswerError }}</n-text>
+            </div>
+          </div>
+
+          <!-- 题目答案区域（填空题、简答题） -->
+          <div v-if="editForm.questionType === 3 || editForm.questionType === 4" class="form-answers">
+            <div class="answers-header">
+              <h4>{{ t('course.question.answers') }}</h4>
+            </div>
+
+            <div v-for="(answer, index) in editingAnswers" :key="index" class="answer-item">
+              <n-form-item :label="t('course.question.answerContent')">
+                <n-input
+                    v-model:value="answer.answerContent"
+                    :placeholder="t('course.question.answerContentPlaceholder')"
+                    :rows="3"
+                    size="large"
+                    type="textarea"
+                />
+              </n-form-item>
+            </div>
+          </div>
         </n-form>
 
         <!-- 按钮区域 -->
@@ -583,7 +622,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, reactive, ref} from 'vue'
+import {computed, nextTick, onMounted, reactive, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useRoute} from 'vue-router'
 import {
@@ -596,6 +635,7 @@ import {
 } from '@vicons/antd'
 import {
   NButton,
+  NCheckbox,
   NCol,
   NDynamicTags,
   NEmpty,
@@ -608,6 +648,8 @@ import {
   NListItem,
   NModal,
   NPagination,
+  NRadio,
+  NRadioGroup,
   NRow,
   NSelect,
   NSpace,
@@ -620,10 +662,19 @@ import {
   useMessage
 } from 'naive-ui'
 import {getCourseById, getDefaultQuestionQuery, listQuestion} from '@/api/course'
-import {addQuestion, getDefaultQuestionDTO, removeQuestionById, updateQuestion} from '@/api/course/question'
-import {addQuestionOptions, getDefaultQuestionOptionDTO} from '@/api/course/questionOption'
+import {addQuestion, getDefaultQuestionDTO, removeQuestionById, removeQuestionByIds, updateQuestion} from '@/api/course/question'
+import {
+  addQuestionOption,
+  getDefaultQuestionOptionDTO,
+  listAllQuestionOptionByQuestionId,
+  removeQuestionOptionById,
+  updateQuestionOption
+} from '@/api/course/questionOption'
+import {addQuestionAnswers, getDefaultQuestionAnswerDTO, listAllQuestionAnswerByQuestionId, updateQuestionAnswer, removeQuestionAnswerById} from '@/api/course/questionAnswer'
 import type {CourseVO, QuestionDTO, QuestionVO} from '@/types/course'
 import type {QuestionOptionDTO} from '@/types/course/questionOption'
+import type {QuestionAnswerDTO} from '@/types/course/questionAnswer'
+import {useUserStore} from '@/store'
 import {
   getQuestionBankDifficultyLabel,
   getQuestionBankDifficultyOptions,
@@ -632,6 +683,8 @@ import {
 } from '@/enum/course'
 import CourseBreadcrumb from '@/views/course/components/CourseBreadcrumb/CourseBreadcrumb.vue'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
+import QuestionListSidebar from './QuestionListSidebar.vue'
+import QuestionDetail from './QuestionDetail.vue'
 
 const {t} = useI18n()
 const route = useRoute()
@@ -644,14 +697,25 @@ const questionBankId = ref<string>(route.params.bankId as string)
 const courseInfo = ref<CourseVO | null>(null)
 const questionList = ref<QuestionVO[]>([])
 const loading = ref(false)
+const selectedQuestion = ref<QuestionVO | null>(null)
+const selectedQuestionId = ref<string | null>(null)
+const selectedQuestionIds = ref<string[]>([])
+const sidebarRef = ref<InstanceType<typeof QuestionListSidebar> | null>(null)
 
-// 分页相关数据
+// 分页相关数据（用于搜索区域，如果需要的话）
 const pagination = reactive({
   page: 1,
   pageSize: 10,
   total: 0,
   showSizePicker: true,
   pageSizes: [10, 20, 50, 100]
+})
+
+// 左侧栏分页相关数据（每页5条）
+const sidebarPagination = reactive({
+  page: 1,
+  pageSize: 5,
+  total: 0
 })
 
 // 搜索表单数据
@@ -680,9 +744,39 @@ const editForm = ref<QuestionDTO>(getDefaultQuestionDTO())
 const createFormRef = ref()
 const editFormRef = ref()
 
+// 区域引用（用于自动滚动）
+const formOptionsRef = ref<HTMLElement | null>(null)
+const fillBlankAnswerRef = ref<HTMLElement | null>(null)
+const shortAnswerRef = ref<HTMLElement | null>(null)
+const choiceAnswerErrorRef = ref<HTMLElement | null>(null)
+const lastOptionItemRef = ref<HTMLElement | null>(null)
+
 // 题目选项管理
 const questionOptions = ref<QuestionOptionDTO[]>([])
 const editingOptions = ref<QuestionOptionDTO[]>([])
+
+// 题目答案管理
+const editingAnswers = ref<QuestionAnswerDTO[]>([])
+
+// 答案录入相关状态
+// 判断题答案（创建题目用）
+const trueFalseAnswer = ref<boolean>(true) // 默认为正确
+const trueFalseAnswerError = ref<string>('')
+
+// 判断题答案（编辑题目用）
+const editTrueFalseAnswer = ref<boolean>(true) // 默认为正确
+const editTrueFalseAnswerError = ref<string>('')
+
+// 填空题答案
+const fillBlankAnswer = ref<string>('')
+const fillBlankAnswerError = ref<string>('')
+
+// 简答题答案
+const shortAnswerContent = ref<string>('')
+const shortAnswerError = ref<string>('')
+
+// 选择题答案错误提示
+const choiceAnswerError = ref<string>('')
 
 // 计算属性用于RichTextEditor
 const createQuestionContent = computed({
@@ -760,12 +854,20 @@ const loadQuestionList = async (showLoading = true) => {
     queryParams.questionTitle = searchForm.questionTitle
     queryParams.questionType = searchForm.questionType?.toString() || null
     queryParams.difficulty = searchForm.difficulty?.toString() || null
-    queryParams.pageNum = pagination.page
-    queryParams.pageSize = pagination.pageSize
+    // 使用左侧栏的分页参数
+    queryParams.pageNum = sidebarPagination.page
+    queryParams.pageSize = sidebarPagination.pageSize
 
     const response = await listQuestion(queryParams)
     questionList.value = response.data || []
-    pagination.total = response.total || 0
+    sidebarPagination.total = response.total || 0
+
+    // 如果存在题目，自动选择第一个题目
+    if (questionList.value.length > 0 && !selectedQuestion.value) {
+      const firstQuestion = questionList.value[0]
+      selectedQuestionId.value = firstQuestion.id
+      selectedQuestion.value = firstQuestion
+    }
   } catch (error) {
     message.error(t('common.loadError'))
   } finally {
@@ -777,7 +879,7 @@ const loadQuestionList = async (showLoading = true) => {
 
 // 搜索题目
 const handleSearch = () => {
-  pagination.page = 1
+  sidebarPagination.page = 1
   loadQuestionList()
 }
 
@@ -788,20 +890,26 @@ const handleReset = () => {
     questionType: null,
     difficulty: null
   })
-  pagination.page = 1
+  sidebarPagination.page = 1
   loadQuestionList()
 }
 
-// 处理页码变化
+// 处理左侧栏页码变化
+const handleSidebarPageChange = (page: number) => {
+  sidebarPagination.page = page
+  loadQuestionList()
+}
+
+// 处理页码变化（保留，以防其他地方使用）
 const handlePageChange = (page: number) => {
-  pagination.page = page
+  sidebarPagination.page = page
   loadQuestionList()
 }
 
-// 处理每页大小变化
+// 处理每页大小变化（保留，以防其他地方使用）
 const handlePageSizeChange = (pageSize: number) => {
-  pagination.pageSize = pageSize
-  pagination.page = 1
+  sidebarPagination.pageSize = pageSize
+  sidebarPagination.page = 1
   loadQuestionList()
 }
 
@@ -834,7 +942,92 @@ const handleAdd = () => {
   showCreateDialog.value = true
 }
 
-const handleEdit = (question: QuestionVO) => {
+// 题目选择处理
+const handleQuestionSelect = (question: QuestionVO) => {
+  selectedQuestionId.value = question.id
+  selectedQuestion.value = question
+}
+
+// 题目更新处理
+const handleQuestionUpdate = () => {
+  // 重新加载题目列表
+  loadQuestionList()
+}
+
+// 批量选择相关
+const isAllSelected = computed(() => {
+  return questionList.value.length > 0 && selectedQuestionIds.value.length === questionList.value.length
+})
+
+const isIndeterminate = computed(() => {
+  return selectedQuestionIds.value.length > 0 && selectedQuestionIds.value.length < questionList.value.length
+})
+
+// 处理全选
+const handleSelectAll = (checked: boolean) => {
+  if (checked) {
+    const allIds = questionList.value.map(q => q.id)
+    selectedQuestionIds.value = allIds
+    // 通知sidebar更新选择状态
+    if (sidebarRef.value && sidebarRef.value.setSelection) {
+      sidebarRef.value.setSelection(allIds)
+    }
+  } else {
+    selectedQuestionIds.value = []
+    // 通知sidebar清空选择
+    if (sidebarRef.value && sidebarRef.value.clearSelection) {
+      sidebarRef.value.clearSelection()
+    }
+  }
+}
+
+// 处理选择变化
+const handleSelectionChange = (selectedIds: string[]) => {
+  selectedQuestionIds.value = selectedIds
+}
+
+// 批量删除
+const handleBatchDelete = () => {
+  if (selectedQuestionIds.value.length === 0) return
+
+  dialog.warning({
+    title: t('common.confirm'),
+    content: t('course.question.batchDeleteConfirm', { count: selectedQuestionIds.value.length }),
+    positiveText: t('common.confirm'),
+    negativeText: t('common.cancel'),
+    onPositiveClick: async () => {
+      try {
+        await removeQuestionByIds(selectedQuestionIds.value)
+        message.success(t('course.question.batchDeleteSuccess', { count: selectedQuestionIds.value.length }))
+        selectedQuestionIds.value = []
+        if (sidebarRef.value) {
+          sidebarRef.value.clearSelection()
+        }
+        // 清空当前选中的题目
+        selectedQuestion.value = null
+        selectedQuestionId.value = null
+        await loadQuestionList()
+      } catch (error) {
+        message.error(t('course.question.batchDeleteFailed'))
+      }
+    }
+  })
+}
+
+// 题目编辑处理
+const handleQuestionEdit = (question: QuestionVO) => {
+  handleEdit(question)
+}
+
+// 题目删除处理
+const handleQuestionDelete = async (question: QuestionVO) => {
+  await handleDelete(question)
+  // 清空当前选中的题目
+  selectedQuestion.value = null
+  selectedQuestionId.value = null
+}
+
+const handleEdit = async (question: QuestionVO) => {
   editingQuestion.value = question
   // 填充编辑表单
   editForm.value = {
@@ -852,19 +1045,94 @@ const handleEdit = (question: QuestionVO) => {
     status: question.status || 0
   }
 
-  // 如果有选项，填充选项数据
-  if (question.options && question.options.length > 0) {
-    editingOptions.value = question.options.map(option => ({
-      id: option.id,
-      questionId: option.questionId,
-      optionContent: option.optionContent,
-      optionLabel: option.optionLabel,
-      isCorrect: option.isCorrect ?? 0,
-      score: option.score || 0,
-      imageUrls: option.imageUrls || null,
-    }))
+  // 加载选项数据（选择题、判断题）
+  if (question.questionType === 0 || question.questionType === 1 || question.questionType === 2) {
+    try {
+      // 如果题目对象中已有选项数据，直接使用
+      if (question.options && question.options.length > 0) {
+        editingOptions.value = question.options.map(option => ({
+          id: option.id,
+          questionId: option.questionId,
+          optionContent: option.optionContent,
+          optionLabel: option.optionLabel,
+          isCorrect: option.isCorrect ?? 0,
+          score: option.score || 0,
+          imageUrls: option.imageUrls || null,
+        }))
+      } else {
+        // 如果没有选项数据，从 API 加载
+        const optionsResponse = await listAllQuestionOptionByQuestionId(question.id)
+        if (optionsResponse.data && optionsResponse.data.length > 0) {
+          editingOptions.value = optionsResponse.data.map(option => ({
+            id: option.id,
+            questionId: option.questionId,
+            optionContent: option.optionContent,
+            optionLabel: option.optionLabel,
+            isCorrect: option.isCorrect ?? 0,
+            score: option.score || 0,
+            imageUrls: option.imageUrls || null,
+          }))
+        } else {
+          editingOptions.value = []
+        }
+      }
+    } catch (error) {
+      message.error(t('common.loadError'))
+      editingOptions.value = []
+    }
   } else {
     editingOptions.value = []
+  }
+
+  // 加载答案数据（判断题、填空题、简答题）
+  if (question.questionType === 2 || question.questionType === 3 || question.questionType === 4) {
+    try {
+      const response = await listAllQuestionAnswerByQuestionId(question.id)
+      if (response.data && response.data.length > 0) {
+        editingAnswers.value = response.data.map(answer => ({
+          id: answer.id,
+          questionId: answer.questionId,
+          answerContent: answer.answerContent,
+          answerText: answer.answerText,
+          isCorrect: answer.isCorrect,
+          score: answer.score
+        }))
+        
+        // 如果是判断题，从答案中提取正确/错误值
+        if (question.questionType === 2 && response.data.length > 0) {
+          const firstAnswer = response.data[0]
+          // 判断答案内容是"正确"还是"错误"
+          const answerText = firstAnswer.answerText || firstAnswer.answerContent || ''
+          const trueOptionText = t('course.question.trueOption')
+          // 检查答案文本是否包含"正确"或等于"正确"
+          editTrueFalseAnswer.value = answerText.includes(trueOptionText) || answerText === '正确' || answerText.trim() === trueOptionText
+        }
+      } else {
+        // 如果没有答案，创建一个默认答案
+        if (question.questionType === 2) {
+          // 判断题默认答案为正确
+          editTrueFalseAnswer.value = true
+        } else {
+          editingAnswers.value = [{
+            id: null,
+            questionId: question.id,
+            answerContent: '',
+            answerText: '',
+            isCorrect: 1,
+            score: question.score || 0
+          }]
+        }
+      }
+    } catch (error) {
+      message.error(t('common.loadError'))
+      if (question.questionType === 2) {
+        editTrueFalseAnswer.value = true
+      } else {
+        editingAnswers.value = []
+      }
+    }
+  } else {
+    editingAnswers.value = []
   }
 
   showEditDialog.value = true
@@ -873,7 +1141,7 @@ const handleEdit = (question: QuestionVO) => {
 const handleDelete = (question: QuestionVO) => {
   dialog.warning({
     title: t('common.confirm'),
-    content: t('course.question.confirmDelete'),
+    content: t('course.question.deleteConfirmContent'),
     positiveText: t('common.confirm'),
     negativeText: t('common.cancel'),
     onPositiveClick: async () => {
@@ -912,6 +1180,187 @@ const resetCreateForm = () => {
   createForm.value.status = 1 // 默认发布状态
   createForm.value.allowPartialCredit = 0
   questionOptions.value = []
+  // 重置答案录入状态
+  trueFalseAnswer.value = true
+  trueFalseAnswerError.value = ''
+  fillBlankAnswer.value = ''
+  fillBlankAnswerError.value = ''
+  shortAnswerContent.value = ''
+  shortAnswerError.value = ''
+  choiceAnswerError.value = ''
+}
+
+// 监听题型变化，重置答案录入状态
+watch(() => createForm.value.questionType, (newType) => {
+  // 切换题型时清空答案录入状态
+  trueFalseAnswer.value = true
+  trueFalseAnswerError.value = ''
+  fillBlankAnswer.value = ''
+  fillBlankAnswerError.value = ''
+  shortAnswerContent.value = ''
+  shortAnswerError.value = ''
+  choiceAnswerError.value = ''
+  questionOptions.value = []
+})
+
+// 选择题答案验证
+const handleChoiceCorrectChange = () => {
+  choiceAnswerError.value = ''
+  const qt = Number(createForm.value.questionType)
+  if (qt === 0 || qt === 1) {
+    const validOptions = questionOptions.value.filter(opt => !!opt.optionLabel && !!opt.optionContent && opt.optionContent.trim())
+    const correctOptions = validOptions.filter(opt => opt.isCorrect === 1)
+    
+    if (qt === 0 && correctOptions.length !== 1) {
+      // 单选题必须有一个正确选项
+      if (validOptions.length >= 2) {
+        choiceAnswerError.value = t('course.question.singleChoiceMustHaveOneCorrect')
+      }
+    } else if (qt === 1 && correctOptions.length < 1) {
+      // 多选题必须至少有一个正确选项
+      if (validOptions.length >= 2) {
+        choiceAnswerError.value = t('course.question.multipleChoiceMustHaveAtLeastOneCorrect')
+      }
+    }
+  }
+}
+
+// 验证答案数据
+const validateAnswer = async (): Promise<boolean> => {
+  const qt = Number(createForm.value.questionType)
+  
+  // 清空所有错误提示
+  choiceAnswerError.value = ''
+  trueFalseAnswerError.value = ''
+  fillBlankAnswerError.value = ''
+  shortAnswerError.value = ''
+  
+  // 选择题验证
+  if (qt === 0 || qt === 1) {
+    const validOptions = questionOptions.value.filter(opt => !!opt.optionLabel && !!opt.optionContent && opt.optionContent.trim())
+    if (validOptions.length < 2) {
+      choiceAnswerError.value = t('course.question.optionsMinRequired')
+      await nextTick()
+      if (choiceAnswerErrorRef.value) {
+        choiceAnswerErrorRef.value.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+      return false
+    }
+    
+    const correctOptions = validOptions.filter(opt => opt.isCorrect === 1)
+    if (qt === 0 && correctOptions.length !== 1) {
+      choiceAnswerError.value = t('course.question.singleChoiceMustHaveOneCorrect')
+      await nextTick()
+      if (choiceAnswerErrorRef.value) {
+        choiceAnswerErrorRef.value.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+      return false
+    }
+    if (qt === 1 && correctOptions.length < 1) {
+      choiceAnswerError.value = t('course.question.multipleChoiceMustHaveAtLeastOneCorrect')
+      await nextTick()
+      if (choiceAnswerErrorRef.value) {
+        choiceAnswerErrorRef.value.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+      return false
+    }
+  }
+  
+  // 判断题验证
+  if (qt === 2) {
+    // 判断题答案已默认设置，无需验证
+  }
+  
+  // 填空题验证
+  if (qt === 3) {
+    if (!fillBlankAnswer.value || !fillBlankAnswer.value.trim()) {
+      fillBlankAnswerError.value = t('course.question.fillBlankAnswerRequired')
+      await nextTick()
+      if (fillBlankAnswerRef.value) {
+        fillBlankAnswerRef.value.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+      return false
+    }
+  }
+  
+  // 简答题验证
+  if (qt === 4) {
+    if (!shortAnswerContent.value || !shortAnswerContent.value.trim()) {
+      shortAnswerError.value = t('course.question.shortAnswerContentRequired')
+      await nextTick()
+      if (shortAnswerRef.value) {
+        shortAnswerRef.value.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+      return false
+    }
+  }
+  
+  return true
+}
+
+// 组装答案数据
+const buildAnswerData = (questionId: string): QuestionAnswerDTO[] => {
+  const qt = Number(createForm.value.questionType)
+  const answers: QuestionAnswerDTO[] = []
+  
+  // 选择题答案
+  if (qt === 0 || qt === 1) {
+    const validOptions = questionOptions.value.filter(opt => !!opt.optionLabel && !!opt.optionContent && opt.optionContent.trim())
+    const correctOptions = validOptions.filter(opt => opt.isCorrect === 1)
+    
+    correctOptions.forEach(option => {
+      answers.push({
+        id: null,
+        questionId: questionId,
+        answerContent: `${option.optionLabel}: ${option.optionContent}`,
+        answerText: option.optionContent,
+        isCorrect: 1,
+        score: option.score ?? 0
+      })
+    })
+  }
+  
+  // 判断题答案
+  if (qt === 2) {
+    const answerLabel = trueFalseAnswer.value ? t('course.question.trueOption') : t('course.question.falseOption')
+    const answerText = answerLabel
+    const answerContent = `${answerLabel}: ${answerText}`
+    
+    answers.push({
+      id: null,
+      questionId: questionId,
+      answerContent: answerContent,
+      answerText: answerText,
+      isCorrect: 1,
+      score: createForm.value.score ?? 0
+    })
+  }
+  
+  // 填空题答案
+  if (qt === 3) {
+    answers.push({
+      id: null,
+      questionId: questionId,
+      answerContent: fillBlankAnswer.value.trim(),
+      answerText: fillBlankAnswer.value.trim(),
+      isCorrect: 1,
+      score: createForm.value.score ?? 0
+    })
+  }
+  
+  // 简答题答案
+  if (qt === 4) {
+    answers.push({
+      id: null,
+      questionId: questionId,
+      answerContent: shortAnswerContent.value.trim(),
+      answerText: shortAnswerContent.value.trim(),
+      isCorrect: 1, // 简答题默认为完全正确
+      score: createForm.value.score ?? 0
+    })
+  }
+  
+  return answers
 }
 
 // 创建题目
@@ -922,29 +1371,113 @@ const createQuestion = async () => {
     await createFormRef.value.validate()
     createLoading.value = true
 
+    // 检查登录态并获取用户ID
+    const userStore = useUserStore()
+    if (!userStore.userInfo?.id) {
+      await userStore.refreshUserInfo()
+    }
+    const sysUserId = userStore.userInfo?.id
+    if (!sysUserId) {
+      message.error(t('common.http.unauthorized'))
+      return
+    }
+
+    // 富文本内容兜底校验
+    if (!createForm.value.questionContent || !createForm.value.questionContent.trim()) {
+      message.error(t('course.question.questionContentRequired'))
+      createLoading.value = false
+      return
+    }
+
+    const qt = Number(createForm.value.questionType)
+
+    // 验证答案数据
+    if (!(await validateAnswer())) {
+      createLoading.value = false
+      return
+    }
+
     // 创建题目
-    const response = await addQuestion(createForm.value)
+    const payload: any = { ...createForm.value, sysUserId }
+    
+    // 选择题、判断题：将选项直接包含在 payload 中，后端会自动保存
+    if (qt === 0 || qt === 1) {
+      const optionsToCreate = questionOptions.value
+        .filter(opt => !!opt.optionLabel && !!opt.optionContent && opt.optionContent.trim())
+        .map(option => ({
+          id: null,
+          questionId: null, // 后端会自动设置
+          optionContent: option.optionContent,
+          optionLabel: option.optionLabel,
+          isCorrect: option.isCorrect ?? 0,
+          score: option.score ?? null,
+          imageUrls: option.imageUrls && option.imageUrls.length ? option.imageUrls : null
+        }))
+      
+      if (optionsToCreate.length > 0) {
+        payload.options = optionsToCreate
+      }
+    } else if (qt === 2) {
+      // 判断题：自动创建两个选项（正确、错误）
+      const trueLabel = t('course.question.trueOption')
+      const falseLabel = t('course.question.falseOption')
+      payload.options = [
+        {
+          id: null,
+          questionId: null, // 后端会自动设置
+          optionContent: trueLabel,
+          optionLabel: 'A',
+          isCorrect: trueFalseAnswer.value ? 1 : 0,
+          score: null,
+          imageUrls: null
+        },
+        {
+          id: null,
+          questionId: null, // 后端会自动设置
+          optionContent: falseLabel,
+          optionLabel: 'B',
+          isCorrect: trueFalseAnswer.value ? 0 : 1,
+          score: null,
+          imageUrls: null
+        }
+      ]
+    }
+    
+    const response = await addQuestion(payload)
     if (response.code === 200) {
       const questionId = response.data?.id
 
-      // 如果有选项，创建选项
-      if (questionOptions.value.length > 0 && questionId) {
-        const optionsToCreate = questionOptions.value.map(option => ({
-          ...option,
-          questionId: questionId
-        }))
-        await addQuestionOptions(optionsToCreate)
+      if (questionId !== undefined && questionId) {
+        // 创建答案（所有题型都需要答案，多选题可能有多个答案）
+        try {
+          const answersToCreate = buildAnswerData(questionId)
+          if (answersToCreate.length > 0) {
+            await addQuestionAnswers(answersToCreate)
+          }
+        } catch (_) {
+          message.warning(t('common.submitError'))
+        }
       }
 
       message.success(t('course.question.createSuccess'))
       showCreateDialog.value = false
       resetCreateForm()
       await loadQuestionList()
+      
+      // 自动选中新创建的题目
+      if (questionId !== undefined && questionId) {
+        const newQuestion = questionList.value.find(q => q.id === questionId)
+        if (newQuestion) {
+          selectedQuestionId.value = newQuestion.id
+          selectedQuestion.value = newQuestion
+        }
+      }
     } else {
-      message.error(response.message || t('course.question.createFailed'))
+      message.error(response.message || '提交失败')
     }
-  } catch (error) {
-    message.error(t('course.question.createFailed'))
+  } catch (error: any) {
+    const errMsg = (error && (error.message || error.msg)) || '提交失败'
+    message.error(errMsg)
   } finally {
     createLoading.value = false
   }
@@ -958,7 +1491,168 @@ const saveEditQuestion = async () => {
     await editFormRef.value.validate()
     editLoading.value = true
 
+    // 更新题目基本信息
     await updateQuestion(editForm.value)
+
+    const questionId = editForm.value.id
+    const qt = Number(editForm.value.questionType)
+
+    // 保存选项数据（选择题、判断题）
+    if (qt === 0 || qt === 1 || qt === 2) {
+      try {
+        // 获取现有的选项ID列表
+        const existingOptionIds: string[] = []
+        const optionsToUpdate: QuestionOptionDTO[] = []
+        const optionsToCreate: QuestionOptionDTO[] = []
+
+        editingOptions.value.forEach(option => {
+          const optionData = {
+            ...option,
+            questionId: questionId
+          }
+          
+          if (option.id) {
+            // 更新现有选项
+            existingOptionIds.push(option.id)
+            optionsToUpdate.push(optionData)
+          } else {
+            // 创建新选项
+            optionsToCreate.push({
+              ...optionData,
+              isCorrect: option.isCorrect ?? 0,
+              score: option.score ?? null,
+              imageUrls: option.imageUrls || null
+            })
+          }
+        })
+
+        // 更新现有选项
+        for (const option of optionsToUpdate) {
+          await updateQuestionOption(option)
+        }
+
+        // 创建新选项
+        for (const option of optionsToCreate) {
+          await addQuestionOption(option)
+        }
+
+        // 获取所有现有选项，删除不在编辑列表中的选项
+        const allOptionsResponse = await listAllQuestionOptionByQuestionId(questionId)
+        if (allOptionsResponse.data) {
+          const optionsToDelete = allOptionsResponse.data
+            .filter(option => !existingOptionIds.includes(option.id))
+            .map(option => option.id!)
+          
+          if (optionsToDelete.length > 0) {
+            await Promise.all(optionsToDelete.map(id => removeQuestionOptionById(id)))
+          }
+        }
+      } catch (error) {
+        message.warning(t('course.question.saveOptionsFailed'))
+      }
+    }
+
+    // 保存答案数据（判断题、填空题、简答题）
+    if (qt === 2 || qt === 3 || qt === 4) {
+      try {
+        if (qt === 2) {
+          // 判断题：根据单选按钮的值保存答案
+          const answerLabel = editTrueFalseAnswer.value ? t('course.question.trueOption') : t('course.question.falseOption')
+          const answerText = answerLabel
+          const answerContent = `${answerLabel}: ${answerText}`
+          
+          // 获取现有答案
+          const allAnswersResponse = await listAllQuestionAnswerByQuestionId(questionId)
+          const existingAnswers = allAnswersResponse.data || []
+          
+          if (existingAnswers.length > 0) {
+            // 更新第一个答案
+            const firstAnswer = existingAnswers[0]
+            await updateQuestionAnswer({
+              id: firstAnswer.id,
+              questionId: questionId,
+              answerContent: answerContent,
+              answerText: answerText,
+              isCorrect: 1,
+              score: firstAnswer.score ?? editForm.value.score ?? 0
+            })
+            
+            // 删除其他答案（如果有）
+            if (existingAnswers.length > 1) {
+              const answersToDelete = existingAnswers.slice(1).map(answer => answer.id!)
+              if (answersToDelete.length > 0) {
+                await Promise.all(answersToDelete.map(id => removeQuestionAnswerById(id)))
+              }
+            }
+          } else {
+            // 创建新答案
+            await addQuestionAnswers([{
+              id: null,
+              questionId: questionId,
+              answerContent: answerContent,
+              answerText: answerText,
+              isCorrect: 1,
+              score: editForm.value.score ?? 0
+            }])
+          }
+        } else {
+          // 填空题、简答题：使用原有的答案保存逻辑
+          if (editingAnswers.value.length > 0) {
+            // 获取现有的答案ID列表
+            const existingAnswerIds: string[] = []
+            const answersToUpdate: QuestionAnswerDTO[] = []
+            const answersToCreate: QuestionAnswerDTO[] = []
+
+            editingAnswers.value.forEach(answer => {
+              // 确保 answerText 有值（使用 answerContent 的值）
+              const answerData = {
+                ...answer,
+                answerText: answer.answerText || answer.answerContent || '',
+                questionId: questionId
+              }
+              
+              if (answer.id) {
+                // 更新现有答案
+                existingAnswerIds.push(answer.id)
+                answersToUpdate.push(answerData)
+              } else {
+                // 创建新答案
+                answersToCreate.push({
+                  ...answerData,
+                  isCorrect: answer.isCorrect ?? 1,
+                  score: answer.score ?? editForm.value.score ?? 0
+                })
+              }
+            })
+
+            // 更新现有答案
+            for (const answer of answersToUpdate) {
+              await updateQuestionAnswer(answer)
+            }
+
+            // 创建新答案
+            if (answersToCreate.length > 0) {
+              await addQuestionAnswers(answersToCreate)
+            }
+
+            // 获取所有现有答案，删除不在编辑列表中的答案
+            const allAnswersResponse = await listAllQuestionAnswerByQuestionId(questionId)
+            if (allAnswersResponse.data) {
+              const answersToDelete = allAnswersResponse.data
+                .filter(answer => !existingAnswerIds.includes(answer.id))
+                .map(answer => answer.id!)
+              
+              if (answersToDelete.length > 0) {
+                await Promise.all(answersToDelete.map(id => removeQuestionAnswerById(id)))
+              }
+            }
+          }
+        }
+      } catch (error) {
+        message.warning(t('course.question.saveAnswersFailed'))
+      }
+    }
+
     message.success(t('course.question.editSuccess'))
 
     // 关闭编辑对话框
@@ -967,6 +1661,14 @@ const saveEditQuestion = async () => {
 
     // 重新加载题目列表
     await loadQuestionList()
+    
+    // 如果当前选中的题目被编辑，更新选中的题目
+    if (selectedQuestion.value && selectedQuestion.value.id === editForm.value.id) {
+      const updatedQuestion = questionList.value.find(q => q.id === editForm.value.id)
+      if (updatedQuestion) {
+        selectedQuestion.value = updatedQuestion
+      }
+    }
   } catch (error) {
     message.error(t('course.question.editFailed'))
   } finally {
@@ -980,13 +1682,24 @@ const cancelEdit = () => {
   editingQuestion.value = null
   editForm.value = getDefaultQuestionDTO()
   editingOptions.value = []
+  editingAnswers.value = []
+  editTrueFalseAnswer.value = true
+  editTrueFalseAnswerError.value = ''
 }
 
 // 添加选项
-const addOption = () => {
+const addOption = async () => {
   const newOption = getDefaultQuestionOptionDTO()
   newOption.optionLabel = String.fromCharCode(65 + questionOptions.value.length) // A, B, C, D...
   questionOptions.value.push(newOption)
+  
+  // 自动滚动到新添加的选项
+  await nextTick()
+  if (lastOptionItemRef.value) {
+    lastOptionItemRef.value.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  } else if (formOptionsRef.value) {
+    formOptionsRef.value.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  }
 }
 
 // 删除选项
@@ -1040,180 +1753,7 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/index.scss' as *;
-
-.question-list {
-  background-color: var(--background-color);
-  min-height: 100vh;
-
-  .search-section {
-    margin-bottom: 24px;
-
-    .n-form {
-      .n-form-item {
-        margin-bottom: 16px;
-      }
-    }
-  }
-
-  .question-list-content {
-    margin-top: 24px;
-    width: 30%;
-    margin-right: auto;
-
-    .question-header {
-      display: flex;
-      align-items: flex-start;
-      margin-bottom: 8px;
-
-      .question-title-section {
-        flex: 1;
-
-        .question-title {
-          font-size: 16px;
-          font-weight: 600;
-          color: var(--text-color);
-          display: block;
-          margin-bottom: 4px;
-        }
-
-        .question-stats {
-          display: flex;
-          align-items: center;
-          flex-wrap: wrap;
-        }
-      }
-    }
-
-    .question-header-extra {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 8px;
-
-      .question-score {
-        margin-bottom: 4px;
-      }
-
-      .question-meta {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-      }
-    }
-
-    .question-score {
-      text-align: right;
-    }
-
-    .question-content {
-      margin-bottom: 12px;
-      line-height: 1.6;
-      color: var(--text-color);
-      max-height: 60px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      line-clamp: 3;
-      -webkit-box-orient: vertical;
-    }
-
-    .question-tags-actions {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 8px;
-    }
-
-    .question-tags {
-      flex: 1;
-    }
-
-    .question-actions {
-      flex-shrink: 0;
-      margin-left: 12px;
-    }
-
-  }
-
-  .pagination-section {
-    display: flex;
-    justify-content: center;
-    margin-top: 24px;
-    width: 30%;
-    margin-right: auto;
-    padding: 16px 0;
-  }
-}
-
-// 响应式设计
-@media (max-width: 768px) {
-  .question-list {
-    padding: 16px;
-
-    .search-section {
-      .n-form {
-        .n-form-item {
-          width: 100%;
-          margin-bottom: 12px;
-        }
-      }
-    }
-
-    .question-list-content {
-      width: 100%;
-      margin-right: 0;
-
-      .question-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-
-        .question-title-section {
-          margin-right: 0;
-          width: 100%;
-
-          .question-stats {
-            margin-top: 4px;
-          }
-        }
-      }
-
-      .question-header-extra {
-        align-items: flex-start;
-        width: 100%;
-
-        .question-meta {
-          justify-content: flex-start;
-        }
-      }
-
-      .question-tags-actions {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .question-actions {
-        margin-left: 0;
-        margin-top: 8px;
-        align-self: flex-end;
-      }
-    }
-
-    .pagination-section {
-      width: 100%;
-      margin-right: 0;
-    }
-  }
-}
-
-@media (max-width: 480px) {
-  .question-list {
-    padding: 12px;
-  }
-}
+@use './QuestionList.scss';
 
 // 模态框内容样式
 .modal-content {
@@ -1306,6 +1846,68 @@ onMounted(async () => {
         &:hover {
           border-color: var(--primary-color);
         }
+      }
+
+      .answer-error {
+        margin-top: 8px;
+        padding: 8px 12px;
+        background: var(--error-color-light);
+        border-radius: 4px;
+        border-left: 3px solid var(--error-color);
+      }
+    }
+
+    .form-answers {
+      border-top: 1px solid var(--border-color);
+      padding-top: 24px;
+      margin-top: 24px;
+
+      .answers-header {
+        margin-bottom: 16px;
+
+        h4 {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: var(--text-color);
+        }
+      }
+
+      .answer-item {
+        margin-bottom: 16px;
+        padding: 16px;
+        background: var(--card-color);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+
+        &:hover {
+          border-color: var(--primary-color);
+        }
+      }
+    }
+
+    .form-answer {
+      border-top: 1px solid var(--border-color);
+      padding-top: 24px;
+      margin-top: 24px;
+
+      .answer-header {
+        margin-bottom: 16px;
+
+        h4 {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: var(--text-color);
+        }
+      }
+
+      .answer-error {
+        margin-top: 8px;
+        padding: 8px 12px;
+        background: var(--error-color-light);
+        border-radius: 4px;
+        border-left: 3px solid var(--error-color);
       }
     }
   }

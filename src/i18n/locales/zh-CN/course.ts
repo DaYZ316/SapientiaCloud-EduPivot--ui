@@ -1010,9 +1010,54 @@ export default {
         deleteConfirmContent: '确定要删除题目"{questionTitle}"吗？此操作不可撤销。',
         deleteSuccess: '题目删除成功',
         deleteFailed: '题目删除失败',
+        createSuccess: '题目添加成功',
+        editSuccess: '题目编辑成功',
+        editFailed: '题目编辑失败',
+        saveAnswersFailed: '答案保存失败',
+        saveOptionsFailed: '选项保存失败',
         viewCount: '浏览次数',
         createQuestion: '创建题目',
-        editQuestion: '编辑题目'
+        editQuestion: '编辑题目',
+        optionsMinRequired: '选择题至少需要两个选项',
+        singleChoiceMustHaveOneCorrect: '单选题必须有一个正确选项',
+        multipleChoiceMustHaveAtLeastOneCorrect: '多选题必须至少有一个正确选项',
+        // 发布相关
+        publish: '发布',
+        unpublish: '取消发布',
+        confirmPublish: '确定发布该题目吗？',
+        confirmUnpublish: '确定取消发布该题目吗？',
+        publishSuccess: '发布成功',
+        publishFailed: '发布失败',
+        unpublishSuccess: '取消发布成功',
+        unpublishFailed: '取消发布失败',
+        // 批量删除相关
+        batchDelete: '批量删除',
+        selectedCount: '已选中 {count} 项',
+        batchDeleteConfirm: '确定删除选中的 {count} 道题目吗？删除后不可恢复！',
+        batchDeleteSuccess: '成功删除 {count} 道题目',
+        batchDeleteFailed: '批量删除失败',
+        // 判断题答案相关
+        trueFalseAnswer: '判断题答案',
+        trueFalseAnswerPlaceholder: '请选择正确答案',
+        trueOption: '正确',
+        falseOption: '错误',
+        trueFalseAnswerRequired: '请选择判断题答案',
+        // 填空题答案相关
+        fillBlankAnswer: '填空题答案',
+        fillBlankAnswerPlaceholder: '请输入填空题答案',
+        fillBlankAnswerRequired: '请输入填空题答案',
+        // 简答题答案相关
+        shortAnswerContent: '简答题答案',
+        shortAnswerContentPlaceholder: '请输入简答题答案内容',
+        shortAnswerContentRequired: '请输入简答题答案内容',
+        allowPartialCorrect: '允许部分正确',
+        isCorrectLabel: '答案正确性',
+        isCorrectFullyCorrect: '完全正确',
+        isCorrectPartiallyCorrect: '部分正确',
+        // 答案验证相关
+        answerContentCannotBeEmpty: '答案内容不能为空',
+        pleaseSelectCorrectOption: '请选择正确选项',
+        answerScoreRange: '答案分数必须在0-100之间'
     },
 
     // 题目状态

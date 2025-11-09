@@ -190,9 +190,8 @@ const resetSearch = () => {
 
 
 // 处理分页变化
-const onPageChange = (newPagination: { pageNum: number, pageSize: number }) => {
-  pagination.pageNum = newPagination.pageNum
-  pagination.pageSize = newPagination.pageSize
+const onPageChange = (page: number) => {
+  pagination.pageNum = page
   loadCourseData()
 }
 

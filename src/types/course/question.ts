@@ -1,14 +1,15 @@
-import {QuestionAnswerVO} from "./questionAnswer"
+import {QuestionAnswerDTO, QuestionAnswerVO} from "./questionAnswer"
+import {QuestionOptionDTO} from "./questionOption"
 
 /**
- * 题目数据传输对象
- * 用于题目的新增和更新操作
+ * 题目新增数据传输对象
+ * 用于题目的新增操作
  */
-export interface QuestionDTO {
-    /** 题目ID */
-    id?: string | null
+export interface QuestionAddDTO {
     /** 所属题库ID */
     questionBankId: string | null
+    /** 创建用户ID */
+    sysUserId: string | null
     /** 题目标题 */
     questionTitle: string | null
     /** 题目内容 */
@@ -29,6 +30,47 @@ export interface QuestionDTO {
     allowPartialCredit?: number | null
     /** 题目状态 (0=草稿, 1=发布, 2=停用) */
     status?: number | null
+    /** 选项列表 (选择题、判断题使用) */
+    options?: QuestionOptionDTO[] | null
+    /** 填空简答答案列表 */
+    answers?: QuestionAnswerDTO[] | null
+}
+
+/**
+ * 题目数据传输对象
+ * 用于题目的更新操作
+ */
+export interface QuestionDTO {
+    /** 题目ID */
+    id?: string | null
+    /** 所属题库ID */
+    questionBankId: string | null
+    /** 创建用户ID */
+    sysUserId?: string | null
+    /** 题目标题 */
+    questionTitle: string | null
+    /** 题目内容 */
+    questionContent: string | null
+    /** 题目类型 (0=单选题, 1=多选题, 2=判断题, 3=填空题, 4=简答题) */
+    questionType: number | null
+    /** 难度等级 (1=简单, 2=中等, 3=困难) */
+    difficulty: number | null
+    /** 题目分数 */
+    score: number | null
+    /** 预计答题时间 (分钟) */
+    estimatedTime?: number | null
+    /** 标签列表 */
+    tags?: string[]
+    /** 图片URL列表 */
+    imageUrls?: string[] | null
+    /** 是否允许部分得分 (0=不允许, 1=允许) */
+    allowPartialCredit?: number | null
+    /** 题目状态 (0=草稿, 1=发布, 2=停用) */
+    status?: number | null
+    /** 选项列表 (选择题、判断题使用) */
+    options?: QuestionOptionDTO[] | null
+    /** 填空简答答案列表 */
+    answers?: QuestionAnswerDTO[] | null
 }
 
 /**
@@ -70,8 +112,8 @@ export interface QuestionVO {
     status?: number
     /** 选项列表 */
     options?: QuestionOptionVO[]
-    /** 答案列表 */
-    answer?: QuestionAnswerVO
+    /** 填空简答答案列表 */
+    answers?: QuestionAnswerVO[]
     /** 创建时间 */
     createTime?: string
     /** 更新时间 */
@@ -93,6 +135,18 @@ export interface QuestionQueryParams {
     difficulty?: string | null
     /** 题目状态 */
     status?: string | null
+    /** 创建用户ID */
+    sysUserId?: string | null
+    /** 标签列表 */
+    tags?: string | null
+    /** 创建时间开始 */
+    createTimeStart?: string | null
+    /** 创建时间结束 */
+    createTimeEnd?: string | null
+    /** 起始时间 */
+    startTime?: string | null
+    /** 结束时间 */
+    endTime?: string | null
     /** 当前记录起始索引 */
     pageNum?: number
     /** 每页显示记录数 */

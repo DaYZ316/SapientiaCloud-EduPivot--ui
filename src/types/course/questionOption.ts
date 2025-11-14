@@ -17,6 +17,8 @@ export interface QuestionOptionDTO {
     score?: number | null
     /** 图片URL列表 */
     imageUrls?: string[] | null
+    /** 选项解析 */
+    explanation?: string | null
 }
 
 /**
@@ -38,6 +40,8 @@ export interface QuestionOptionVO {
     score?: number
     /** 图片URL列表 */
     imageUrls?: string[]
+    /** 选项解析 */
+    explanation?: string
     /** 创建时间 */
     createTime?: string
     /** 更新时间 */

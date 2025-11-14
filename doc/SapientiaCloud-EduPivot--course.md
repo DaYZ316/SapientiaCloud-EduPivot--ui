@@ -976,6 +976,137 @@
 ```
 
 
+## listPublicCourse
+
+
+**接口地址**:`/api/course/public/list`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>获取公开课程列表。该接口无需权限验证，可供未登录用户访问，仅返回正常状态的课程，不包含敏感信息。</p>
+
+
+
+**请求参数**:
+
+
+暂无
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListPublicCourseVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|PublicCourseVO|
+|&emsp;&emsp;id|课程ID|string(uuid)||
+|&emsp;&emsp;courseName|课程名称|string||
+|&emsp;&emsp;description|课程描述|string||
+|&emsp;&emsp;coverImageUrl|课程封面图片URL|string||
+|&emsp;&emsp;courseType|课程类型 (0=必修, 1=选修)|integer(int32)||
+|&emsp;&emsp;semester|开设学期|string||
+|&emsp;&emsp;location|上课地点|string||
+|&emsp;&emsp;teacherName|授课教师姓名|string||
+|&emsp;&emsp;teacherAvatar|授课教师头像|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"courseName": "",
+			"description": "",
+			"coverImageUrl": "",
+			"courseType": 0,
+			"semester": "",
+			"location": "",
+			"teacherName": "",
+			"teacherAvatar": ""
+		}
+	]
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
 # 课程教师管理
 
 
@@ -2825,6 +2956,3053 @@
 ```
 
 
+# 课程内部查询接口
+
+
+## 根据课程ID查询学生列表
+
+
+**接口地址**:`/api/course/course/internal/{courseId}/students`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|courseId||path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListCourseStudentVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|CourseStudentVO|
+|&emsp;&emsp;studentId|学生ID|string(uuid)||
+|&emsp;&emsp;realName|学生真实姓名|string||
+|&emsp;&emsp;avatar|学生头像|string||
+|&emsp;&emsp;sysUserId|系统用户ID|string(uuid)||
+|&emsp;&emsp;courseId|课程ID|string(uuid)||
+|&emsp;&emsp;grade|成绩|number||
+|&emsp;&emsp;status|选课状态 (0=在读, 1=已退课, 2=已完成)|integer(int32)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"studentId": "",
+			"realName": "",
+			"avatar": "",
+			"sysUserId": "",
+			"courseId": "",
+			"grade": 0,
+			"status": 0,
+			"createTime": "",
+			"updateTime": ""
+		}
+	]
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 根据课程ID查询教师列表
+
+
+**接口地址**:`/api/course/course/internal/{courseId}/teachers`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|courseId||path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListTeacherVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|TeacherVO|
+|&emsp;&emsp;id|教师ID|string(uuid)||
+|&emsp;&emsp;teacherCode|教师工号|string||
+|&emsp;&emsp;realName|教师真实姓名|string||
+|&emsp;&emsp;birthDate|出生日期|string(date)||
+|&emsp;&emsp;department|所属部门/学院|string||
+|&emsp;&emsp;education|学历 (0=专科, 1=本科, 2=硕士, 3=博士)|integer(int32)||
+|&emsp;&emsp;specialization|专业特长/研究方向|string||
+|&emsp;&emsp;description|自我描述|string||
+|&emsp;&emsp;sysUserId|系统用户ID|string(uuid)||
+|&emsp;&emsp;avatar|用户头像URL|string||
+|&emsp;&emsp;username|用户名|string||
+|&emsp;&emsp;nickName|用户昵称|string||
+|&emsp;&emsp;email|邮箱|string||
+|&emsp;&emsp;mobile|手机号|string||
+|&emsp;&emsp;gender|性别 (0=未知, 1=男, 2=女)|integer(int32)||
+|&emsp;&emsp;status|状态 (0=正常, 1=停用)|integer(int32)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+|&emsp;&emsp;lastLoginTime|最后登录时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"teacherCode": "",
+			"realName": "",
+			"birthDate": "",
+			"department": "",
+			"education": 0,
+			"specialization": "",
+			"description": "",
+			"sysUserId": "",
+			"avatar": "",
+			"username": "",
+			"nickName": "",
+			"email": "",
+			"mobile": "",
+			"gender": 0,
+			"status": 0,
+			"createTime": "",
+			"updateTime": "",
+			"lastLoginTime": ""
+		}
+	]
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 根据课程ID查询课程
+
+
+**接口地址**:`/api/course/course/internal/{id}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|id||path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultCourseVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data||CourseVO|CourseVO|
+|&emsp;&emsp;id|课程ID|string(uuid)||
+|&emsp;&emsp;courseName|课程名称|string||
+|&emsp;&emsp;description|课程描述|string||
+|&emsp;&emsp;courseType|课程类型 (0=必修, 1=选修)|integer(int32)||
+|&emsp;&emsp;semester|开设学期|string||
+|&emsp;&emsp;location|上课地点|string||
+|&emsp;&emsp;teacherId|授课教师ID|string(uuid)||
+|&emsp;&emsp;teacherName|授课教师姓名|string||
+|&emsp;&emsp;teacherAvatar|授课教师头像|string||
+|&emsp;&emsp;assistantTeacherIds|辅助教学教师ID列表|array|string(uuid)|
+|&emsp;&emsp;coverImageUrl|课程封面图片URL|string||
+|&emsp;&emsp;status|课程状态 (0=正常, 1=停课)|integer(int32)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"id": "",
+		"courseName": "",
+		"description": "",
+		"courseType": 0,
+		"semester": "",
+		"location": "",
+		"teacherId": "",
+		"teacherName": "",
+		"teacherAvatar": "",
+		"assistantTeacherIds": [],
+		"coverImageUrl": "",
+		"status": 0,
+		"createTime": "",
+		"updateTime": ""
+	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 查询所有课程
+
+
+**接口地址**:`/api/course/course/internal/all`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+暂无
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListCourseVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|CourseVO|
+|&emsp;&emsp;id|课程ID|string(uuid)||
+|&emsp;&emsp;courseName|课程名称|string||
+|&emsp;&emsp;description|课程描述|string||
+|&emsp;&emsp;courseType|课程类型 (0=必修, 1=选修)|integer(int32)||
+|&emsp;&emsp;semester|开设学期|string||
+|&emsp;&emsp;location|上课地点|string||
+|&emsp;&emsp;teacherId|授课教师ID|string(uuid)||
+|&emsp;&emsp;teacherName|授课教师姓名|string||
+|&emsp;&emsp;teacherAvatar|授课教师头像|string||
+|&emsp;&emsp;assistantTeacherIds|辅助教学教师ID列表|array|string(uuid)|
+|&emsp;&emsp;coverImageUrl|课程封面图片URL|string||
+|&emsp;&emsp;status|课程状态 (0=正常, 1=停课)|integer(int32)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"courseName": "",
+			"description": "",
+			"courseType": 0,
+			"semester": "",
+			"location": "",
+			"teacherId": "",
+			"teacherName": "",
+			"teacherAvatar": "",
+			"assistantTeacherIds": [],
+			"coverImageUrl": "",
+			"status": 0,
+			"createTime": "",
+			"updateTime": ""
+		}
+	]
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 根据章节ID查询章节
+
+
+**接口地址**:`/api/course/course/internal/chapter/{id}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|id||path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultCourseChapterVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data||CourseChapterVO|CourseChapterVO|
+|&emsp;&emsp;id|章节ID|string(uuid)||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
+|&emsp;&emsp;teacherId|创建教师ID|string(uuid)||
+|&emsp;&emsp;chapterName|章节名称|string||
+|&emsp;&emsp;parentChapterId|父章节ID|string(uuid)||
+|&emsp;&emsp;description|章节描述|string||
+|&emsp;&emsp;content|章节内容|string||
+|&emsp;&emsp;attachmentUrls|附件URL列表|array|string|
+|&emsp;&emsp;sortOrder|排序权重|integer(int32)||
+|&emsp;&emsp;status|章节状态 (0=草稿, 1=发布)|integer(int32)||
+|&emsp;&emsp;viewCount|浏览次数|integer(int64)||
+|&emsp;&emsp;likeCount|点赞次数|integer(int64)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+|&emsp;&emsp;children|子章节列表（用于树形结构）|array|CourseChapterVO|
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"id": "",
+		"courseId": "",
+		"teacherId": "",
+		"chapterName": "",
+		"parentChapterId": "",
+		"description": "",
+		"content": "",
+		"attachmentUrls": [],
+		"sortOrder": 0,
+		"status": 0,
+		"viewCount": 0,
+		"likeCount": 0,
+		"createTime": "",
+		"updateTime": "",
+		"children": [
+			{
+				"id": "",
+				"courseId": "",
+				"teacherId": "",
+				"chapterName": "",
+				"parentChapterId": "",
+				"description": "",
+				"content": "",
+				"attachmentUrls": [],
+				"sortOrder": 0,
+				"status": 0,
+				"viewCount": 0,
+				"likeCount": 0,
+				"createTime": "",
+				"updateTime": "",
+				"children": [
+					{}
+				]
+			}
+		]
+	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 根据课程ID查询章节列表
+
+
+**接口地址**:`/api/course/course/internal/chapter/course/{courseId}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|courseId||path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListCourseChapterVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|CourseChapterVO|
+|&emsp;&emsp;id|章节ID|string(uuid)||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
+|&emsp;&emsp;teacherId|创建教师ID|string(uuid)||
+|&emsp;&emsp;chapterName|章节名称|string||
+|&emsp;&emsp;parentChapterId|父章节ID|string(uuid)||
+|&emsp;&emsp;description|章节描述|string||
+|&emsp;&emsp;content|章节内容|string||
+|&emsp;&emsp;attachmentUrls|附件URL列表|array|string|
+|&emsp;&emsp;sortOrder|排序权重|integer(int32)||
+|&emsp;&emsp;status|章节状态 (0=草稿, 1=发布)|integer(int32)||
+|&emsp;&emsp;viewCount|浏览次数|integer(int64)||
+|&emsp;&emsp;likeCount|点赞次数|integer(int64)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+|&emsp;&emsp;children|子章节列表（用于树形结构）|array|CourseChapterVO|
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"courseId": "",
+			"teacherId": "",
+			"chapterName": "",
+			"parentChapterId": "",
+			"description": "",
+			"content": "",
+			"attachmentUrls": [],
+			"sortOrder": 0,
+			"status": 0,
+			"viewCount": 0,
+			"likeCount": 0,
+			"createTime": "",
+			"updateTime": "",
+			"children": [
+				{
+					"id": "",
+					"courseId": "",
+					"teacherId": "",
+					"chapterName": "",
+					"parentChapterId": "",
+					"description": "",
+					"content": "",
+					"attachmentUrls": [],
+					"sortOrder": 0,
+					"status": 0,
+					"viewCount": 0,
+					"likeCount": 0,
+					"createTime": "",
+					"updateTime": "",
+					"children": [
+						{}
+					]
+				}
+			]
+		}
+	]
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 根据论坛ID查询论坛
+
+
+**接口地址**:`/api/course/course/internal/forum/{id}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|id||path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultCourseForumVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data||CourseForumVO|CourseForumVO|
+|&emsp;&emsp;id|论坛ID|string(uuid)||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
+|&emsp;&emsp;forumName|论坛名称|string||
+|&emsp;&emsp;description|论坛描述|string||
+|&emsp;&emsp;forumType|论坛类型 (0=讨论区, 1=问答区, 2=作业区, 3=公告区)|integer(int32)||
+|&emsp;&emsp;isPublic|是否公开 (0=仅课程成员, 1=公开)|integer(int32)||
+|&emsp;&emsp;allowAnonymous|是否允许匿名发帖 (0=不允许, 1=允许)|integer(int32)||
+|&emsp;&emsp;postCount|帖子总数|integer(int64)||
+|&emsp;&emsp;replyCount|回复总数|integer(int64)||
+|&emsp;&emsp;status|论坛状态 (0=正常, 1=关闭, 2=维护)|integer(int32)||
+|&emsp;&emsp;tags|标签列表|array|string|
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"id": "",
+		"courseId": "",
+		"forumName": "",
+		"description": "",
+		"forumType": 0,
+		"isPublic": 0,
+		"allowAnonymous": 0,
+		"postCount": 0,
+		"replyCount": 0,
+		"status": 0,
+		"tags": [],
+		"createTime": "",
+		"updateTime": ""
+	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 根据课程ID查询论坛列表
+
+
+**接口地址**:`/api/course/course/internal/forum/course/{courseId}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|courseId||path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListCourseForumVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|CourseForumVO|
+|&emsp;&emsp;id|论坛ID|string(uuid)||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
+|&emsp;&emsp;forumName|论坛名称|string||
+|&emsp;&emsp;description|论坛描述|string||
+|&emsp;&emsp;forumType|论坛类型 (0=讨论区, 1=问答区, 2=作业区, 3=公告区)|integer(int32)||
+|&emsp;&emsp;isPublic|是否公开 (0=仅课程成员, 1=公开)|integer(int32)||
+|&emsp;&emsp;allowAnonymous|是否允许匿名发帖 (0=不允许, 1=允许)|integer(int32)||
+|&emsp;&emsp;postCount|帖子总数|integer(int64)||
+|&emsp;&emsp;replyCount|回复总数|integer(int64)||
+|&emsp;&emsp;status|论坛状态 (0=正常, 1=关闭, 2=维护)|integer(int32)||
+|&emsp;&emsp;tags|标签列表|array|string|
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"courseId": "",
+			"forumName": "",
+			"description": "",
+			"forumType": 0,
+			"isPublic": 0,
+			"allowAnonymous": 0,
+			"postCount": 0,
+			"replyCount": 0,
+			"status": 0,
+			"tags": [],
+			"createTime": "",
+			"updateTime": ""
+		}
+	]
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 根据帖子ID查询帖子
+
+
+**接口地址**:`/api/course/course/internal/forum/post/{id}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|id||path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultForumPostVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data||ForumPostVO|ForumPostVO|
+|&emsp;&emsp;id|帖子ID|string(uuid)||
+|&emsp;&emsp;forumId|所属论坛ID|string(uuid)||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
+|&emsp;&emsp;sysUserId|发帖人ID|string(uuid)||
+|&emsp;&emsp;userName|发帖人用户名|string||
+|&emsp;&emsp;userAvatar|发帖人头像URL|string||
+|&emsp;&emsp;title|帖子标题|string||
+|&emsp;&emsp;content|帖子内容|string||
+|&emsp;&emsp;postType|帖子类型 (0=普通帖子, 1=公告)|integer(int32)||
+|&emsp;&emsp;isAnonymous|是否匿名发帖 (0=实名, 1=匿名)|integer(int32)||
+|&emsp;&emsp;attachmentUrls|附件URL列表|array|string|
+|&emsp;&emsp;imageUrls|图片URL列表|array|string|
+|&emsp;&emsp;tags|标签列表|array|string|
+|&emsp;&emsp;viewCount|浏览次数|integer(int64)||
+|&emsp;&emsp;likeCount|点赞次数|integer(int64)||
+|&emsp;&emsp;replyCount|回复次数|integer(int64)||
+|&emsp;&emsp;shareCount|分享次数|integer(int64)||
+|&emsp;&emsp;isTop|是否置顶 (0=否, 1=是)|integer(int32)||
+|&emsp;&emsp;isEssence|是否精华 (0=否, 1=是)|integer(int32)||
+|&emsp;&emsp;isLocked|是否锁定 (0=否, 1=是)|integer(int32)||
+|&emsp;&emsp;lastReplyId|最新回复ID|string(uuid)||
+|&emsp;&emsp;lastReplyTime|最新回复时间|string(date-time)||
+|&emsp;&emsp;lastReplyUserId|最新回复用户ID|string(uuid)||
+|&emsp;&emsp;status|帖子状态 (0=正常, 1=删除, 2=审核中, 3=审核失败)|integer(int32)||
+|&emsp;&emsp;chapterId|关联章节ID|string(uuid)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"id": "",
+		"forumId": "",
+		"courseId": "",
+		"sysUserId": "",
+		"userName": "",
+		"userAvatar": "",
+		"title": "",
+		"content": "",
+		"postType": 0,
+		"isAnonymous": 0,
+		"attachmentUrls": [],
+		"imageUrls": [],
+		"tags": [],
+		"viewCount": 0,
+		"likeCount": 0,
+		"replyCount": 0,
+		"shareCount": 0,
+		"isTop": 0,
+		"isEssence": 0,
+		"isLocked": 0,
+		"lastReplyId": "",
+		"lastReplyTime": "",
+		"lastReplyUserId": "",
+		"status": 0,
+		"chapterId": "",
+		"createTime": "",
+		"updateTime": ""
+	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 根据课程ID查询帖子列表
+
+
+**接口地址**:`/api/course/course/internal/forum/post/course/{courseId}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|courseId||path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListForumPostVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|ForumPostVO|
+|&emsp;&emsp;id|帖子ID|string(uuid)||
+|&emsp;&emsp;forumId|所属论坛ID|string(uuid)||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
+|&emsp;&emsp;sysUserId|发帖人ID|string(uuid)||
+|&emsp;&emsp;userName|发帖人用户名|string||
+|&emsp;&emsp;userAvatar|发帖人头像URL|string||
+|&emsp;&emsp;title|帖子标题|string||
+|&emsp;&emsp;content|帖子内容|string||
+|&emsp;&emsp;postType|帖子类型 (0=普通帖子, 1=公告)|integer(int32)||
+|&emsp;&emsp;isAnonymous|是否匿名发帖 (0=实名, 1=匿名)|integer(int32)||
+|&emsp;&emsp;attachmentUrls|附件URL列表|array|string|
+|&emsp;&emsp;imageUrls|图片URL列表|array|string|
+|&emsp;&emsp;tags|标签列表|array|string|
+|&emsp;&emsp;viewCount|浏览次数|integer(int64)||
+|&emsp;&emsp;likeCount|点赞次数|integer(int64)||
+|&emsp;&emsp;replyCount|回复次数|integer(int64)||
+|&emsp;&emsp;shareCount|分享次数|integer(int64)||
+|&emsp;&emsp;isTop|是否置顶 (0=否, 1=是)|integer(int32)||
+|&emsp;&emsp;isEssence|是否精华 (0=否, 1=是)|integer(int32)||
+|&emsp;&emsp;isLocked|是否锁定 (0=否, 1=是)|integer(int32)||
+|&emsp;&emsp;lastReplyId|最新回复ID|string(uuid)||
+|&emsp;&emsp;lastReplyTime|最新回复时间|string(date-time)||
+|&emsp;&emsp;lastReplyUserId|最新回复用户ID|string(uuid)||
+|&emsp;&emsp;status|帖子状态 (0=正常, 1=删除, 2=审核中, 3=审核失败)|integer(int32)||
+|&emsp;&emsp;chapterId|关联章节ID|string(uuid)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"forumId": "",
+			"courseId": "",
+			"sysUserId": "",
+			"userName": "",
+			"userAvatar": "",
+			"title": "",
+			"content": "",
+			"postType": 0,
+			"isAnonymous": 0,
+			"attachmentUrls": [],
+			"imageUrls": [],
+			"tags": [],
+			"viewCount": 0,
+			"likeCount": 0,
+			"replyCount": 0,
+			"shareCount": 0,
+			"isTop": 0,
+			"isEssence": 0,
+			"isLocked": 0,
+			"lastReplyId": "",
+			"lastReplyTime": "",
+			"lastReplyUserId": "",
+			"status": 0,
+			"chapterId": "",
+			"createTime": "",
+			"updateTime": ""
+		}
+	]
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 根据回复ID查询回复
+
+
+**接口地址**:`/api/course/course/internal/forum/reply/{id}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|id||path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultForumReplyVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data||ForumReplyVO|ForumReplyVO|
+|&emsp;&emsp;id|回复ID|string(uuid)||
+|&emsp;&emsp;postId|所属帖子ID|string(uuid)||
+|&emsp;&emsp;forumId|所属论坛ID|string(uuid)||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
+|&emsp;&emsp;sysUserId|回复人ID|string(uuid)||
+|&emsp;&emsp;userName|回复人用户名|string||
+|&emsp;&emsp;userAvatar|回复人头像URL|string||
+|&emsp;&emsp;content|回复内容|string||
+|&emsp;&emsp;parentReplyId|父回复ID|string(uuid)||
+|&emsp;&emsp;replyToUserId|回复目标用户ID|string(uuid)||
+|&emsp;&emsp;replyToUserName|回复目标用户昵称|string||
+|&emsp;&emsp;isAnonymous|是否匿名回复 (0=实名, 1=匿名)|integer(int32)||
+|&emsp;&emsp;attachmentUrls|附件URL列表|array|string|
+|&emsp;&emsp;imageUrls|图片URL列表|array|string|
+|&emsp;&emsp;likeCount|点赞次数|integer(int64)||
+|&emsp;&emsp;replyCount|子回复次数|integer(int64)||
+|&emsp;&emsp;isAccepted|是否被采纳 (0=否, 1=是)|integer(int32)||
+|&emsp;&emsp;floorNumber|楼层号|integer(int32)||
+|&emsp;&emsp;status|回复状态 (0=正常, 1=删除, 2=审核中, 3=审核失败)|integer(int32)||
+|&emsp;&emsp;ipAddress|发帖IP地址|string||
+|&emsp;&emsp;userAgent|用户代理信息|string||
+|&emsp;&emsp;children|子回复列表|array|ForumReplyVO|
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+|&emsp;&emsp;deleted|是否删除 (0=未删除, 1=已删除)|integer(int32)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"id": "",
+		"postId": "",
+		"forumId": "",
+		"courseId": "",
+		"sysUserId": "",
+		"userName": "",
+		"userAvatar": "",
+		"content": "",
+		"parentReplyId": "",
+		"replyToUserId": "",
+		"replyToUserName": "",
+		"isAnonymous": 0,
+		"attachmentUrls": [],
+		"imageUrls": [],
+		"likeCount": 0,
+		"replyCount": 0,
+		"isAccepted": 0,
+		"floorNumber": 0,
+		"status": 0,
+		"ipAddress": "",
+		"userAgent": "",
+		"children": [
+			{
+				"id": "",
+				"postId": "",
+				"forumId": "",
+				"courseId": "",
+				"sysUserId": "",
+				"userName": "",
+				"userAvatar": "",
+				"content": "",
+				"parentReplyId": "",
+				"replyToUserId": "",
+				"replyToUserName": "",
+				"isAnonymous": 0,
+				"attachmentUrls": [],
+				"imageUrls": [],
+				"likeCount": 0,
+				"replyCount": 0,
+				"isAccepted": 0,
+				"floorNumber": 0,
+				"status": 0,
+				"ipAddress": "",
+				"userAgent": "",
+				"children": [
+					{}
+				],
+				"createTime": "",
+				"updateTime": "",
+				"deleted": 0
+			}
+		],
+		"createTime": "",
+		"updateTime": "",
+		"deleted": 0
+	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 根据课程ID查询回复列表
+
+
+**接口地址**:`/api/course/course/internal/forum/reply/course/{courseId}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|courseId||path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListForumReplyVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|ForumReplyVO|
+|&emsp;&emsp;id|回复ID|string(uuid)||
+|&emsp;&emsp;postId|所属帖子ID|string(uuid)||
+|&emsp;&emsp;forumId|所属论坛ID|string(uuid)||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
+|&emsp;&emsp;sysUserId|回复人ID|string(uuid)||
+|&emsp;&emsp;userName|回复人用户名|string||
+|&emsp;&emsp;userAvatar|回复人头像URL|string||
+|&emsp;&emsp;content|回复内容|string||
+|&emsp;&emsp;parentReplyId|父回复ID|string(uuid)||
+|&emsp;&emsp;replyToUserId|回复目标用户ID|string(uuid)||
+|&emsp;&emsp;replyToUserName|回复目标用户昵称|string||
+|&emsp;&emsp;isAnonymous|是否匿名回复 (0=实名, 1=匿名)|integer(int32)||
+|&emsp;&emsp;attachmentUrls|附件URL列表|array|string|
+|&emsp;&emsp;imageUrls|图片URL列表|array|string|
+|&emsp;&emsp;likeCount|点赞次数|integer(int64)||
+|&emsp;&emsp;replyCount|子回复次数|integer(int64)||
+|&emsp;&emsp;isAccepted|是否被采纳 (0=否, 1=是)|integer(int32)||
+|&emsp;&emsp;floorNumber|楼层号|integer(int32)||
+|&emsp;&emsp;status|回复状态 (0=正常, 1=删除, 2=审核中, 3=审核失败)|integer(int32)||
+|&emsp;&emsp;ipAddress|发帖IP地址|string||
+|&emsp;&emsp;userAgent|用户代理信息|string||
+|&emsp;&emsp;children|子回复列表|array|ForumReplyVO|
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+|&emsp;&emsp;deleted|是否删除 (0=未删除, 1=已删除)|integer(int32)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"postId": "",
+			"forumId": "",
+			"courseId": "",
+			"sysUserId": "",
+			"userName": "",
+			"userAvatar": "",
+			"content": "",
+			"parentReplyId": "",
+			"replyToUserId": "",
+			"replyToUserName": "",
+			"isAnonymous": 0,
+			"attachmentUrls": [],
+			"imageUrls": [],
+			"likeCount": 0,
+			"replyCount": 0,
+			"isAccepted": 0,
+			"floorNumber": 0,
+			"status": 0,
+			"ipAddress": "",
+			"userAgent": "",
+			"children": [
+				{
+					"id": "",
+					"postId": "",
+					"forumId": "",
+					"courseId": "",
+					"sysUserId": "",
+					"userName": "",
+					"userAvatar": "",
+					"content": "",
+					"parentReplyId": "",
+					"replyToUserId": "",
+					"replyToUserName": "",
+					"isAnonymous": 0,
+					"attachmentUrls": [],
+					"imageUrls": [],
+					"likeCount": 0,
+					"replyCount": 0,
+					"isAccepted": 0,
+					"floorNumber": 0,
+					"status": 0,
+					"ipAddress": "",
+					"userAgent": "",
+					"children": [
+						{}
+					],
+					"createTime": "",
+					"updateTime": "",
+					"deleted": 0
+				}
+			],
+			"createTime": "",
+			"updateTime": "",
+			"deleted": 0
+		}
+	]
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 根据题库ID查询题库
+
+
+**接口地址**:`/api/course/course/internal/question-bank/{id}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|id||path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultCourseQuestionBankVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data||CourseQuestionBankVO|CourseQuestionBankVO|
+|&emsp;&emsp;id|题库ID|string(uuid)||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
+|&emsp;&emsp;sysUserId|创建用户ID|string(uuid)||
+|&emsp;&emsp;sysUserName|创建用户名称|string||
+|&emsp;&emsp;sysUserAvatar|创建用户头像|string||
+|&emsp;&emsp;bankName|题库名称|string||
+|&emsp;&emsp;description|题库描述|string||
+|&emsp;&emsp;bankType|题库类型 (0=练习题库, 1=考试题库, 2=作业题库)|integer(int32)||
+|&emsp;&emsp;tags|标签列表|array|string|
+|&emsp;&emsp;difficulty|整体难度等级 (1=简单, 2=中等, 3=困难)|integer(int32)||
+|&emsp;&emsp;isPublic|是否公开 (0=私有, 1=公开)|integer(int32)||
+|&emsp;&emsp;questionCount|题目数量|integer(int64)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"id": "",
+		"courseId": "",
+		"sysUserId": "",
+		"sysUserName": "",
+		"sysUserAvatar": "",
+		"bankName": "",
+		"description": "",
+		"bankType": 0,
+		"tags": [],
+		"difficulty": 0,
+		"isPublic": 0,
+		"questionCount": 0,
+		"createTime": "",
+		"updateTime": ""
+	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 根据课程ID查询题库列表
+
+
+**接口地址**:`/api/course/course/internal/question-bank/course/{courseId}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|courseId||path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListCourseQuestionBankVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|CourseQuestionBankVO|
+|&emsp;&emsp;id|题库ID|string(uuid)||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
+|&emsp;&emsp;sysUserId|创建用户ID|string(uuid)||
+|&emsp;&emsp;sysUserName|创建用户名称|string||
+|&emsp;&emsp;sysUserAvatar|创建用户头像|string||
+|&emsp;&emsp;bankName|题库名称|string||
+|&emsp;&emsp;description|题库描述|string||
+|&emsp;&emsp;bankType|题库类型 (0=练习题库, 1=考试题库, 2=作业题库)|integer(int32)||
+|&emsp;&emsp;tags|标签列表|array|string|
+|&emsp;&emsp;difficulty|整体难度等级 (1=简单, 2=中等, 3=困难)|integer(int32)||
+|&emsp;&emsp;isPublic|是否公开 (0=私有, 1=公开)|integer(int32)||
+|&emsp;&emsp;questionCount|题目数量|integer(int64)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"courseId": "",
+			"sysUserId": "",
+			"sysUserName": "",
+			"sysUserAvatar": "",
+			"bankName": "",
+			"description": "",
+			"bankType": 0,
+			"tags": [],
+			"difficulty": 0,
+			"isPublic": 0,
+			"questionCount": 0,
+			"createTime": "",
+			"updateTime": ""
+		}
+	]
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 根据题目ID查询选项列表
+
+
+**接口地址**:`/api/course/course/internal/question-option/question/{questionId}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|questionId||path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListQuestionOptionVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|QuestionOptionVO|
+|&emsp;&emsp;id|选项ID|string(uuid)||
+|&emsp;&emsp;questionId|所属题目ID|string(uuid)||
+|&emsp;&emsp;optionContent|选项内容|string||
+|&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)|string||
+|&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)|integer(int32)||
+|&emsp;&emsp;score|选项分数 (多选题部分得分使用)|number||
+|&emsp;&emsp;imageUrls|图片URL列表|array|string|
+|&emsp;&emsp;explanation|选项解析|string||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"questionId": "",
+			"optionContent": "",
+			"optionLabel": "",
+			"isCorrect": 0,
+			"score": 0,
+			"imageUrls": [],
+			"explanation": "",
+			"createTime": "",
+			"updateTime": ""
+		}
+	]
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 根据题目ID查询题目
+
+
+**接口地址**:`/api/course/course/internal/question/{id}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|id||path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultQuestionVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data||QuestionVO|QuestionVO|
+|&emsp;&emsp;id|题目ID|string(uuid)||
+|&emsp;&emsp;questionBankId|所属题库ID|string(uuid)||
+|&emsp;&emsp;questionBankName|所属题库名称|string||
+|&emsp;&emsp;sysUserId|创建用户ID|string(uuid)||
+|&emsp;&emsp;sysUserName|创建用户名称|string||
+|&emsp;&emsp;questionTitle|题目标题|string||
+|&emsp;&emsp;questionContent|题目内容|string||
+|&emsp;&emsp;questionType|题目类型 (0=单选题, 1=多选题, 2=判断题, 3=填空题, 4=简答题)|integer(int32)||
+|&emsp;&emsp;difficulty|难度等级 (1=简单, 2=中等, 3=困难)|integer(int32)||
+|&emsp;&emsp;score|题目分数|number||
+|&emsp;&emsp;estimatedTime|预计答题时间 (分钟)|integer(int32)||
+|&emsp;&emsp;tags|标签列表|array|string|
+|&emsp;&emsp;imageUrls|图片URL列表|array|string|
+|&emsp;&emsp;allowPartialCredit|是否允许部分得分 (0=不允许, 1=允许)|integer(int32)||
+|&emsp;&emsp;viewCount|浏览次数|integer(int64)||
+|&emsp;&emsp;status|题目状态 (0=草稿, 1=发布, 2=停用)|integer(int32)||
+|&emsp;&emsp;options|题目选项视图对象|array|QuestionOptionVO|
+|&emsp;&emsp;&emsp;&emsp;id|选项ID|string||
+|&emsp;&emsp;&emsp;&emsp;questionId|所属题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;optionContent|选项内容|string||
+|&emsp;&emsp;&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)|string||
+|&emsp;&emsp;&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)|integer||
+|&emsp;&emsp;&emsp;&emsp;score|选项分数 (多选题部分得分使用)|number||
+|&emsp;&emsp;&emsp;&emsp;imageUrls|图片URL列表|array|string|
+|&emsp;&emsp;&emsp;&emsp;explanation|选项解析|string||
+|&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
+|&emsp;&emsp;answers|填空简答视图对象|array|QuestionAnswerVO|
+|&emsp;&emsp;&emsp;&emsp;id|答案ID|string||
+|&emsp;&emsp;&emsp;&emsp;questionId|题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;answerContent|本空答案|string||
+|&emsp;&emsp;&emsp;&emsp;explanation|本空解析|string||
+|&emsp;&emsp;&emsp;&emsp;score|分数|number||
+|&emsp;&emsp;&emsp;&emsp;sortOrder|本空序号|integer||
+|&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"id": "",
+		"questionBankId": "",
+		"questionBankName": "",
+		"sysUserId": "",
+		"sysUserName": "",
+		"questionTitle": "",
+		"questionContent": "",
+		"questionType": 0,
+		"difficulty": 0,
+		"score": 0,
+		"estimatedTime": 0,
+		"tags": [],
+		"imageUrls": [],
+		"allowPartialCredit": 0,
+		"viewCount": 0,
+		"status": 0,
+		"options": [
+			{
+				"id": "",
+				"questionId": "",
+				"optionContent": "",
+				"optionLabel": "",
+				"isCorrect": 0,
+				"score": 0,
+				"imageUrls": [],
+				"explanation": "",
+				"createTime": "",
+				"updateTime": ""
+			}
+		],
+		"answers": [
+			{
+				"id": "",
+				"questionId": "",
+				"answerContent": "",
+				"explanation": "",
+				"score": 0,
+				"sortOrder": 0,
+				"createTime": "",
+				"updateTime": ""
+			}
+		],
+		"createTime": "",
+		"updateTime": ""
+	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 根据题库ID查询题目列表
+
+
+**接口地址**:`/api/course/course/internal/question/bank/{bankId}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|bankId||path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListQuestionVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|QuestionVO|
+|&emsp;&emsp;id|题目ID|string(uuid)||
+|&emsp;&emsp;questionBankId|所属题库ID|string(uuid)||
+|&emsp;&emsp;questionBankName|所属题库名称|string||
+|&emsp;&emsp;sysUserId|创建用户ID|string(uuid)||
+|&emsp;&emsp;sysUserName|创建用户名称|string||
+|&emsp;&emsp;questionTitle|题目标题|string||
+|&emsp;&emsp;questionContent|题目内容|string||
+|&emsp;&emsp;questionType|题目类型 (0=单选题, 1=多选题, 2=判断题, 3=填空题, 4=简答题)|integer(int32)||
+|&emsp;&emsp;difficulty|难度等级 (1=简单, 2=中等, 3=困难)|integer(int32)||
+|&emsp;&emsp;score|题目分数|number||
+|&emsp;&emsp;estimatedTime|预计答题时间 (分钟)|integer(int32)||
+|&emsp;&emsp;tags|标签列表|array|string|
+|&emsp;&emsp;imageUrls|图片URL列表|array|string|
+|&emsp;&emsp;allowPartialCredit|是否允许部分得分 (0=不允许, 1=允许)|integer(int32)||
+|&emsp;&emsp;viewCount|浏览次数|integer(int64)||
+|&emsp;&emsp;status|题目状态 (0=草稿, 1=发布, 2=停用)|integer(int32)||
+|&emsp;&emsp;options|题目选项视图对象|array|QuestionOptionVO|
+|&emsp;&emsp;&emsp;&emsp;id|选项ID|string||
+|&emsp;&emsp;&emsp;&emsp;questionId|所属题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;optionContent|选项内容|string||
+|&emsp;&emsp;&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)|string||
+|&emsp;&emsp;&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)|integer||
+|&emsp;&emsp;&emsp;&emsp;score|选项分数 (多选题部分得分使用)|number||
+|&emsp;&emsp;&emsp;&emsp;imageUrls|图片URL列表|array|string|
+|&emsp;&emsp;&emsp;&emsp;explanation|选项解析|string||
+|&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
+|&emsp;&emsp;answers|填空简答视图对象|array|QuestionAnswerVO|
+|&emsp;&emsp;&emsp;&emsp;id|答案ID|string||
+|&emsp;&emsp;&emsp;&emsp;questionId|题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;answerContent|本空答案|string||
+|&emsp;&emsp;&emsp;&emsp;explanation|本空解析|string||
+|&emsp;&emsp;&emsp;&emsp;score|分数|number||
+|&emsp;&emsp;&emsp;&emsp;sortOrder|本空序号|integer||
+|&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"questionBankId": "",
+			"questionBankName": "",
+			"sysUserId": "",
+			"sysUserName": "",
+			"questionTitle": "",
+			"questionContent": "",
+			"questionType": 0,
+			"difficulty": 0,
+			"score": 0,
+			"estimatedTime": 0,
+			"tags": [],
+			"imageUrls": [],
+			"allowPartialCredit": 0,
+			"viewCount": 0,
+			"status": 0,
+			"options": [
+				{
+					"id": "",
+					"questionId": "",
+					"optionContent": "",
+					"optionLabel": "",
+					"isCorrect": 0,
+					"score": 0,
+					"imageUrls": [],
+					"explanation": "",
+					"createTime": "",
+					"updateTime": ""
+				}
+			],
+			"answers": [
+				{
+					"id": "",
+					"questionId": "",
+					"answerContent": "",
+					"explanation": "",
+					"score": 0,
+					"sortOrder": 0,
+					"createTime": "",
+					"updateTime": ""
+				}
+			],
+			"createTime": "",
+			"updateTime": ""
+		}
+	]
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 根据任务ID查询任务
+
+
+**接口地址**:`/api/course/course/internal/task/{id}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|id||path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultCourseTaskVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data||CourseTaskVO|CourseTaskVO|
+|&emsp;&emsp;id|任务ID|string(uuid)||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
+|&emsp;&emsp;courseName|课程名称|string||
+|&emsp;&emsp;sysUserId|任务发起人ID|string(uuid)||
+|&emsp;&emsp;teacherName|任务发起人姓名|string||
+|&emsp;&emsp;teacherAvatar|任务发起人头像|string||
+|&emsp;&emsp;taskName|任务名称|string||
+|&emsp;&emsp;description|任务描述|string||
+|&emsp;&emsp;taskType|任务类型 (0=作业, 1=测验, 2=项目, 3=实验)|integer(int32)||
+|&emsp;&emsp;taskContent|任务内容 (富文本)|string||
+|&emsp;&emsp;attachmentUrls|任务附件URL列表|array|string|
+|&emsp;&emsp;resourceUrls|参考资料URL列表|array|string|
+|&emsp;&emsp;maxScore|满分|number||
+|&emsp;&emsp;startTime|任务开始时间|string(date-time)||
+|&emsp;&emsp;endTime|任务结束时间|string(date-time)||
+|&emsp;&emsp;allowLateSubmit|是否允许迟交 (0=不允许, 1=允许)|integer(int32)||
+|&emsp;&emsp;maxSubmitCount|最大提交次数 (0=无限制)|integer(int32)||
+|&emsp;&emsp;autoGrade|是否自动评分 (0=手动评分, 1=自动评分)|integer(int32)||
+|&emsp;&emsp;tags|标签列表|array|string|
+|&emsp;&emsp;difficulty|难度等级 (1=简单, 2=中等, 3=困难)|integer(int32)||
+|&emsp;&emsp;estimatedTime|预计完成时间 (分钟)|integer(int32)||
+|&emsp;&emsp;viewCount|浏览次数|integer(int64)||
+|&emsp;&emsp;status|任务状态 (0=草稿, 1=发布, 2=进行中, 3=已结束)|integer(int32)||
+|&emsp;&emsp;submitCount|已提交次数|integer(int32)||
+|&emsp;&emsp;isSubmitted|是否已提交|boolean||
+|&emsp;&emsp;submitTime|提交时间|string(date-time)||
+|&emsp;&emsp;score|得分|number||
+|&emsp;&emsp;isGraded|是否已评分|boolean||
+|&emsp;&emsp;gradeTime|评分时间|string(date-time)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"id": "",
+		"courseId": "",
+		"courseName": "",
+		"sysUserId": "",
+		"teacherName": "",
+		"teacherAvatar": "",
+		"taskName": "",
+		"description": "",
+		"taskType": 0,
+		"taskContent": "",
+		"attachmentUrls": [],
+		"resourceUrls": [],
+		"maxScore": 0,
+		"startTime": "",
+		"endTime": "",
+		"allowLateSubmit": 0,
+		"maxSubmitCount": 0,
+		"autoGrade": 0,
+		"tags": [],
+		"difficulty": 0,
+		"estimatedTime": 0,
+		"viewCount": 0,
+		"status": 0,
+		"submitCount": 0,
+		"isSubmitted": true,
+		"submitTime": "",
+		"score": 0,
+		"isGraded": true,
+		"gradeTime": "",
+		"createTime": "",
+		"updateTime": ""
+	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 根据课程ID查询任务列表
+
+
+**接口地址**:`/api/course/course/internal/task/course/{courseId}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|courseId||path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListCourseTaskVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|CourseTaskVO|
+|&emsp;&emsp;id|任务ID|string(uuid)||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
+|&emsp;&emsp;courseName|课程名称|string||
+|&emsp;&emsp;sysUserId|任务发起人ID|string(uuid)||
+|&emsp;&emsp;teacherName|任务发起人姓名|string||
+|&emsp;&emsp;teacherAvatar|任务发起人头像|string||
+|&emsp;&emsp;taskName|任务名称|string||
+|&emsp;&emsp;description|任务描述|string||
+|&emsp;&emsp;taskType|任务类型 (0=作业, 1=测验, 2=项目, 3=实验)|integer(int32)||
+|&emsp;&emsp;taskContent|任务内容 (富文本)|string||
+|&emsp;&emsp;attachmentUrls|任务附件URL列表|array|string|
+|&emsp;&emsp;resourceUrls|参考资料URL列表|array|string|
+|&emsp;&emsp;maxScore|满分|number||
+|&emsp;&emsp;startTime|任务开始时间|string(date-time)||
+|&emsp;&emsp;endTime|任务结束时间|string(date-time)||
+|&emsp;&emsp;allowLateSubmit|是否允许迟交 (0=不允许, 1=允许)|integer(int32)||
+|&emsp;&emsp;maxSubmitCount|最大提交次数 (0=无限制)|integer(int32)||
+|&emsp;&emsp;autoGrade|是否自动评分 (0=手动评分, 1=自动评分)|integer(int32)||
+|&emsp;&emsp;tags|标签列表|array|string|
+|&emsp;&emsp;difficulty|难度等级 (1=简单, 2=中等, 3=困难)|integer(int32)||
+|&emsp;&emsp;estimatedTime|预计完成时间 (分钟)|integer(int32)||
+|&emsp;&emsp;viewCount|浏览次数|integer(int64)||
+|&emsp;&emsp;status|任务状态 (0=草稿, 1=发布, 2=进行中, 3=已结束)|integer(int32)||
+|&emsp;&emsp;submitCount|已提交次数|integer(int32)||
+|&emsp;&emsp;isSubmitted|是否已提交|boolean||
+|&emsp;&emsp;submitTime|提交时间|string(date-time)||
+|&emsp;&emsp;score|得分|number||
+|&emsp;&emsp;isGraded|是否已评分|boolean||
+|&emsp;&emsp;gradeTime|评分时间|string(date-time)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"courseId": "",
+			"courseName": "",
+			"sysUserId": "",
+			"teacherName": "",
+			"teacherAvatar": "",
+			"taskName": "",
+			"description": "",
+			"taskType": 0,
+			"taskContent": "",
+			"attachmentUrls": [],
+			"resourceUrls": [],
+			"maxScore": 0,
+			"startTime": "",
+			"endTime": "",
+			"allowLateSubmit": 0,
+			"maxSubmitCount": 0,
+			"autoGrade": 0,
+			"tags": [],
+			"difficulty": 0,
+			"estimatedTime": 0,
+			"viewCount": 0,
+			"status": 0,
+			"submitCount": 0,
+			"isSubmitted": true,
+			"submitTime": "",
+			"score": 0,
+			"isGraded": true,
+			"gradeTime": "",
+			"createTime": "",
+			"updateTime": ""
+		}
+	]
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
 # 课程任务管理
 
 
@@ -2856,7 +6034,7 @@
   "courseId": "",
   "sysUserId": "",
   "taskName": "",
-  "taskDescription": "",
+  "description": "",
   "taskType": 0,
   "taskContent": "",
   "attachmentUrls": [],
@@ -2885,7 +6063,7 @@
 |&emsp;&emsp;courseId|所属课程ID||true|string(uuid)||
 |&emsp;&emsp;sysUserId|任务发起人ID||true|string(uuid)||
 |&emsp;&emsp;taskName|任务名称||true|string||
-|&emsp;&emsp;taskDescription|任务描述||true|string||
+|&emsp;&emsp;description|任务描述||false|string||
 |&emsp;&emsp;taskType|任务类型 (0=作业, 1=测验, 2=项目, 3=实验)||true|integer(int32)||
 |&emsp;&emsp;taskContent|任务内容 (富文本)||true|string||
 |&emsp;&emsp;attachmentUrls|任务附件URL列表||false|array|string|
@@ -2931,7 +6109,7 @@
 |&emsp;&emsp;teacherName|任务发起人姓名|string||
 |&emsp;&emsp;teacherAvatar|任务发起人头像|string||
 |&emsp;&emsp;taskName|任务名称|string||
-|&emsp;&emsp;taskDescription|任务描述|string||
+|&emsp;&emsp;description|任务描述|string||
 |&emsp;&emsp;taskType|任务类型 (0=作业, 1=测验, 2=项目, 3=实验)|integer(int32)||
 |&emsp;&emsp;taskContent|任务内容 (富文本)|string||
 |&emsp;&emsp;attachmentUrls|任务附件URL列表|array|string|
@@ -2971,7 +6149,7 @@
 		"teacherName": "",
 		"teacherAvatar": "",
 		"taskName": "",
-		"taskDescription": "",
+		"description": "",
 		"taskType": 0,
 		"taskContent": "",
 		"attachmentUrls": [],
@@ -3078,7 +6256,7 @@
   "courseId": "",
   "sysUserId": "",
   "taskName": "",
-  "taskDescription": "",
+  "description": "",
   "taskType": 0,
   "taskContent": "",
   "attachmentUrls": [],
@@ -3107,7 +6285,7 @@
 |&emsp;&emsp;courseId|所属课程ID||true|string(uuid)||
 |&emsp;&emsp;sysUserId|任务发起人ID||true|string(uuid)||
 |&emsp;&emsp;taskName|任务名称||true|string||
-|&emsp;&emsp;taskDescription|任务描述||true|string||
+|&emsp;&emsp;description|任务描述||false|string||
 |&emsp;&emsp;taskType|任务类型 (0=作业, 1=测验, 2=项目, 3=实验)||true|integer(int32)||
 |&emsp;&emsp;taskContent|任务内容 (富文本)||true|string||
 |&emsp;&emsp;attachmentUrls|任务附件URL列表||false|array|string|
@@ -3385,7 +6563,7 @@
 |&emsp;&emsp;teacherName|任务发起人姓名|string||
 |&emsp;&emsp;teacherAvatar|任务发起人头像|string||
 |&emsp;&emsp;taskName|任务名称|string||
-|&emsp;&emsp;taskDescription|任务描述|string||
+|&emsp;&emsp;description|任务描述|string||
 |&emsp;&emsp;taskType|任务类型 (0=作业, 1=测验, 2=项目, 3=实验)|integer(int32)||
 |&emsp;&emsp;taskContent|任务内容 (富文本)|string||
 |&emsp;&emsp;attachmentUrls|任务附件URL列表|array|string|
@@ -3425,7 +6603,7 @@
 		"teacherName": "",
 		"teacherAvatar": "",
 		"taskName": "",
-		"taskDescription": "",
+		"description": "",
 		"taskType": 0,
 		"taskContent": "",
 		"attachmentUrls": [],
@@ -4345,7 +7523,7 @@
 |&emsp;&emsp;teacherName|任务发起人姓名|string||
 |&emsp;&emsp;teacherAvatar|任务发起人头像|string||
 |&emsp;&emsp;taskName|任务名称|string||
-|&emsp;&emsp;taskDescription|任务描述|string||
+|&emsp;&emsp;description|任务描述|string||
 |&emsp;&emsp;taskType|任务类型 (0=作业, 1=测验, 2=项目, 3=实验)|integer(int32)||
 |&emsp;&emsp;taskContent|任务内容 (富文本)|string||
 |&emsp;&emsp;attachmentUrls|任务附件URL列表|array|string|
@@ -4386,7 +7564,7 @@
 			"teacherName": "",
 			"teacherAvatar": "",
 			"taskName": "",
-			"taskDescription": "",
+			"description": "",
 			"taskType": 0,
 			"taskContent": "",
 			"attachmentUrls": [],
@@ -4523,7 +7701,7 @@
 |&emsp;&emsp;teacherName|任务发起人姓名|string||
 |&emsp;&emsp;teacherAvatar|任务发起人头像|string||
 |&emsp;&emsp;taskName|任务名称|string||
-|&emsp;&emsp;taskDescription|任务描述|string||
+|&emsp;&emsp;description|任务描述|string||
 |&emsp;&emsp;taskType|任务类型 (0=作业, 1=测验, 2=项目, 3=实验)|integer(int32)||
 |&emsp;&emsp;taskContent|任务内容 (富文本)|string||
 |&emsp;&emsp;attachmentUrls|任务附件URL列表|array|string|
@@ -4564,7 +7742,7 @@
 			"teacherName": "",
 			"teacherAvatar": "",
 			"taskName": "",
-			"taskDescription": "",
+			"description": "",
 			"taskType": 0,
 			"taskContent": "",
 			"attachmentUrls": [],
@@ -4701,7 +7879,7 @@
 |&emsp;&emsp;teacherName|任务发起人姓名|string||
 |&emsp;&emsp;teacherAvatar|任务发起人头像|string||
 |&emsp;&emsp;taskName|任务名称|string||
-|&emsp;&emsp;taskDescription|任务描述|string||
+|&emsp;&emsp;description|任务描述|string||
 |&emsp;&emsp;taskType|任务类型 (0=作业, 1=测验, 2=项目, 3=实验)|integer(int32)||
 |&emsp;&emsp;taskContent|任务内容 (富文本)|string||
 |&emsp;&emsp;attachmentUrls|任务附件URL列表|array|string|
@@ -4742,7 +7920,7 @@
 			"teacherName": "",
 			"teacherAvatar": "",
 			"taskName": "",
-			"taskDescription": "",
+			"description": "",
 			"taskType": 0,
 			"taskContent": "",
 			"attachmentUrls": [],
@@ -4879,7 +8057,7 @@
 |&emsp;&emsp;teacherName|任务发起人姓名|string||
 |&emsp;&emsp;teacherAvatar|任务发起人头像|string||
 |&emsp;&emsp;taskName|任务名称|string||
-|&emsp;&emsp;taskDescription|任务描述|string||
+|&emsp;&emsp;description|任务描述|string||
 |&emsp;&emsp;taskType|任务类型 (0=作业, 1=测验, 2=项目, 3=实验)|integer(int32)||
 |&emsp;&emsp;taskContent|任务内容 (富文本)|string||
 |&emsp;&emsp;attachmentUrls|任务附件URL列表|array|string|
@@ -4920,7 +8098,7 @@
 			"teacherName": "",
 			"teacherAvatar": "",
 			"taskName": "",
-			"taskDescription": "",
+			"description": "",
 			"taskType": 0,
 			"taskContent": "",
 			"attachmentUrls": [],
@@ -5169,7 +8347,7 @@
 |&emsp;&emsp;teacherName|任务发起人姓名|string||
 |&emsp;&emsp;teacherAvatar|任务发起人头像|string||
 |&emsp;&emsp;taskName|任务名称|string||
-|&emsp;&emsp;taskDescription|任务描述|string||
+|&emsp;&emsp;description|任务描述|string||
 |&emsp;&emsp;taskType|任务类型 (0=作业, 1=测验, 2=项目, 3=实验)|integer(int32)||
 |&emsp;&emsp;taskContent|任务内容 (富文本)|string||
 |&emsp;&emsp;attachmentUrls|任务附件URL列表|array|string|
@@ -5210,7 +8388,7 @@
 			"teacherName": "",
 			"teacherAvatar": "",
 			"taskName": "",
-			"taskDescription": "",
+			"description": "",
 			"taskType": 0,
 			"taskContent": "",
 			"attachmentUrls": [],
@@ -5347,7 +8525,7 @@
 |&emsp;&emsp;teacherName|任务发起人姓名|string||
 |&emsp;&emsp;teacherAvatar|任务发起人头像|string||
 |&emsp;&emsp;taskName|任务名称|string||
-|&emsp;&emsp;taskDescription|任务描述|string||
+|&emsp;&emsp;description|任务描述|string||
 |&emsp;&emsp;taskType|任务类型 (0=作业, 1=测验, 2=项目, 3=实验)|integer(int32)||
 |&emsp;&emsp;taskContent|任务内容 (富文本)|string||
 |&emsp;&emsp;attachmentUrls|任务附件URL列表|array|string|
@@ -5388,7 +8566,7 @@
 			"teacherName": "",
 			"teacherAvatar": "",
 			"taskName": "",
-			"taskDescription": "",
+			"description": "",
 			"taskType": 0,
 			"taskContent": "",
 			"attachmentUrls": [],
@@ -5656,7 +8834,7 @@
 |&emsp;&emsp;teacherName|任务发起人姓名|string||
 |&emsp;&emsp;teacherAvatar|任务发起人头像|string||
 |&emsp;&emsp;taskName|任务名称|string||
-|&emsp;&emsp;taskDescription|任务描述|string||
+|&emsp;&emsp;description|任务描述|string||
 |&emsp;&emsp;taskType|任务类型 (0=作业, 1=测验, 2=项目, 3=实验)|integer(int32)||
 |&emsp;&emsp;taskContent|任务内容 (富文本)|string||
 |&emsp;&emsp;attachmentUrls|任务附件URL列表|array|string|
@@ -5697,7 +8875,7 @@
 			"teacherName": "",
 			"teacherAvatar": "",
 			"taskName": "",
-			"taskDescription": "",
+			"description": "",
 			"taskType": 0,
 			"taskContent": "",
 			"attachmentUrls": [],
@@ -5834,7 +9012,7 @@
 |&emsp;&emsp;teacherName|任务发起人姓名|string||
 |&emsp;&emsp;teacherAvatar|任务发起人头像|string||
 |&emsp;&emsp;taskName|任务名称|string||
-|&emsp;&emsp;taskDescription|任务描述|string||
+|&emsp;&emsp;description|任务描述|string||
 |&emsp;&emsp;taskType|任务类型 (0=作业, 1=测验, 2=项目, 3=实验)|integer(int32)||
 |&emsp;&emsp;taskContent|任务内容 (富文本)|string||
 |&emsp;&emsp;attachmentUrls|任务附件URL列表|array|string|
@@ -5875,7 +9053,7 @@
 			"teacherName": "",
 			"teacherAvatar": "",
 			"taskName": "",
-			"taskDescription": "",
+			"description": "",
 			"taskType": 0,
 			"taskContent": "",
 			"attachmentUrls": [],
@@ -6011,7 +9189,7 @@
 |&emsp;&emsp;teacherName|任务发起人姓名|string||
 |&emsp;&emsp;teacherAvatar|任务发起人头像|string||
 |&emsp;&emsp;taskName|任务名称|string||
-|&emsp;&emsp;taskDescription|任务描述|string||
+|&emsp;&emsp;description|任务描述|string||
 |&emsp;&emsp;taskType|任务类型 (0=作业, 1=测验, 2=项目, 3=实验)|integer(int32)||
 |&emsp;&emsp;taskContent|任务内容 (富文本)|string||
 |&emsp;&emsp;attachmentUrls|任务附件URL列表|array|string|
@@ -6052,7 +9230,7 @@
 			"teacherName": "",
 			"teacherAvatar": "",
 			"taskName": "",
-			"taskDescription": "",
+			"description": "",
 			"taskType": 0,
 			"taskContent": "",
 			"attachmentUrls": [],
@@ -6555,9 +9733,9 @@
 |data||CourseQuestionBankVO|CourseQuestionBankVO|
 |&emsp;&emsp;id|题库ID|string(uuid)||
 |&emsp;&emsp;courseId|所属课程ID|string(uuid)||
-|&emsp;&emsp;courseName|课程名称|string||
 |&emsp;&emsp;sysUserId|创建用户ID|string(uuid)||
 |&emsp;&emsp;sysUserName|创建用户名称|string||
+|&emsp;&emsp;sysUserAvatar|创建用户头像|string||
 |&emsp;&emsp;bankName|题库名称|string||
 |&emsp;&emsp;description|题库描述|string||
 |&emsp;&emsp;bankType|题库类型 (0=练习题库, 1=考试题库, 2=作业题库)|integer(int32)||
@@ -6578,9 +9756,9 @@
 	"data": {
 		"id": "",
 		"courseId": "",
-		"courseName": "",
 		"sysUserId": "",
 		"sysUserName": "",
+		"sysUserAvatar": "",
 		"bankName": "",
 		"description": "",
 		"bankType": 0,
@@ -6833,9 +10011,9 @@
 |data||CourseQuestionBankVO|CourseQuestionBankVO|
 |&emsp;&emsp;id|题库ID|string(uuid)||
 |&emsp;&emsp;courseId|所属课程ID|string(uuid)||
-|&emsp;&emsp;courseName|课程名称|string||
 |&emsp;&emsp;sysUserId|创建用户ID|string(uuid)||
 |&emsp;&emsp;sysUserName|创建用户名称|string||
+|&emsp;&emsp;sysUserAvatar|创建用户头像|string||
 |&emsp;&emsp;bankName|题库名称|string||
 |&emsp;&emsp;description|题库描述|string||
 |&emsp;&emsp;bankType|题库类型 (0=练习题库, 1=考试题库, 2=作业题库)|integer(int32)||
@@ -6856,9 +10034,9 @@
 	"data": {
 		"id": "",
 		"courseId": "",
-		"courseName": "",
 		"sysUserId": "",
 		"sysUserName": "",
+		"sysUserAvatar": "",
 		"bankName": "",
 		"description": "",
 		"bankType": 0,
@@ -6974,9 +10152,9 @@
 |data|响应数据体 (泛型)|array|CourseQuestionBankVO|
 |&emsp;&emsp;id|题库ID|string(uuid)||
 |&emsp;&emsp;courseId|所属课程ID|string(uuid)||
-|&emsp;&emsp;courseName|课程名称|string||
 |&emsp;&emsp;sysUserId|创建用户ID|string(uuid)||
 |&emsp;&emsp;sysUserName|创建用户名称|string||
+|&emsp;&emsp;sysUserAvatar|创建用户头像|string||
 |&emsp;&emsp;bankName|题库名称|string||
 |&emsp;&emsp;description|题库描述|string||
 |&emsp;&emsp;bankType|题库类型 (0=练习题库, 1=考试题库, 2=作业题库)|integer(int32)||
@@ -6998,9 +10176,9 @@
 		{
 			"id": "",
 			"courseId": "",
-			"courseName": "",
 			"sysUserId": "",
 			"sysUserName": "",
+			"sysUserAvatar": "",
 			"bankName": "",
 			"description": "",
 			"bankType": 0,
@@ -15385,1472 +18563,6 @@
 ```
 
 
-# 题目答案管理
-
-
-## updateQuestionAnswer
-
-
-**接口地址**:`/api/course/question-answer`
-
-
-**请求方式**:`PUT`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded,application/json`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:<p>修改现有答案的信息。</p>
-
-
-
-**请求示例**:
-
-
-```javascript
-{
-  "id": "",
-  "questionId": "",
-  "answerContent": "",
-  "answerText": "",
-  "isCorrect": 0,
-  "score": 0
-}
-```
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|questionAnswerDTO|题目答案数据传输对象|body|true|QuestionAnswerDTO|QuestionAnswerDTO|
-|&emsp;&emsp;id|答案ID||false|string(uuid)||
-|&emsp;&emsp;questionId|题目ID||true|string(uuid)||
-|&emsp;&emsp;answerContent|答案内容||true|string||
-|&emsp;&emsp;answerText|文本答案 (填空题、简答题)||false|string||
-|&emsp;&emsp;isCorrect|是否正确 (0=错误, 1=正确, 2=部分正确)||true|integer(int32)||
-|&emsp;&emsp;score|得分||true|number||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|ResultBoolean|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|boolean||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": true
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
-## removeQuestionAnswersByIds
-
-
-**接口地址**:`/api/course/question-answer`
-
-
-**请求方式**:`DELETE`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded,application/json`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:<p>根据答案ID列表批量删除答案。</p>
-
-
-
-**请求示例**:
-
-
-```javascript
-[]
-```
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|strings|string|body|true|array||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|ResultInteger|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|integer(int32)|integer(int32)|
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": 0
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
-## getQuestionAnswerById
-
-
-**接口地址**:`/api/course/question-answer/{id}`
-
-
-**请求方式**:`GET`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:<p>通过答案的唯一ID获取其详细信息。</p>
-
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|id|答案ID|path|true|string(uuid)||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|ResultQuestionAnswerVO|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data||QuestionAnswerVO|QuestionAnswerVO|
-|&emsp;&emsp;id|答案ID|string(uuid)||
-|&emsp;&emsp;questionId|题目ID|string(uuid)||
-|&emsp;&emsp;questionTitle|题目标题|string||
-|&emsp;&emsp;sysUserId|创建用户ID|string(uuid)||
-|&emsp;&emsp;sysUserName|创建用户名称|string||
-|&emsp;&emsp;answerContent|答案内容|string||
-|&emsp;&emsp;answerText|文本答案 (填空题、简答题)|string||
-|&emsp;&emsp;isCorrect|是否正确 (0=错误, 1=正确, 2=部分正确)|integer(int32)||
-|&emsp;&emsp;isCorrectName|是否正确名称|string||
-|&emsp;&emsp;score|得分|number||
-|&emsp;&emsp;createTime|创建时间|string(date-time)||
-|&emsp;&emsp;updateTime|更新时间|string(date-time)||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {
-		"id": "",
-		"questionId": "",
-		"questionTitle": "",
-		"sysUserId": "",
-		"sysUserName": "",
-		"answerContent": "",
-		"answerText": "",
-		"isCorrect": 0,
-		"isCorrectName": "",
-		"score": 0,
-		"createTime": "",
-		"updateTime": ""
-	}
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
-## removeQuestionAnswerById
-
-
-**接口地址**:`/api/course/question-answer/{id}`
-
-
-**请求方式**:`DELETE`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:<p>根据答案ID从系统中移除答案。</p>
-
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|id|答案ID|path|true|string(uuid)||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|ResultBoolean|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|boolean||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": true
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
-## addQuestionAnswer
-
-
-**接口地址**:`/api/course/question-answer/add`
-
-
-**请求方式**:`POST`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded,application/json`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:<p>创建新的答案。</p>
-
-
-
-**请求示例**:
-
-
-```javascript
-{
-  "id": "",
-  "questionId": "",
-  "answerContent": "",
-  "answerText": "",
-  "isCorrect": 0,
-  "score": 0
-}
-```
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|questionAnswerDTO|题目答案数据传输对象|body|true|QuestionAnswerDTO|QuestionAnswerDTO|
-|&emsp;&emsp;id|答案ID||false|string(uuid)||
-|&emsp;&emsp;questionId|题目ID||true|string(uuid)||
-|&emsp;&emsp;answerContent|答案内容||true|string||
-|&emsp;&emsp;answerText|文本答案 (填空题、简答题)||false|string||
-|&emsp;&emsp;isCorrect|是否正确 (0=错误, 1=正确, 2=部分正确)||true|integer(int32)||
-|&emsp;&emsp;score|得分||true|number||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|ResultQuestionAnswerVO|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data||QuestionAnswerVO|QuestionAnswerVO|
-|&emsp;&emsp;id|答案ID|string(uuid)||
-|&emsp;&emsp;questionId|题目ID|string(uuid)||
-|&emsp;&emsp;questionTitle|题目标题|string||
-|&emsp;&emsp;sysUserId|创建用户ID|string(uuid)||
-|&emsp;&emsp;sysUserName|创建用户名称|string||
-|&emsp;&emsp;answerContent|答案内容|string||
-|&emsp;&emsp;answerText|文本答案 (填空题、简答题)|string||
-|&emsp;&emsp;isCorrect|是否正确 (0=错误, 1=正确, 2=部分正确)|integer(int32)||
-|&emsp;&emsp;isCorrectName|是否正确名称|string||
-|&emsp;&emsp;score|得分|number||
-|&emsp;&emsp;createTime|创建时间|string(date-time)||
-|&emsp;&emsp;updateTime|更新时间|string(date-time)||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {
-		"id": "",
-		"questionId": "",
-		"questionTitle": "",
-		"sysUserId": "",
-		"sysUserName": "",
-		"answerContent": "",
-		"answerText": "",
-		"isCorrect": 0,
-		"isCorrectName": "",
-		"score": 0,
-		"createTime": "",
-		"updateTime": ""
-	}
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
-## addQuestionAnswers
-
-
-**接口地址**:`/api/course/question-answer/add-batch`
-
-
-**请求方式**:`POST`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded,application/json`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:<p>批量创建答案。</p>
-
-
-
-**请求示例**:
-
-
-```javascript
-[
-  {
-    "id": "",
-    "questionId": "",
-    "answerContent": "",
-    "answerText": "",
-    "isCorrect": 0,
-    "score": 0
-  }
-]
-```
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|questionAnswerDTOs|题目答案数据传输对象|body|true|array|QuestionAnswerDTO|
-|&emsp;&emsp;id|答案ID||false|string(uuid)||
-|&emsp;&emsp;questionId|题目ID||true|string(uuid)||
-|&emsp;&emsp;answerContent|答案内容||true|string||
-|&emsp;&emsp;answerText|文本答案 (填空题、简答题)||false|string||
-|&emsp;&emsp;isCorrect|是否正确 (0=错误, 1=正确, 2=部分正确)||true|integer(int32)||
-|&emsp;&emsp;score|得分||true|number||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|ResultListQuestionAnswerVO|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|array|QuestionAnswerVO|
-|&emsp;&emsp;id|答案ID|string(uuid)||
-|&emsp;&emsp;questionId|题目ID|string(uuid)||
-|&emsp;&emsp;questionTitle|题目标题|string||
-|&emsp;&emsp;sysUserId|创建用户ID|string(uuid)||
-|&emsp;&emsp;sysUserName|创建用户名称|string||
-|&emsp;&emsp;answerContent|答案内容|string||
-|&emsp;&emsp;answerText|文本答案 (填空题、简答题)|string||
-|&emsp;&emsp;isCorrect|是否正确 (0=错误, 1=正确, 2=部分正确)|integer(int32)||
-|&emsp;&emsp;isCorrectName|是否正确名称|string||
-|&emsp;&emsp;score|得分|number||
-|&emsp;&emsp;createTime|创建时间|string(date-time)||
-|&emsp;&emsp;updateTime|更新时间|string(date-time)||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": [
-		{
-			"id": "",
-			"questionId": "",
-			"questionTitle": "",
-			"sysUserId": "",
-			"sysUserName": "",
-			"answerContent": "",
-			"answerText": "",
-			"isCorrect": 0,
-			"isCorrectName": "",
-			"score": 0,
-			"createTime": "",
-			"updateTime": ""
-		}
-	]
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
-## listQuestionAnswer
-
-
-**接口地址**:`/api/course/question-answer/list`
-
-
-**请求方式**:`GET`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:<p>分页查询答案列表。</p>
-
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|pageNum|页码|query|true|integer(int32)||
-|pageSize|页大小|query|true|integer(int32)||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|TableDataResult|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|total|总记录数|integer(int64)|integer(int64)|
-|data|列表数据|array||
-|code|消息状态码|integer(int32)|integer(int32)|
-|message|消息内容|string||
-
-
-**响应示例**:
-```javascript
-{
-	"total": 0,
-	"data": [],
-	"code": 0,
-	"message": ""
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
-## listAllQuestionAnswerByQuestionId
-
-
-**接口地址**:`/api/course/question-answer/question/{questionId}`
-
-
-**请求方式**:`GET`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:<p>根据题目ID获取答案列表。</p>
-
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|questionId|题目ID|path|true|string(uuid)||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|ResultListQuestionAnswerVO|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|array|QuestionAnswerVO|
-|&emsp;&emsp;id|答案ID|string(uuid)||
-|&emsp;&emsp;questionId|题目ID|string(uuid)||
-|&emsp;&emsp;questionTitle|题目标题|string||
-|&emsp;&emsp;sysUserId|创建用户ID|string(uuid)||
-|&emsp;&emsp;sysUserName|创建用户名称|string||
-|&emsp;&emsp;answerContent|答案内容|string||
-|&emsp;&emsp;answerText|文本答案 (填空题、简答题)|string||
-|&emsp;&emsp;isCorrect|是否正确 (0=错误, 1=正确, 2=部分正确)|integer(int32)||
-|&emsp;&emsp;isCorrectName|是否正确名称|string||
-|&emsp;&emsp;score|得分|number||
-|&emsp;&emsp;createTime|创建时间|string(date-time)||
-|&emsp;&emsp;updateTime|更新时间|string(date-time)||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": [
-		{
-			"id": "",
-			"questionId": "",
-			"questionTitle": "",
-			"sysUserId": "",
-			"sysUserName": "",
-			"answerContent": "",
-			"answerText": "",
-			"isCorrect": 0,
-			"isCorrectName": "",
-			"score": 0,
-			"createTime": "",
-			"updateTime": ""
-		}
-	]
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
-## removeQuestionAnswersByQuestionId
-
-
-**接口地址**:`/api/course/question-answer/question/{questionId}`
-
-
-**请求方式**:`DELETE`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:<p>根据题目ID删除所有答案。</p>
-
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|questionId|题目ID|path|true|string(uuid)||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|ResultBoolean|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|boolean||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": true
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
-## getQuestionAnswerByQuestionIdAndSysUserId
-
-
-**接口地址**:`/api/course/question-answer/question/{questionId}/user/{sysUserId}`
-
-
-**请求方式**:`GET`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:<p>根据题目ID和用户ID获取答案。</p>
-
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|questionId|题目ID|path|true|string(uuid)||
-|sysUserId|用户ID|path|true|string(uuid)||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|ResultQuestionAnswerVO|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data||QuestionAnswerVO|QuestionAnswerVO|
-|&emsp;&emsp;id|答案ID|string(uuid)||
-|&emsp;&emsp;questionId|题目ID|string(uuid)||
-|&emsp;&emsp;questionTitle|题目标题|string||
-|&emsp;&emsp;sysUserId|创建用户ID|string(uuid)||
-|&emsp;&emsp;sysUserName|创建用户名称|string||
-|&emsp;&emsp;answerContent|答案内容|string||
-|&emsp;&emsp;answerText|文本答案 (填空题、简答题)|string||
-|&emsp;&emsp;isCorrect|是否正确 (0=错误, 1=正确, 2=部分正确)|integer(int32)||
-|&emsp;&emsp;isCorrectName|是否正确名称|string||
-|&emsp;&emsp;score|得分|number||
-|&emsp;&emsp;createTime|创建时间|string(date-time)||
-|&emsp;&emsp;updateTime|更新时间|string(date-time)||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {
-		"id": "",
-		"questionId": "",
-		"questionTitle": "",
-		"sysUserId": "",
-		"sysUserName": "",
-		"answerContent": "",
-		"answerText": "",
-		"isCorrect": 0,
-		"isCorrectName": "",
-		"score": 0,
-		"createTime": "",
-		"updateTime": ""
-	}
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
-## listAllQuestionAnswerBySysUserId
-
-
-**接口地址**:`/api/course/question-answer/user/{sysUserId}`
-
-
-**请求方式**:`GET`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:<p>根据用户ID获取答案列表。</p>
-
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|sysUserId|用户ID|path|true|string(uuid)||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|ResultListQuestionAnswerVO|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|array|QuestionAnswerVO|
-|&emsp;&emsp;id|答案ID|string(uuid)||
-|&emsp;&emsp;questionId|题目ID|string(uuid)||
-|&emsp;&emsp;questionTitle|题目标题|string||
-|&emsp;&emsp;sysUserId|创建用户ID|string(uuid)||
-|&emsp;&emsp;sysUserName|创建用户名称|string||
-|&emsp;&emsp;answerContent|答案内容|string||
-|&emsp;&emsp;answerText|文本答案 (填空题、简答题)|string||
-|&emsp;&emsp;isCorrect|是否正确 (0=错误, 1=正确, 2=部分正确)|integer(int32)||
-|&emsp;&emsp;isCorrectName|是否正确名称|string||
-|&emsp;&emsp;score|得分|number||
-|&emsp;&emsp;createTime|创建时间|string(date-time)||
-|&emsp;&emsp;updateTime|更新时间|string(date-time)||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": [
-		{
-			"id": "",
-			"questionId": "",
-			"questionTitle": "",
-			"sysUserId": "",
-			"sysUserName": "",
-			"answerContent": "",
-			"answerText": "",
-			"isCorrect": 0,
-			"isCorrectName": "",
-			"score": 0,
-			"createTime": "",
-			"updateTime": ""
-		}
-	]
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
 # 题目管理
 
 
@@ -16880,6 +18592,7 @@
 {
   "id": "",
   "questionBankId": "",
+  "sysUserId": "",
   "questionTitle": "",
   "questionContent": "",
   "questionType": 0,
@@ -16888,11 +18601,30 @@
   "estimatedTime": 0,
   "tags": [],
   "imageUrls": [],
-  "explanation": "",
-  "referenceAnswer": "",
-  "isRandom": 0,
   "allowPartialCredit": 0,
-  "status": 0
+  "status": 0,
+  "options": [
+    {
+      "id": "",
+      "questionId": "",
+      "optionContent": "",
+      "optionLabel": "",
+      "isCorrect": 0,
+      "score": 0,
+      "imageUrls": [],
+      "explanation": ""
+    }
+  ],
+  "answers": [
+    {
+      "id": "",
+      "questionId": "",
+      "answerContent": "",
+      "explanation": "",
+      "score": 0,
+      "sortOrder": 0
+    }
+  ]
 }
 ```
 
@@ -16903,8 +18635,9 @@
 | 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
 | -------- | -------- | ----- | -------- | -------- | ------ |
 |questionDTO|题目数据传输对象|body|true|QuestionDTO|QuestionDTO|
-|&emsp;&emsp;id|题目ID||false|string(uuid)||
+|&emsp;&emsp;id|题目ID（更新时必填，新增时可为空）||false|string(uuid)||
 |&emsp;&emsp;questionBankId|所属题库ID||true|string(uuid)||
+|&emsp;&emsp;sysUserId|创建用户ID（新增时必填，更新时不需要）||false|string(uuid)||
 |&emsp;&emsp;questionTitle|题目标题||true|string||
 |&emsp;&emsp;questionContent|题目内容||true|string||
 |&emsp;&emsp;questionType|题目类型 (0=单选题, 1=多选题, 2=判断题, 3=填空题, 4=简答题)||true|integer(int32)||
@@ -16913,11 +18646,24 @@
 |&emsp;&emsp;estimatedTime|预计答题时间 (分钟)||false|integer(int32)||
 |&emsp;&emsp;tags|标签列表||false|array|string|
 |&emsp;&emsp;imageUrls|图片URL列表||false|array|string|
-|&emsp;&emsp;explanation|题目解析||false|string||
-|&emsp;&emsp;referenceAnswer|参考答案||false|string||
-|&emsp;&emsp;isRandom|选项是否随机 (0=固定顺序, 1=随机顺序)||false|integer(int32)||
 |&emsp;&emsp;allowPartialCredit|是否允许部分得分 (0=不允许, 1=允许)||false|integer(int32)||
 |&emsp;&emsp;status|题目状态 (0=草稿, 1=发布, 2=停用)||false|integer(int32)||
+|&emsp;&emsp;options|题目选项数据传输对象||false|array|QuestionOptionDTO|
+|&emsp;&emsp;&emsp;&emsp;id|选项ID||false|string||
+|&emsp;&emsp;&emsp;&emsp;questionId|所属题目ID||false|string||
+|&emsp;&emsp;&emsp;&emsp;optionContent|选项内容||true|string||
+|&emsp;&emsp;&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)||true|string||
+|&emsp;&emsp;&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)||true|integer||
+|&emsp;&emsp;&emsp;&emsp;score|选项分数 (多选题部分得分使用)||false|number||
+|&emsp;&emsp;&emsp;&emsp;imageUrls|图片URL列表||false|array|string|
+|&emsp;&emsp;&emsp;&emsp;explanation|选项解析||false|string||
+|&emsp;&emsp;answers|填空简答数据传输对象||false|array|QuestionAnswerDTO|
+|&emsp;&emsp;&emsp;&emsp;id|答案ID||false|string||
+|&emsp;&emsp;&emsp;&emsp;questionId|题目ID||false|string||
+|&emsp;&emsp;&emsp;&emsp;answerContent|本空答案||false|string||
+|&emsp;&emsp;&emsp;&emsp;explanation|本空解析||false|string||
+|&emsp;&emsp;&emsp;&emsp;score|分数||false|number||
+|&emsp;&emsp;&emsp;&emsp;sortOrder|本空序号||false|integer||
 
 
 **响应状态**:
@@ -17187,9 +18933,6 @@
 |&emsp;&emsp;estimatedTime|预计答题时间 (分钟)|integer(int32)||
 |&emsp;&emsp;tags|标签列表|array|string|
 |&emsp;&emsp;imageUrls|图片URL列表|array|string|
-|&emsp;&emsp;explanation|题目解析|string||
-|&emsp;&emsp;referenceAnswer|参考答案|string||
-|&emsp;&emsp;isRandom|选项是否随机 (0=固定顺序, 1=随机顺序)|integer(int32)||
 |&emsp;&emsp;allowPartialCredit|是否允许部分得分 (0=不允许, 1=允许)|integer(int32)||
 |&emsp;&emsp;viewCount|浏览次数|integer(int64)||
 |&emsp;&emsp;status|题目状态 (0=草稿, 1=发布, 2=停用)|integer(int32)||
@@ -17202,6 +18945,15 @@
 |&emsp;&emsp;&emsp;&emsp;score|选项分数 (多选题部分得分使用)|number||
 |&emsp;&emsp;&emsp;&emsp;imageUrls|图片URL列表|array|string|
 |&emsp;&emsp;&emsp;&emsp;explanation|选项解析|string||
+|&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
+|&emsp;&emsp;answers|填空简答视图对象|array|QuestionAnswerVO|
+|&emsp;&emsp;&emsp;&emsp;id|答案ID|string||
+|&emsp;&emsp;&emsp;&emsp;questionId|题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;answerContent|本空答案|string||
+|&emsp;&emsp;&emsp;&emsp;explanation|本空解析|string||
+|&emsp;&emsp;&emsp;&emsp;score|分数|number||
+|&emsp;&emsp;&emsp;&emsp;sortOrder|本空序号|integer||
 |&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
 |&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
@@ -17228,9 +18980,6 @@
 		"estimatedTime": 0,
 		"tags": [],
 		"imageUrls": [],
-		"explanation": "",
-		"referenceAnswer": "",
-		"isRandom": 0,
 		"allowPartialCredit": 0,
 		"viewCount": 0,
 		"status": 0,
@@ -17244,6 +18993,18 @@
 				"score": 0,
 				"imageUrls": [],
 				"explanation": "",
+				"createTime": "",
+				"updateTime": ""
+			}
+		],
+		"answers": [
+			{
+				"id": "",
+				"questionId": "",
+				"answerContent": "",
+				"explanation": "",
+				"score": 0,
+				"sortOrder": 0,
 				"createTime": "",
 				"updateTime": ""
 			}
@@ -17779,6 +19540,7 @@
 {
   "id": "",
   "questionBankId": "",
+  "sysUserId": "",
   "questionTitle": "",
   "questionContent": "",
   "questionType": 0,
@@ -17787,11 +19549,30 @@
   "estimatedTime": 0,
   "tags": [],
   "imageUrls": [],
-  "explanation": "",
-  "referenceAnswer": "",
-  "isRandom": 0,
   "allowPartialCredit": 0,
-  "status": 0
+  "status": 0,
+  "options": [
+    {
+      "id": "",
+      "questionId": "",
+      "optionContent": "",
+      "optionLabel": "",
+      "isCorrect": 0,
+      "score": 0,
+      "imageUrls": [],
+      "explanation": ""
+    }
+  ],
+  "answers": [
+    {
+      "id": "",
+      "questionId": "",
+      "answerContent": "",
+      "explanation": "",
+      "score": 0,
+      "sortOrder": 0
+    }
+  ]
 }
 ```
 
@@ -17802,8 +19583,9 @@
 | 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
 | -------- | -------- | ----- | -------- | -------- | ------ |
 |questionDTO|题目数据传输对象|body|true|QuestionDTO|QuestionDTO|
-|&emsp;&emsp;id|题目ID||false|string(uuid)||
+|&emsp;&emsp;id|题目ID（更新时必填，新增时可为空）||false|string(uuid)||
 |&emsp;&emsp;questionBankId|所属题库ID||true|string(uuid)||
+|&emsp;&emsp;sysUserId|创建用户ID（新增时必填，更新时不需要）||false|string(uuid)||
 |&emsp;&emsp;questionTitle|题目标题||true|string||
 |&emsp;&emsp;questionContent|题目内容||true|string||
 |&emsp;&emsp;questionType|题目类型 (0=单选题, 1=多选题, 2=判断题, 3=填空题, 4=简答题)||true|integer(int32)||
@@ -17812,11 +19594,24 @@
 |&emsp;&emsp;estimatedTime|预计答题时间 (分钟)||false|integer(int32)||
 |&emsp;&emsp;tags|标签列表||false|array|string|
 |&emsp;&emsp;imageUrls|图片URL列表||false|array|string|
-|&emsp;&emsp;explanation|题目解析||false|string||
-|&emsp;&emsp;referenceAnswer|参考答案||false|string||
-|&emsp;&emsp;isRandom|选项是否随机 (0=固定顺序, 1=随机顺序)||false|integer(int32)||
 |&emsp;&emsp;allowPartialCredit|是否允许部分得分 (0=不允许, 1=允许)||false|integer(int32)||
 |&emsp;&emsp;status|题目状态 (0=草稿, 1=发布, 2=停用)||false|integer(int32)||
+|&emsp;&emsp;options|题目选项数据传输对象||false|array|QuestionOptionDTO|
+|&emsp;&emsp;&emsp;&emsp;id|选项ID||false|string||
+|&emsp;&emsp;&emsp;&emsp;questionId|所属题目ID||false|string||
+|&emsp;&emsp;&emsp;&emsp;optionContent|选项内容||true|string||
+|&emsp;&emsp;&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)||true|string||
+|&emsp;&emsp;&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)||true|integer||
+|&emsp;&emsp;&emsp;&emsp;score|选项分数 (多选题部分得分使用)||false|number||
+|&emsp;&emsp;&emsp;&emsp;imageUrls|图片URL列表||false|array|string|
+|&emsp;&emsp;&emsp;&emsp;explanation|选项解析||false|string||
+|&emsp;&emsp;answers|填空简答数据传输对象||false|array|QuestionAnswerDTO|
+|&emsp;&emsp;&emsp;&emsp;id|答案ID||false|string||
+|&emsp;&emsp;&emsp;&emsp;questionId|题目ID||false|string||
+|&emsp;&emsp;&emsp;&emsp;answerContent|本空答案||false|string||
+|&emsp;&emsp;&emsp;&emsp;explanation|本空解析||false|string||
+|&emsp;&emsp;&emsp;&emsp;score|分数||false|number||
+|&emsp;&emsp;&emsp;&emsp;sortOrder|本空序号||false|integer||
 
 
 **响应状态**:
@@ -17854,9 +19649,6 @@
 |&emsp;&emsp;estimatedTime|预计答题时间 (分钟)|integer(int32)||
 |&emsp;&emsp;tags|标签列表|array|string|
 |&emsp;&emsp;imageUrls|图片URL列表|array|string|
-|&emsp;&emsp;explanation|题目解析|string||
-|&emsp;&emsp;referenceAnswer|参考答案|string||
-|&emsp;&emsp;isRandom|选项是否随机 (0=固定顺序, 1=随机顺序)|integer(int32)||
 |&emsp;&emsp;allowPartialCredit|是否允许部分得分 (0=不允许, 1=允许)|integer(int32)||
 |&emsp;&emsp;viewCount|浏览次数|integer(int64)||
 |&emsp;&emsp;status|题目状态 (0=草稿, 1=发布, 2=停用)|integer(int32)||
@@ -17869,6 +19661,15 @@
 |&emsp;&emsp;&emsp;&emsp;score|选项分数 (多选题部分得分使用)|number||
 |&emsp;&emsp;&emsp;&emsp;imageUrls|图片URL列表|array|string|
 |&emsp;&emsp;&emsp;&emsp;explanation|选项解析|string||
+|&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
+|&emsp;&emsp;answers|填空简答视图对象|array|QuestionAnswerVO|
+|&emsp;&emsp;&emsp;&emsp;id|答案ID|string||
+|&emsp;&emsp;&emsp;&emsp;questionId|题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;answerContent|本空答案|string||
+|&emsp;&emsp;&emsp;&emsp;explanation|本空解析|string||
+|&emsp;&emsp;&emsp;&emsp;score|分数|number||
+|&emsp;&emsp;&emsp;&emsp;sortOrder|本空序号|integer||
 |&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
 |&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
@@ -17895,9 +19696,6 @@
 		"estimatedTime": 0,
 		"tags": [],
 		"imageUrls": [],
-		"explanation": "",
-		"referenceAnswer": "",
-		"isRandom": 0,
 		"allowPartialCredit": 0,
 		"viewCount": 0,
 		"status": 0,
@@ -17911,6 +19709,18 @@
 				"score": 0,
 				"imageUrls": [],
 				"explanation": "",
+				"createTime": "",
+				"updateTime": ""
+			}
+		],
+		"answers": [
+			{
+				"id": "",
+				"questionId": "",
+				"answerContent": "",
+				"explanation": "",
+				"score": 0,
+				"sortOrder": 0,
 				"createTime": "",
 				"updateTime": ""
 			}
@@ -18032,9 +19842,6 @@
 |&emsp;&emsp;estimatedTime|预计答题时间 (分钟)|integer(int32)||
 |&emsp;&emsp;tags|标签列表|array|string|
 |&emsp;&emsp;imageUrls|图片URL列表|array|string|
-|&emsp;&emsp;explanation|题目解析|string||
-|&emsp;&emsp;referenceAnswer|参考答案|string||
-|&emsp;&emsp;isRandom|选项是否随机 (0=固定顺序, 1=随机顺序)|integer(int32)||
 |&emsp;&emsp;allowPartialCredit|是否允许部分得分 (0=不允许, 1=允许)|integer(int32)||
 |&emsp;&emsp;viewCount|浏览次数|integer(int64)||
 |&emsp;&emsp;status|题目状态 (0=草稿, 1=发布, 2=停用)|integer(int32)||
@@ -18047,6 +19854,15 @@
 |&emsp;&emsp;&emsp;&emsp;score|选项分数 (多选题部分得分使用)|number||
 |&emsp;&emsp;&emsp;&emsp;imageUrls|图片URL列表|array|string|
 |&emsp;&emsp;&emsp;&emsp;explanation|选项解析|string||
+|&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
+|&emsp;&emsp;answers|填空简答视图对象|array|QuestionAnswerVO|
+|&emsp;&emsp;&emsp;&emsp;id|答案ID|string||
+|&emsp;&emsp;&emsp;&emsp;questionId|题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;answerContent|本空答案|string||
+|&emsp;&emsp;&emsp;&emsp;explanation|本空解析|string||
+|&emsp;&emsp;&emsp;&emsp;score|分数|number||
+|&emsp;&emsp;&emsp;&emsp;sortOrder|本空序号|integer||
 |&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
 |&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
@@ -18074,9 +19890,6 @@
 			"estimatedTime": 0,
 			"tags": [],
 			"imageUrls": [],
-			"explanation": "",
-			"referenceAnswer": "",
-			"isRandom": 0,
 			"allowPartialCredit": 0,
 			"viewCount": 0,
 			"status": 0,
@@ -18090,6 +19903,18 @@
 					"score": 0,
 					"imageUrls": [],
 					"explanation": "",
+					"createTime": "",
+					"updateTime": ""
+				}
+			],
+			"answers": [
+				{
+					"id": "",
+					"questionId": "",
+					"answerContent": "",
+					"explanation": "",
+					"score": 0,
+					"sortOrder": 0,
 					"createTime": "",
 					"updateTime": ""
 				}
@@ -18340,9 +20165,6 @@
 |&emsp;&emsp;estimatedTime|预计答题时间 (分钟)|integer(int32)||
 |&emsp;&emsp;tags|标签列表|array|string|
 |&emsp;&emsp;imageUrls|图片URL列表|array|string|
-|&emsp;&emsp;explanation|题目解析|string||
-|&emsp;&emsp;referenceAnswer|参考答案|string||
-|&emsp;&emsp;isRandom|选项是否随机 (0=固定顺序, 1=随机顺序)|integer(int32)||
 |&emsp;&emsp;allowPartialCredit|是否允许部分得分 (0=不允许, 1=允许)|integer(int32)||
 |&emsp;&emsp;viewCount|浏览次数|integer(int64)||
 |&emsp;&emsp;status|题目状态 (0=草稿, 1=发布, 2=停用)|integer(int32)||
@@ -18355,6 +20177,15 @@
 |&emsp;&emsp;&emsp;&emsp;score|选项分数 (多选题部分得分使用)|number||
 |&emsp;&emsp;&emsp;&emsp;imageUrls|图片URL列表|array|string|
 |&emsp;&emsp;&emsp;&emsp;explanation|选项解析|string||
+|&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
+|&emsp;&emsp;answers|填空简答视图对象|array|QuestionAnswerVO|
+|&emsp;&emsp;&emsp;&emsp;id|答案ID|string||
+|&emsp;&emsp;&emsp;&emsp;questionId|题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;answerContent|本空答案|string||
+|&emsp;&emsp;&emsp;&emsp;explanation|本空解析|string||
+|&emsp;&emsp;&emsp;&emsp;score|分数|number||
+|&emsp;&emsp;&emsp;&emsp;sortOrder|本空序号|integer||
 |&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
 |&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
@@ -18382,9 +20213,6 @@
 			"estimatedTime": 0,
 			"tags": [],
 			"imageUrls": [],
-			"explanation": "",
-			"referenceAnswer": "",
-			"isRandom": 0,
 			"allowPartialCredit": 0,
 			"viewCount": 0,
 			"status": 0,
@@ -18402,1082 +20230,22 @@
 					"updateTime": ""
 				}
 			],
+			"answers": [
+				{
+					"id": "",
+					"questionId": "",
+					"answerContent": "",
+					"explanation": "",
+					"score": 0,
+					"sortOrder": 0,
+					"createTime": "",
+					"updateTime": ""
+				}
+			],
 			"createTime": "",
 			"updateTime": ""
 		}
 	]
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
-# 题目选项管理
-
-
-## updateQuestionOption
-
-
-**接口地址**:`/api/course/question-option`
-
-
-**请求方式**:`PUT`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded,application/json`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:<p>修改现有选项的信息。</p>
-
-
-
-**请求示例**:
-
-
-```javascript
-{
-  "id": "",
-  "questionId": "",
-  "optionContent": "",
-  "optionLabel": "",
-  "isCorrect": 0,
-  "score": 0,
-  "imageUrls": [],
-  "explanation": ""
-}
-```
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|questionOptionDTO|题目选项数据传输对象|body|true|QuestionOptionDTO|QuestionOptionDTO|
-|&emsp;&emsp;id|选项ID||false|string(uuid)||
-|&emsp;&emsp;questionId|所属题目ID||true|string(uuid)||
-|&emsp;&emsp;optionContent|选项内容||true|string||
-|&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)||true|string||
-|&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)||true|integer(int32)||
-|&emsp;&emsp;score|选项分数 (多选题部分得分使用)||false|number||
-|&emsp;&emsp;imageUrls|图片URL列表||false|array|string|
-|&emsp;&emsp;explanation|选项解析||false|string||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|ResultBoolean|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|boolean||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": true
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
-## removeQuestionOptionsByIds
-
-
-**接口地址**:`/api/course/question-option`
-
-
-**请求方式**:`DELETE`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded,application/json`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:<p>根据选项ID列表批量删除选项。</p>
-
-
-
-**请求示例**:
-
-
-```javascript
-[]
-```
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|strings|string|body|true|array||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|ResultInteger|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|integer(int32)|integer(int32)|
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": 0
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
-## getQuestionOptionById
-
-
-**接口地址**:`/api/course/question-option/{id}`
-
-
-**请求方式**:`GET`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:<p>通过选项的唯一ID获取其详细信息。</p>
-
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|id|选项ID|path|true|string(uuid)||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|ResultQuestionOptionVO|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data||QuestionOptionVO|QuestionOptionVO|
-|&emsp;&emsp;id|选项ID|string(uuid)||
-|&emsp;&emsp;questionId|所属题目ID|string(uuid)||
-|&emsp;&emsp;optionContent|选项内容|string||
-|&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)|string||
-|&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)|integer(int32)||
-|&emsp;&emsp;score|选项分数 (多选题部分得分使用)|number||
-|&emsp;&emsp;imageUrls|图片URL列表|array|string|
-|&emsp;&emsp;explanation|选项解析|string||
-|&emsp;&emsp;createTime|创建时间|string(date-time)||
-|&emsp;&emsp;updateTime|更新时间|string(date-time)||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {
-		"id": "",
-		"questionId": "",
-		"optionContent": "",
-		"optionLabel": "",
-		"isCorrect": 0,
-		"score": 0,
-		"imageUrls": [],
-		"explanation": "",
-		"createTime": "",
-		"updateTime": ""
-	}
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
-## removeQuestionOptionById
-
-
-**接口地址**:`/api/course/question-option/{id}`
-
-
-**请求方式**:`DELETE`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:<p>根据选项ID从系统中移除选项。</p>
-
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|id|选项ID|path|true|string(uuid)||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|ResultBoolean|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|boolean||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": true
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
-## addQuestionOption
-
-
-**接口地址**:`/api/course/question-option/add`
-
-
-**请求方式**:`POST`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded,application/json`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:<p>创建新的选项。</p>
-
-
-
-**请求示例**:
-
-
-```javascript
-{
-  "id": "",
-  "questionId": "",
-  "optionContent": "",
-  "optionLabel": "",
-  "isCorrect": 0,
-  "score": 0,
-  "imageUrls": [],
-  "explanation": ""
-}
-```
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|questionOptionDTO|题目选项数据传输对象|body|true|QuestionOptionDTO|QuestionOptionDTO|
-|&emsp;&emsp;id|选项ID||false|string(uuid)||
-|&emsp;&emsp;questionId|所属题目ID||true|string(uuid)||
-|&emsp;&emsp;optionContent|选项内容||true|string||
-|&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)||true|string||
-|&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)||true|integer(int32)||
-|&emsp;&emsp;score|选项分数 (多选题部分得分使用)||false|number||
-|&emsp;&emsp;imageUrls|图片URL列表||false|array|string|
-|&emsp;&emsp;explanation|选项解析||false|string||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|ResultQuestionOptionVO|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data||QuestionOptionVO|QuestionOptionVO|
-|&emsp;&emsp;id|选项ID|string(uuid)||
-|&emsp;&emsp;questionId|所属题目ID|string(uuid)||
-|&emsp;&emsp;optionContent|选项内容|string||
-|&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)|string||
-|&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)|integer(int32)||
-|&emsp;&emsp;score|选项分数 (多选题部分得分使用)|number||
-|&emsp;&emsp;imageUrls|图片URL列表|array|string|
-|&emsp;&emsp;explanation|选项解析|string||
-|&emsp;&emsp;createTime|创建时间|string(date-time)||
-|&emsp;&emsp;updateTime|更新时间|string(date-time)||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {
-		"id": "",
-		"questionId": "",
-		"optionContent": "",
-		"optionLabel": "",
-		"isCorrect": 0,
-		"score": 0,
-		"imageUrls": [],
-		"explanation": "",
-		"createTime": "",
-		"updateTime": ""
-	}
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
-## addQuestionOptions
-
-
-**接口地址**:`/api/course/question-option/add-batch`
-
-
-**请求方式**:`POST`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded,application/json`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:<p>批量创建选项。</p>
-
-
-
-**请求示例**:
-
-
-```javascript
-[
-  {
-    "id": "",
-    "questionId": "",
-    "optionContent": "",
-    "optionLabel": "",
-    "isCorrect": 0,
-    "score": 0,
-    "imageUrls": [],
-    "explanation": ""
-  }
-]
-```
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|questionOptionDTOs|题目选项数据传输对象|body|true|array|QuestionOptionDTO|
-|&emsp;&emsp;id|选项ID||false|string(uuid)||
-|&emsp;&emsp;questionId|所属题目ID||true|string(uuid)||
-|&emsp;&emsp;optionContent|选项内容||true|string||
-|&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)||true|string||
-|&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)||true|integer(int32)||
-|&emsp;&emsp;score|选项分数 (多选题部分得分使用)||false|number||
-|&emsp;&emsp;imageUrls|图片URL列表||false|array|string|
-|&emsp;&emsp;explanation|选项解析||false|string||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|ResultListQuestionOptionVO|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|array|QuestionOptionVO|
-|&emsp;&emsp;id|选项ID|string(uuid)||
-|&emsp;&emsp;questionId|所属题目ID|string(uuid)||
-|&emsp;&emsp;optionContent|选项内容|string||
-|&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)|string||
-|&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)|integer(int32)||
-|&emsp;&emsp;score|选项分数 (多选题部分得分使用)|number||
-|&emsp;&emsp;imageUrls|图片URL列表|array|string|
-|&emsp;&emsp;explanation|选项解析|string||
-|&emsp;&emsp;createTime|创建时间|string(date-time)||
-|&emsp;&emsp;updateTime|更新时间|string(date-time)||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": [
-		{
-			"id": "",
-			"questionId": "",
-			"optionContent": "",
-			"optionLabel": "",
-			"isCorrect": 0,
-			"score": 0,
-			"imageUrls": [],
-			"explanation": "",
-			"createTime": "",
-			"updateTime": ""
-		}
-	]
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
-## listQuestionOptionByQuestionId
-
-
-**接口地址**:`/api/course/question-option/question/{questionId}`
-
-
-**请求方式**:`GET`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:<p>根据题目ID获取选项列表。</p>
-
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|questionId|题目ID|path|true|string(uuid)||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|ResultListQuestionOptionVO|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|array|QuestionOptionVO|
-|&emsp;&emsp;id|选项ID|string(uuid)||
-|&emsp;&emsp;questionId|所属题目ID|string(uuid)||
-|&emsp;&emsp;optionContent|选项内容|string||
-|&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)|string||
-|&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)|integer(int32)||
-|&emsp;&emsp;score|选项分数 (多选题部分得分使用)|number||
-|&emsp;&emsp;imageUrls|图片URL列表|array|string|
-|&emsp;&emsp;explanation|选项解析|string||
-|&emsp;&emsp;createTime|创建时间|string(date-time)||
-|&emsp;&emsp;updateTime|更新时间|string(date-time)||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": [
-		{
-			"id": "",
-			"questionId": "",
-			"optionContent": "",
-			"optionLabel": "",
-			"isCorrect": 0,
-			"score": 0,
-			"imageUrls": [],
-			"explanation": "",
-			"createTime": "",
-			"updateTime": ""
-		}
-	]
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
-## removeQuestionOptionsByQuestionId
-
-
-**接口地址**:`/api/course/question-option/question/{questionId}`
-
-
-**请求方式**:`DELETE`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:<p>根据题目ID删除所有选项。</p>
-
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|questionId|题目ID|path|true|string(uuid)||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|ResultBoolean|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|boolean||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": true
 }
 ```
 

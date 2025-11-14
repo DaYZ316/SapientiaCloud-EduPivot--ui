@@ -249,15 +249,6 @@ const routes: RouteRecordRaw[] = [
             },
             {
                 path: '/course/detail/:courseId/questions/bank/:bankId/questions',
-                name: 'QuestionList',
-                component: () => import('@/views/course/CourseDetail/CourseQuestions/QuestionList.vue'),
-                meta: {
-                    title: '题目管理',
-                    requiresAuth: true
-                }
-            },
-            {
-                path: '/course/detail/:courseId/questions/question/:questionId',
                 name: 'QuestionDetail',
                 component: () => import('@/views/course/CourseDetail/CourseQuestions/QuestionDetail.vue'),
                 meta: {

@@ -30,6 +30,7 @@ export default {
         exitFullscreen: '退出全屏',
         loadingMore: '加载更多...'
     },
+    useRag: '知识检索增强',
     session: {
         delete: '删除会话',
         deleteConfirm: '确认删除',

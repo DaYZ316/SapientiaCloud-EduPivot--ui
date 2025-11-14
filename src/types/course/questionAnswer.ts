@@ -1,6 +1,6 @@
 /**
  * 题目答案数据传输对象
- * 用于答案的新增和更新操作
+ * 用于填空/简答题答案的新增和更新
  */
 export interface QuestionAnswerDTO {
     /** 答案ID */
@@ -9,39 +9,31 @@ export interface QuestionAnswerDTO {
     questionId: string | null
     /** 答案内容 */
     answerContent: string | null
-    /** 文本答案 (填空题、简答题) */
-    answerText?: string | null
-    /** 是否正确 (0=错误, 1=正确, 2=部分正确) */
-    isCorrect: number | null
-    /** 得分 */
-    score: number | null
+    /** 答案解析 */
+    explanation?: string | null
+    /** 分数 */
+    score?: number | null
+    /** 答案序号 */
+    sortOrder?: number | null
 }
 
 /**
  * 题目答案视图对象
- * 用于答案信息的展示
+ * 用于填空/简答题答案的展示
  */
 export interface QuestionAnswerVO {
     /** 答案ID */
     id: string
     /** 题目ID */
     questionId: string
-    /** 题目标题 */
-    questionTitle?: string
-    /** 创建用户ID */
-    sysUserId?: string
-    /** 创建用户名称 */
-    sysUserName?: string
     /** 答案内容 */
     answerContent: string
-    /** 文本答案 (填空题、简答题) */
-    answerText?: string
-    /** 是否正确 (0=错误, 1=正确, 2=部分正确) */
-    isCorrect: number
-    /** 是否正确名称 */
-    isCorrectName?: string
-    /** 得分 */
-    score: number
+    /** 答案解析 */
+    explanation?: string
+    /** 分数 */
+    score?: number
+    /** 答案序号 */
+    sortOrder?: number
     /** 创建时间 */
     createTime?: string
     /** 更新时间 */
@@ -55,8 +47,6 @@ export interface QuestionAnswerVO {
 export interface QuestionAnswerQueryParams {
     /** 题目ID */
     questionId?: string | null
-    /** 是否正确 */
-    isCorrect?: string | null
     /** 当前记录起始索引 */
     pageNum?: number
     /** 每页显示记录数 */

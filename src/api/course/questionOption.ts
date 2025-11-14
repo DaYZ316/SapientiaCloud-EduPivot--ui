@@ -21,9 +21,10 @@ export function getDefaultQuestionOptionDTO(): QuestionOptionDTO {
         questionId: null,
         optionContent: null,
         optionLabel: null,
-        isCorrect: null,
+        isCorrect: 0,
         score: null,
         imageUrls: null,
+        explanation: null
     }
 }
 
@@ -106,4 +107,13 @@ export function listAllQuestionOptionByQuestionId(questionId: string) {
  */
 export function listQuestionOptionByQuestionId(questionId: string) {
     return http.get<QuestionOptionVO[]>(`/course/question-option/question/${questionId}`)
+}
+
+/**
+ * 根据题目ID删除所有选项
+ * @param questionId 题目ID
+ * @returns 删除结果
+ */
+export function removeQuestionOptionsByQuestionId(questionId: string) {
+    return http.delete<boolean>(`/course/question-option/question/${questionId}`)
 }

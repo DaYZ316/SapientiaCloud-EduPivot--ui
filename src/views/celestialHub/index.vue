@@ -86,6 +86,10 @@
                       </div>
                       <div class="tool-text">{{ t('chat.tools') }}</div>
                       <div style="flex: 1"></div>
+                      <div class="tool-item" style="gap: 8px;">
+                        <span class="tool-text">{{ t('chat.useRag') }}</span>
+                        <n-switch size="small" v-model:value="useRagSwitch"/>
+                      </div>
                       <div class="tool-button">
                         <n-icon :component="MicOutline" size="18"/>
                       </div>
@@ -153,6 +157,10 @@
                 <div class="tool-item">
                   <n-icon :component="MicOutline" size="20"/>
                 </div>
+                <div class="tool-item">
+                  <span class="tool-text">{{ t('chat.useRag') }}</span>
+                  <n-switch size="small" v-model:value="useRagSwitch"/>
+                </div>
               </div>
             </div>
           </div>
@@ -165,7 +173,7 @@
 <script lang="ts" setup>
 import {computed, nextTick, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {NButton, NIcon, NInput, NTooltip, useMessage} from 'naive-ui'
+import {NButton, NIcon, NInput, NTooltip, NSwitch, useMessage} from 'naive-ui'
 import {Add, MicOutline, Pin, Send, Star} from '@vicons/ionicons5'
 import ChatSidebar from './components/ChatSidebar.vue'
 import ChatMessage from './components/ChatMessage.vue'
@@ -190,7 +198,8 @@ const {
   resendMessage,
   selectSession,
   newChat,
-  scrollToBottom
+  scrollToBottom,
+  useRag
 } = useCelestialChat()
 
 // 用户store
@@ -240,6 +249,16 @@ const userDisplayName = computed(() => {
 
   // 如果都没有，返回默认值
   return ''
+})
+
+// 将可空的 useRag 转换为开关可用的布尔状态（默认关闭）
+const useRagSwitch = computed<boolean>({
+  get() {
+    return useRag.value === true
+  },
+  set(v: boolean) {
+    useRag.value = v
+  }
 })
 
 // 监听消息变化，自动滚动到底部
@@ -497,7 +516,6 @@ const handleToggleFavorite = async () => {
               padding: 16px;
               transition: all 0.3s ease;
 
-
               :deep(.gemini-textarea) {
                 margin-bottom: 8px;
 
@@ -518,6 +536,13 @@ const handleToggleFavorite = async () => {
                 display: flex;
                 align-items: center;
                 gap: 12px;
+
+                .tool-item {
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  padding: 0 4px;
+                }
 
                 .tool-button {
                   display: flex;
@@ -685,7 +710,7 @@ const handleToggleFavorite = async () => {
         .tool-item {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 6px;
           padding: 8px 12px;
           border-radius: 16px;
           cursor: pointer;

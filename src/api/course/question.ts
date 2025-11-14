@@ -1,5 +1,5 @@
 import http from '@/utils/http'
-import type {QuestionDTO, QuestionQueryParams, QuestionVO} from '@/types/course'
+import type {QuestionAddDTO, QuestionDTO, QuestionQueryParams, QuestionVO} from '@/types/course'
 
 // 获取默认题目查询对象
 export function getDefaultQuestionQuery(): QuestionQueryParams {
@@ -9,6 +9,12 @@ export function getDefaultQuestionQuery(): QuestionQueryParams {
         questionType: null,
         difficulty: null,
         status: null,
+        sysUserId: null,
+        tags: null,
+        createTimeStart: null,
+        createTimeEnd: null,
+        startTime: null,
+        endTime: null,
         pageNum: 1,
         pageSize: 10,
         orderByColumn: 'create_time',
@@ -18,10 +24,10 @@ export function getDefaultQuestionQuery(): QuestionQueryParams {
 }
 
 // 获取默认题目添加DTO
-export function getDefaultQuestionDTO(): QuestionDTO {
+export function getDefaultQuestionAddDTO(): QuestionAddDTO {
     return {
-        id: null,
         questionBankId: null,
+        sysUserId: null,
         questionTitle: null,
         questionContent: null,
         questionType: null,
@@ -31,16 +37,39 @@ export function getDefaultQuestionDTO(): QuestionDTO {
         tags: [],
         imageUrls: null,
         allowPartialCredit: null,
-        status: null
+        status: null,
+        options: null,
+        answers: null
+    }
+}
+
+// 获取默认题目更新DTO
+export function getDefaultQuestionDTO(): QuestionDTO {
+    return {
+        id: null,
+        questionBankId: null,
+        sysUserId: null,
+        questionTitle: null,
+        questionContent: null,
+        questionType: null,
+        difficulty: null,
+        score: null,
+        estimatedTime: null,
+        tags: [],
+        imageUrls: null,
+        allowPartialCredit: null,
+        status: null,
+        options: null,
+        answers: null
     }
 }
 
 /**
  * 创建新的题目
- * @param questionData 题目信息数据传输对象
+ * @param questionData 题目新增数据传输对象
  * @returns 创建结果
  */
-export function addQuestion(questionData: QuestionDTO) {
+export function addQuestion(questionData: QuestionAddDTO) {
     return http.post<QuestionVO>('/course/question/add', questionData)
 }
 
@@ -104,4 +133,31 @@ export function listQuestion(params: QuestionQueryParams) {
  */
 export function listQuestionByQuestionBankId(questionBankId: string) {
     return http.get<QuestionVO[]>(`/course/question/question-bank/${questionBankId}`)
+}
+
+/**
+ * 发布题目
+ * @param id 题目ID
+ * @returns 发布结果
+ */
+export function publishQuestion(id: string) {
+    return http.put<boolean>(`/course/question/${id}/publish`)
+}
+
+/**
+ * 取消发布题目
+ * @param id 题目ID
+ * @returns 取消发布结果
+ */
+export function unpublishQuestion(id: string) {
+    return http.put<boolean>(`/course/question/${id}/unpublish`)
+}
+
+/**
+ * 增加题目浏览次数
+ * @param id 题目ID
+ * @returns 更新结果
+ */
+export function viewQuestion(id: string) {
+    return http.put<boolean>(`/course/question/${id}/view`)
 }

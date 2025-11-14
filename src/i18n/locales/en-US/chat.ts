@@ -30,6 +30,7 @@ export default {
         exitFullscreen: 'Exit Fullscreen',
         loadingMore: 'Loading more...'
     },
+    useRag: 'RAG Enhanced Retrieval',
     session: {
         delete: 'Delete Session',
         deleteConfirm: 'Confirm Delete',

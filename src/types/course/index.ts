@@ -58,6 +58,7 @@ export type {
 
 // 题目类型
 export type {
+    QuestionAddDTO,
     QuestionDTO,
     QuestionVO,
     QuestionQueryParams

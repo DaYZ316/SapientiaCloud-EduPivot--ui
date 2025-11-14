@@ -5,7 +5,6 @@ import type {QuestionAnswerDTO, QuestionAnswerQueryParams, QuestionAnswerVO} fro
 export function getDefaultQuestionAnswerQuery(): QuestionAnswerQueryParams {
     return {
         questionId: null,
-        isCorrect: null,
         pageNum: 1,
         pageSize: 10,
         orderByColumn: 'create_time',
@@ -20,9 +19,9 @@ export function getDefaultQuestionAnswerDTO(): QuestionAnswerDTO {
         id: null,
         questionId: null,
         answerContent: null,
-        answerText: null,
-        isCorrect: null,
-        score: null
+        explanation: null,
+        score: null,
+        sortOrder: null
     }
 }
 
@@ -106,4 +105,22 @@ export function listAllQuestionAnswerByQuestionId(questionId: string) {
  */
 export function getQuestionAnswerByQuestionIdAndSysUserId(questionId: string, sysUserId: string) {
     return http.get<QuestionAnswerVO>(`/course/question-answer/question/${questionId}/user/${sysUserId}`)
+}
+
+/**
+ * 根据题目ID删除所有答案
+ * @param questionId 题目ID
+ * @returns 删除结果
+ */
+export function removeQuestionAnswersByQuestionId(questionId: string) {
+    return http.delete<boolean>(`/course/question-answer/question/${questionId}`)
+}
+
+/**
+ * 根据用户ID获取答案列表
+ * @param sysUserId 用户ID
+ * @returns 答案列表
+ */
+export function listAllQuestionAnswerBySysUserId(sysUserId: string) {
+    return http.get<QuestionAnswerVO[]>(`/course/question-answer/user/${sysUserId}`)
 }

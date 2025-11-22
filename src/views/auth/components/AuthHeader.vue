@@ -2,22 +2,24 @@
   <header class="auth-header">
     <div class="auth-header-content">
       <div class="auth-header-left">
-        <img src="@/assets/image/SapientiaCloud EduPivot Logo.png" alt="Logo" class="auth-header-logo" />
-        <span class="auth-header-title" :style="gradientStyle">{{ appName }}</span>
+        <img alt="Logo" class="auth-header-logo" src="@/assets/image/SapientiaCloud EduPivot Logo.png"/>
+        <span :style="gradientStyle" class="auth-header-title">{{ appName }}</span>
       </div>
       <nav class="auth-header-nav">
-        <a class="auth-header-link" :class="{ 'is-active': props.activeTab === 'login' }" @click="handleLoginClick">{{ t('auth.login') }}</a>
-        <a class="auth-header-link" :class="{ 'is-active': props.activeTab === 'register' }" @click="handleRegisterClick">{{ t('auth.register') }}</a>
+        <a :class="{ 'is-active': props.activeTab === 'login' }" class="auth-header-link"
+           @click="handleLoginClick">{{ t('auth.login') }}</a>
+        <a :class="{ 'is-active': props.activeTab === 'register' }" class="auth-header-link"
+           @click="handleRegisterClick">{{ t('auth.register') }}</a>
       </nav>
     </div>
   </header>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { generateColorVariants } from '@/utils/colorAlgorithm'
-import { useThemeStore } from '@/store'
+<script lang="ts" setup>
+import {computed, onMounted, ref, watch} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {generateColorVariants} from '@/utils/colorAlgorithm'
+import {useThemeStore} from '@/store'
 
 const props = defineProps<{
   activeTab?: 'login' | 'register'
@@ -28,7 +30,7 @@ const emit = defineEmits<{
   showLogin: []
 }>()
 
-const { t, locale } = useI18n()
+const {t, locale} = useI18n()
 const themeStore = useThemeStore()
 const appName = ref<string | null>(null)
 
@@ -79,7 +81,7 @@ watch(locale, () => {
   opacity: 0;
   transform: translateY(-40px);
   transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 
   &.animate-in {
     opacity: 1;
@@ -260,7 +262,7 @@ watch(locale, () => {
     &.is-active {
       color: var(--color-primary);
       font-weight: 600;
-      
+
       &::after {
         content: '';
         position: absolute;

@@ -215,14 +215,7 @@
 <script lang="ts" setup>
 import {computed, h, reactive, ref} from 'vue'
 import {NEllipsis, NSwitch} from 'naive-ui'
-import {
-  AddOutline,
-  KeyOutline,
-  PeopleOutline,
-  RefreshOutline,
-  SearchOutline,
-  TrashOutline
-} from '@vicons/ionicons5'
+import {AddOutline, KeyOutline, PeopleOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
 import * as userApi from '@/api/system/user'
 import type * as userType from '@/types/system/user'
 import {useI18n} from 'vue-i18n'

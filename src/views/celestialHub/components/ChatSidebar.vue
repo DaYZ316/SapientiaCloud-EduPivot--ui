@@ -133,6 +133,7 @@ import {
   removeChatSessionById
 } from '@/api/celestialHub/chatSession'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import {useUserStore} from '@/store'
 
 // Props
 const props = defineProps<{
@@ -169,6 +170,9 @@ const {t} = useI18n()
 // 对话框和消息提示
 const dialog = useDialog()
 const message = useMessage()
+
+// 用户store
+const userStore = useUserStore()
 
 // 右键菜单选项
 const contextMenuOptions = computed(() => [
@@ -292,6 +296,7 @@ const loadSessions = async () => {
   queryParams.value = {...getDefaultChatSessionQueryDTO()}
   queryParams.value.pageNum = 1
   queryParams.value.pageSize = 20
+  queryParams.value.sysUserId = userStore.userInfo?.id || null
   // 如果"我的收藏"按钮激活，设置收藏过滤条件
   if (isMyFavoritesActive.value) {
     queryParams.value.isFavorite = '1'
@@ -313,6 +318,7 @@ const loadMoreSessions = async () => {
   }
   loadingMore.value = true
   queryParams.value.pageNum = (queryParams.value.pageNum || 1) + 1
+  queryParams.value.sysUserId = userStore.userInfo?.id || null
   // 确保保持收藏状态过滤
   if (isMyFavoritesActive.value) {
     queryParams.value.isFavorite = '1'

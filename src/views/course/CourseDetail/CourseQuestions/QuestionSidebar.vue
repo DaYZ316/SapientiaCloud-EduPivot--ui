@@ -1,15 +1,15 @@
 <template>
   <div class="question-sidebar">
-    <n-spin :show="loading" size="large" class="sidebar-spin">
+    <n-spin :show="loading" class="sidebar-spin" size="large">
       <div class="sidebar-content">
         <div class="question-scroll-container">
           <n-list v-if="questionList.length > 0" class="question-list-wrapper">
             <n-list-item
-              v-for="question in questionList"
-              :key="question.id"
-              :class="['question-list-item', { active: selectedQuestionId && selectedQuestionId === question.id }]"
-              clickable
-              @click="handleSelect(question)"
+                v-for="question in questionList"
+                :key="question.id"
+                :class="['question-list-item', { active: selectedQuestionId && selectedQuestionId === question.id }]"
+                clickable
+                @click="handleSelect(question)"
             >
               <n-thing>
                 <template #header>
@@ -17,10 +17,10 @@
                     <div class="question-title-section">
                       <span class="question-title">{{ question.questionTitle }}</span>
                       <div class="question-stats">
-                        <n-text depth="3" class="question-stat">
+                        <n-text class="question-stat" depth="3">
                           {{ t('course.question.estimatedTime') }}: {{ formatEstimatedTime(question.estimatedTime) }}
                         </n-text>
-                        <n-text depth="3" class="question-stat">
+                        <n-text class="question-stat" depth="3">
                           {{ t('course.question.viewCount') }}: {{ question.viewCount || 0 }}
                         </n-text>
                       </div>
@@ -49,11 +49,11 @@
                   <div class="question-tags-actions">
                     <div class="question-tags">
                       <n-tag
-                        v-for="tag in question.tags"
-                        :key="tag"
-                        size="tiny"
-                        class="question-tag"
-                        type="info"
+                          v-for="tag in question.tags"
+                          :key="tag"
+                          class="question-tag"
+                          size="tiny"
+                          type="info"
                       >
                         {{ tag }}
                       </n-tag>
@@ -61,39 +61,39 @@
                     <div class="question-actions">
                       <n-space size="small">
                         <n-button
-                          v-if="question.status === QuestionStatusEnum.DRAFT"
-                          size="small"
-                          text
-                          type="success"
-                          @click.stop="emitPublish(question)"
+                            v-if="question.status === QuestionStatusEnum.DRAFT"
+                            size="small"
+                            text
+                            type="success"
+                            @click.stop="emitPublish(question)"
                         >
                           <template #icon>
                             <n-icon>
-                              <SendOutlined />
+                              <SendOutlined/>
                             </n-icon>
                           </template>
                         </n-button>
                         <n-button
-                          size="small"
-                          text
-                          type="primary"
-                          @click.stop="emitEdit(question)"
+                            size="small"
+                            text
+                            type="primary"
+                            @click.stop="emitEdit(question)"
                         >
                           <template #icon>
                             <n-icon>
-                              <EditOutlined />
+                              <EditOutlined/>
                             </n-icon>
                           </template>
                         </n-button>
                         <n-button
-                          size="small"
-                          text
-                          type="error"
-                          @click.stop="emitDelete(question)"
+                            size="small"
+                            text
+                            type="error"
+                            @click.stop="emitDelete(question)"
                         >
                           <template #icon>
                             <n-icon>
-                              <DeleteOutlined />
+                              <DeleteOutlined/>
                             </n-icon>
                           </template>
                         </n-button>
@@ -107,16 +107,16 @@
 
           <n-empty v-if="!loading && questionList.length === 0" :description="t('course.question.noData')">
             <template #extra>
-              <slot name="empty-action" />
+              <slot name="empty-action"/>
             </template>
           </n-empty>
 
           <div
-            v-if="questionList.length > 0"
-            ref="loadMoreTrigger"
-            class="load-more-trigger"
+              v-if="questionList.length > 0"
+              ref="loadMoreTrigger"
+              class="load-more-trigger"
           >
-            <n-spin v-if="isLoadingMore" size="small" />
+            <n-spin v-if="isLoadingMore" size="small"/>
           </div>
         </div>
       </div>
@@ -125,9 +125,9 @@
 </template>
 
 <script lang="ts" setup>
+import type {PropType} from 'vue'
 import {computed, nextTick, onBeforeUnmount, onMounted, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
-import type {PropType} from 'vue'
 import {useDialog} from 'naive-ui'
 import {DeleteOutlined, EditOutlined, SendOutlined} from '@vicons/antd'
 import type {QuestionVO} from '@/types/course'

@@ -6,11 +6,7 @@
     <!-- Logo区域 -->
     <div class="sidebar-header">
       <div class="logo" @click="handleLogoClick">
-        <img
-            alt="SapientiaCloud EduPivot"
-            class="logo-image"
-            src="/SapientiaCloud EduPivot Logo.svg"
-        />
+        <CelestailHub class="logo-image"/>
         <span v-if="!collapsed" :lang="locale" class="logo-text" v-html="displayAppName"></span>
       </div>
     </div>
@@ -72,6 +68,7 @@ import {useMenuStore, useThemeStore, useUserStore} from '@/store'
 import {getMenuOptions, getUserMenuOptions, menuExpandMap, menuRouteMap} from '@/config/menu'
 import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
 import {createCourseMenuHandler} from '@/utils/courseMenu'
+import CelestailHub from '@/components/common/CelestailHub.vue'
 
 // 路由和国际化
 const route = useRoute()
@@ -217,6 +214,9 @@ const handleLogoClick = () => {
   width: 32px;
   height: 32px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .logo-text {

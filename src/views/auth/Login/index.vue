@@ -3,14 +3,14 @@
     <div class="login-card-header">
       <n-button-group size="large">
         <n-button
-          :type="loginType === 'password' ? 'primary' : 'default'"
-          @click="loginType = 'password'; handleLoginTypeChange('password')"
+            :type="loginType === 'password' ? 'primary' : 'default'"
+            @click="loginType = 'password'; handleLoginTypeChange('password')"
         >
           {{ t('auth.passwordLogin') }}
         </n-button>
         <n-button
-          :type="loginType === 'verification' ? 'primary' : 'default'"
-          @click="loginType = 'verification'; handleLoginTypeChange('verification')"
+            :type="loginType === 'verification' ? 'primary' : 'default'"
+            @click="loginType = 'verification'; handleLoginTypeChange('verification')"
         >
           {{ t('auth.verificationCodeLogin') }}
         </n-button>
@@ -18,28 +18,28 @@
     </div>
     <!-- 密码登录表单 -->
     <n-form
-      v-if="loginType === 'password'"
-      ref="passwordFormRef"
-      :model="passwordForm"
-      :rules="passwordRules"
-      size="large"
-      :show-label="false"
+        v-if="loginType === 'password'"
+        ref="passwordFormRef"
+        :model="passwordForm"
+        :rules="passwordRules"
+        :show-label="false"
+        size="large"
     >
       <n-form-item path="username">
         <n-input
-          v-model:value="passwordForm.username"
-          :placeholder="t('auth.username')"
-          clearable
+            v-model:value="passwordForm.username"
+            :placeholder="t('auth.username')"
+            clearable
         />
       </n-form-item>
       <n-form-item path="password">
         <n-input
-          v-model:value="passwordForm.password"
-          type="password"
-          :placeholder="t('auth.password')"
-          show-password-on="click"
-          clearable
-          @keyup.enter="handlePasswordLogin"
+            v-model:value="passwordForm.password"
+            :placeholder="t('auth.password')"
+            clearable
+            show-password-on="click"
+            type="password"
+            @keyup.enter="handlePasswordLogin"
         />
       </n-form-item>
       <n-form-item>
@@ -54,12 +54,12 @@
       </n-form-item>
       <n-form-item>
         <n-button
-          class="login-button"
-          type="primary"
-          size="large"
-          block
-          :loading="loading"
-          @click="handlePasswordLogin"
+            :loading="loading"
+            block
+            class="login-button"
+            size="large"
+            type="primary"
+            @click="handlePasswordLogin"
         >
           {{ t('auth.login') }}
         </n-button>
@@ -73,15 +73,15 @@
       </n-form-item>
       <n-form-item>
         <n-button
-          class="github-login-button"
-          size="large"
-          block
-          :disabled="loading"
-          @click="handleGithubLogin"
+            :disabled="loading"
+            block
+            class="github-login-button"
+            size="large"
+            @click="handleGithubLogin"
         >
           <template #icon>
             <n-icon>
-              <Icon :component="LogoGithub" />
+              <Icon :component="LogoGithub"/>
             </n-icon>
           </template>
           {{ t('auth.githubLogin') }}
@@ -90,34 +90,34 @@
     </n-form>
     <!-- 验证码登录表单 -->
     <n-form
-      v-else
-      ref="verificationFormRef"
-      :model="verificationForm"
-      :rules="verificationRules"
-      size="large"
-      :show-label="false"
+        v-else
+        ref="verificationFormRef"
+        :model="verificationForm"
+        :rules="verificationRules"
+        :show-label="false"
+        size="large"
     >
       <n-form-item path="mobile">
         <n-input
-          v-model:value="verificationForm.mobile"
-          :placeholder="t('auth.phone')"
-          clearable
-          maxlength="11"
+            v-model:value="verificationForm.mobile"
+            :placeholder="t('auth.phone')"
+            clearable
+            maxlength="11"
         />
       </n-form-item>
       <n-form-item path="verificationCode">
         <div class="verification-code-wrapper">
           <n-input-otp
-            v-model:value="verificationForm.verificationCode"
-            :length="6"
-            size="large"
-            @keyup.enter="handleVerificationLogin"
+              v-model:value="verificationForm.verificationCode"
+              :length="6"
+              size="large"
+              @keyup.enter="handleVerificationLogin"
           />
           <n-button
-            :disabled="countdown > 0 || !verificationForm.mobile || verificationForm.mobile.length !== 11"
-            :loading="sendingCode"
-            size="large"
-            @click="sendVerificationCode"
+              :disabled="countdown > 0 || !verificationForm.mobile || verificationForm.mobile.length !== 11"
+              :loading="sendingCode"
+              size="large"
+              @click="sendVerificationCode"
           >
             {{ countdown > 0 ? `${countdown}${t('auth.verificationCodeCountdown')}` : t('auth.sendVerificationCode') }}
           </n-button>
@@ -135,12 +135,12 @@
       </n-form-item>
       <n-form-item>
         <n-button
-          class="login-button"
-          type="primary"
-          size="large"
-          block
-          :loading="loading"
-          @click="handleVerificationLogin"
+            :loading="loading"
+            block
+            class="login-button"
+            size="large"
+            type="primary"
+            @click="handleVerificationLogin"
         >
           {{ t('auth.login') }}
         </n-button>
@@ -154,15 +154,15 @@
       </n-form-item>
       <n-form-item>
         <n-button
-          class="github-login-button"
-          size="large"
-          block
-          :disabled="loading"
-          @click="handleGithubLogin"
+            :disabled="loading"
+            block
+            class="github-login-button"
+            size="large"
+            @click="handleGithubLogin"
         >
           <template #icon>
             <n-icon>
-              <Icon :component="LogoGithub" />
+              <Icon :component="LogoGithub"/>
             </n-icon>
           </template>
           {{ t('auth.githubLogin') }}
@@ -180,9 +180,14 @@ import {type FormInst, type FormRules, useMessage} from 'naive-ui'
 import Icon from '@/components/common/Icon.vue'
 import {LogoGithub} from '@vicons/ionicons5'
 import {useUserStore} from '@/store'
-import {getDefaultSysUserLoginDTO, getDefaultSysUserMobileLoginDTO, sendVerificationCode as sendVerificationCodeAPI, getDefaultSendVerificationCodeDTO} from '@/api/auth'
+import {
+  getDefaultSendVerificationCodeDTO,
+  getDefaultSysUserLoginDTO,
+  getDefaultSysUserMobileLoginDTO,
+  sendVerificationCode as sendVerificationCodeAPI
+} from '@/api/auth'
 import type {SysUserLoginDTO, SysUserMobileLoginDTO} from '@/types/auth'
-import {getApiBaseUrl, defaultServerConfig} from '@/config/server'
+import {defaultServerConfig, getApiBaseUrl} from '@/config/server'
 
 // 定义事件
 defineEmits<{
@@ -215,6 +220,7 @@ const passwordForm = reactive<SysUserLoginDTO>(getDefaultSysUserLoginDTO())
 interface VerificationForm extends Omit<SysUserMobileLoginDTO, 'verificationCode'> {
   verificationCode: string | string[] | null
 }
+
 const verificationForm = reactive<VerificationForm>({
   ...getDefaultSysUserMobileLoginDTO(),
   verificationCode: null
@@ -352,8 +358,8 @@ const handleVerificationLogin = async () => {
   loading.value = true
 
   const verificationCode = Array.isArray(verificationForm.verificationCode)
-    ? verificationForm.verificationCode.join('')
-    : verificationForm.verificationCode || ''
+      ? verificationForm.verificationCode.join('')
+      : verificationForm.verificationCode || ''
 
   const success = await userStore.loginWithVerificationCode(
       verificationForm.mobile || '',

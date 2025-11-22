@@ -3,7 +3,8 @@ import type {CourseQueryParams, CourseVO} from '@/types/course'
 import type {TeacherVO} from '@/types/teacher'
 
 /**
- * 为指定课程分配主讲教�? * @param courseId 课程ID
+ * 为指定课程分配主讲教师
+ * @param courseId 课程ID
  * @param teacherId 教师ID
  * @returns 分配结果
  */
@@ -14,7 +15,8 @@ export function assignTeacher(courseId: string, teacherId: string) {
 }
 
 /**
- * 为指定课程批量分配教师团�? * @param courseId 课程ID
+ * 为指定课程批量分配教师团队
+ * @param courseId 课程ID
  * @param teacherIds 教师ID列表
  * @returns 分配结果
  */
@@ -23,7 +25,8 @@ export function assignCourseTeachers(courseId: string, teacherIds: string[]) {
 }
 
 /**
- * 获取教师作为负责人或教学团队成员的所有课程? * @param teacherId 教师ID
+ * 获取教师作为负责人或教学团队成员的所有课程
+ * @param teacherId 教师ID
  * @returns 教师课程列表
  */
 export function listAllCourseByTeacherId(teacherId: string) {

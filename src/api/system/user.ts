@@ -1,5 +1,11 @@
 import http from '@/utils/http'
-import type {SysUserAdminDTO, SysUserDTO, SysUserProfileDTO, SysUserMobileLoginDTO, UserPageQueryDTO} from '@/types/system/user'
+import type {
+    SysUserAdminDTO,
+    SysUserDTO,
+    SysUserMobileLoginDTO,
+    SysUserProfileDTO,
+    UserPageQueryDTO
+} from '@/types/system/user'
 
 // 获取默认用户查询对象
 export function getDefaultUserQuery(): UserPageQueryDTO {

@@ -203,6 +203,7 @@ import {useI18n} from 'vue-i18n'
 import {uploadFile} from '@/api/minIO'
 import type {FileUploadEmits, FileUploadProps} from '@/types/components/fileUpload'
 import {FileType} from '@/types/components/fileUpload'
+import {BusinessBucketCodeEnum} from '@/enum/minIO'
 
 // Props定义
 const props = withDefaults(defineProps<FileUploadProps>(), {
@@ -212,6 +213,7 @@ const props = withDefaults(defineProps<FileUploadProps>(), {
   maxFileSize: 10 * 1024 * 1024, // 10MB
   maxFileCount: 10,
   uploadDir: 'files',
+  bucketCode: BusinessBucketCodeEnum.COURSE_PRIVATE,
   showFileList: true,
   multiple: true,
   dragUpload: false,
@@ -291,7 +293,10 @@ const handleCustomRequest = async (options: UploadCustomRequestOptions) => {
     }
 
     // 上传文件
-    const response = await uploadFile(file.file, props.uploadDir)
+    const response = await uploadFile(file.file, {
+      directory: props.uploadDir,
+      bucketCode: props.bucketCode
+    })
 
     if (response && response.data) {
       // 更新文件状态为已完成，然后立即从列表中移除

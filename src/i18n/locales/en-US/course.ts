@@ -77,7 +77,10 @@ export default {
         coverImage: 'Cover Image',
         coverImagePlaceholder: 'Please upload cover image',
         status: 'Course Status',
-        statusPlaceholder: 'Please select course status'
+        statusPlaceholder: 'Please select course status',
+        isPublic: 'Is Public',
+        isPublicLabel: 'Public Course',
+        isPublicPlaceholder: 'Please select if public'
     },
 
     // Course type
@@ -98,6 +101,12 @@ export default {
         SUSPENDED: 'Suspended'
     },
 
+    // Course public status
+    coursePublic: {
+        PRIVATE: 'Private',
+        PUBLIC: 'Public'
+    },
+
     // Form validation
     validation: {
         courseNameRequired: 'Please enter course name',
@@ -106,7 +115,8 @@ export default {
         teacherIdRequired: 'Please select main instructor',
         semesterLength: 'Semester length cannot exceed 20 characters',
         locationLength: 'Location length cannot exceed 100 characters',
-        descriptionLength: 'Description length cannot exceed 500 characters'
+        descriptionLength: 'Description length cannot exceed 500 characters',
+        isPublicRequired: 'Please select if public'
     },
 
     // Enrollment status

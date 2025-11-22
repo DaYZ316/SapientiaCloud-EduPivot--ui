@@ -22,13 +22,13 @@
           class="answer-item"
       >
         <div class="answer-header">
-          <n-tag type="info" size="medium">
+          <n-tag size="medium" type="info">
             {{ `#${index + 1}` }}
           </n-tag>
           <n-button
+              :disabled="answers.length <= 1"
               text
               type="error"
-              :disabled="answers.length <= 1"
               @click="handleRemoveAnswer(index)"
           >
             <template #icon>
@@ -97,6 +97,7 @@ interface Props {
 
 interface Emits {
   (event: 'add-answer'): void
+
   (event: 'remove-answer', index: number): void
 }
 

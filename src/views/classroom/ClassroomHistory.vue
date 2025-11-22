@@ -1,15 +1,15 @@
 <template>
   <div class="classroom-history">
     <h2 class="page-title">{{ t('classroom.history.title') }}</h2>
-    
+
     <!-- 加载状态 -->
     <div v-if="loading" class="loading">{{ t('common.loading') }}</div>
-    
+
     <!-- 错误提示 -->
     <div v-else-if="error" class="error">
       <p>⚠️ {{ t('common.error') }}：{{ errorMsg }}</p>
     </div>
-    
+
     <!-- 空状态 -->
     <div v-else-if="records.length === 0" class="empty">
       <p>{{ t('common.noData') }}</p>
@@ -17,19 +17,21 @@
         {{ t('classroom.history.createCourse') }}
       </button>
     </div>
-    
+
     <!-- 数据列表 -->
     <div v-else class="record-list">
       <div v-for="item in records" :key="item.id" class="record" @click="handleRecordClick(item)">
         <div class="record-header">
-          <p class="course-name">{{ t('common.course') }}: {{ item.courseName || t('classroom.history.unnamedCourse') }}</p>
-          <span v-if="item.status !== undefined" class="record-status" :class="'status-' + item.status">
+          <p class="course-name">{{ t('common.course') }}: {{ item.courseName || t('classroom.history.unnamedCourse')
+            }}</p>
+          <span v-if="item.status !== undefined" :class="'status-' + item.status" class="record-status">
             {{ getStatusText(item.status) }}
           </span>
         </div>
         <p v-if="item.teacherName">{{ t('common.teacher') }}: {{ item.teacherName }}</p>
         <p>{{ t('common.time') }}: {{ item.updateTime || t('classroom.history.noTime') }}</p>
-        <p>{{ t('common.modelType') }}: {{ item.modelType ? getClassroomModelTypeLabel(item.modelType, locale.value === 'en-US') : t('classroom.history.noModelType') }}</p>
+        <p>{{ t('common.modelType') }}: {{ item.modelType ? getClassroomModelTypeLabel(item.modelType, locale.value ===
+          'en-US') : t('classroom.history.noModelType') }}</p>
       </div>
       <button class="create-course-btn" @click="handleCreateCourse">
         {{ t('classroom.history.createCourse') }}
@@ -39,13 +41,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { listCourseRecord } from '@/api/classroom/courseRecord'
+import {ref, onMounted} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {listCourseRecord} from '@/api/classroom/courseRecord'
 import eventBus from '@/utils/eventBus'
-import { getClassroomModelTypeLabel } from '@/enum/classroom/classroomModelTypeEnum'
+import {getClassroomModelTypeLabel} from '@/enum/classroom/classroomModelTypeEnum'
 
-const { t, locale } = useI18n()
+const {t, locale} = useI18n()
 
 const loading = ref(false)
 const error = ref(false)
@@ -54,14 +56,14 @@ const records = ref([])
 
 // 模拟数据，在API调用失败时使用
 // 添加状态文本映射
-  const getStatusText = (status) => {
-    const statusMap = {
-      0: t('classroom.history.statusNotStarted'),
-      1: t('classroom.history.statusInProgress'),
-      2: t('classroom.history.statusCompleted')
-    }
-    return statusMap[status] || t('classroom.history.statusUnknown')
+const getStatusText = (status) => {
+  const statusMap = {
+    0: t('classroom.history.statusNotStarted'),
+    1: t('classroom.history.statusInProgress'),
+    2: t('classroom.history.statusCompleted')
   }
+  return statusMap[status] || t('classroom.history.statusUnknown')
+}
 
 // 处理创建课程
 const handleCreateCourse = () => {
@@ -73,7 +75,7 @@ const handleCreateCourse = () => {
 // 处理课程记录点击事件
 const handleRecordClick = (item) => {
   console.log('点击课程记录:', item.id)
-  eventBus.emit('selectCourseRecord', { id: item.id })
+  eventBus.emit('selectCourseRecord', {id: item.id})
 }
 
 
@@ -81,7 +83,7 @@ const loadData = async () => {
   loading.value = true
   error.value = false
   try {
-    const res = await listCourseRecord({ pageNum: '1', pageSize: '10' })
+    const res = await listCourseRecord({pageNum: '1', pageSize: '10'})
     if (res && res.data) {
       records.value = res.data
     }
@@ -175,7 +177,7 @@ onMounted(() => {
     height: 40px;
     font-size: 0.9rem;
   }
-  
+
   .empty {
     padding: 1.5rem;
   }
@@ -188,11 +190,11 @@ onMounted(() => {
     height: 38px;
     font-size: 0.85rem;
   }
-  
+
   .empty {
     padding: 1rem;
   }
-  
+
   .empty p {
     margin-bottom: 1rem;
     font-size: 1rem;
@@ -235,7 +237,7 @@ onMounted(() => {
   gap: 12px;
   flex: 1;
   overflow-y: auto;
-  
+
 }
 
 .record {
@@ -309,22 +311,22 @@ onMounted(() => {
   .classroom-history {
     padding: 12px;
   }
-  
+
   .record {
     padding: 12px;
   }
-  
+
   .record-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
   }
-  
+
   .course-name {
     white-space: normal;
     overflow: visible;
   }
-  
+
   .loading, .empty {
     padding: 20px 10px;
   }
@@ -335,7 +337,7 @@ onMounted(() => {
   .record {
     border-width: 2px;
   }
-  
+
   .record-status {
     font-weight: 600;
   }

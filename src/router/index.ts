@@ -311,20 +311,20 @@ router.beforeEach(async (to, from, next) => {
     // 检测登录/登出操作和页面刷新
     const transitionStore = useTransitionStore()
     const userStore = useUserStore()
-    
+
     // 检测是否是刷新页面：from.path等于to.path或from.path是根路径，且sessionStorage中已有该路径的记录
     const lastPath = sessionStorage.getItem('router:lastPath')
     const isPageRefresh = lastPath === to.path && (from.path === to.path || from.path === '/')
-    
+
     // 检测路由切换（排除刷新和首次访问）
     const hasFromPath = from.path && from.path !== to.path && from.path !== '/'
     const isLoginTransition = hasFromPath && from.path === '/login' && to.path !== '/login'
     const isLogoutTransition = hasFromPath && from.path !== '/login' && to.path === '/login'
-    
+
     // 检测刷新时的过渡动画：登录页刷新，或已登录用户在非登录页刷新
     const isLoginPageRefresh = isPageRefresh && to.path === '/login'
     const isAuthPageRefresh = isPageRefresh && to.path !== '/login' && userStore.isLogin
-    
+
     if (isLoginTransition || isLogoutTransition || isLoginPageRefresh || isAuthPageRefresh) {
         transitionStore.show()
     }
@@ -419,16 +419,16 @@ router.afterEach((to, from) => {
     // 检测登录/登出操作完成和页面刷新完成
     const transitionStore = useTransitionStore()
     const userStore = useUserStore()
-    
+
     // 检测路由切换（排除刷新和首次访问）
     const hasFromPath = from.path && from.path !== to.path && from.path !== '/'
     const isLoginTransition = hasFromPath && from.path === '/login' && to.path !== '/login'
     const isLogoutTransition = hasFromPath && from.path !== '/login' && to.path === '/login'
-    
+
     // 检测刷新时的过渡动画完成：登录页刷新，或已登录用户在非登录页刷新
     const isLoginPageRefresh = wasPageRefresh && to.path === '/login'
     const isAuthPageRefresh = wasPageRefresh && to.path !== '/login' && userStore.isLogin
-    
+
     if (isLoginTransition || isLogoutTransition || isLoginPageRefresh || isAuthPageRefresh) {
         // 隐藏过渡动画，确保至少持续1秒
         transitionStore.hide(1250)

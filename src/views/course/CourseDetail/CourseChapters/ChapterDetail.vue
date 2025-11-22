@@ -100,6 +100,7 @@ import {
   VideocamOutline
 } from '@vicons/ionicons5'
 import * as MinIOApi from '@/api/minIO'
+import {BusinessBucketCodeEnum} from '@/enum/minIO'
 import type {CourseChapterVO} from '@/types/course/courseChapter'
 import type {FileInfoDTO} from '@/types/minIO/file'
 import Icon from '@/components/common/Icon.vue'
@@ -172,7 +173,10 @@ const loadFileInfo = async () => {
 
   loadingFileInfo.value = true
   try {
-    const res = await MinIOApi.getBatchFileInfoByPath(props.chapter.attachmentUrls)
+    const res = await MinIOApi.getBatchFileInfoByPath({
+      filePaths: props.chapter.attachmentUrls,
+      bucketCode: BusinessBucketCodeEnum.COURSE_PRIVATE
+    })
     if (res && res.success && res.data) {
       // 过滤掉error字段为true的文件
       fileInfoList.value = res.data.filter(file => !file.error)

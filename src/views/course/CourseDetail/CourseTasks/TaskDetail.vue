@@ -141,6 +141,7 @@ import {
 import type {CourseTaskVO} from '@/types/course/courseTask'
 import type {FileInfoDTO} from '@/types/minIO/file'
 import * as MinIOApi from '@/api/minIO'
+import {BusinessBucketCodeEnum} from '@/enum/minIO'
 import {getTaskTypeLabel, TaskTypeEnum} from '@/enum/course/taskTypeEnum'
 import {getTaskDifficultyLabel, getTaskDifficultyTagType, TaskDifficultyEnum} from '@/enum/course/taskDifficultyEnum'
 import Icon from '@/components/common/Icon.vue'
@@ -267,7 +268,10 @@ const loadFileInfo = async () => {
 
   loadingFileInfo.value = true
   try {
-    const res = await MinIOApi.getBatchFileInfoByPath(props.task.attachmentUrls)
+    const res = await MinIOApi.getBatchFileInfoByPath({
+      filePaths: props.task.attachmentUrls,
+      bucketCode: BusinessBucketCodeEnum.COURSE_PRIVATE
+    })
     if (res && res.success && res.data) {
       // 过滤掉error字段为true的文件
       fileInfoList.value = res.data.filter(file => !file.error)

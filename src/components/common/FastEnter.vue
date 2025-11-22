@@ -1,59 +1,59 @@
 <template>
-    <n-popover
-        ref="popoverRef"
-        :width="700"
-        trigger="click"
-        placement="bottom-start"
-        :offset="8"
-    >
-        <template #trigger>
-            <div class="fast-enter-trigger">
-                <n-button
-                    circle
-                    quaternary
-                    size="medium"
-                >
-                    <template #icon>
-                        <Icon :component="GridOutline"/>
-                    </template>
-                </n-button>
-            </div>
-        </template>
+  <n-popover
+      ref="popoverRef"
+      :offset="8"
+      :width="700"
+      placement="bottom-start"
+      trigger="click"
+  >
+    <template #trigger>
+      <div class="fast-enter-trigger">
+        <n-button
+            circle
+            quaternary
+            size="medium"
+        >
+          <template #icon>
+            <Icon :component="GridOutline"/>
+          </template>
+        </n-button>
+      </div>
+    </template>
 
-        <div class="fast-enter">
-            <div class="apps-section">
-                <div class="apps-grid">
-                    <div
-                        v-for="application in enabledApplications"
-                        :key="application.nameKey"
-                        class="app-item"
-                        @click="handleApplicationClick(application)"
-                    >
-                        <div class="app-icon">
-                            <Icon :component="application.icon"/>
-                        </div>
-                        <div class="app-info">
-                            <h3>{{ t(application.nameKey) }}</h3>
-                            <p>{{ t(application.descriptionKey) }}</p>
-                        </div>
-                    </div>
-                </div>
+    <div class="fast-enter">
+      <div class="apps-section">
+        <div class="apps-grid">
+          <div
+              v-for="application in enabledApplications"
+              :key="application.nameKey"
+              class="app-item"
+              @click="handleApplicationClick(application)"
+          >
+            <div class="app-icon">
+              <Icon :component="application.icon"/>
             </div>
-
-            <div class="quick-links">
-                <h3>{{ t('header.quickLinks') }}</h3>
-                <ul>
-                    <li
-                        v-for="quickLink in enabledQuickLinks"
-                        :key="quickLink.nameKey"
-                        @click="handleQuickLinkClick(quickLink)"
-                    >
-                        <span>{{ t(quickLink.nameKey) }}</span>
-                    </li>
-                </ul>
+            <div class="app-info">
+              <h3>{{ t(application.nameKey) }}</h3>
+              <p>{{ t(application.descriptionKey) }}</p>
             </div>
+          </div>
         </div>
-    </n-popover>
+      </div>
+
+      <div class="quick-links">
+        <h3>{{ t('header.quickLinks') }}</h3>
+        <ul>
+          <li
+              v-for="quickLink in enabledQuickLinks"
+              :key="quickLink.nameKey"
+              @click="handleQuickLinkClick(quickLink)"
+          >
+            <span>{{ t(quickLink.nameKey) }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </n-popover>
 </template>
 
 <script lang="ts" setup>
@@ -66,135 +66,135 @@ import Icon from '@/components/common/Icon.vue'
 import fastEnterConfig, {type FastEnterApplication, type FastEnterQuickLink} from '@/config/fastEnter'
 
 const router = useRouter()
-const { t } = useI18n()
+const {t} = useI18n()
 const popoverRef = ref<InstanceType<typeof NPopover> | null>(null)
 
 const enabledApplications = computed<FastEnterApplication[]>(() => {
-    return fastEnterConfig.applications
-        .filter((app) => app.enabled !== false)
-        .sort((a, b) => (a.order || 0) - (b.order || 0))
+  return fastEnterConfig.applications
+      .filter((app) => app.enabled !== false)
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
 })
 
 const enabledQuickLinks = computed<FastEnterQuickLink[]>(() => {
-    return fastEnterConfig.quickLinks
-        .filter((link) => link.enabled !== false)
-        .sort((a, b) => (a.order || 0) - (b.order || 0))
+  return fastEnterConfig.quickLinks
+      .filter((link) => link.enabled !== false)
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
 })
 
 const handleNavigate = (routeName: string): void => {
-    if (!routeName) {
-        return
-    }
+  if (!routeName) {
+    return
+  }
 
-    router.push({name: routeName})
-    popoverRef.value?.setShow(false)
+  router.push({name: routeName})
+  popoverRef.value?.setShow(false)
 }
 
 const handleApplicationClick = (application: FastEnterApplication): void => {
-    handleNavigate(application.routeName)
+  handleNavigate(application.routeName)
 }
 
 const handleQuickLinkClick = (quickLink: FastEnterQuickLink): void => {
-    handleNavigate(quickLink.routeName)
+  handleNavigate(quickLink.routeName)
 }
 </script>
 
 <style lang="scss" scoped>
 .fast-enter-trigger {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
 
 .fast-enter {
-    display: grid;
-    grid-template-columns: 2fr 0.8fr;
-    padding: 8px;
+  display: grid;
+  grid-template-columns: 2fr 0.8fr;
+  padding: 8px;
 
-    .apps-section {
-        .apps-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-        }
-
-        .app-item {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            padding: 12px;
-            margin-right: 12px;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.2s;
-
-            &:hover {
-                background-color: var(--n-color-hover);
-            }
-
-            .app-icon {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 46px;
-                height: 46px;
-                background-color: var(--n-color-hover);
-                border-radius: 8px;
-                flex-shrink: 0;
-            }
-
-            .app-info {
-                flex: 1;
-                min-width: 0;
-
-                h3 {
-                    margin: 0;
-                    font-size: 14px;
-                    font-weight: 500;
-                    color: var(--n-text-color);
-                }
-
-                p {
-                    margin: 4px 0 0;
-                    font-size: 12px;
-                    color: var(--n-text-color-secondary);
-                }
-            }
-        }
+  .apps-section {
+    .apps-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
     }
 
-    .quick-links {
-        padding: 8px 0 0 24px;
-        border-left: 1px solid var(--n-divider-color);
+    .app-item {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      margin-right: 12px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s;
+
+      &:hover {
+        background-color: var(--n-color-hover);
+      }
+
+      .app-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        height: 46px;
+        background-color: var(--n-color-hover);
+        border-radius: 8px;
+        flex-shrink: 0;
+      }
+
+      .app-info {
+        flex: 1;
+        min-width: 0;
 
         h3 {
-            margin: 0 0 10px;
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--n-text-color);
+          margin: 0;
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--n-text-color);
         }
 
-        ul {
-            margin: 0;
-            padding: 0;
-            list-style: none;
-
-            li {
-                padding: 8px 0;
-                cursor: pointer;
-                transition: color 0.2s;
-
-                &:hover {
-                    span {
-                        color: var(--n-primary-color);
-                    }
-                }
-
-                span {
-                    color: var(--n-text-color-secondary);
-                    font-size: 14px;
-                }
-            }
+        p {
+          margin: 4px 0 0;
+          font-size: 12px;
+          color: var(--n-text-color-secondary);
         }
+      }
     }
+  }
+
+  .quick-links {
+    padding: 8px 0 0 24px;
+    border-left: 1px solid var(--n-divider-color);
+
+    h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--n-text-color);
+    }
+
+    ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+
+      li {
+        padding: 8px 0;
+        cursor: pointer;
+        transition: color 0.2s;
+
+        &:hover {
+          span {
+            color: var(--n-primary-color);
+          }
+        }
+
+        span {
+          color: var(--n-text-color-secondary);
+          font-size: 14px;
+        }
+      }
+    }
+  }
 }
 </style>

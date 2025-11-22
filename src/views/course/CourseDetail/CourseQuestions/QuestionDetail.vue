@@ -88,20 +88,20 @@
       <div class="question-sidebar-container">
         <div class="question-sidebar-scroll">
           <QuestionSidebar
-              :loading="loading"
+              :format-estimated-time="formatEstimatedTime"
+              :get-difficulty-tag-type="getDifficultyTagType"
+              :get-difficulty-text="getDifficultyText"
+              :get-question-type-tag-type="getQuestionTypeTagType"
+              :get-question-type-text="getQuestionTypeText"
+              :has-more="hasMore"
               :is-loading-more="isLoadingMore"
+              :loading="loading"
               :question-list="questionList"
               :selected-question-id="selectedQuestionId"
-              :has-more="hasMore"
-              :format-estimated-time="formatEstimatedTime"
-              :get-question-type-text="getQuestionTypeText"
-              :get-question-type-tag-type="getQuestionTypeTagType"
-              :get-difficulty-text="getDifficultyText"
-              :get-difficulty-tag-type="getDifficultyTagType"
-              @select="handleSelectQuestion"
-              @edit="handleEdit"
               @delete="handleDelete"
+              @edit="handleEdit"
               @publish="handlePublish"
+              @select="handleSelectQuestion"
               @load-more="handleLoadMore"
           >
             <template #empty-action>
@@ -154,10 +154,10 @@
                   </n-tag>
                   <template v-if="selectedQuestion.tags && selectedQuestion.tags.length">
                     <n-tag
-                      v-for="tag in selectedQuestion.tags"
-                      :key="tag"
-                      type="info"
-                      size="small"
+                        v-for="tag in selectedQuestion.tags"
+                        :key="tag"
+                        size="small"
+                        type="info"
                     >
                       {{ tag }}
                     </n-tag>
@@ -189,7 +189,7 @@
               </div>
             </div>
 
-            <n-divider />
+            <n-divider/>
 
             <div class="detail-section">
               <div class="detail-content" v-html="selectedQuestion.questionContent"></div>
@@ -226,30 +226,30 @@
             </div>
 
             <div
-              v-if="shouldDisplayAnswersSection"
-              class="detail-section"
+                v-if="shouldDisplayAnswersSection"
+                class="detail-section"
             >
               <div
-                v-for="(answer, index) in selectedQuestion.answers"
-                :key="answer.id || index"
-                class="detail-answer"
+                  v-for="(answer, index) in selectedQuestion.answers"
+                  :key="answer.id || index"
+                  class="detail-answer"
               >
                 <div class="answer-header">
                   <n-tag size="small" type="info">
                     #{{ answer.sortOrder ?? index + 1 }}
                   </n-tag>
                   <n-tag
-                    v-if="answer.score !== undefined && answer.score !== null"
-                    size="small"
-                    type="success"
+                      v-if="answer.score !== undefined && answer.score !== null"
+                      size="small"
+                      type="success"
                   >
                     {{ t('course.question.score') }}: {{ answer.score }}
                   </n-tag>
                 </div>
                 <div
-                  v-if="showAnswers && answer.answerContent"
-                  class="answer-content"
-                  v-html="answer.answerContent"
+                    v-if="showAnswers && answer.answerContent"
+                    class="answer-content"
+                    v-html="answer.answerContent"
                 ></div>
                 <div v-if="showAnswers && answer.explanation" class="answer-explanation">
                   {{ answer.explanation }}
@@ -264,28 +264,28 @@
 
     <QuestionDialog
         ref="createDialogRef"
-        v-model:show="showCreateDialog"
-        v-model:form="createForm"
-        v-model:options="questionOptions"
         v-model:answers="questionAnswers"
+        v-model:form="createForm"
         v-model:loading="createLoading"
+        v-model:options="questionOptions"
+        v-model:show="showCreateDialog"
         :difficulty-options="difficultyOptions"
         :mode="'create'"
         :question-type-options="questionTypeOptions"
         :rules="createFormRules"
         @cancel="handleCancelCreate"
         @confirm="handleConfirmCreate"
-        @success="handleCreateSuccess"
         @error="handleCreateError"
+        @success="handleCreateSuccess"
     />
 
     <QuestionDialog
         ref="editDialogRef"
-        v-model:show="showEditDialog"
-        v-model:form="editForm"
-        v-model:options="editingOptions"
         v-model:answers="editingAnswers"
+        v-model:form="editForm"
         v-model:loading="editLoading"
+        v-model:options="editingOptions"
+        v-model:show="showEditDialog"
         :difficulty-options="difficultyOptions"
         :mode="'edit'"
         :question-type-options="questionTypeOptions"
@@ -300,14 +300,16 @@
 import {computed, onMounted, reactive, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useRoute} from 'vue-router'
-import {
-  PlusOutlined,
-  ReloadOutlined,
-  SearchOutlined
-} from '@vicons/antd'
+import {PlusOutlined, ReloadOutlined, SearchOutlined} from '@vicons/antd'
 import {useDialog, useMessage} from 'naive-ui'
 import {getDefaultQuestionQuery, listQuestion} from '@/api/course'
-import {getDefaultQuestionAddDTO, getDefaultQuestionDTO, getQuestionById, removeQuestionById, updateQuestion} from '@/api/course/question'
+import {
+  getDefaultQuestionAddDTO,
+  getDefaultQuestionDTO,
+  getQuestionById,
+  removeQuestionById,
+  updateQuestion
+} from '@/api/course/question'
 import type {QuestionAddDTO, QuestionAnswerDTO, QuestionDTO, QuestionVO} from '@/types/course'
 import type {QuestionOptionDTO} from '@/types/course/questionOption'
 import {
@@ -424,7 +426,7 @@ const loadCourseInfo = async () => {
 }
 
 // 加载题目列表
-const loadQuestionList = async (options?: {append?: boolean; showLoading?: boolean}) => {
+const loadQuestionList = async (options?: { append?: boolean; showLoading?: boolean }) => {
   if (!questionBankId.value) return
 
   const append = options?.append ?? false

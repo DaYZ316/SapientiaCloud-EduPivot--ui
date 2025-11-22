@@ -198,7 +198,7 @@ class HttpClient {
                     }
                     return Promise.reject(res)
                 }
-                
+
                 // 成功响应，完成加载条
                 if (!response.config.meta?.hideLoading) {
                     const loadingBarStore = useLoadingBarStore()

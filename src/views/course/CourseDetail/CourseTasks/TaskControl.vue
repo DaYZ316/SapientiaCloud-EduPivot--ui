@@ -196,6 +196,7 @@
             <!-- 任务内容 -->
             <RichTextEditor
                 v-model="taskContentModel"
+                :bucket-code="BusinessBucketCodeEnum.COURSE_PRIVATE"
                 :placeholder="t('course.tasks.contentPlaceholder')"
                 style="margin-bottom: 16px;"
             />
@@ -203,6 +204,7 @@
             <n-form-item :label="t('course.tasks.attachments')" path="attachments">
               <FileUpload
                   v-model:value="formData.attachmentUrls"
+                  :bucket-code="BusinessBucketCodeEnum.COURSE_PRIVATE"
                   :max-count="10"
                   :max-size="50 * 1024 * 1024"
                   accept="*/*"
@@ -328,6 +330,7 @@ import {useUserStore} from '@/store/modules/user'
 import * as CourseTaskApi from '@/api/course/courseTask'
 import {getDefaultCourseTaskDTO} from '@/api/course/courseTask'
 import * as MinIOApi from '@/api/minIO'
+import {BusinessBucketCodeEnum} from '@/enum/minIO'
 import type {CourseTaskDTO, CourseTaskVO} from '@/types/course/courseTask'
 import type {FileInfoDTO} from '@/types/minIO/file'
 import {TaskStatusEnum} from '@/enum/course/taskStatusEnum'
@@ -724,7 +727,10 @@ const loadFileInfo = async (urls: string[]) => {
 
   try {
     loadingFileInfo.value = true
-    const res = await MinIOApi.getBatchFileInfoByPath(urls)
+    const res = await MinIOApi.getBatchFileInfoByPath({
+      filePaths: urls,
+      bucketCode: BusinessBucketCodeEnum.COURSE_PRIVATE
+    })
     if (res && res.success && res.data) {
       // 过滤掉error字段为true的文件
       fileInfoList.value = res.data.filter(file => !file.error)
@@ -813,7 +819,10 @@ const handleDeleteAttachment = async (fileInfo: FileInfoDTO) => {
     onPositiveClick: async () => {
       try {
         // 从MinIO删除文件
-        await MinIOApi.deleteFile(fileInfo.objectName)
+        await MinIOApi.deleteFile({
+          objectName: fileInfo.objectName,
+          bucketCode: BusinessBucketCodeEnum.COURSE_PRIVATE
+        })
 
         // 从文件列表中移除
         const index = fileInfoList.value.findIndex(f => f.objectName === fileInfo.objectName)

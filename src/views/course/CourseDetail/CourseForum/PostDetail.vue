@@ -405,6 +405,7 @@
             <n-form-item :label="t('course.forum.postContent')" class="content-item" path="content">
               <RichTextEditor
                   v-model="editPostContent"
+                  :bucket-code="courseBucketCode"
                   :max-height="'600px'"
                   :min-height="'400px'"
                   :placeholder="t('course.forum.postContentPlaceholder')"
@@ -493,6 +494,7 @@
             <n-form-item :label="t('course.forum.replyContent')" class="content-item" path="content">
               <RichTextEditor
                   v-model="replyContent"
+                  :bucket-code="courseBucketCode"
                   :max-height="'500px'"
                   :min-height="'300px'"
                   :placeholder="t('course.forum.replyContentPlaceholder')"
@@ -595,6 +597,8 @@ import ReplyCard from './ReplyCard.vue'
 import {ForumPostDTO, ForumPostVO} from '@/types/course/forumPost'
 import {ForumReplyDTO, ForumReplyVO} from '@/types/course/forumReply'
 import {FileInfoDTO} from '@/types/minIO/file'
+import {BusinessBucketCodeEnum} from '@/enum/minIO'
+import {CoursePublicEnum} from '@/enum/course'
 import {
   getDefaultForumPostDTO,
   getForumPostById,
@@ -626,6 +630,13 @@ const courseStore = useCourseStore()
 const loading = ref(false)
 const post = ref<ForumPostVO | null>(null)
 const courseInfo = computed(() => courseStore.currentCourseInfo)
+
+// 根据课程是否公开决定使用的桶
+const courseBucketCode = computed(() => {
+  return courseInfo.value?.isPublic === CoursePublicEnum.PUBLIC
+      ? BusinessBucketCodeEnum.COURSE_PUBLIC
+      : BusinessBucketCodeEnum.COURSE_PRIVATE
+})
 const isLiked = ref(false)
 const isCollected = ref(false)
 const likeLoading = ref(false)
@@ -913,7 +924,10 @@ const loadFileInfo = async () => {
 
   loadingFileInfo.value = true
   try {
-    const res = await MinIOApi.getBatchFileInfoByPath(post.value.attachmentUrls)
+    const res = await MinIOApi.getBatchFileInfoByPath({
+      filePaths: post.value.attachmentUrls,
+      bucketCode: BusinessBucketCodeEnum.COURSE_PUBLIC
+    })
     if (res && res.success && res.data) {
       // 过滤掉error字段为true的文件
       fileInfoList.value = res.data.filter(file => !file.error)

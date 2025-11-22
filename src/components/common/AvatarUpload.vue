@@ -11,7 +11,7 @@
           :class="props.avatarClass"
           :round="props.round"
           :size="avatarSize"
-          :src="shouldShowImage ? props.modelValue : undefined"
+          :src="shouldShowImage ? displayAvatarSrc : undefined"
           :style="avatarStyle"
           @error="handleImageError"
           @load="handleImageLoad"
@@ -50,9 +50,9 @@
       <div class="crop-container">
         <div class="crop-preview">
           <img
-              v-show="cropImageUrl"
+              v-if="cropImageUrl"
               ref="cropImageRef"
-              :src="cropImageUrl"
+              :src="cropImageUrl || undefined"
               class="cropper-image"
           />
         </div>
@@ -131,152 +131,133 @@ import {
 import {useI18n} from 'vue-i18n'
 import {uploadFile} from '@/api/minIO'
 import type {AvatarUploadEmits, AvatarUploadProps} from '@/types/minIO/file'
+import {BusinessBucketCodeEnum} from '@/enum/minIO'
 import Icon from '@/components/common/Icon.vue'
+import defaultAvatar from '@/assets/image/anonymous-user.png'
+import {
+  getAvatarColor,
+  getAvatarFontSize,
+  getAvatarInitial,
+  normalizeAvatarSize,
+  resolveUserName
+} from '@/utils/avatarUtil'
 
-// 预定义的头像背景颜色数组
-const avatarColors = [
-  '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD',
-  '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9', '#F8C471', '#82E0AA',
-  '#F1948A', '#D7BDE2'
-]
-
-// Props定义
 const props = withDefaults(defineProps<AvatarUploadProps>(), {
-  modelValue: undefined,
+  modelValue: null,
   size: 'medium',
   cropSize: 200,
-  maxFileSize: 2 * 1024 * 1024, // 2MB
+  maxFileSize: 2 * 1024 * 1024,
   accept: 'image/*',
   disabled: false,
-  username: undefined,
-  nickName: undefined,
-  studentRealName: undefined,
-  teacherRealName: undefined,
+  username: null,
+  nickName: null,
+  studentRealName: null,
+  teacherRealName: null,
+  fallbackSrc: null,
   round: true,
-  avatarClass: ''
+  avatarClass: '',
+  bucketCode: BusinessBucketCodeEnum.USER_AVATAR
 })
 
-// Emits定义
 const emit = defineEmits<AvatarUploadEmits>()
-
-// 组合式API
 const {t} = useI18n()
 const message = useMessage()
 
-// 响应式数据
-const fileInputRef = ref<HTMLInputElement>()
-const cropImageRef = ref<HTMLImageElement>()
-const previewCanvasRef = ref<HTMLCanvasElement>()
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const cropImageRef = ref<HTMLImageElement | null>(null)
+const previewCanvasRef = ref<HTMLCanvasElement | null>(null)
 const showCropModal = ref(false)
-const cropImageUrl = ref('')
+const cropImageUrl = ref<string | null>(null)
 const uploading = ref(false)
-const currentFile = ref<File | null>(null)
 const cropperInstance = ref<Cropper | null>(null)
 const imageError = ref(false)
 
-// 预览尺寸
-const previewSize = computed(() => Math.max(80, Math.round(props.cropSize * 0.4)))
-
-// 根据用户信息生成稳定的随机颜色
-const getAvatarColor = (text: string): string => {
-  if (!text) return '#000000'
-
-  let hash = 0
-  for (let i = 0; i < text.length; i++) {
-    hash = text.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  return avatarColors[Math.abs(hash) % avatarColors.length]
-}
-
-// 获取用户名（优先级：角色真实姓名 > nickName > username）
-const userName = computed(() => {
-  return props.studentRealName || props.teacherRealName || props.nickName || props.username || ''
+const previewSize = computed(() => {
+  const baseSize = props.cropSize ?? 200
+  return Math.max(80, Math.round(baseSize * 0.4))
 })
-
-// 获取用户名首字母作为头像fallback
-const userInitial = computed(() => {
-  return userName.value ? userName.value.charAt(0).toUpperCase() : ''
-})
-
-// 计算头像尺寸
-const avatarSize = computed(() => {
-  if (typeof props.size === 'number') return props.size
-
-  const sizeMap = {small: 32, medium: 40, large: 48}
-  return sizeMap[props.size] || 40
-})
-
-// 头像样式
+const userName = computed(() => resolveUserName(props))
+const userInitial = computed(() => getAvatarInitial(userName.value))
+const avatarSize = computed(() => normalizeAvatarSize(props.size))
 const avatarStyle = computed(() => ({
   backgroundColor: getAvatarColor(userName.value),
-  fontSize: Math.max(14, Math.round(avatarSize.value * 0.5)) + 'px'
+  fontSize: getAvatarFontSize(avatarSize.value)
 }))
-
-// 处理图片加载失败
-const handleImageError = () => {
-  imageError.value = true
-}
-
-// 处理图片加载成功
-const handleImageLoad = () => {
-  imageError.value = false
-}
-
-// 判断是否应该显示图片
-const shouldShowImage = computed(() => {
-  return !!(props.modelValue && !imageError.value)
+const fallbackSrc = computed<string | undefined>(() => {
+  return props.fallbackSrc || defaultAvatar
 })
+const isPrimaryAvatarActive = computed(() => Boolean(props.modelValue) && !imageError.value)
+const displayAvatarSrc = computed<string | undefined>(() => {
+  if (isPrimaryAvatarActive.value && props.modelValue) {
+    return props.modelValue
+  }
+  return fallbackSrc.value
+})
+const shouldShowImage = computed(() => Boolean(displayAvatarSrc.value))
 
-// 处理头像点击
+const handleImageError = () => {
+  if (isPrimaryAvatarActive.value) {
+    imageError.value = true
+  }
+}
+
+const handleImageLoad = () => {
+  if (isPrimaryAvatarActive.value) {
+    imageError.value = false
+  }
+}
+
 const handleAvatarClick = () => {
   if (props.disabled) return
   fileInputRef.value?.click()
 }
 
-// 处理文件选择
 const handleFileChange = (event: Event) => {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
 
-  if (!file) return
+  if (!file) {
+    cropImageUrl.value = null
+    resetFileInput()
+    return
+  }
 
-  // 验证文件类型
   if (!file.type.startsWith('image/')) {
+    cropImageUrl.value = null
+    resetFileInput()
     return
   }
 
-  // 验证文件大小
-  if (file.size > props.maxFileSize) {
+  const maxSize = props.maxFileSize ?? Number.POSITIVE_INFINITY
+  if (file.size > maxSize) {
+    cropImageUrl.value = null
+    resetFileInput()
     return
   }
 
-  currentFile.value = file
-
-  // 创建预览URL
   const reader = new FileReader()
   reader.onload = (e) => {
-    cropImageUrl.value = e.target?.result as string
-    showCropModal.value = true
-    nextTick(() => {
-      initCropper()
-    })
+    cropImageUrl.value = (e.target?.result as string) || null
+    showCropModal.value = Boolean(cropImageUrl.value)
+    if (showCropModal.value) {
+      nextTick(() => {
+        initCropper()
+      })
+    }
   }
   reader.readAsDataURL(file)
 }
 
-// 初始化裁剪器
 const initCropper = () => {
   if (!cropImageRef.value || !cropImageUrl.value) return
 
-  // 销毁之前的实例
   if (cropperInstance.value) {
     cropperInstance.value.destroy()
     cropperInstance.value = null
   }
 
-  // 创建新的 Cropper 实例
   cropperInstance.value = new Cropper(cropImageRef.value, {
-    aspectRatio: 1, // 头像使用1:1比例
+    aspectRatio: 1,
     viewMode: 1,
     guides: true,
     center: true,
@@ -293,7 +274,6 @@ const initCropper = () => {
   } as any)
 }
 
-// 更新预览
 const updatePreview = () => {
   if (!cropperInstance.value || !previewCanvasRef.value) return
 
@@ -301,11 +281,9 @@ const updatePreview = () => {
   const context = canvas.getContext('2d')
   if (!context) return
 
-  // 设置 canvas 尺寸
   canvas.width = previewSize.value
   canvas.height = previewSize.value
 
-  // 获取裁剪区域的图像数据
   const croppedCanvas = cropperInstance.value.getCroppedCanvas({
     width: previewSize.value,
     height: previewSize.value,
@@ -318,7 +296,6 @@ const updatePreview = () => {
   }
 }
 
-// 旋转和翻转功能
 const rotateLeft = () => {
   cropperInstance.value?.rotate(-90)
 }
@@ -337,90 +314,106 @@ const flipY = () => {
   cropperInstance.value?.scaleY(-scaleY)
 }
 
-// 处理裁剪确认
-const handleCropConfirm = async () => {
-  if (!cropperInstance.value) return
+const handleCropConfirm = () => {
+  if (!cropperInstance.value || uploading.value) return
 
-  try {
-    uploading.value = true
+  uploading.value = true
+  const croppedCanvas = cropperInstance.value.getCroppedCanvas({
+    width: props.cropSize,
+    height: props.cropSize,
+    imageSmoothingQuality: 'high'
+  })
 
-    // 获取裁剪后的 canvas
-    const croppedCanvas = cropperInstance.value.getCroppedCanvas({
-      width: props.cropSize,
-      height: props.cropSize,
-      imageSmoothingQuality: 'high'
-    })
+  if (!croppedCanvas) {
+    uploading.value = false
+    return
+  }
 
-    if (!croppedCanvas) {
+  croppedCanvas.toBlob((blob: Blob | null) => {
+    if (!blob) {
+      uploading.value = false
       return
     }
 
-    // 转换为 blob
-    croppedCanvas.toBlob(async (blob: Blob | null) => {
-      if (!blob) {
-        return
-      }
-
-      await uploadCroppedImage(blob)
-    }, 'image/jpeg', 0.8)
-  } finally {
-    uploading.value = false
-  }
+    uploadCroppedImage(blob).then(
+        () => {
+          uploading.value = false
+        },
+        () => {
+          uploading.value = false
+        }
+    )
+  }, 'image/jpeg', 0.8)
 }
 
-// 上传裁剪后的图片
 const uploadCroppedImage = async (blob: Blob) => {
-  try {
-    // 创建File对象并上传
-    const fileName = `avatar_${Date.now()}.jpg`
-    const file = new File([blob], fileName, {type: 'image/jpeg'})
-    const response = await uploadFile(file, 'avatar')
+  const fileName = `avatar_${Date.now()}.jpg`
+  const file = new File([blob], fileName, {type: 'image/jpeg'})
+  const response = await uploadFile(file, {directory: 'avatar', bucketCode: props.bucketCode}).then(
+      (res) => res,
+      (error) => {
+        emit('upload-error', error instanceof Error ? error : new Error('avatar upload failed'))
+        return null
+      }
+  )
 
-    if (response && response.data) {
-      const uploadResult = response.data
-      const avatarUrl = uploadResult.url || uploadResult.objectName
+  resetFileInput()
 
-      // 更新头像URL
-      emit('update:modelValue', avatarUrl)
-      emit('upload-success', avatarUrl)
-      emit('update-avatar', avatarUrl)
+  if (!response || !response.data) {
+    emit('upload-error', new Error('avatar upload failed'))
+    return
+  }
 
-      message.success(t('common.avatarUpdateSuccess'))
-      showCropModal.value = false
-    }
-  } finally {
-    // 清空文件输入
-    if (fileInputRef.value) {
-      fileInputRef.value.value = ''
-    }
-    currentFile.value = null
+  const uploadResult = response.data
+  const avatarUrl = uploadResult.url || uploadResult.objectName
+
+  if (!avatarUrl) {
+    emit('upload-error', new Error('avatar upload failed'))
+    return
+  }
+
+  emit('update:modelValue', avatarUrl)
+  emit('upload-success', avatarUrl)
+  emit('update-avatar', avatarUrl)
+  message.success(t('common.avatarUpdateSuccess'))
+  showCropModal.value = false
+}
+
+const resetFileInput = () => {
+  if (fileInputRef.value) {
+    fileInputRef.value.value = ''
   }
 }
 
-// 重置裁剪模态框
 const resetCropModal = () => {
-  cropImageUrl.value = ''
+  cropImageUrl.value = null
 
-  // 销毁 cropper 实例
   if (cropperInstance.value) {
     cropperInstance.value.destroy()
     cropperInstance.value = null
   }
 }
 
-// 监听模态框显示状态
-watch(showCropModal, (visible: boolean) => {
-  if (!visible) {
-    resetCropModal()
-  } else {
-    // 模态框显示后初始化裁剪器
-    nextTick(() => {
-      initCropper()
-    })
-  }
-})
+watch(
+    () => showCropModal.value,
+    (visible) => {
+      if (!visible) {
+        resetCropModal()
+      } else {
+        nextTick(() => {
+          initCropper()
+        })
+      }
+    }
+)
 
-// 组件卸载时清理
+watch(
+    () => props.modelValue,
+    () => {
+      imageError.value = false
+    }
+)
+
 onUnmounted(() => {
   if (cropperInstance.value) {
     cropperInstance.value.destroy()

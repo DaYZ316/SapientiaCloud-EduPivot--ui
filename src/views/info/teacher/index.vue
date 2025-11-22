@@ -174,13 +174,7 @@
 
 <script lang="ts" setup>
 import {computed, h, reactive, ref} from 'vue'
-import {
-  AddOutline,
-  CreateOutline,
-  RefreshOutline,
-  SearchOutline,
-  TrashOutline
-} from '@vicons/ionicons5'
+import {AddOutline, CreateOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
 import * as teacherApi from '@/api/teacher'
 import type * as teacherType from '@/types/teacher'
 import {Education} from '@/types/teacher'

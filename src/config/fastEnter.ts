@@ -1,8 +1,6 @@
 import type {Component} from 'vue'
 import {
     BookOutline,
-    ChatbubblesOutline,
-    DocumentTextOutline,
     HomeOutline,
     KeyOutline,
     LibraryOutline,

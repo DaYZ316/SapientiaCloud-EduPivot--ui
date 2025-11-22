@@ -1,6 +1,8 @@
 /**
  * MinIO模块-文件类型定义
  */
+import type {AvatarIdentityProps, AvatarSizeType} from '@/types/components/avatar'
+import type {BusinessBucketCode} from './bucket'
 
 // 文件信息DTO接口
 export interface FileInfoDTO {
@@ -15,6 +17,7 @@ export interface FileInfoDTO {
     extension: string;
     path: string;
     bucketName: string;
+    bucketCode: BusinessBucketCode | null;
     error: boolean;
     errorMessage: string;
 }
@@ -38,25 +41,17 @@ export interface UploadFileResponse {
 }
 
 // 头像上传组件Props接口
-export interface AvatarUploadProps {
-    modelValue?: string;
-    size?: 'small' | 'medium' | 'large' | number;
+export interface AvatarUploadProps extends AvatarIdentityProps {
+    modelValue?: string | null;
+    size?: AvatarSizeType;
     cropSize?: number;
     maxFileSize?: number;
     accept?: string;
     disabled?: boolean;
-    // 用户名（用于生成首字母和背景色）
-    username?: string;
-    // 用户昵称
-    nickName?: string;
-    // 学生真实姓名（优先级最高）
-    studentRealName?: string;
-    // 教师真实姓名（优先级最高）
-    teacherRealName?: string;
-    // 是否圆形
     round?: boolean;
-    // 自定义样式类
     avatarClass?: string;
+    fallbackSrc?: string | null;
+    bucketCode?: BusinessBucketCode;
 }
 
 // 头像上传组件Emits接口
@@ -81,6 +76,7 @@ export function getDefaultFileInfoDTO(): FileInfoDTO {
         extension: '',
         path: '',
         bucketName: '',
+        bucketCode: null,
         error: false,
         errorMessage: ''
     }

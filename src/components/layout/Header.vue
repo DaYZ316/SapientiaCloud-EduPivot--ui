@@ -43,8 +43,8 @@
               ref="searchInputRef"
               v-model:value="searchValue"
               :placeholder="t('header.searchPlaceholder')"
-              clearable
               class="search-input"
+              clearable
           >
             <template #prefix>
               <Icon :component="SearchOutline"/>
@@ -168,7 +168,7 @@ import type {Locale} from '@/types/i18n'
 
 const router = useRouter()
 const themeStore = useThemeStore()
-const { t } = useI18n()
+const {t} = useI18n()
 const i18n = useI18n()
 
 const searchValue = ref<string | null>(null)

@@ -1,8 +1,8 @@
 import http from '@/utils/http'
 import type {
     CourseRecordStudentDTO,
-    CourseRecordStudentVO,
     CourseRecordStudentPageQueryDTO,
+    CourseRecordStudentVO,
     StudentSeatDeleteDTO
 } from '@/types/classroom'
 import type {TableDataResult} from '@/types/common/baseEntity'

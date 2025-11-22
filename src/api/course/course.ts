@@ -10,6 +10,7 @@ export function getDefaultCourseQuery(): CourseQueryParams {
         courseType: null,
         location: null,
         status: null,
+        isPublic: null,
         studentId: null,
         startTime: null,
         endTime: null,
@@ -33,7 +34,8 @@ export function getDefaultCourseDTO(): CourseDTO {
         semester: null,
         location: null,
         courseType: null,
-        status: null
+        status: null,
+        isPublic: null
     }
 }
 

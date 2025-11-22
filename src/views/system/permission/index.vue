@@ -173,13 +173,7 @@
 <script lang="ts" setup>
 import {computed, h, reactive, ref} from 'vue'
 import type {FormInst, FormRules, TreeSelectOption} from 'naive-ui'
-import {
-  AddOutline,
-  CreateOutline,
-  RefreshOutline,
-  SearchOutline,
-  TrashOutline
-} from '@vicons/ionicons5'
+import {AddOutline, CreateOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
 import * as permissionApi from '@/api/system/permission'
 import type * as permissionType from '@/types/system/permission'
 import {useI18n} from 'vue-i18n'

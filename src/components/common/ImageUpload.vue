@@ -121,6 +121,7 @@ import {
 } from '@vicons/ionicons5'
 import Icon from '@/components/common/Icon.vue'
 import type {ImageUploadEmits, ImageUploadProps} from '@/types/components/imageUpload'
+import {BusinessBucketCodeEnum} from '@/enum/minIO'
 
 // Props with defaults
 const props = withDefaults(defineProps<ImageUploadProps>(), {
@@ -134,7 +135,8 @@ const props = withDefaults(defineProps<ImageUploadProps>(), {
   showCrop: true,
   aspectRatio: 1,
   round: false,
-  previewSize: 150
+  previewSize: 150,
+  bucketCode: BusinessBucketCodeEnum.COURSE_PUBLIC
 })
 
 // Emits
@@ -308,7 +310,10 @@ const confirmCrop = async () => {
 const uploadImageDirectly = async (file: File) => {
   try {
     uploading.value = true
-    const response = await uploadFile(file, props.uploadDir)
+    const response = await uploadFile(file, {
+      directory: props.uploadDir,
+      bucketCode: props.bucketCode
+    })
 
     if (response.success && response.data) {
       const imageUrl = response.data.url
@@ -325,7 +330,10 @@ const uploadCroppedImage = async (blob: Blob) => {
   // 创建File对象并上传
   const fileName = `image_${Date.now()}.jpg`
   const file = new File([blob], fileName, {type: 'image/jpeg'})
-  const response = await uploadFile(file, props.uploadDir)
+  const response = await uploadFile(file, {
+    directory: props.uploadDir,
+    bucketCode: props.bucketCode
+  })
 
   if (response.success && response.data) {
     const imageUrl = response.data.url

@@ -217,14 +217,7 @@
 <script lang="ts" setup>
 import {computed, h, reactive, ref} from 'vue'
 import type {FormInst, FormRules} from 'naive-ui'
-import {
-  AddOutline,
-  CreateOutline,
-  KeyOutline,
-  RefreshOutline,
-  SearchOutline,
-  TrashOutline
-} from '@vicons/ionicons5'
+import {AddOutline, CreateOutline, KeyOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
 import * as roleApi from '@/api/system/role'
 import {getPermissionTree} from '@/api/system/permission'
 import type * as roleType from '@/types/system/role'

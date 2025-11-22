@@ -19,7 +19,7 @@ export const useUserStore = defineStore('user', () => {
     const roles = ref<SysRoleVO[]>([])
     const studentInfo = ref<StudentVO | null>(null)
     const teacherInfo = ref<TeacherVO | null>(null)
-    
+
     // 防止重复刷新的标志
     const isRefreshing = ref<boolean>(false)
     const lastRefreshedUserId = ref<string | null>(null)
@@ -36,7 +36,7 @@ export const useUserStore = defineStore('user', () => {
      */
     const needsIdentityInfo = computed<boolean>(() => {
         if (!isLogin.value || !userInfo.value) return false
-        
+
         // 如果既没有学生信息也没有教师信息，则需要填写信息
         return studentInfo.value === null && teacherInfo.value === null
     })
@@ -193,11 +193,11 @@ export const useUserStore = defineStore('user', () => {
      */
     const fetchUserRoleInfo = async (sysUserId: string, forceRefresh: boolean = false): Promise<void> => {
         // 如果用户ID没有变化且已有信息，且不是强制刷新，则跳过查询
-        if (!forceRefresh && lastRefreshedUserId.value === sysUserId && 
+        if (!forceRefresh && lastRefreshedUserId.value === sysUserId &&
             (studentInfo.value !== null || teacherInfo.value !== null)) {
             return
         }
-        
+
         // 直接查询学生和教师信息，不依赖角色判断
         // 这样可以确保在角色绑定完成后能立即获取到最新的信息
         const tasks = [
@@ -219,7 +219,7 @@ export const useUserStore = defineStore('user', () => {
         teacherInfo.value = teacherRes.status === 'fulfilled' &&
         teacherRes.value.success && teacherRes.value.data ?
             teacherRes.value.data : null
-        
+
         // 更新最后刷新的用户ID
         lastRefreshedUserId.value = sysUserId
     }
@@ -231,7 +231,7 @@ export const useUserStore = defineStore('user', () => {
      */
     const refreshUserInfo = async (forceRefresh: boolean = false): Promise<boolean> => {
         if (!token.value) return false
-        
+
         // 如果正在刷新中，等待当前刷新完成
         if (isRefreshing.value) {
             // 等待刷新完成
@@ -241,14 +241,14 @@ export const useUserStore = defineStore('user', () => {
             // 如果用户信息已存在，返回成功
             if (userInfo.value) return true
         }
-        
+
         // 如果用户信息已存在且不是强制刷新，跳过
         if (!forceRefresh && userInfo.value && lastRefreshedUserId.value === userInfo.value.id) {
             return true
         }
-        
+
         isRefreshing.value = true
-        
+
         try {
             const res = await AuthApi.getUserInfo()
             if (res.success && res.data) {

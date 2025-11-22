@@ -177,6 +177,7 @@
                 <n-form-item-grid-item :span="24">
                   <RichTextEditor
                       v-model="chapterForm.content!"
+                      :bucket-code="courseBucketCode"
                       :placeholder="t('course.chapters.form.contentPlaceholder')"
                       upload-path="course-chapters"
                       @change="handleContentChange"
@@ -187,6 +188,7 @@
                 <n-form-item-grid-item :label="t('course.chapters.form.attachments')" :span="24">
                   <FileUpload
                       v-model="attachmentFiles"
+                      :bucket-code="courseBucketCode"
                       :max-file-count="10"
                       :max-file-size="50 * 1024 * 1024"
                       :multiple="true"
@@ -304,7 +306,9 @@ import {
 import * as CourseChapterApi from '@/api/course/courseChapter'
 import {getDefaultCourseChapterDTO} from '@/api/course/courseChapter'
 import * as MinIOApi from '@/api/minIO'
+import {BusinessBucketCodeEnum} from '@/enum/minIO'
 import {ChapterStatusEnum} from '@/enum/course/chapterStatusEnum'
+import {CoursePublicEnum} from '@/enum/course'
 import type {CourseChapterAddDTO, CourseChapterDTO, CourseChapterVO} from '@/types/course/courseChapter'
 import type {FileInfoDTO} from '@/types/minIO/file'
 import CourseBreadcrumb from '../../components/CourseBreadcrumb/CourseBreadcrumb.vue'
@@ -325,6 +329,14 @@ const courseStore = useCourseStore()
 
 // 响应式数据
 const courseInfo = computed(() => courseStore.currentCourseInfo)
+
+// 根据课程是否公开决定使用的桶
+const courseBucketCode = computed(() => {
+  return courseInfo.value?.isPublic === CoursePublicEnum.PUBLIC
+      ? BusinessBucketCodeEnum.COURSE_PUBLIC
+      : BusinessBucketCodeEnum.COURSE_PRIVATE
+})
+
 const allChapters = ref<CourseChapterVO[]>([]) // 存储所有章节数据（扁平化）
 const originalChapterTree = ref<CourseChapterVO[]>([]) // 存储原始树形数据
 const draftChapters = ref<CourseChapterVO[]>([]) // 草稿章节（从allChapters过滤）
@@ -604,7 +616,10 @@ const loadFileInfo = async () => {
 
   loadingFileInfo.value = true
   try {
-    const res = await MinIOApi.getBatchFileInfoByPath(chapterForm.value.attachmentUrls)
+    const res = await MinIOApi.getBatchFileInfoByPath({
+      filePaths: chapterForm.value.attachmentUrls,
+      bucketCode: BusinessBucketCodeEnum.COURSE_PRIVATE
+    })
     if (res && res.success && res.data) {
       // 过滤掉error字段为true的文件
       fileInfoList.value = res.data.filter(file => !file.error)
@@ -691,7 +706,10 @@ const handleDeleteAttachment = (fileInfo: FileInfoDTO) => {
 
         // 2. 只有当文件的error字段不为true时，才删除MinIO中的文件
         if (!fileInfo.error && fileInfo.url) {
-          await MinIOApi.deleteFileByPath(fileInfo.url)
+          await MinIOApi.deleteFileByPath({
+            filePath: fileInfo.url,
+            bucketCode: BusinessBucketCodeEnum.COURSE_PRIVATE
+          })
         }
 
         // 3. 更新本地缓存状态（无论error字段是否为true都要删除本地缓存）

@@ -93,6 +93,18 @@
                   clearable
               />
             </n-form-item>
+
+            <n-form-item :label="t('course.dialog.isPublic')" path="isPublic">
+              <n-switch
+                  v-model:value="formData.isPublic"
+                  :checked-value="CoursePublicEnum.PUBLIC"
+                  :disabled="modalMode === 'edit'"
+                  :unchecked-value="CoursePublicEnum.PRIVATE"
+              >
+                <template #checked>{{ t('course.coursePublic.PUBLIC') }}</template>
+                <template #unchecked>{{ t('course.coursePublic.PRIVATE') }}</template>
+              </n-switch>
+            </n-form-item>
           </div>
 
           <!-- 右列 -->
@@ -101,6 +113,7 @@
               <ImageUpload
                   v-model="formData.coverImageUrl"
                   :aspect-ratio="16/9"
+                  :bucket-code="BusinessBucketCodeEnum.COURSE_PUBLIC"
                   :crop-size="400"
                   :round="false"
                   :show-crop="true"
@@ -142,7 +155,14 @@ import {NTag, NText, useDialog, useMessage} from 'naive-ui'
 import {CreateOutline, EyeOutline, TrashOutline} from '@vicons/ionicons5'
 import type * as courseType from '@/types/course'
 import type * as teacherType from '@/types/teacher'
-import {getCourseStatusLabel, getCourseStatusOptions, getCourseTypeLabel, getCourseTypeOptions} from '@/enum/course'
+import {
+  CoursePublicEnum,
+  getCourseStatusLabel,
+  getCourseStatusOptions,
+  getCourseTypeLabel,
+  getCourseTypeOptions
+} from '@/enum/course'
+import {BusinessBucketCodeEnum} from '@/enum/minIO'
 import {useI18n} from 'vue-i18n'
 import {renderIcon} from '@/utils/iconUtil'
 import PageTable from '@/components/common/PageTable.vue'
@@ -542,7 +562,8 @@ watch(() => currentCourseData.value, (newData) => {
       semester: newData.semester,
       location: newData.location,
       courseType: newData.courseType,
-      status: newData.status
+      status: newData.status,
+      isPublic: newData.isPublic ?? CoursePublicEnum.PRIVATE
     }
   }
 }, {immediate: true})

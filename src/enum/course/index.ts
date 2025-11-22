@@ -34,3 +34,5 @@ export * from './questionBankTypeEnum';
 export * from './questionBankDifficultyEnum';
 // 题库公开状态枚举导出
 export * from './questionBankPublicEnum';
+// 课程公开状态枚举导出
+export * from './coursePublicEnum';

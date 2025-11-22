@@ -59,7 +59,8 @@
   "semester": "",
   "location": "",
   "courseType": 0,
-  "status": 0
+  "status": 0,
+  "isPublic": 0
 }
 ```
 
@@ -80,6 +81,7 @@
 |&emsp;&emsp;location|上课地点||false|string||
 |&emsp;&emsp;courseType|课程类型 (0=必修, 1=选修)||false|integer(int32)||
 |&emsp;&emsp;status|课程状态 (0=正常, 1=停课)||false|integer(int32)||
+|&emsp;&emsp;isPublic|是否公开 (0=仅课程成员, 1=公开)||false|integer(int32)||
 
 
 **响应状态**:
@@ -348,6 +350,7 @@
 |&emsp;&emsp;assistantTeacherIds|辅助教学教师ID列表|array|string(uuid)|
 |&emsp;&emsp;coverImageUrl|课程封面图片URL|string||
 |&emsp;&emsp;status|课程状态 (0=正常, 1=停课)|integer(int32)||
+|&emsp;&emsp;isPublic|是否公开 (0=仅课程成员, 1=公开)|integer(int32)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
@@ -371,6 +374,7 @@
 		"assistantTeacherIds": [],
 		"coverImageUrl": "",
 		"status": 0,
+		"isPublic": 0,
 		"createTime": "",
 		"updateTime": ""
 	}
@@ -573,7 +577,8 @@
   "semester": "",
   "location": "",
   "courseType": 0,
-  "status": 0
+  "status": 0,
+  "isPublic": 0
 }
 ```
 
@@ -594,6 +599,7 @@
 |&emsp;&emsp;location|上课地点||false|string||
 |&emsp;&emsp;courseType|课程类型 (0=必修, 1=选修)||false|integer(int32)||
 |&emsp;&emsp;status|课程状态 (0=正常, 1=停课)||false|integer(int32)||
+|&emsp;&emsp;isPublic|是否公开 (0=仅课程成员, 1=公开)||false|integer(int32)||
 
 
 **响应状态**:
@@ -630,6 +636,7 @@
 |&emsp;&emsp;assistantTeacherIds|辅助教学教师ID列表|array|string(uuid)|
 |&emsp;&emsp;coverImageUrl|课程封面图片URL|string||
 |&emsp;&emsp;status|课程状态 (0=正常, 1=停课)|integer(int32)||
+|&emsp;&emsp;isPublic|是否公开 (0=仅课程成员, 1=公开)|integer(int32)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
@@ -653,6 +660,7 @@
 		"assistantTeacherIds": [],
 		"coverImageUrl": "",
 		"status": 0,
+		"isPublic": 0,
 		"createTime": "",
 		"updateTime": ""
 	}
@@ -769,6 +777,7 @@
 |&emsp;&emsp;assistantTeacherIds|辅助教学教师ID列表|array|string(uuid)|
 |&emsp;&emsp;coverImageUrl|课程封面图片URL|string||
 |&emsp;&emsp;status|课程状态 (0=正常, 1=停课)|integer(int32)||
+|&emsp;&emsp;isPublic|是否公开 (0=仅课程成员, 1=公开)|integer(int32)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
@@ -793,6 +802,7 @@
 			"assistantTeacherIds": [],
 			"coverImageUrl": "",
 			"status": 0,
+			"isPublic": 0,
 			"createTime": "",
 			"updateTime": ""
 		}
@@ -882,6 +892,7 @@
 |location|上课地点|query|false|string||
 |status|课程状态 (0=正常, 1=停课)|query|false|string||
 |studentId|学生ID|query|false|string||
+|isPublic|是否公开 (0=仅课程成员, 1=公开)|query|false|string||
 |startTime|起始时间|query|false|string||
 |endTime|结束时间|query|false|string||
 |pageNum|当前记录起始索引|query|false|string||
@@ -1032,6 +1043,7 @@
 |&emsp;&emsp;location|上课地点|string||
 |&emsp;&emsp;teacherName|授课教师姓名|string||
 |&emsp;&emsp;teacherAvatar|授课教师头像|string||
+|&emsp;&emsp;isPublic|是否公开 (0=仅课程成员, 1=公开)|integer(int32)||
 
 
 **响应示例**:
@@ -1050,7 +1062,8 @@
 			"semester": "",
 			"location": "",
 			"teacherName": "",
-			"teacherAvatar": ""
+			"teacherAvatar": "",
+			"isPublic": 0
 		}
 	]
 }
@@ -1677,6 +1690,7 @@
 |&emsp;&emsp;assistantTeacherIds|辅助教学教师ID列表|array|string(uuid)|
 |&emsp;&emsp;coverImageUrl|课程封面图片URL|string||
 |&emsp;&emsp;status|课程状态 (0=正常, 1=停课)|integer(int32)||
+|&emsp;&emsp;isPublic|是否公开 (0=仅课程成员, 1=公开)|integer(int32)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
@@ -1701,6 +1715,7 @@
 			"assistantTeacherIds": [],
 			"coverImageUrl": "",
 			"status": 0,
+			"isPublic": 0,
 			"createTime": "",
 			"updateTime": ""
 		}
@@ -1791,7 +1806,6 @@
   "forumName": "",
   "description": "",
   "forumType": 0,
-  "isPublic": 0,
   "allowAnonymous": 0,
   "status": 0,
   "tags": []
@@ -1810,7 +1824,6 @@
 |&emsp;&emsp;forumName|论坛名称||true|string||
 |&emsp;&emsp;description|论坛描述||false|string||
 |&emsp;&emsp;forumType|论坛类型 (0=讨论区, 1=问答区, 2=作业区, 3=公告区)||false|integer(int32)||
-|&emsp;&emsp;isPublic|是否公开 (0=仅课程成员, 1=公开)||false|integer(int32)||
 |&emsp;&emsp;allowAnonymous|是否允许匿名发帖 (0=不允许, 1=允许)||false|integer(int32)||
 |&emsp;&emsp;status|论坛状态 (0=正常, 1=关闭, 2=维护)||false|integer(int32)||
 |&emsp;&emsp;tags|标签列表||false|array|string|
@@ -1843,7 +1856,6 @@
 |&emsp;&emsp;forumName|论坛名称|string||
 |&emsp;&emsp;description|论坛描述|string||
 |&emsp;&emsp;forumType|论坛类型 (0=讨论区, 1=问答区, 2=作业区, 3=公告区)|integer(int32)||
-|&emsp;&emsp;isPublic|是否公开 (0=仅课程成员, 1=公开)|integer(int32)||
 |&emsp;&emsp;allowAnonymous|是否允许匿名发帖 (0=不允许, 1=允许)|integer(int32)||
 |&emsp;&emsp;postCount|帖子总数|integer(int64)||
 |&emsp;&emsp;replyCount|回复总数|integer(int64)||
@@ -1865,7 +1877,6 @@
 		"forumName": "",
 		"description": "",
 		"forumType": 0,
-		"isPublic": 0,
 		"allowAnonymous": 0,
 		"postCount": 0,
 		"replyCount": 0,
@@ -1957,7 +1968,6 @@
   "forumName": "",
   "description": "",
   "forumType": 0,
-  "isPublic": 0,
   "allowAnonymous": 0,
   "status": 0,
   "tags": []
@@ -1976,7 +1986,6 @@
 |&emsp;&emsp;forumName|论坛名称||true|string||
 |&emsp;&emsp;description|论坛描述||false|string||
 |&emsp;&emsp;forumType|论坛类型 (0=讨论区, 1=问答区, 2=作业区, 3=公告区)||false|integer(int32)||
-|&emsp;&emsp;isPublic|是否公开 (0=仅课程成员, 1=公开)||false|integer(int32)||
 |&emsp;&emsp;allowAnonymous|是否允许匿名发帖 (0=不允许, 1=允许)||false|integer(int32)||
 |&emsp;&emsp;status|论坛状态 (0=正常, 1=关闭, 2=维护)||false|integer(int32)||
 |&emsp;&emsp;tags|标签列表||false|array|string|
@@ -2241,7 +2250,6 @@
 |&emsp;&emsp;forumName|论坛名称|string||
 |&emsp;&emsp;description|论坛描述|string||
 |&emsp;&emsp;forumType|论坛类型 (0=讨论区, 1=问答区, 2=作业区, 3=公告区)|integer(int32)||
-|&emsp;&emsp;isPublic|是否公开 (0=仅课程成员, 1=公开)|integer(int32)||
 |&emsp;&emsp;allowAnonymous|是否允许匿名发帖 (0=不允许, 1=允许)|integer(int32)||
 |&emsp;&emsp;postCount|帖子总数|integer(int64)||
 |&emsp;&emsp;replyCount|回复总数|integer(int64)||
@@ -2263,7 +2271,6 @@
 		"forumName": "",
 		"description": "",
 		"forumType": 0,
-		"isPublic": 0,
 		"allowAnonymous": 0,
 		"postCount": 0,
 		"replyCount": 0,
@@ -2492,7 +2499,6 @@
 |&emsp;&emsp;forumName|论坛名称|string||
 |&emsp;&emsp;description|论坛描述|string||
 |&emsp;&emsp;forumType|论坛类型 (0=讨论区, 1=问答区, 2=作业区, 3=公告区)|integer(int32)||
-|&emsp;&emsp;isPublic|是否公开 (0=仅课程成员, 1=公开)|integer(int32)||
 |&emsp;&emsp;allowAnonymous|是否允许匿名发帖 (0=不允许, 1=允许)|integer(int32)||
 |&emsp;&emsp;postCount|帖子总数|integer(int64)||
 |&emsp;&emsp;replyCount|回复总数|integer(int64)||
@@ -2514,7 +2520,6 @@
 		"forumName": "",
 		"description": "",
 		"forumType": 0,
-		"isPublic": 0,
 		"allowAnonymous": 0,
 		"postCount": 0,
 		"replyCount": 0,
@@ -2744,7 +2749,6 @@
 |&emsp;&emsp;forumName|论坛名称|string||
 |&emsp;&emsp;description|论坛描述|string||
 |&emsp;&emsp;forumType|论坛类型 (0=讨论区, 1=问答区, 2=作业区, 3=公告区)|integer(int32)||
-|&emsp;&emsp;isPublic|是否公开 (0=仅课程成员, 1=公开)|integer(int32)||
 |&emsp;&emsp;allowAnonymous|是否允许匿名发帖 (0=不允许, 1=允许)|integer(int32)||
 |&emsp;&emsp;postCount|帖子总数|integer(int64)||
 |&emsp;&emsp;replyCount|回复总数|integer(int64)||
@@ -2767,7 +2771,6 @@
 			"forumName": "",
 			"description": "",
 			"forumType": 0,
-			"isPublic": 0,
 			"allowAnonymous": 0,
 			"postCount": 0,
 			"replyCount": 0,
@@ -2858,7 +2861,6 @@
 |courseId|所属课程ID|query|false|string||
 |forumName|论坛名称（模糊查询）|query|false|string||
 |forumType|论坛类型 (0=讨论区, 1=问答区, 2=作业区, 3=公告区)|query|false|string||
-|isPublic|是否公开 (0=仅课程成员, 1=公开)|query|false|string||
 |allowAnonymous|是否允许匿名发帖 (0=不允许, 1=允许)|query|false|string||
 |status|论坛状态 (0=正常, 1=关闭, 2=维护)|query|false|string||
 |moderatorId|版主ID|query|false|string||
@@ -3303,6 +3305,7 @@
 |&emsp;&emsp;assistantTeacherIds|辅助教学教师ID列表|array|string(uuid)|
 |&emsp;&emsp;coverImageUrl|课程封面图片URL|string||
 |&emsp;&emsp;status|课程状态 (0=正常, 1=停课)|integer(int32)||
+|&emsp;&emsp;isPublic|是否公开 (0=仅课程成员, 1=公开)|integer(int32)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
@@ -3326,6 +3329,7 @@
 		"assistantTeacherIds": [],
 		"coverImageUrl": "",
 		"status": 0,
+		"isPublic": 0,
 		"createTime": "",
 		"updateTime": ""
 	}
@@ -3441,6 +3445,7 @@
 |&emsp;&emsp;assistantTeacherIds|辅助教学教师ID列表|array|string(uuid)|
 |&emsp;&emsp;coverImageUrl|课程封面图片URL|string||
 |&emsp;&emsp;status|课程状态 (0=正常, 1=停课)|integer(int32)||
+|&emsp;&emsp;isPublic|是否公开 (0=仅课程成员, 1=公开)|integer(int32)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
@@ -3465,6 +3470,7 @@
 			"assistantTeacherIds": [],
 			"coverImageUrl": "",
 			"status": 0,
+			"isPublic": 0,
 			"createTime": "",
 			"updateTime": ""
 		}
@@ -3631,6 +3637,168 @@
 			}
 		]
 	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 查询所有章节列表
+
+
+**接口地址**:`/api/course/course/internal/chapter/all`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+暂无
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListCourseChapterVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|CourseChapterVO|
+|&emsp;&emsp;id|章节ID|string(uuid)||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
+|&emsp;&emsp;teacherId|创建教师ID|string(uuid)||
+|&emsp;&emsp;chapterName|章节名称|string||
+|&emsp;&emsp;parentChapterId|父章节ID|string(uuid)||
+|&emsp;&emsp;description|章节描述|string||
+|&emsp;&emsp;content|章节内容|string||
+|&emsp;&emsp;attachmentUrls|附件URL列表|array|string|
+|&emsp;&emsp;sortOrder|排序权重|integer(int32)||
+|&emsp;&emsp;status|章节状态 (0=草稿, 1=发布)|integer(int32)||
+|&emsp;&emsp;viewCount|浏览次数|integer(int64)||
+|&emsp;&emsp;likeCount|点赞次数|integer(int64)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+|&emsp;&emsp;children|子章节列表（用于树形结构）|array|CourseChapterVO|
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"courseId": "",
+			"teacherId": "",
+			"chapterName": "",
+			"parentChapterId": "",
+			"description": "",
+			"content": "",
+			"attachmentUrls": [],
+			"sortOrder": 0,
+			"status": 0,
+			"viewCount": 0,
+			"likeCount": 0,
+			"createTime": "",
+			"updateTime": "",
+			"children": [
+				{
+					"id": "",
+					"courseId": "",
+					"teacherId": "",
+					"chapterName": "",
+					"parentChapterId": "",
+					"description": "",
+					"content": "",
+					"attachmentUrls": [],
+					"sortOrder": 0,
+					"status": 0,
+					"viewCount": 0,
+					"likeCount": 0,
+					"createTime": "",
+					"updateTime": "",
+					"children": [
+						{}
+					]
+				}
+			]
+		}
+	]
 }
 ```
 
@@ -3902,7 +4070,6 @@
 |&emsp;&emsp;forumName|论坛名称|string||
 |&emsp;&emsp;description|论坛描述|string||
 |&emsp;&emsp;forumType|论坛类型 (0=讨论区, 1=问答区, 2=作业区, 3=公告区)|integer(int32)||
-|&emsp;&emsp;isPublic|是否公开 (0=仅课程成员, 1=公开)|integer(int32)||
 |&emsp;&emsp;allowAnonymous|是否允许匿名发帖 (0=不允许, 1=允许)|integer(int32)||
 |&emsp;&emsp;postCount|帖子总数|integer(int64)||
 |&emsp;&emsp;replyCount|回复总数|integer(int64)||
@@ -3924,7 +4091,6 @@
 		"forumName": "",
 		"description": "",
 		"forumType": 0,
-		"isPublic": 0,
 		"allowAnonymous": 0,
 		"postCount": 0,
 		"replyCount": 0,
@@ -4040,7 +4206,6 @@
 |&emsp;&emsp;forumName|论坛名称|string||
 |&emsp;&emsp;description|论坛描述|string||
 |&emsp;&emsp;forumType|论坛类型 (0=讨论区, 1=问答区, 2=作业区, 3=公告区)|integer(int32)||
-|&emsp;&emsp;isPublic|是否公开 (0=仅课程成员, 1=公开)|integer(int32)||
 |&emsp;&emsp;allowAnonymous|是否允许匿名发帖 (0=不允许, 1=允许)|integer(int32)||
 |&emsp;&emsp;postCount|帖子总数|integer(int64)||
 |&emsp;&emsp;replyCount|回复总数|integer(int64)||
@@ -4063,7 +4228,6 @@
 			"forumName": "",
 			"description": "",
 			"forumType": 0,
-			"isPublic": 0,
 			"allowAnonymous": 0,
 			"postCount": 0,
 			"replyCount": 0,
@@ -4239,6 +4403,172 @@
 		"createTime": "",
 		"updateTime": ""
 	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 查询所有帖子列表
+
+
+**接口地址**:`/api/course/course/internal/forum/post/all`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+暂无
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListForumPostVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|ForumPostVO|
+|&emsp;&emsp;id|帖子ID|string(uuid)||
+|&emsp;&emsp;forumId|所属论坛ID|string(uuid)||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
+|&emsp;&emsp;sysUserId|发帖人ID|string(uuid)||
+|&emsp;&emsp;userName|发帖人用户名|string||
+|&emsp;&emsp;userAvatar|发帖人头像URL|string||
+|&emsp;&emsp;title|帖子标题|string||
+|&emsp;&emsp;content|帖子内容|string||
+|&emsp;&emsp;postType|帖子类型 (0=普通帖子, 1=公告)|integer(int32)||
+|&emsp;&emsp;isAnonymous|是否匿名发帖 (0=实名, 1=匿名)|integer(int32)||
+|&emsp;&emsp;attachmentUrls|附件URL列表|array|string|
+|&emsp;&emsp;imageUrls|图片URL列表|array|string|
+|&emsp;&emsp;tags|标签列表|array|string|
+|&emsp;&emsp;viewCount|浏览次数|integer(int64)||
+|&emsp;&emsp;likeCount|点赞次数|integer(int64)||
+|&emsp;&emsp;replyCount|回复次数|integer(int64)||
+|&emsp;&emsp;shareCount|分享次数|integer(int64)||
+|&emsp;&emsp;isTop|是否置顶 (0=否, 1=是)|integer(int32)||
+|&emsp;&emsp;isEssence|是否精华 (0=否, 1=是)|integer(int32)||
+|&emsp;&emsp;isLocked|是否锁定 (0=否, 1=是)|integer(int32)||
+|&emsp;&emsp;lastReplyId|最新回复ID|string(uuid)||
+|&emsp;&emsp;lastReplyTime|最新回复时间|string(date-time)||
+|&emsp;&emsp;lastReplyUserId|最新回复用户ID|string(uuid)||
+|&emsp;&emsp;status|帖子状态 (0=正常, 1=删除, 2=审核中, 3=审核失败)|integer(int32)||
+|&emsp;&emsp;chapterId|关联章节ID|string(uuid)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"forumId": "",
+			"courseId": "",
+			"sysUserId": "",
+			"userName": "",
+			"userAvatar": "",
+			"title": "",
+			"content": "",
+			"postType": 0,
+			"isAnonymous": 0,
+			"attachmentUrls": [],
+			"imageUrls": [],
+			"tags": [],
+			"viewCount": 0,
+			"likeCount": 0,
+			"replyCount": 0,
+			"shareCount": 0,
+			"isTop": 0,
+			"isEssence": 0,
+			"isLocked": 0,
+			"lastReplyId": "",
+			"lastReplyTime": "",
+			"lastReplyUserId": "",
+			"status": 0,
+			"chapterId": "",
+			"createTime": "",
+			"updateTime": ""
+		}
+	]
 }
 ```
 
@@ -4905,7 +5235,6 @@
 |&emsp;&emsp;bankType|题库类型 (0=练习题库, 1=考试题库, 2=作业题库)|integer(int32)||
 |&emsp;&emsp;tags|标签列表|array|string|
 |&emsp;&emsp;difficulty|整体难度等级 (1=简单, 2=中等, 3=困难)|integer(int32)||
-|&emsp;&emsp;isPublic|是否公开 (0=私有, 1=公开)|integer(int32)||
 |&emsp;&emsp;questionCount|题目数量|integer(int64)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
@@ -4928,7 +5257,6 @@
 		"bankType": 0,
 		"tags": [],
 		"difficulty": 0,
-		"isPublic": 0,
 		"questionCount": 0,
 		"createTime": "",
 		"updateTime": ""
@@ -5045,7 +5373,6 @@
 |&emsp;&emsp;bankType|题库类型 (0=练习题库, 1=考试题库, 2=作业题库)|integer(int32)||
 |&emsp;&emsp;tags|标签列表|array|string|
 |&emsp;&emsp;difficulty|整体难度等级 (1=简单, 2=中等, 3=困难)|integer(int32)||
-|&emsp;&emsp;isPublic|是否公开 (0=私有, 1=公开)|integer(int32)||
 |&emsp;&emsp;questionCount|题目数量|integer(int64)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
@@ -5069,142 +5396,7 @@
 			"bankType": 0,
 			"tags": [],
 			"difficulty": 0,
-			"isPublic": 0,
 			"questionCount": 0,
-			"createTime": "",
-			"updateTime": ""
-		}
-	]
-}
-```
-
-
-**响应状态码-400**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|object||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
-```
-
-
-**响应状态码-403**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|string||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
-```
-
-
-## 根据题目ID查询选项列表
-
-
-**接口地址**:`/api/course/course/internal/question-option/question/{questionId}`
-
-
-**请求方式**:`GET`
-
-
-**请求数据类型**:`application/x-www-form-urlencoded`
-
-
-**响应数据类型**:`*/*`
-
-
-**接口描述**:
-
-
-**请求参数**:
-
-
-| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
-| -------- | -------- | ----- | -------- | -------- | ------ |
-|questionId||path|true|string(uuid)||
-
-
-**响应状态**:
-
-
-| 状态码 | 说明 | schema |
-| -------- | -------- | ----- | 
-|200|OK|ResultListQuestionOptionVO|
-|400|Bad Request|ResultMapStringString|
-|403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|success|请求是否成功|boolean||
-|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
-|message|响应消息|string||
-|data|响应数据体 (泛型)|array|QuestionOptionVO|
-|&emsp;&emsp;id|选项ID|string(uuid)||
-|&emsp;&emsp;questionId|所属题目ID|string(uuid)||
-|&emsp;&emsp;optionContent|选项内容|string||
-|&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)|string||
-|&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)|integer(int32)||
-|&emsp;&emsp;score|选项分数 (多选题部分得分使用)|number||
-|&emsp;&emsp;imageUrls|图片URL列表|array|string|
-|&emsp;&emsp;explanation|选项解析|string||
-|&emsp;&emsp;createTime|创建时间|string(date-time)||
-|&emsp;&emsp;updateTime|更新时间|string(date-time)||
-
-
-**响应示例**:
-```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": [
-		{
-			"id": "",
-			"questionId": "",
-			"optionContent": "",
-			"optionLabel": "",
-			"isCorrect": 0,
-			"score": 0,
-			"imageUrls": [],
-			"explanation": "",
 			"createTime": "",
 			"updateTime": ""
 		}
@@ -5314,6 +5506,7 @@
 |&emsp;&emsp;id|题目ID|string(uuid)||
 |&emsp;&emsp;questionBankId|所属题库ID|string(uuid)||
 |&emsp;&emsp;questionBankName|所属题库名称|string||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
 |&emsp;&emsp;sysUserId|创建用户ID|string(uuid)||
 |&emsp;&emsp;sysUserName|创建用户名称|string||
 |&emsp;&emsp;questionTitle|题目标题|string||
@@ -5330,6 +5523,7 @@
 |&emsp;&emsp;options|题目选项视图对象|array|QuestionOptionVO|
 |&emsp;&emsp;&emsp;&emsp;id|选项ID|string||
 |&emsp;&emsp;&emsp;&emsp;questionId|所属题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;courseId|所属课程ID|string||
 |&emsp;&emsp;&emsp;&emsp;optionContent|选项内容|string||
 |&emsp;&emsp;&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)|string||
 |&emsp;&emsp;&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)|integer||
@@ -5341,6 +5535,7 @@
 |&emsp;&emsp;answers|填空简答视图对象|array|QuestionAnswerVO|
 |&emsp;&emsp;&emsp;&emsp;id|答案ID|string||
 |&emsp;&emsp;&emsp;&emsp;questionId|题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;courseId|所属课程ID|string||
 |&emsp;&emsp;&emsp;&emsp;answerContent|本空答案|string||
 |&emsp;&emsp;&emsp;&emsp;explanation|本空解析|string||
 |&emsp;&emsp;&emsp;&emsp;score|分数|number||
@@ -5361,6 +5556,7 @@
 		"id": "",
 		"questionBankId": "",
 		"questionBankName": "",
+		"courseId": "",
 		"sysUserId": "",
 		"sysUserName": "",
 		"questionTitle": "",
@@ -5378,6 +5574,7 @@
 			{
 				"id": "",
 				"questionId": "",
+				"courseId": "",
 				"optionContent": "",
 				"optionLabel": "",
 				"isCorrect": 0,
@@ -5392,6 +5589,7 @@
 			{
 				"id": "",
 				"questionId": "",
+				"courseId": "",
 				"answerContent": "",
 				"explanation": "",
 				"score": 0,
@@ -5403,6 +5601,206 @@
 		"createTime": "",
 		"updateTime": ""
 	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 获取所有题目列表。
+
+
+**接口地址**:`/api/course/course/internal/question/all`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+暂无
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListQuestionVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|QuestionVO|
+|&emsp;&emsp;id|题目ID|string(uuid)||
+|&emsp;&emsp;questionBankId|所属题库ID|string(uuid)||
+|&emsp;&emsp;questionBankName|所属题库名称|string||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
+|&emsp;&emsp;sysUserId|创建用户ID|string(uuid)||
+|&emsp;&emsp;sysUserName|创建用户名称|string||
+|&emsp;&emsp;questionTitle|题目标题|string||
+|&emsp;&emsp;questionContent|题目内容|string||
+|&emsp;&emsp;questionType|题目类型 (0=单选题, 1=多选题, 2=判断题, 3=填空题, 4=简答题)|integer(int32)||
+|&emsp;&emsp;difficulty|难度等级 (1=简单, 2=中等, 3=困难)|integer(int32)||
+|&emsp;&emsp;score|题目分数|number||
+|&emsp;&emsp;estimatedTime|预计答题时间 (分钟)|integer(int32)||
+|&emsp;&emsp;tags|标签列表|array|string|
+|&emsp;&emsp;imageUrls|图片URL列表|array|string|
+|&emsp;&emsp;allowPartialCredit|是否允许部分得分 (0=不允许, 1=允许)|integer(int32)||
+|&emsp;&emsp;viewCount|浏览次数|integer(int64)||
+|&emsp;&emsp;status|题目状态 (0=草稿, 1=发布, 2=停用)|integer(int32)||
+|&emsp;&emsp;options|题目选项视图对象|array|QuestionOptionVO|
+|&emsp;&emsp;&emsp;&emsp;id|选项ID|string||
+|&emsp;&emsp;&emsp;&emsp;questionId|所属题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;courseId|所属课程ID|string||
+|&emsp;&emsp;&emsp;&emsp;optionContent|选项内容|string||
+|&emsp;&emsp;&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)|string||
+|&emsp;&emsp;&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)|integer||
+|&emsp;&emsp;&emsp;&emsp;score|选项分数 (多选题部分得分使用)|number||
+|&emsp;&emsp;&emsp;&emsp;imageUrls|图片URL列表|array|string|
+|&emsp;&emsp;&emsp;&emsp;explanation|选项解析|string||
+|&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
+|&emsp;&emsp;answers|填空简答视图对象|array|QuestionAnswerVO|
+|&emsp;&emsp;&emsp;&emsp;id|答案ID|string||
+|&emsp;&emsp;&emsp;&emsp;questionId|题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;courseId|所属课程ID|string||
+|&emsp;&emsp;&emsp;&emsp;answerContent|本空答案|string||
+|&emsp;&emsp;&emsp;&emsp;explanation|本空解析|string||
+|&emsp;&emsp;&emsp;&emsp;score|分数|number||
+|&emsp;&emsp;&emsp;&emsp;sortOrder|本空序号|integer||
+|&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"questionBankId": "",
+			"questionBankName": "",
+			"courseId": "",
+			"sysUserId": "",
+			"sysUserName": "",
+			"questionTitle": "",
+			"questionContent": "",
+			"questionType": 0,
+			"difficulty": 0,
+			"score": 0,
+			"estimatedTime": 0,
+			"tags": [],
+			"imageUrls": [],
+			"allowPartialCredit": 0,
+			"viewCount": 0,
+			"status": 0,
+			"options": [
+				{
+					"id": "",
+					"questionId": "",
+					"courseId": "",
+					"optionContent": "",
+					"optionLabel": "",
+					"isCorrect": 0,
+					"score": 0,
+					"imageUrls": [],
+					"explanation": "",
+					"createTime": "",
+					"updateTime": ""
+				}
+			],
+			"answers": [
+				{
+					"id": "",
+					"questionId": "",
+					"courseId": "",
+					"answerContent": "",
+					"explanation": "",
+					"score": 0,
+					"sortOrder": 0,
+					"createTime": "",
+					"updateTime": ""
+				}
+			],
+			"createTime": "",
+			"updateTime": ""
+		}
+	]
 }
 ```
 
@@ -5508,6 +5906,7 @@
 |&emsp;&emsp;id|题目ID|string(uuid)||
 |&emsp;&emsp;questionBankId|所属题库ID|string(uuid)||
 |&emsp;&emsp;questionBankName|所属题库名称|string||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
 |&emsp;&emsp;sysUserId|创建用户ID|string(uuid)||
 |&emsp;&emsp;sysUserName|创建用户名称|string||
 |&emsp;&emsp;questionTitle|题目标题|string||
@@ -5524,6 +5923,7 @@
 |&emsp;&emsp;options|题目选项视图对象|array|QuestionOptionVO|
 |&emsp;&emsp;&emsp;&emsp;id|选项ID|string||
 |&emsp;&emsp;&emsp;&emsp;questionId|所属题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;courseId|所属课程ID|string||
 |&emsp;&emsp;&emsp;&emsp;optionContent|选项内容|string||
 |&emsp;&emsp;&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)|string||
 |&emsp;&emsp;&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)|integer||
@@ -5535,6 +5935,7 @@
 |&emsp;&emsp;answers|填空简答视图对象|array|QuestionAnswerVO|
 |&emsp;&emsp;&emsp;&emsp;id|答案ID|string||
 |&emsp;&emsp;&emsp;&emsp;questionId|题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;courseId|所属课程ID|string||
 |&emsp;&emsp;&emsp;&emsp;answerContent|本空答案|string||
 |&emsp;&emsp;&emsp;&emsp;explanation|本空解析|string||
 |&emsp;&emsp;&emsp;&emsp;score|分数|number||
@@ -5556,6 +5957,7 @@
 			"id": "",
 			"questionBankId": "",
 			"questionBankName": "",
+			"courseId": "",
 			"sysUserId": "",
 			"sysUserName": "",
 			"questionTitle": "",
@@ -5573,6 +5975,7 @@
 				{
 					"id": "",
 					"questionId": "",
+					"courseId": "",
 					"optionContent": "",
 					"optionLabel": "",
 					"isCorrect": 0,
@@ -5587,6 +5990,7 @@
 				{
 					"id": "",
 					"questionId": "",
+					"courseId": "",
 					"answerContent": "",
 					"explanation": "",
 					"score": 0,
@@ -5773,6 +6177,180 @@
 		"createTime": "",
 		"updateTime": ""
 	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## 查询所有任务列表
+
+
+**接口地址**:`/api/course/course/internal/task/all`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:
+
+
+**请求参数**:
+
+
+暂无
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListCourseTaskVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|CourseTaskVO|
+|&emsp;&emsp;id|任务ID|string(uuid)||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
+|&emsp;&emsp;courseName|课程名称|string||
+|&emsp;&emsp;sysUserId|任务发起人ID|string(uuid)||
+|&emsp;&emsp;teacherName|任务发起人姓名|string||
+|&emsp;&emsp;teacherAvatar|任务发起人头像|string||
+|&emsp;&emsp;taskName|任务名称|string||
+|&emsp;&emsp;description|任务描述|string||
+|&emsp;&emsp;taskType|任务类型 (0=作业, 1=测验, 2=项目, 3=实验)|integer(int32)||
+|&emsp;&emsp;taskContent|任务内容 (富文本)|string||
+|&emsp;&emsp;attachmentUrls|任务附件URL列表|array|string|
+|&emsp;&emsp;resourceUrls|参考资料URL列表|array|string|
+|&emsp;&emsp;maxScore|满分|number||
+|&emsp;&emsp;startTime|任务开始时间|string(date-time)||
+|&emsp;&emsp;endTime|任务结束时间|string(date-time)||
+|&emsp;&emsp;allowLateSubmit|是否允许迟交 (0=不允许, 1=允许)|integer(int32)||
+|&emsp;&emsp;maxSubmitCount|最大提交次数 (0=无限制)|integer(int32)||
+|&emsp;&emsp;autoGrade|是否自动评分 (0=手动评分, 1=自动评分)|integer(int32)||
+|&emsp;&emsp;tags|标签列表|array|string|
+|&emsp;&emsp;difficulty|难度等级 (1=简单, 2=中等, 3=困难)|integer(int32)||
+|&emsp;&emsp;estimatedTime|预计完成时间 (分钟)|integer(int32)||
+|&emsp;&emsp;viewCount|浏览次数|integer(int64)||
+|&emsp;&emsp;status|任务状态 (0=草稿, 1=发布, 2=进行中, 3=已结束)|integer(int32)||
+|&emsp;&emsp;submitCount|已提交次数|integer(int32)||
+|&emsp;&emsp;isSubmitted|是否已提交|boolean||
+|&emsp;&emsp;submitTime|提交时间|string(date-time)||
+|&emsp;&emsp;score|得分|number||
+|&emsp;&emsp;isGraded|是否已评分|boolean||
+|&emsp;&emsp;gradeTime|评分时间|string(date-time)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"courseId": "",
+			"courseName": "",
+			"sysUserId": "",
+			"teacherName": "",
+			"teacherAvatar": "",
+			"taskName": "",
+			"description": "",
+			"taskType": 0,
+			"taskContent": "",
+			"attachmentUrls": [],
+			"resourceUrls": [],
+			"maxScore": 0,
+			"startTime": "",
+			"endTime": "",
+			"allowLateSubmit": 0,
+			"maxSubmitCount": 0,
+			"autoGrade": 0,
+			"tags": [],
+			"difficulty": 0,
+			"estimatedTime": 0,
+			"viewCount": 0,
+			"status": 0,
+			"submitCount": 0,
+			"isSubmitted": true,
+			"submitTime": "",
+			"score": 0,
+			"isGraded": true,
+			"gradeTime": "",
+			"createTime": "",
+			"updateTime": ""
+		}
+	]
 }
 ```
 
@@ -7413,6 +7991,181 @@
 	"code": 200,
 	"message": "操作成功",
 	"data": true
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## listAllCourseTask
+
+
+**接口地址**:`/api/course/task/all`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>获取所有课程任务列表。</p>
+
+
+
+**请求参数**:
+
+
+暂无
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListCourseTaskVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|CourseTaskVO|
+|&emsp;&emsp;id|任务ID|string(uuid)||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
+|&emsp;&emsp;courseName|课程名称|string||
+|&emsp;&emsp;sysUserId|任务发起人ID|string(uuid)||
+|&emsp;&emsp;teacherName|任务发起人姓名|string||
+|&emsp;&emsp;teacherAvatar|任务发起人头像|string||
+|&emsp;&emsp;taskName|任务名称|string||
+|&emsp;&emsp;description|任务描述|string||
+|&emsp;&emsp;taskType|任务类型 (0=作业, 1=测验, 2=项目, 3=实验)|integer(int32)||
+|&emsp;&emsp;taskContent|任务内容 (富文本)|string||
+|&emsp;&emsp;attachmentUrls|任务附件URL列表|array|string|
+|&emsp;&emsp;resourceUrls|参考资料URL列表|array|string|
+|&emsp;&emsp;maxScore|满分|number||
+|&emsp;&emsp;startTime|任务开始时间|string(date-time)||
+|&emsp;&emsp;endTime|任务结束时间|string(date-time)||
+|&emsp;&emsp;allowLateSubmit|是否允许迟交 (0=不允许, 1=允许)|integer(int32)||
+|&emsp;&emsp;maxSubmitCount|最大提交次数 (0=无限制)|integer(int32)||
+|&emsp;&emsp;autoGrade|是否自动评分 (0=手动评分, 1=自动评分)|integer(int32)||
+|&emsp;&emsp;tags|标签列表|array|string|
+|&emsp;&emsp;difficulty|难度等级 (1=简单, 2=中等, 3=困难)|integer(int32)||
+|&emsp;&emsp;estimatedTime|预计完成时间 (分钟)|integer(int32)||
+|&emsp;&emsp;viewCount|浏览次数|integer(int64)||
+|&emsp;&emsp;status|任务状态 (0=草稿, 1=发布, 2=进行中, 3=已结束)|integer(int32)||
+|&emsp;&emsp;submitCount|已提交次数|integer(int32)||
+|&emsp;&emsp;isSubmitted|是否已提交|boolean||
+|&emsp;&emsp;submitTime|提交时间|string(date-time)||
+|&emsp;&emsp;score|得分|number||
+|&emsp;&emsp;isGraded|是否已评分|boolean||
+|&emsp;&emsp;gradeTime|评分时间|string(date-time)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"courseId": "",
+			"courseName": "",
+			"sysUserId": "",
+			"teacherName": "",
+			"teacherAvatar": "",
+			"taskName": "",
+			"description": "",
+			"taskType": 0,
+			"taskContent": "",
+			"attachmentUrls": [],
+			"resourceUrls": [],
+			"maxScore": 0,
+			"startTime": "",
+			"endTime": "",
+			"allowLateSubmit": 0,
+			"maxSubmitCount": 0,
+			"autoGrade": 0,
+			"tags": [],
+			"difficulty": 0,
+			"estimatedTime": 0,
+			"viewCount": 0,
+			"status": 0,
+			"submitCount": 0,
+			"isSubmitted": true,
+			"submitTime": "",
+			"score": 0,
+			"isGraded": true,
+			"gradeTime": "",
+			"createTime": "",
+			"updateTime": ""
+		}
+	]
 }
 ```
 
@@ -9455,8 +10208,7 @@
   "description": "",
   "bankType": 0,
   "tags": [],
-  "difficulty": 0,
-  "isPublic": 0
+  "difficulty": 0
 }
 ```
 
@@ -9474,7 +10226,6 @@
 |&emsp;&emsp;bankType|题库类型 (0=练习题库, 1=考试题库, 2=作业题库)||true|integer(int32)||
 |&emsp;&emsp;tags|标签列表||false|array|string|
 |&emsp;&emsp;difficulty|整体难度等级 (1=简单, 2=中等, 3=困难)||true|integer(int32)||
-|&emsp;&emsp;isPublic|是否公开 (0=私有, 1=公开)||true|integer(int32)||
 
 
 **响应状态**:
@@ -9741,7 +10492,6 @@
 |&emsp;&emsp;bankType|题库类型 (0=练习题库, 1=考试题库, 2=作业题库)|integer(int32)||
 |&emsp;&emsp;tags|标签列表|array|string|
 |&emsp;&emsp;difficulty|整体难度等级 (1=简单, 2=中等, 3=困难)|integer(int32)||
-|&emsp;&emsp;isPublic|是否公开 (0=私有, 1=公开)|integer(int32)||
 |&emsp;&emsp;questionCount|题目数量|integer(int64)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
@@ -9764,7 +10514,6 @@
 		"bankType": 0,
 		"tags": [],
 		"difficulty": 0,
-		"isPublic": 0,
 		"questionCount": 0,
 		"createTime": "",
 		"updateTime": ""
@@ -9965,8 +10714,7 @@
   "description": "",
   "bankType": 0,
   "tags": [],
-  "difficulty": 0,
-  "isPublic": 0
+  "difficulty": 0
 }
 ```
 
@@ -9984,7 +10732,6 @@
 |&emsp;&emsp;bankType|题库类型 (0=练习题库, 1=考试题库, 2=作业题库)||true|integer(int32)||
 |&emsp;&emsp;tags|标签列表||false|array|string|
 |&emsp;&emsp;difficulty|整体难度等级 (1=简单, 2=中等, 3=困难)||true|integer(int32)||
-|&emsp;&emsp;isPublic|是否公开 (0=私有, 1=公开)||true|integer(int32)||
 
 
 **响应状态**:
@@ -10019,7 +10766,6 @@
 |&emsp;&emsp;bankType|题库类型 (0=练习题库, 1=考试题库, 2=作业题库)|integer(int32)||
 |&emsp;&emsp;tags|标签列表|array|string|
 |&emsp;&emsp;difficulty|整体难度等级 (1=简单, 2=中等, 3=困难)|integer(int32)||
-|&emsp;&emsp;isPublic|是否公开 (0=私有, 1=公开)|integer(int32)||
 |&emsp;&emsp;questionCount|题目数量|integer(int64)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
@@ -10042,7 +10788,6 @@
 		"bankType": 0,
 		"tags": [],
 		"difficulty": 0,
-		"isPublic": 0,
 		"questionCount": 0,
 		"createTime": "",
 		"updateTime": ""
@@ -10160,7 +10905,6 @@
 |&emsp;&emsp;bankType|题库类型 (0=练习题库, 1=考试题库, 2=作业题库)|integer(int32)||
 |&emsp;&emsp;tags|标签列表|array|string|
 |&emsp;&emsp;difficulty|整体难度等级 (1=简单, 2=中等, 3=困难)|integer(int32)||
-|&emsp;&emsp;isPublic|是否公开 (0=私有, 1=公开)|integer(int32)||
 |&emsp;&emsp;questionCount|题目数量|integer(int64)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
@@ -10184,7 +10928,6 @@
 			"bankType": 0,
 			"tags": [],
 			"difficulty": 0,
-			"isPublic": 0,
 			"questionCount": 0,
 			"createTime": "",
 			"updateTime": ""
@@ -10272,7 +11015,6 @@
 |bankName|题库名称|query|false|string||
 |bankType|题库类型|query|false|string||
 |difficulty|难度等级|query|false|string||
-|isPublic|是否公开|query|false|string||
 |tags|标签列表|query|false|string||
 |createTimeStart|创建时间开始|query|false|string||
 |createTimeEnd|创建时间结束|query|false|string||
@@ -12784,6 +13526,169 @@
 	"code": 200,
 	"message": "操作成功",
 	"data": true
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## listAllCourseChapter
+
+
+**接口地址**:`/api/course/chapter/all`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>获取所有课程章节列表。</p>
+
+
+
+**请求参数**:
+
+
+暂无
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListCourseChapterVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|CourseChapterVO|
+|&emsp;&emsp;id|章节ID|string(uuid)||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
+|&emsp;&emsp;teacherId|创建教师ID|string(uuid)||
+|&emsp;&emsp;chapterName|章节名称|string||
+|&emsp;&emsp;parentChapterId|父章节ID|string(uuid)||
+|&emsp;&emsp;description|章节描述|string||
+|&emsp;&emsp;content|章节内容|string||
+|&emsp;&emsp;attachmentUrls|附件URL列表|array|string|
+|&emsp;&emsp;sortOrder|排序权重|integer(int32)||
+|&emsp;&emsp;status|章节状态 (0=草稿, 1=发布)|integer(int32)||
+|&emsp;&emsp;viewCount|浏览次数|integer(int64)||
+|&emsp;&emsp;likeCount|点赞次数|integer(int64)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+|&emsp;&emsp;children|子章节列表（用于树形结构）|array|CourseChapterVO|
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"courseId": "",
+			"teacherId": "",
+			"chapterName": "",
+			"parentChapterId": "",
+			"description": "",
+			"content": "",
+			"attachmentUrls": [],
+			"sortOrder": 0,
+			"status": 0,
+			"viewCount": 0,
+			"likeCount": 0,
+			"createTime": "",
+			"updateTime": "",
+			"children": [
+				{
+					"id": "",
+					"courseId": "",
+					"teacherId": "",
+					"chapterName": "",
+					"parentChapterId": "",
+					"description": "",
+					"content": "",
+					"attachmentUrls": [],
+					"sortOrder": 0,
+					"status": 0,
+					"viewCount": 0,
+					"likeCount": 0,
+					"createTime": "",
+					"updateTime": "",
+					"children": [
+						{}
+					]
+				}
+			]
+		}
+	]
 }
 ```
 
@@ -17757,6 +18662,173 @@
 ```
 
 
+## listAllForumPost
+
+
+**接口地址**:`/api/course/post/all`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>获取所有论坛帖子列表。</p>
+
+
+
+**请求参数**:
+
+
+暂无
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListForumPostVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|ForumPostVO|
+|&emsp;&emsp;id|帖子ID|string(uuid)||
+|&emsp;&emsp;forumId|所属论坛ID|string(uuid)||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
+|&emsp;&emsp;sysUserId|发帖人ID|string(uuid)||
+|&emsp;&emsp;userName|发帖人用户名|string||
+|&emsp;&emsp;userAvatar|发帖人头像URL|string||
+|&emsp;&emsp;title|帖子标题|string||
+|&emsp;&emsp;content|帖子内容|string||
+|&emsp;&emsp;postType|帖子类型 (0=普通帖子, 1=公告)|integer(int32)||
+|&emsp;&emsp;isAnonymous|是否匿名发帖 (0=实名, 1=匿名)|integer(int32)||
+|&emsp;&emsp;attachmentUrls|附件URL列表|array|string|
+|&emsp;&emsp;imageUrls|图片URL列表|array|string|
+|&emsp;&emsp;tags|标签列表|array|string|
+|&emsp;&emsp;viewCount|浏览次数|integer(int64)||
+|&emsp;&emsp;likeCount|点赞次数|integer(int64)||
+|&emsp;&emsp;replyCount|回复次数|integer(int64)||
+|&emsp;&emsp;shareCount|分享次数|integer(int64)||
+|&emsp;&emsp;isTop|是否置顶 (0=否, 1=是)|integer(int32)||
+|&emsp;&emsp;isEssence|是否精华 (0=否, 1=是)|integer(int32)||
+|&emsp;&emsp;isLocked|是否锁定 (0=否, 1=是)|integer(int32)||
+|&emsp;&emsp;lastReplyId|最新回复ID|string(uuid)||
+|&emsp;&emsp;lastReplyTime|最新回复时间|string(date-time)||
+|&emsp;&emsp;lastReplyUserId|最新回复用户ID|string(uuid)||
+|&emsp;&emsp;status|帖子状态 (0=正常, 1=删除, 2=审核中, 3=审核失败)|integer(int32)||
+|&emsp;&emsp;chapterId|关联章节ID|string(uuid)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"forumId": "",
+			"courseId": "",
+			"sysUserId": "",
+			"userName": "",
+			"userAvatar": "",
+			"title": "",
+			"content": "",
+			"postType": 0,
+			"isAnonymous": 0,
+			"attachmentUrls": [],
+			"imageUrls": [],
+			"tags": [],
+			"viewCount": 0,
+			"likeCount": 0,
+			"replyCount": 0,
+			"shareCount": 0,
+			"isTop": 0,
+			"isEssence": 0,
+			"isLocked": 0,
+			"lastReplyId": "",
+			"lastReplyTime": "",
+			"lastReplyUserId": "",
+			"status": 0,
+			"chapterId": "",
+			"createTime": "",
+			"updateTime": ""
+		}
+	]
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
 ## listAllForumPostByCourseId
 
 
@@ -18592,6 +19664,7 @@
 {
   "id": "",
   "questionBankId": "",
+  "courseId": "",
   "sysUserId": "",
   "questionTitle": "",
   "questionContent": "",
@@ -18607,6 +19680,7 @@
     {
       "id": "",
       "questionId": "",
+      "courseId": "",
       "optionContent": "",
       "optionLabel": "",
       "isCorrect": 0,
@@ -18619,6 +19693,7 @@
     {
       "id": "",
       "questionId": "",
+      "courseId": "",
       "answerContent": "",
       "explanation": "",
       "score": 0,
@@ -18637,6 +19712,7 @@
 |questionDTO|题目数据传输对象|body|true|QuestionDTO|QuestionDTO|
 |&emsp;&emsp;id|题目ID（更新时必填，新增时可为空）||false|string(uuid)||
 |&emsp;&emsp;questionBankId|所属题库ID||true|string(uuid)||
+|&emsp;&emsp;courseId|所属课程ID||true|string(uuid)||
 |&emsp;&emsp;sysUserId|创建用户ID（新增时必填，更新时不需要）||false|string(uuid)||
 |&emsp;&emsp;questionTitle|题目标题||true|string||
 |&emsp;&emsp;questionContent|题目内容||true|string||
@@ -18651,6 +19727,7 @@
 |&emsp;&emsp;options|题目选项数据传输对象||false|array|QuestionOptionDTO|
 |&emsp;&emsp;&emsp;&emsp;id|选项ID||false|string||
 |&emsp;&emsp;&emsp;&emsp;questionId|所属题目ID||false|string||
+|&emsp;&emsp;&emsp;&emsp;courseId|所属课程ID||false|string||
 |&emsp;&emsp;&emsp;&emsp;optionContent|选项内容||true|string||
 |&emsp;&emsp;&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)||true|string||
 |&emsp;&emsp;&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)||true|integer||
@@ -18660,6 +19737,7 @@
 |&emsp;&emsp;answers|填空简答数据传输对象||false|array|QuestionAnswerDTO|
 |&emsp;&emsp;&emsp;&emsp;id|答案ID||false|string||
 |&emsp;&emsp;&emsp;&emsp;questionId|题目ID||false|string||
+|&emsp;&emsp;&emsp;&emsp;courseId|所属课程ID||false|string||
 |&emsp;&emsp;&emsp;&emsp;answerContent|本空答案||false|string||
 |&emsp;&emsp;&emsp;&emsp;explanation|本空解析||false|string||
 |&emsp;&emsp;&emsp;&emsp;score|分数||false|number||
@@ -18923,6 +20001,7 @@
 |&emsp;&emsp;id|题目ID|string(uuid)||
 |&emsp;&emsp;questionBankId|所属题库ID|string(uuid)||
 |&emsp;&emsp;questionBankName|所属题库名称|string||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
 |&emsp;&emsp;sysUserId|创建用户ID|string(uuid)||
 |&emsp;&emsp;sysUserName|创建用户名称|string||
 |&emsp;&emsp;questionTitle|题目标题|string||
@@ -18939,6 +20018,7 @@
 |&emsp;&emsp;options|题目选项视图对象|array|QuestionOptionVO|
 |&emsp;&emsp;&emsp;&emsp;id|选项ID|string||
 |&emsp;&emsp;&emsp;&emsp;questionId|所属题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;courseId|所属课程ID|string||
 |&emsp;&emsp;&emsp;&emsp;optionContent|选项内容|string||
 |&emsp;&emsp;&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)|string||
 |&emsp;&emsp;&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)|integer||
@@ -18950,6 +20030,7 @@
 |&emsp;&emsp;answers|填空简答视图对象|array|QuestionAnswerVO|
 |&emsp;&emsp;&emsp;&emsp;id|答案ID|string||
 |&emsp;&emsp;&emsp;&emsp;questionId|题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;courseId|所属课程ID|string||
 |&emsp;&emsp;&emsp;&emsp;answerContent|本空答案|string||
 |&emsp;&emsp;&emsp;&emsp;explanation|本空解析|string||
 |&emsp;&emsp;&emsp;&emsp;score|分数|number||
@@ -18970,6 +20051,7 @@
 		"id": "",
 		"questionBankId": "",
 		"questionBankName": "",
+		"courseId": "",
 		"sysUserId": "",
 		"sysUserName": "",
 		"questionTitle": "",
@@ -18987,6 +20069,7 @@
 			{
 				"id": "",
 				"questionId": "",
+				"courseId": "",
 				"optionContent": "",
 				"optionLabel": "",
 				"isCorrect": 0,
@@ -19001,6 +20084,7 @@
 			{
 				"id": "",
 				"questionId": "",
+				"courseId": "",
 				"answerContent": "",
 				"explanation": "",
 				"score": 0,
@@ -19540,6 +20624,7 @@
 {
   "id": "",
   "questionBankId": "",
+  "courseId": "",
   "sysUserId": "",
   "questionTitle": "",
   "questionContent": "",
@@ -19555,6 +20640,7 @@
     {
       "id": "",
       "questionId": "",
+      "courseId": "",
       "optionContent": "",
       "optionLabel": "",
       "isCorrect": 0,
@@ -19567,6 +20653,7 @@
     {
       "id": "",
       "questionId": "",
+      "courseId": "",
       "answerContent": "",
       "explanation": "",
       "score": 0,
@@ -19585,6 +20672,7 @@
 |questionDTO|题目数据传输对象|body|true|QuestionDTO|QuestionDTO|
 |&emsp;&emsp;id|题目ID（更新时必填，新增时可为空）||false|string(uuid)||
 |&emsp;&emsp;questionBankId|所属题库ID||true|string(uuid)||
+|&emsp;&emsp;courseId|所属课程ID||true|string(uuid)||
 |&emsp;&emsp;sysUserId|创建用户ID（新增时必填，更新时不需要）||false|string(uuid)||
 |&emsp;&emsp;questionTitle|题目标题||true|string||
 |&emsp;&emsp;questionContent|题目内容||true|string||
@@ -19599,6 +20687,7 @@
 |&emsp;&emsp;options|题目选项数据传输对象||false|array|QuestionOptionDTO|
 |&emsp;&emsp;&emsp;&emsp;id|选项ID||false|string||
 |&emsp;&emsp;&emsp;&emsp;questionId|所属题目ID||false|string||
+|&emsp;&emsp;&emsp;&emsp;courseId|所属课程ID||false|string||
 |&emsp;&emsp;&emsp;&emsp;optionContent|选项内容||true|string||
 |&emsp;&emsp;&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)||true|string||
 |&emsp;&emsp;&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)||true|integer||
@@ -19608,6 +20697,7 @@
 |&emsp;&emsp;answers|填空简答数据传输对象||false|array|QuestionAnswerDTO|
 |&emsp;&emsp;&emsp;&emsp;id|答案ID||false|string||
 |&emsp;&emsp;&emsp;&emsp;questionId|题目ID||false|string||
+|&emsp;&emsp;&emsp;&emsp;courseId|所属课程ID||false|string||
 |&emsp;&emsp;&emsp;&emsp;answerContent|本空答案||false|string||
 |&emsp;&emsp;&emsp;&emsp;explanation|本空解析||false|string||
 |&emsp;&emsp;&emsp;&emsp;score|分数||false|number||
@@ -19639,6 +20729,7 @@
 |&emsp;&emsp;id|题目ID|string(uuid)||
 |&emsp;&emsp;questionBankId|所属题库ID|string(uuid)||
 |&emsp;&emsp;questionBankName|所属题库名称|string||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
 |&emsp;&emsp;sysUserId|创建用户ID|string(uuid)||
 |&emsp;&emsp;sysUserName|创建用户名称|string||
 |&emsp;&emsp;questionTitle|题目标题|string||
@@ -19655,6 +20746,7 @@
 |&emsp;&emsp;options|题目选项视图对象|array|QuestionOptionVO|
 |&emsp;&emsp;&emsp;&emsp;id|选项ID|string||
 |&emsp;&emsp;&emsp;&emsp;questionId|所属题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;courseId|所属课程ID|string||
 |&emsp;&emsp;&emsp;&emsp;optionContent|选项内容|string||
 |&emsp;&emsp;&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)|string||
 |&emsp;&emsp;&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)|integer||
@@ -19666,6 +20758,7 @@
 |&emsp;&emsp;answers|填空简答视图对象|array|QuestionAnswerVO|
 |&emsp;&emsp;&emsp;&emsp;id|答案ID|string||
 |&emsp;&emsp;&emsp;&emsp;questionId|题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;courseId|所属课程ID|string||
 |&emsp;&emsp;&emsp;&emsp;answerContent|本空答案|string||
 |&emsp;&emsp;&emsp;&emsp;explanation|本空解析|string||
 |&emsp;&emsp;&emsp;&emsp;score|分数|number||
@@ -19686,6 +20779,7 @@
 		"id": "",
 		"questionBankId": "",
 		"questionBankName": "",
+		"courseId": "",
 		"sysUserId": "",
 		"sysUserName": "",
 		"questionTitle": "",
@@ -19703,6 +20797,7 @@
 			{
 				"id": "",
 				"questionId": "",
+				"courseId": "",
 				"optionContent": "",
 				"optionLabel": "",
 				"isCorrect": 0,
@@ -19717,6 +20812,7 @@
 			{
 				"id": "",
 				"questionId": "",
+				"courseId": "",
 				"answerContent": "",
 				"explanation": "",
 				"score": 0,
@@ -19832,6 +20928,7 @@
 |&emsp;&emsp;id|题目ID|string(uuid)||
 |&emsp;&emsp;questionBankId|所属题库ID|string(uuid)||
 |&emsp;&emsp;questionBankName|所属题库名称|string||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
 |&emsp;&emsp;sysUserId|创建用户ID|string(uuid)||
 |&emsp;&emsp;sysUserName|创建用户名称|string||
 |&emsp;&emsp;questionTitle|题目标题|string||
@@ -19848,6 +20945,7 @@
 |&emsp;&emsp;options|题目选项视图对象|array|QuestionOptionVO|
 |&emsp;&emsp;&emsp;&emsp;id|选项ID|string||
 |&emsp;&emsp;&emsp;&emsp;questionId|所属题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;courseId|所属课程ID|string||
 |&emsp;&emsp;&emsp;&emsp;optionContent|选项内容|string||
 |&emsp;&emsp;&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)|string||
 |&emsp;&emsp;&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)|integer||
@@ -19859,6 +20957,7 @@
 |&emsp;&emsp;answers|填空简答视图对象|array|QuestionAnswerVO|
 |&emsp;&emsp;&emsp;&emsp;id|答案ID|string||
 |&emsp;&emsp;&emsp;&emsp;questionId|题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;courseId|所属课程ID|string||
 |&emsp;&emsp;&emsp;&emsp;answerContent|本空答案|string||
 |&emsp;&emsp;&emsp;&emsp;explanation|本空解析|string||
 |&emsp;&emsp;&emsp;&emsp;score|分数|number||
@@ -19880,6 +20979,7 @@
 			"id": "",
 			"questionBankId": "",
 			"questionBankName": "",
+			"courseId": "",
 			"sysUserId": "",
 			"sysUserName": "",
 			"questionTitle": "",
@@ -19897,6 +20997,7 @@
 				{
 					"id": "",
 					"questionId": "",
+					"courseId": "",
 					"optionContent": "",
 					"optionLabel": "",
 					"isCorrect": 0,
@@ -19911,6 +21012,7 @@
 				{
 					"id": "",
 					"questionId": "",
+					"courseId": "",
 					"answerContent": "",
 					"explanation": "",
 					"score": 0,
@@ -20002,6 +21104,8 @@
 | 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
 | -------- | -------- | ----- | -------- | -------- | ------ |
 |questionBankId|题库ID|query|false|string||
+|courseId|课程ID|query|false|string||
+|sysUserId|创建用户ID|query|false|string||
 |questionTitle|题目标题|query|false|string||
 |questionType|题目类型|query|false|string||
 |difficulty|难度等级|query|false|string||
@@ -20155,6 +21259,7 @@
 |&emsp;&emsp;id|题目ID|string(uuid)||
 |&emsp;&emsp;questionBankId|所属题库ID|string(uuid)||
 |&emsp;&emsp;questionBankName|所属题库名称|string||
+|&emsp;&emsp;courseId|所属课程ID|string(uuid)||
 |&emsp;&emsp;sysUserId|创建用户ID|string(uuid)||
 |&emsp;&emsp;sysUserName|创建用户名称|string||
 |&emsp;&emsp;questionTitle|题目标题|string||
@@ -20171,6 +21276,7 @@
 |&emsp;&emsp;options|题目选项视图对象|array|QuestionOptionVO|
 |&emsp;&emsp;&emsp;&emsp;id|选项ID|string||
 |&emsp;&emsp;&emsp;&emsp;questionId|所属题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;courseId|所属课程ID|string||
 |&emsp;&emsp;&emsp;&emsp;optionContent|选项内容|string||
 |&emsp;&emsp;&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)|string||
 |&emsp;&emsp;&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)|integer||
@@ -20182,6 +21288,7 @@
 |&emsp;&emsp;answers|填空简答视图对象|array|QuestionAnswerVO|
 |&emsp;&emsp;&emsp;&emsp;id|答案ID|string||
 |&emsp;&emsp;&emsp;&emsp;questionId|题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;courseId|所属课程ID|string||
 |&emsp;&emsp;&emsp;&emsp;answerContent|本空答案|string||
 |&emsp;&emsp;&emsp;&emsp;explanation|本空解析|string||
 |&emsp;&emsp;&emsp;&emsp;score|分数|number||
@@ -20203,6 +21310,7 @@
 			"id": "",
 			"questionBankId": "",
 			"questionBankName": "",
+			"courseId": "",
 			"sysUserId": "",
 			"sysUserName": "",
 			"questionTitle": "",
@@ -20220,6 +21328,7 @@
 				{
 					"id": "",
 					"questionId": "",
+					"courseId": "",
 					"optionContent": "",
 					"optionLabel": "",
 					"isCorrect": 0,
@@ -20234,6 +21343,7 @@
 				{
 					"id": "",
 					"questionId": "",
+					"courseId": "",
 					"answerContent": "",
 					"explanation": "",
 					"score": 0,

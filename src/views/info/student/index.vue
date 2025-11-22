@@ -225,13 +225,7 @@
 <script lang="ts" setup>
 import {computed, h, reactive, ref} from 'vue'
 import {NEllipsis} from 'naive-ui'
-import {
-  AddOutline,
-  CreateOutline,
-  RefreshOutline,
-  SearchOutline,
-  TrashOutline
-} from '@vicons/ionicons5'
+import {AddOutline, CreateOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
 import * as studentApi from '@/api/student'
 import type * as studentType from '@/types/student'
 import {AcademicStatus} from '@/types/student'

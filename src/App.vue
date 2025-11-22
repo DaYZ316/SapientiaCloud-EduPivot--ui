@@ -81,7 +81,7 @@ onMounted(async () => {
       <n-dialog-provider ref="dialogProviderRef">
         <n-notification-provider ref="notificationProviderRef">
           <n-loading-bar-provider ref="loadingBarProviderRef">
-            <AuthTransition />
+            <AuthTransition/>
             <router-view v-slot="{ Component }">
               <transition mode="out-in" name="slide-fade">
                 <component :is="Component"/>

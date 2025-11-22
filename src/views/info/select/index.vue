@@ -16,9 +16,9 @@
 
       <!-- 流程步骤 -->
       <div class="flow-header">
-        <n-steps :current="needsMobileBind ? currentStep : 2" size="small" :status="stepStatus">
-          <n-step :title="t('info.select.step1.title')" :status="needsMobileBind ? undefined : 'finish'" />
-          <n-step :title="t('info.select.step2.title')" />
+        <n-steps :current="needsMobileBind ? currentStep : 2" :status="stepStatus" size="small">
+          <n-step :status="needsMobileBind ? undefined : 'finish'" :title="t('info.select.step1.title')"/>
+          <n-step :title="t('info.select.step2.title')"/>
         </n-steps>
       </div>
 
@@ -27,7 +27,7 @@
         <!-- 步骤1: 手机号绑定 -->
         <div v-if="currentStep === 1 && needsMobileBind" key="step1" class="step-content">
           <n-card :bordered="false" class="mobile-bind-card">
-            <n-alert type="warning" :title="t('info.select.mobileBindRequired')" :show-icon="true">
+            <n-alert :show-icon="true" :title="t('info.select.mobileBindRequired')" type="warning">
               <template #header>
                 {{ t('info.select.mobileBindRequired') }}
               </template>
@@ -37,41 +37,43 @@
             </n-alert>
             <div class="mobile-bind-form">
               <n-form
-                ref="mobileBindFormRef"
-                :model="mobileBindForm"
-                :rules="mobileBindRules"
-                label-placement="left"
-                label-width="100"
+                  ref="mobileBindFormRef"
+                  :model="mobileBindForm"
+                  :rules="mobileBindRules"
+                  label-placement="left"
+                  label-width="100"
               >
                 <n-form-item :label="t('auth.phone')" path="mobile">
                   <n-input
-                    v-model:value="mobileBindForm.mobile"
-                    :placeholder="t('auth.phoneNumberHint')"
-                    clearable
-                    maxlength="11"
+                      v-model:value="mobileBindForm.mobile"
+                      :placeholder="t('auth.phoneNumberHint')"
+                      clearable
+                      maxlength="11"
                   />
                 </n-form-item>
                 <n-form-item :label="t('auth.verificationCode')" path="verificationCode">
                   <div class="verification-code-wrapper">
                     <n-input-otp
-                      v-model:value="mobileBindForm.verificationCode"
-                      :length="6"
+                        v-model:value="mobileBindForm.verificationCode"
+                        :length="6"
                     />
                     <n-button
-                      :disabled="countdown > 0 || !mobileBindForm.mobile || mobileBindForm.mobile.length !== 11"
-                      :loading="sendingCode"
-                      @click="handleSendVerificationCode"
+                        :disabled="countdown > 0 || !mobileBindForm.mobile || mobileBindForm.mobile.length !== 11"
+                        :loading="sendingCode"
+                        @click="handleSendVerificationCode"
                     >
-                      {{ countdown > 0 ? `${countdown}${t('auth.verificationCodeCountdown')}` : t('auth.sendVerificationCode') }}
+                      {{
+                        countdown > 0 ? `${countdown}${t('auth.verificationCodeCountdown')}` : t('auth.sendVerificationCode')
+                      }}
                     </n-button>
                   </div>
                 </n-form-item>
                 <n-form-item>
                   <n-button
-                    :loading="bindingMobile"
-                    type="primary"
-                    block
-                    @click="handleBindMobile"
+                      :loading="bindingMobile"
+                      block
+                      type="primary"
+                      @click="handleBindMobile"
                   >
                     {{ t('info.select.bindMobile') }}
                   </n-button>
@@ -84,159 +86,159 @@
         <!-- 步骤2: 身份选择和信息填写 -->
         <div v-else-if="currentStep === 2 || (!needsMobileBind && currentStep === 1)" key="step2" class="step-content">
           <n-card :bordered="false" class="form-card">
-        <n-form
-          ref="formRef"
-          :model="currentFormData"
-          :rules="formRules"
-          label-placement="left"
-          label-width="120"
-        >
-          <n-form-item :label="t('info.select.identityType')" path="identityType">
-            <n-radio-group v-model:value="formData.identityType">
-              <n-radio value="student">{{ t('info.select.student') }}</n-radio>
-              <n-radio value="teacher">{{ t('info.select.teacher') }}</n-radio>
-            </n-radio-group>
-          </n-form-item>
+            <n-form
+                ref="formRef"
+                :model="currentFormData"
+                :rules="formRules"
+                label-placement="left"
+                label-width="120"
+            >
+              <n-form-item :label="t('info.select.identityType')" path="identityType">
+                <n-radio-group v-model:value="formData.identityType">
+                  <n-radio value="student">{{ t('info.select.student') }}</n-radio>
+                  <n-radio value="teacher">{{ t('info.select.teacher') }}</n-radio>
+                </n-radio-group>
+              </n-form-item>
 
-          <!-- 学生信息表单 -->
-          <template v-if="formData.identityType === 'student'">
-            <n-form-item :label="t('settings.user.studentInfo.studentCode')" path="studentCode">
-              <n-input
-                v-model:value="currentFormData.studentCode"
-                :placeholder="t('settings.user.studentInfo.studentCodePlaceholder')"
-                clearable
-              />
-            </n-form-item>
-            <n-grid :cols="24" :x-gap="24">
-              <n-grid-item :span="12">
-                <n-form-item :label="t('settings.user.studentInfo.realName')" path="realName">
+              <!-- 学生信息表单 -->
+              <template v-if="formData.identityType === 'student'">
+                <n-form-item :label="t('settings.user.studentInfo.studentCode')" path="studentCode">
                   <n-input
-                    v-model:value="currentFormData.realName"
-                    :placeholder="t('settings.user.studentInfo.realNamePlaceholder')"
-                    clearable
+                      v-model:value="currentFormData.studentCode"
+                      :placeholder="t('settings.user.studentInfo.studentCodePlaceholder')"
+                      clearable
                   />
                 </n-form-item>
-              </n-grid-item>
-              <n-grid-item :span="12">
-                <n-form-item :label="t('settings.user.studentInfo.birthDate')" path="birthDate">
-                  <n-date-picker
-                    v-model:value="currentFormData.birthDate as any"
-                    :placeholder="t('settings.user.studentInfo.birthDatePlaceholder')"
-                    style="width: 100%"
-                    type="date"
-                    clearable
+                <n-grid :cols="24" :x-gap="24">
+                  <n-grid-item :span="12">
+                    <n-form-item :label="t('settings.user.studentInfo.realName')" path="realName">
+                      <n-input
+                          v-model:value="currentFormData.realName"
+                          :placeholder="t('settings.user.studentInfo.realNamePlaceholder')"
+                          clearable
+                      />
+                    </n-form-item>
+                  </n-grid-item>
+                  <n-grid-item :span="12">
+                    <n-form-item :label="t('settings.user.studentInfo.birthDate')" path="birthDate">
+                      <n-date-picker
+                          v-model:value="currentFormData.birthDate as any"
+                          :placeholder="t('settings.user.studentInfo.birthDatePlaceholder')"
+                          clearable
+                          style="width: 100%"
+                          type="date"
+                      />
+                    </n-form-item>
+                  </n-grid-item>
+                </n-grid>
+                <n-grid :cols="24" :x-gap="24">
+                  <n-grid-item :span="12">
+                    <n-form-item :label="t('settings.user.studentInfo.admissionYear')" path="admissionYear">
+                      <n-input-number
+                          v-model:value="currentFormData.admissionYear"
+                          :placeholder="t('settings.user.studentInfo.admissionYearPlaceholder')"
+                          clearable
+                          style="width: 100%"
+                      />
+                    </n-form-item>
+                  </n-grid-item>
+                  <n-grid-item :span="12">
+                    <n-form-item :label="t('settings.user.studentInfo.academicStatus')" path="academicStatus">
+                      <n-select
+                          v-model:value="currentFormData.academicStatus"
+                          :options="academicStatusOptions"
+                          :placeholder="t('settings.user.studentInfo.academicStatusPlaceholder')"
+                          clearable
+                      />
+                    </n-form-item>
+                  </n-grid-item>
+                </n-grid>
+                <n-form-item :label="t('settings.user.studentInfo.major')" path="major">
+                  <n-input
+                      v-model:value="currentFormData.major"
+                      :placeholder="t('settings.user.studentInfo.majorPlaceholder')"
+                      clearable
                   />
                 </n-form-item>
-              </n-grid-item>
-            </n-grid>
-            <n-grid :cols="24" :x-gap="24">
-              <n-grid-item :span="12">
-                <n-form-item :label="t('settings.user.studentInfo.admissionYear')" path="admissionYear">
-                  <n-input-number
-                    v-model:value="currentFormData.admissionYear"
-                    :placeholder="t('settings.user.studentInfo.admissionYearPlaceholder')"
-                    style="width: 100%"
-                    clearable
+                <n-form-item :label="t('settings.user.studentInfo.description')" path="description">
+                  <n-input
+                      v-model:value="currentFormData.description"
+                      :placeholder="t('settings.user.studentInfo.descriptionPlaceholder')"
+                      clearable
+                      type="textarea"
                   />
                 </n-form-item>
-              </n-grid-item>
-              <n-grid-item :span="12">
-                <n-form-item :label="t('settings.user.studentInfo.academicStatus')" path="academicStatus">
-                  <n-select
-                    v-model:value="currentFormData.academicStatus"
-                    :options="academicStatusOptions"
-                    :placeholder="t('settings.user.studentInfo.academicStatusPlaceholder')"
-                    clearable
-                  />
-                </n-form-item>
-              </n-grid-item>
-            </n-grid>
-            <n-form-item :label="t('settings.user.studentInfo.major')" path="major">
-              <n-input
-                v-model:value="currentFormData.major"
-                :placeholder="t('settings.user.studentInfo.majorPlaceholder')"
-                clearable
-              />
-            </n-form-item>
-            <n-form-item :label="t('settings.user.studentInfo.description')" path="description">
-              <n-input
-                v-model:value="currentFormData.description"
-                :placeholder="t('settings.user.studentInfo.descriptionPlaceholder')"
-                type="textarea"
-                clearable
-              />
-            </n-form-item>
-          </template>
+              </template>
 
-          <!-- 教师信息表单 -->
-          <template v-if="formData.identityType === 'teacher'">
-            <n-form-item :label="t('settings.user.teacherInfo.teacherCode')" path="teacherCode">
-              <n-input
-                v-model:value="currentFormData.teacherCode"
-                :placeholder="t('settings.user.teacherInfo.teacherCodePlaceholder')"
-                clearable
-              />
-            </n-form-item>
-            <n-grid :cols="24" :x-gap="24">
-              <n-grid-item :span="12">
-                <n-form-item :label="t('settings.user.teacherInfo.realName')" path="realName">
+              <!-- 教师信息表单 -->
+              <template v-if="formData.identityType === 'teacher'">
+                <n-form-item :label="t('settings.user.teacherInfo.teacherCode')" path="teacherCode">
                   <n-input
-                    v-model:value="currentFormData.realName"
-                    :placeholder="t('settings.user.teacherInfo.realNamePlaceholder')"
-                    clearable
+                      v-model:value="currentFormData.teacherCode"
+                      :placeholder="t('settings.user.teacherInfo.teacherCodePlaceholder')"
+                      clearable
                   />
                 </n-form-item>
-              </n-grid-item>
-              <n-grid-item :span="12">
-                <n-form-item :label="t('settings.user.teacherInfo.birthDate')" path="birthDate">
-                  <n-date-picker
-                    v-model:value="currentFormData.birthDate as any"
-                    :placeholder="t('settings.user.teacherInfo.birthDatePlaceholder')"
-                    style="width: 100%"
-                    type="date"
-                    clearable
-                  />
-                </n-form-item>
-              </n-grid-item>
-            </n-grid>
-            <n-grid :cols="24" :x-gap="24">
-              <n-grid-item :span="12">
-                <n-form-item :label="t('settings.user.teacherInfo.department')" path="department">
+                <n-grid :cols="24" :x-gap="24">
+                  <n-grid-item :span="12">
+                    <n-form-item :label="t('settings.user.teacherInfo.realName')" path="realName">
+                      <n-input
+                          v-model:value="currentFormData.realName"
+                          :placeholder="t('settings.user.teacherInfo.realNamePlaceholder')"
+                          clearable
+                      />
+                    </n-form-item>
+                  </n-grid-item>
+                  <n-grid-item :span="12">
+                    <n-form-item :label="t('settings.user.teacherInfo.birthDate')" path="birthDate">
+                      <n-date-picker
+                          v-model:value="currentFormData.birthDate as any"
+                          :placeholder="t('settings.user.teacherInfo.birthDatePlaceholder')"
+                          clearable
+                          style="width: 100%"
+                          type="date"
+                      />
+                    </n-form-item>
+                  </n-grid-item>
+                </n-grid>
+                <n-grid :cols="24" :x-gap="24">
+                  <n-grid-item :span="12">
+                    <n-form-item :label="t('settings.user.teacherInfo.department')" path="department">
+                      <n-input
+                          v-model:value="currentFormData.department"
+                          :placeholder="t('settings.user.teacherInfo.departmentPlaceholder')"
+                          clearable
+                      />
+                    </n-form-item>
+                  </n-grid-item>
+                  <n-grid-item :span="12">
+                    <n-form-item :label="t('settings.user.teacherInfo.education')" path="education">
+                      <n-select
+                          v-model:value="currentFormData.education"
+                          :options="educationOptions"
+                          :placeholder="t('settings.user.teacherInfo.educationPlaceholder')"
+                          clearable
+                      />
+                    </n-form-item>
+                  </n-grid-item>
+                </n-grid>
+                <n-form-item :label="t('settings.user.teacherInfo.specialization')" path="specialization">
                   <n-input
-                    v-model:value="currentFormData.department"
-                    :placeholder="t('settings.user.teacherInfo.departmentPlaceholder')"
-                    clearable
+                      v-model:value="currentFormData.specialization"
+                      :placeholder="t('settings.user.teacherInfo.specializationPlaceholder')"
+                      clearable
                   />
                 </n-form-item>
-              </n-grid-item>
-              <n-grid-item :span="12">
-                <n-form-item :label="t('settings.user.teacherInfo.education')" path="education">
-                  <n-select
-                    v-model:value="currentFormData.education"
-                    :options="educationOptions"
-                    :placeholder="t('settings.user.teacherInfo.educationPlaceholder')"
-                    clearable
+                <n-form-item :label="t('settings.user.teacherInfo.description')" path="description">
+                  <n-input
+                      v-model:value="currentFormData.description"
+                      :placeholder="t('settings.user.teacherInfo.descriptionPlaceholder')"
+                      clearable
+                      type="textarea"
                   />
                 </n-form-item>
-              </n-grid-item>
-            </n-grid>
-            <n-form-item :label="t('settings.user.teacherInfo.specialization')" path="specialization">
-              <n-input
-                v-model:value="currentFormData.specialization"
-                :placeholder="t('settings.user.teacherInfo.specializationPlaceholder')"
-                clearable
-              />
-            </n-form-item>
-            <n-form-item :label="t('settings.user.teacherInfo.description')" path="description">
-              <n-input
-                v-model:value="currentFormData.description"
-                :placeholder="t('settings.user.teacherInfo.descriptionPlaceholder')"
-                type="textarea"
-                clearable
-              />
-            </n-form-item>
-          </template>
-        </n-form>
+              </template>
+            </n-form>
 
             <div class="actions">
               <n-space justify="space-between">
@@ -255,17 +257,38 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import {computed, h, onMounted, onUnmounted, reactive, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useRouter} from 'vue-router'
-import {NAlert, NButton, NCard, NDatePicker, NForm, NFormItem, NGrid, NGridItem, NInput, NInputNumber, NInputOtp, NRadio, NRadioGroup, NSelect, NSpace, NStep, NSteps, NThing, useDialog, useMessage} from 'naive-ui'
+import type {FormInst} from 'naive-ui'
+import {
+  NAlert,
+  NButton,
+  NCard,
+  NDatePicker,
+  NForm,
+  NFormItem,
+  NGrid,
+  NGridItem,
+  NInput,
+  NInputNumber,
+  NInputOtp,
+  NRadio,
+  NRadioGroup,
+  NSelect,
+  NSpace,
+  NStep,
+  NSteps,
+  NThing,
+  useDialog,
+  useMessage
+} from 'naive-ui'
 import {LogOutOutline} from '@vicons/ionicons5'
 import {useUserStore} from '@/store'
 import * as AuthApi from '@/api/auth/auth'
 import {getAcademicStatusOptions} from '@/enum/student'
 import {getEducationOptions} from '@/enum/teacher'
-import type {FormInst} from 'naive-ui'
 import type {StudentAddDTO} from '@/types/student'
 import type {TeacherAddDTO} from '@/types/teacher'
 import type {SysUserBasicInfoVO} from '@/types/auth'
@@ -395,52 +418,52 @@ watch(() => formData.identityType, (newVal) => {
 
 // 同步：当选择学生身份时，currentFormData -> studentForm（用于提交数据）
 watch(
-  () => [
-    currentFormData.studentCode,
-    currentFormData.realName,
-    currentFormData.birthDate,
-    currentFormData.admissionYear,
-    currentFormData.major,
-    currentFormData.academicStatus,
-    currentFormData.description
-  ],
-  () => {
-    if (formData.identityType === 'student') {
-      studentForm.studentCode = currentFormData.studentCode ?? null
-      studentForm.realName = currentFormData.realName ?? null
-      studentForm.birthDate = currentFormData.birthDate as any
-      studentForm.admissionYear = currentFormData.admissionYear ?? null
-      studentForm.major = currentFormData.major ?? null
-      studentForm.academicStatus = currentFormData.academicStatus ?? null
-      studentForm.description = currentFormData.description ?? null
-    }
-  },
-  {deep: true}
+    () => [
+      currentFormData.studentCode,
+      currentFormData.realName,
+      currentFormData.birthDate,
+      currentFormData.admissionYear,
+      currentFormData.major,
+      currentFormData.academicStatus,
+      currentFormData.description
+    ],
+    () => {
+      if (formData.identityType === 'student') {
+        studentForm.studentCode = currentFormData.studentCode ?? null
+        studentForm.realName = currentFormData.realName ?? null
+        studentForm.birthDate = currentFormData.birthDate as any
+        studentForm.admissionYear = currentFormData.admissionYear ?? null
+        studentForm.major = currentFormData.major ?? null
+        studentForm.academicStatus = currentFormData.academicStatus ?? null
+        studentForm.description = currentFormData.description ?? null
+      }
+    },
+    {deep: true}
 )
 
 // 同步：当选择教师身份时，currentFormData -> teacherForm（用于提交数据）
 watch(
-  () => [
-    currentFormData.teacherCode,
-    currentFormData.realName,
-    currentFormData.birthDate,
-    currentFormData.department,
-    currentFormData.education,
-    currentFormData.specialization,
-    currentFormData.description
-  ],
-  () => {
-    if (formData.identityType === 'teacher') {
-      teacherForm.teacherCode = currentFormData.teacherCode ?? null
-      teacherForm.realName = currentFormData.realName ?? null
-      teacherForm.birthDate = currentFormData.birthDate as any
-      teacherForm.department = currentFormData.department ?? null
-      teacherForm.education = currentFormData.education ?? null
-      teacherForm.specialization = currentFormData.specialization ?? null
-      teacherForm.description = currentFormData.description ?? null
-    }
-  },
-  {deep: true}
+    () => [
+      currentFormData.teacherCode,
+      currentFormData.realName,
+      currentFormData.birthDate,
+      currentFormData.department,
+      currentFormData.education,
+      currentFormData.specialization,
+      currentFormData.description
+    ],
+    () => {
+      if (formData.identityType === 'teacher') {
+        teacherForm.teacherCode = currentFormData.teacherCode ?? null
+        teacherForm.realName = currentFormData.realName ?? null
+        teacherForm.birthDate = currentFormData.birthDate as any
+        teacherForm.department = currentFormData.department ?? null
+        teacherForm.education = currentFormData.education ?? null
+        teacherForm.specialization = currentFormData.specialization ?? null
+        teacherForm.description = currentFormData.description ?? null
+      }
+    },
+    {deep: true}
 )
 
 const formRules = computed(() => {
@@ -517,12 +540,12 @@ const goToNextStep = () => {
 
 // 监听手机号绑定状态，自动进入下一步
 watch(
-  () => userStore.userInfo?.mobile,
-  (mobile) => {
-    if (mobile && needsMobileBind.value && currentStep.value === 1) {
-      goToNextStep()
+    () => userStore.userInfo?.mobile,
+    (mobile) => {
+      if (mobile && needsMobileBind.value && currentStep.value === 1) {
+        goToNextStep()
+      }
     }
-  }
 )
 
 const handleSubmit = async () => {
@@ -540,17 +563,17 @@ const handleSubmit = async () => {
       studentForm.sysUserId = userStore.userInfo?.id || null
       selectIdentityDTO.studentInfo = {
         ...studentForm,
-        birthDate: typeof studentForm.birthDate === 'number' 
-          ? formatDateForAPI(studentForm.birthDate) 
-          : studentForm.birthDate
+        birthDate: typeof studentForm.birthDate === 'number'
+            ? formatDateForAPI(studentForm.birthDate)
+            : studentForm.birthDate
       }
     } else if (formData.identityType === 'teacher') {
       teacherForm.sysUserId = userStore.userInfo?.id || null
       selectIdentityDTO.teacherInfo = {
         ...teacherForm,
-        birthDate: typeof teacherForm.birthDate === 'number' 
-          ? formatDateForAPI(teacherForm.birthDate) 
-          : teacherForm.birthDate
+        birthDate: typeof teacherForm.birthDate === 'number'
+            ? formatDateForAPI(teacherForm.birthDate)
+            : teacherForm.birthDate
       }
     }
 
@@ -585,12 +608,12 @@ const handleLogout = () => {
 
 // 监听路由变化，如果用户已经不需要填写信息且有手机号，重定向到主页
 watch(
-  () => [userStore.needsIdentityInfo, userStore.userInfo?.mobile],
-  ([needsInfo, mobile]) => {
-    if (!needsInfo && mobile && userStore.isLogin) {
-      router.push('/dashboard')
+    () => [userStore.needsIdentityInfo, userStore.userInfo?.mobile],
+    ([needsInfo, mobile]) => {
+      if (!needsInfo && mobile && userStore.isLogin) {
+        router.push('/dashboard')
+      }
     }
-  }
 )
 
 // 发送验证码
@@ -632,7 +655,7 @@ const handleBindMobile = async () => {
 
     // 检查手机号是否可用
     const checkRes = await AuthApi.checkMobile(mobileBindForm.mobile!).catch(() => null)
-    
+
     if (!checkRes) {
       bindingMobile.value = false
       return
@@ -645,10 +668,10 @@ const handleBindMobile = async () => {
       // 手机号已被占用，保存用户信息并询问用户
       existingUserInfo.value = bindResult.existingUserInfo
       bindingMobile.value = false
-      
+
       // 判断是否为同一账号
       const isSameAccount = existingUserInfo.value?.id === userStore.userInfo?.id
-      
+
       dialog.warning({
         title: t('info.select.mobileAlreadyBound'),
         content: () => h('div', {class: 'existing-user-dialog-content'}, [
@@ -675,7 +698,10 @@ const handleBindMobile = async () => {
             })
           ]),
           // 如果不是同一账号，显示警告文字
-          !isSameAccount ? h('p', {class: 'dialog-warning', style: {color: 'var(--error-color)', marginTop: '16px', fontWeight: 'bold'}}, t('info.select.accountDeleteWarning')) : null
+          !isSameAccount ? h('p', {
+            class: 'dialog-warning',
+            style: {color: 'var(--error-color)', marginTop: '16px', fontWeight: 'bold'}
+          }, t('info.select.accountDeleteWarning')) : null
         ]),
         positiveText: t('info.select.mergeAccount'),
         negativeText: t('info.select.overwriteBind'),
@@ -726,7 +752,7 @@ const performBindMobileConfirm = async (isMerge: boolean = false) => {
       })
       return
     }
-    
+
     message.success(t('info.select.bindMobileSuccess'))
     mobileBindForm.mobile = null
     mobileBindForm.verificationCode = null
@@ -744,11 +770,11 @@ const performBindMobile = async () => {
   const bindDTO = AuthApi.getDefaultBindMobileDTO()
   bindDTO.mobile = mobileBindForm.mobile
   bindDTO.userId = userStore.userInfo?.id || null
-  
+
   // n-input-otp 返回的是数组类型，需要转换为字符串
   const verificationCode = Array.isArray(mobileBindForm.verificationCode)
-    ? mobileBindForm.verificationCode.join('')
-    : mobileBindForm.verificationCode || ''
+      ? mobileBindForm.verificationCode.join('')
+      : mobileBindForm.verificationCode || ''
   bindDTO.verificationCode = verificationCode
 
   const res = await AuthApi.bindMobile(bindDTO).catch(() => null)
@@ -773,7 +799,7 @@ onMounted(async () => {
     router.push('/dashboard')
     return
   }
-  
+
   // 如果用户未登录，重定向到登录页
   if (!userStore.isLogin) {
     router.push('/login')

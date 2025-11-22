@@ -1,10 +1,10 @@
 <template>
   <div class="register-card">
     <div class="register-card-header">
-      <n-steps :current="currentStep" size="small" :status="stepStatus">
-        <n-step :title="t('auth.registerSteps.step1.title')" />
-        <n-step :title="t('auth.registerSteps.step2.title')" />
-        <n-step :title="t('auth.registerSteps.step3.title')" />
+      <n-steps :current="currentStep" :status="stepStatus" size="small">
+        <n-step :title="t('auth.registerSteps.step1.title')"/>
+        <n-step :title="t('auth.registerSteps.step2.title')"/>
+        <n-step :title="t('auth.registerSteps.step3.title')"/>
       </n-steps>
     </div>
 
@@ -12,45 +12,45 @@
     <Transition :name="stepTransitionName" mode="out-in">
       <div v-if="currentStep === 1" key="step1" class="step-content">
         <n-form
-          ref="step1FormRef"
-          :model="registerForm"
-          :rules="step1Rules"
-          size="large"
-          :show-label="false"
+            ref="step1FormRef"
+            :model="registerForm"
+            :rules="step1Rules"
+            :show-label="false"
+            size="large"
         >
           <n-form-item path="username">
             <n-input
-              v-model:value="registerForm.username"
-              :placeholder="t('auth.username')"
-              clearable
+                v-model:value="registerForm.username"
+                :placeholder="t('auth.username')"
+                clearable
             />
           </n-form-item>
           <n-form-item path="password">
             <n-input
-              v-model:value="registerForm.password"
-              type="password"
-              :placeholder="t('auth.password')"
-              show-password-on="click"
-              clearable
+                v-model:value="registerForm.password"
+                :placeholder="t('auth.password')"
+                clearable
+                show-password-on="click"
+                type="password"
             />
           </n-form-item>
           <n-form-item path="confirmPassword">
             <n-input
-              v-model:value="registerForm.confirmPassword"
-              type="password"
-              :placeholder="t('auth.confirmPassword')"
-              show-password-on="click"
-              clearable
-              @keyup.enter="handleNextStep"
+                v-model:value="registerForm.confirmPassword"
+                :placeholder="t('auth.confirmPassword')"
+                clearable
+                show-password-on="click"
+                type="password"
+                @keyup.enter="handleNextStep"
             />
           </n-form-item>
           <n-form-item>
             <n-button
-              class="register-button"
-              type="primary"
-              size="large"
-              block
-              @click="handleNextStep"
+                block
+                class="register-button"
+                size="large"
+                type="primary"
+                @click="handleNextStep"
             >
               {{ t('auth.registerSteps.nextStep') }}
             </n-button>
@@ -61,44 +61,44 @@
       <!-- 步骤2: 详细信息 -->
       <div v-else-if="currentStep === 2" key="step2" class="step-content">
         <n-form
-          ref="step2FormRef"
-          :model="registerForm"
-          :rules="step2Rules"
-          size="large"
-          :show-label="false"
+            ref="step2FormRef"
+            :model="registerForm"
+            :rules="step2Rules"
+            :show-label="false"
+            size="large"
         >
           <n-form-item>
             <div class="avatar-upload-wrapper">
               <AuthAvatarUpload
-                v-model="registerForm.avatar"
-                :size="180"
-                :crop-size="300"
+                  v-model="registerForm.avatar"
+                  :crop-size="300"
+                  :size="180"
               />
             </div>
           </n-form-item>
           <n-form-item path="nickName">
             <n-input
-              v-model:value="registerForm.nickName"
-              :placeholder="t('auth.nickName')"
-              clearable
+                v-model:value="registerForm.nickName"
+                :placeholder="t('auth.nickName')"
+                clearable
             />
           </n-form-item>
           <n-form-item>
             <n-space :size="12" style="width: 100%">
               <n-button
-                class="register-button-secondary"
-                size="large"
-                block
-                @click="handlePrevStep"
+                  block
+                  class="register-button-secondary"
+                  size="large"
+                  @click="handlePrevStep"
               >
                 {{ t('auth.registerSteps.prevStep') }}
               </n-button>
               <n-button
-                class="register-button"
-                type="primary"
-                size="large"
-                block
-                @click="handleNextStep"
+                  block
+                  class="register-button"
+                  size="large"
+                  type="primary"
+                  @click="handleNextStep"
               >
                 {{ t('auth.registerSteps.nextStep') }}
               </n-button>
@@ -110,55 +110,57 @@
       <!-- 步骤3: 绑定手机号 -->
       <div v-else-if="currentStep === 3" key="step3" class="step-content">
         <n-form
-          ref="step3FormRef"
-          :model="registerForm"
-          :rules="step3Rules"
-          size="large"
-          :show-label="false"
+            ref="step3FormRef"
+            :model="registerForm"
+            :rules="step3Rules"
+            :show-label="false"
+            size="large"
         >
           <n-form-item path="mobile">
             <n-input
-              v-model:value="registerForm.mobile"
-              :placeholder="t('auth.phone')"
-              clearable
-              maxlength="11"
+                v-model:value="registerForm.mobile"
+                :placeholder="t('auth.phone')"
+                clearable
+                maxlength="11"
             />
           </n-form-item>
           <n-form-item path="verificationCode">
             <div class="verification-code-wrapper">
               <n-input-otp
-                v-model:value="registerForm.verificationCode"
-                :length="6"
-                size="large"
-                @keyup.enter="handleRegister"
+                  v-model:value="registerForm.verificationCode"
+                  :length="6"
+                  size="large"
+                  @keyup.enter="handleRegister"
               />
               <n-button
-                :disabled="countdown > 0 || !registerForm.mobile || registerForm.mobile.length !== 11"
-                :loading="sendingCode"
-                size="large"
-                @click="sendVerificationCode"
+                  :disabled="countdown > 0 || !registerForm.mobile || registerForm.mobile.length !== 11"
+                  :loading="sendingCode"
+                  size="large"
+                  @click="sendVerificationCode"
               >
-                {{ countdown > 0 ? `${countdown}${t('auth.verificationCodeCountdown')}` : t('auth.sendVerificationCode') }}
+                {{
+                  countdown > 0 ? `${countdown}${t('auth.verificationCodeCountdown')}` : t('auth.sendVerificationCode')
+                }}
               </n-button>
             </div>
           </n-form-item>
           <n-form-item>
             <n-space :size="12" style="width: 100%">
               <n-button
-                class="register-button-secondary"
-                size="large"
-                block
-                @click="handlePrevStep"
+                  block
+                  class="register-button-secondary"
+                  size="large"
+                  @click="handlePrevStep"
               >
                 {{ t('auth.registerSteps.prevStep') }}
               </n-button>
               <n-button
-                class="register-button"
-                type="primary"
-                size="large"
-                block
-                :loading="loading"
-                @click="handleRegister"
+                  :loading="loading"
+                  block
+                  class="register-button"
+                  size="large"
+                  type="primary"
+                  @click="handleRegister"
               >
                 {{ t('auth.registerButton') }}
               </n-button>
@@ -171,20 +173,25 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onUnmounted, reactive, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import type { FormInst, FormRules } from 'naive-ui'
-import { NButton, NForm, NFormItem, NInput, NInputOtp, NSpace, NStep, NSteps, useDialog } from 'naive-ui'
+import {computed, onUnmounted, reactive, ref} from 'vue'
+import {useI18n} from 'vue-i18n'
+import type {FormInst, FormRules} from 'naive-ui'
+import {NButton, NForm, NFormItem, NInput, NInputOtp, NSpace, NStep, NSteps, useDialog} from 'naive-ui'
 import AuthAvatarUpload from '@/views/auth/components/AuthAvatarUpload.vue'
-import { getDefaultSysUserRegisterDTO, register as registerApi, sendVerificationCode as sendVerificationCodeApi, getDefaultSendVerificationCodeDTO } from '@/api/auth'
-import type { SysUserRegisterDTO } from '@/types/auth'
-import { getDiscreteApi } from '@/utils/naiveUIHelper'
+import {
+  getDefaultSendVerificationCodeDTO,
+  getDefaultSysUserRegisterDTO,
+  register as registerApi,
+  sendVerificationCode as sendVerificationCodeApi
+} from '@/api/auth'
+import type {SysUserRegisterDTO} from '@/types/auth'
+import {getDiscreteApi} from '@/utils/naiveUIHelper'
 
 const emit = defineEmits<{
   switchToLogin: []
 }>()
 
-const { t } = useI18n()
+const {t} = useI18n()
 const message = getDiscreteApi().message
 const dialog = useDialog()
 
@@ -376,8 +383,8 @@ const handleRegister = async () => {
   loading.value = true
 
   const verificationCode = Array.isArray(registerForm.verificationCode)
-    ? registerForm.verificationCode.join('')
-    : ''
+      ? registerForm.verificationCode.join('')
+      : ''
 
   const submitData: SysUserRegisterDTO = {
     ...registerForm,

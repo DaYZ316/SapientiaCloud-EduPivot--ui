@@ -1,6 +1,7 @@
 import {defineStore} from 'pinia'
-import {ref} from 'vue'
+import {computed, ref} from 'vue'
 import type {CourseVO} from '@/types/course'
+import {CoursePublicEnum} from '@/enum/course'
 import * as CourseApi from '@/api/course/course'
 
 // 用于本地存储的键名
@@ -13,6 +14,14 @@ export const useCourseStore = defineStore('course', () => {
     // 状态
     const currentCourseId = ref<string | null>(localStorage.getItem(CURRENT_COURSE_ID_KEY))
     const currentCourseInfo = ref<CourseVO | null>(null)
+
+    // 计算属性
+    /**
+     * 当前课程是否公开
+     */
+    const isCurrentCoursePublic = computed<boolean>(() => {
+        return currentCourseInfo.value?.isPublic === CoursePublicEnum.PUBLIC
+    })
 
     /**
      * 设置当前课程ID并更新课程信息
@@ -64,15 +73,29 @@ export const useCourseStore = defineStore('course', () => {
         localStorage.removeItem(CURRENT_COURSE_ID_KEY)
     }
 
+    /**
+     * 检查课程是否公开
+     * @param courseInfo 课程信息，如果不传则使用当前课程信息
+     * @returns 是否公开
+     */
+    const isCoursePublic = (courseInfo?: CourseVO | null): boolean => {
+        const targetCourseInfo = courseInfo || currentCourseInfo.value
+        return targetCourseInfo?.isPublic === CoursePublicEnum.PUBLIC
+    }
+
     return {
         // 状态
         currentCourseId,
         currentCourseInfo,
 
+        // 计算属性
+        isCurrentCoursePublic,
+
         // 方法
         setCurrentCourseId,
         refreshCourseInfo,
-        resetCourseState
+        resetCourseState,
+        isCoursePublic
     }
 })
 

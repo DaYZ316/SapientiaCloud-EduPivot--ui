@@ -77,7 +77,10 @@ export default {
         coverImage: '封面图片',
         coverImagePlaceholder: '请上传封面图片',
         status: '课程状态',
-        statusPlaceholder: '请选择课程状态'
+        statusPlaceholder: '请选择课程状态',
+        isPublic: '是否公开',
+        isPublicLabel: '公开课程',
+        isPublicPlaceholder: '请选择是否公开'
     },
 
     // 课程类型
@@ -98,6 +101,12 @@ export default {
         SUSPENDED: '停课'
     },
 
+    // 课程公开状态
+    coursePublic: {
+        PRIVATE: '仅课程成员',
+        PUBLIC: '公开'
+    },
+
     // 表单验证
     validation: {
         courseNameRequired: '请输入课程名称',
@@ -106,7 +115,8 @@ export default {
         teacherIdRequired: '请选择主讲教师',
         semesterLength: '学期长度不能超过20个字符',
         locationLength: '上课地点长度不能超过100个字符',
-        descriptionLength: '课程描述长度不能超过500个字符'
+        descriptionLength: '课程描述长度不能超过500个字符',
+        isPublicRequired: '请选择是否公开'
     },
 
     // 选课状态

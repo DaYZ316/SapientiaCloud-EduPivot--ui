@@ -1,5 +1,15 @@
 import http from '@/utils/http'
-import type {SysUserLoginDTO, SysUserMobileLoginDTO, SysUserPasswordDTO, SysUserRegisterDTO, SendVerificationCodeDTO, SelectIdentityDTO, BindMobileDTO, BindMobileConfirmDTO, SysUserMobilePasswordDTO} from '@/types/auth'
+import type {
+    BindMobileConfirmDTO,
+    BindMobileDTO,
+    SelectIdentityDTO,
+    SendVerificationCodeDTO,
+    SysUserLoginDTO,
+    SysUserMobileLoginDTO,
+    SysUserMobilePasswordDTO,
+    SysUserPasswordDTO,
+    SysUserRegisterDTO
+} from '@/types/auth'
 
 // 获取默认用户登录DTO
 export function getDefaultSysUserLoginDTO(): SysUserLoginDTO {

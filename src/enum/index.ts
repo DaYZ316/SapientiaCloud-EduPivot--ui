@@ -7,4 +7,6 @@ export * from './teacher';
 // 课程相关枚举导出
 export * from './course';
 // 天体中心相关枚举导出
-export * from './celestialHub'; 
+export * from './celestialHub';
+// MinIO 相关枚举导出
+export * from './minIO';

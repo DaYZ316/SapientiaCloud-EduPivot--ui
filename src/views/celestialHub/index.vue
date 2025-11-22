@@ -88,7 +88,7 @@
                       <div style="flex: 1"></div>
                       <div class="tool-item" style="gap: 8px;">
                         <span class="tool-text">{{ t('chat.useRag') }}</span>
-                        <n-switch size="small" v-model:value="useRagSwitch"/>
+                        <n-switch v-model:value="useRagSwitch" size="small"/>
                       </div>
                       <div class="tool-button">
                         <n-icon :component="MicOutline" size="18"/>
@@ -159,7 +159,7 @@
                 </div>
                 <div class="tool-item">
                   <span class="tool-text">{{ t('chat.useRag') }}</span>
-                  <n-switch size="small" v-model:value="useRagSwitch"/>
+                  <n-switch v-model:value="useRagSwitch" size="small"/>
                 </div>
               </div>
             </div>

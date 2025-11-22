@@ -1,73 +1,78 @@
 <template>
   <div class="classroom-preparation">
     <h2 class="page-title">3D教室课前准备</h2>
-    
+
     <div class="form-container">
       <!-- 课程信息填写区域 -->
       <div class="form-section">
         <h3 class="section-title">
-          <n-icon><Book /></n-icon>
+          <n-icon>
+            <Book/>
+          </n-icon>
           课程基本信息
         </h3>
-        
+
         <!-- 课程名称 -->
         <div class="form-group">
           <label class="form-label required">课程名称</label>
           <n-input
-            v-model:value="courseName"
-            :placeholder="'请输入课程名称'"
-            :maxlength="50"
-            show-count
-            @blur="validateCourseName"
+              v-model:value="courseName"
+              :maxlength="50"
+              :placeholder="'请输入课程名称'"
+              show-count
+              @blur="validateCourseName"
           />
           <div v-if="errors.courseName" class="error-message">{{ errors.courseName }}</div>
         </div>
-        
+
         <!-- 课程简介 -->
         <div class="form-group">
           <label class="form-label required">课程简介</label>
           <n-input
-            v-model:value="courseDescription"
-            type="textarea"
-            :placeholder="'请输入课程简介（100-200字）'"
-            :minlength="0"
-            :maxlength="200"
-            show-count
-            :rows="4"
-            @blur="validateCourseDescription"
+              v-model:value="courseDescription"
+              :maxlength="200"
+              :minlength="0"
+              :placeholder="'请输入课程简介（100-200字）'"
+              :rows="4"
+              show-count
+              type="textarea"
+              @blur="validateCourseDescription"
           />
           <div v-if="errors.courseDescription" class="error-message">{{ errors.courseDescription }}</div>
           <div class="helper-text">建议长度：100-200字</div>
         </div>
-        
+
         <!-- 备注信息 -->
         <div class="form-group">
           <label class="form-label">备注信息</label>
           <n-input
-            v-model:value="courseNotes"
-            type="textarea"
-            :placeholder="'请输入备注信息（可选）'"
-            :maxlength="500"
-            show-count
-            :rows="3"
+              v-model:value="courseNotes"
+              :maxlength="500"
+              :placeholder="'请输入备注信息（可选）'"
+              :rows="3"
+              show-count
+              type="textarea"
           />
         </div>
       </div>
-      
+
       <!-- 教室配置区域 -->
       <div class="form-section">
         <h3 class="section-title">
-          <n-icon><Grid /></n-icon>
+          <n-icon>
+            <Grid/>
+          </n-icon>
           教室配置
         </h3>
-        
+
         <!-- 教室规格选择 -->
         <div class="form-group">
           <label class="form-label required">教室规格</label>
           <n-radio-group v-model:value="selectedClassroomSize" @change="onClassroomSizeChange">
             <div class="classroom-specs-container">
-              <div class="classroom-spec-card" v-for="spec in classroomSpecs" :key="spec.value">
-                <n-radio-button :value="spec.value" :class="['spec-radio', { 'active': selectedClassroomSize === spec.value }]">
+              <div v-for="spec in classroomSpecs" :key="spec.value" class="classroom-spec-card">
+                <n-radio-button :class="['spec-radio', { 'active': selectedClassroomSize === spec.value }]"
+                                :value="spec.value">
                   <div class="spec-content">
                     <div class="spec-name">{{ spec.name }}</div>
                     <div class="spec-details">
@@ -80,9 +85,9 @@
             </div>
           </n-radio-group>
         </div>
-        
+
         <!-- 座位排布设置和预览 -->
-        <div class="form-group seating-arrangement-group">      
+        <div class="form-group seating-arrangement-group">
           <div class="seating-layout-container">
             <!-- 座位排布设置部分 (25% 宽度) -->
             <div class="seating-settings-section">
@@ -91,15 +96,15 @@
                 <div class="input-group">
                   <label class="input-label">行数</label>
                   <n-input-number
-                    v-model:value="rows"
-                    placeholder="请输入行数"
+                      v-model:value="rows"
+                      placeholder="请输入行数"
                   />
                 </div>
                 <div class="input-group">
                   <label class="input-label">列数</label>
                   <n-input-number
-                    v-model:value="cols"
-                    placeholder="请输入列数"
+                      v-model:value="cols"
+                      placeholder="请输入列数"
                   />
                 </div>
               </div>
@@ -107,18 +112,18 @@
             <!-- 座位预览部分 (75% 宽度) -->
             <div class="seating-preview-section">
               <label class="form-label required">座位排布预览</label>
-              <div v-if="rows > 0 && cols > 0" class="seating-preview">              
+              <div v-if="rows > 0 && cols > 0" class="seating-preview">
                 <div class="preview-grid">
-                  <div 
-                    v-for="(row, rowIndex) in rows" 
-                    :key="`row-${rowIndex}`" 
-                    class="preview-row"
+                  <div
+                      v-for="(row, rowIndex) in rows"
+                      :key="`row-${rowIndex}`"
+                      class="preview-row"
                   >
-                    <div 
-                      v-for="(col, colIndex) in cols" 
-                      :key="`seat-${rowIndex}-${colIndex}`" 
-                      class="preview-seat"
-                      :title="`座位: ${String.fromCharCode(65 + colIndex)}${rowIndex + 1}`"
+                    <div
+                        v-for="(col, colIndex) in cols"
+                        :key="`seat-${rowIndex}-${colIndex}`"
+                        :title="`座位: ${String.fromCharCode(65 + colIndex)}${rowIndex + 1}`"
+                        class="preview-seat"
                     >
                       {{ String.fromCharCode(65 + colIndex) }}{{ rowIndex + 1 }}
                     </div>
@@ -131,41 +136,47 @@
         </div>
       </div>
     </div>
-    
+
     <!-- 操作按钮区域 -->
     <div class="action-buttons">
-      <n-button @click="handleCancel" :disabled="isSubmitting" class="cancel-button">
-        <n-icon><ArrowBack /></n-icon>
+      <n-button :disabled="isSubmitting" class="cancel-button" @click="handleCancel">
+        <n-icon>
+          <ArrowBack/>
+        </n-icon>
         返回
       </n-button>
-      <n-button type="primary" @click="submitForm" :loading="isSubmitting" :disabled="isSubmitting || !isFormValid">
-        <template #icon v-if="!isSubmitting">
-          <component :is="isEditMode ? Pencil : Open" />
+      <n-button :disabled="isSubmitting || !isFormValid" :loading="isSubmitting" type="primary" @click="submitForm">
+        <template v-if="!isSubmitting" #icon>
+          <component :is="isEditMode ? Pencil : Open"/>
         </template>
-        <template #icon v-else><Refresh /></template>
-        {{ isSubmitting 
-          ? (isEditMode ? '正在保存修改...' : '正在创建课程...') 
-          : (isEditMode ? '修改课程' : '创建课程') 
+        <template v-else #icon>
+          <Refresh/>
+        </template>
+        {{ isSubmitting
+        ? (isEditMode ? '正在保存修改...' : '正在创建课程...')
+        : (isEditMode ? '修改课程' : '创建课程')
         }}
       </n-button>
     </div>
-    
+
     <!-- 自动保存提示 -->
     <div v-if="lastSavedTime" class="auto-save-notification">
-      <n-icon size="14"><Save /></n-icon>
+      <n-icon size="14">
+        <Save/>
+      </n-icon>
       <span>自动保存于 {{ lastSavedTime }}</span>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { useMessage } from 'naive-ui'
-import { useRouter} from 'vue-router'
-import { Book, Grid, ArrowBack, Open, Refresh, Save, Pencil } from '@vicons/ionicons5'
+<script lang="ts" setup>
+import {ref, reactive, computed, watch, onMounted, onBeforeUnmount} from 'vue'
+import {useMessage} from 'naive-ui'
+import {useRouter} from 'vue-router'
+import {Book, Grid, ArrowBack, Open, Refresh, Save, Pencil} from '@vicons/ionicons5'
 import eventBus from '@/utils/eventBus'
-import { addCourseRecord, updateCourseRecord, getCourseRecordById } from '@/api/classroom/courseRecord'
-import { useUserStore, useCourseStore } from '@/store'
+import {addCourseRecord, updateCourseRecord, getCourseRecordById} from '@/api/classroom/courseRecord'
+import {useUserStore, useCourseStore} from '@/store'
 
 interface Props {
   courseId: string
@@ -245,7 +256,7 @@ const validateCourseName = () => {
 }
 
 const validateCourseDescription = () => {
-if (courseDescription.value.trim().length > 200) {
+  if (courseDescription.value.trim().length > 200) {
     errors.courseDescription = '课程简介不能超过200个字符'
     return false
   } else {
@@ -255,8 +266,8 @@ if (courseDescription.value.trim().length > 200) {
 }
 
 const isFormValid = computed(() => {
-  return courseName.value.trim().length >= 2 && 
-         courseDescription.value.trim().length <= 200
+  return courseName.value.trim().length >= 2 &&
+      courseDescription.value.trim().length <= 200
 })
 
 // 教室大小变化处理
@@ -290,7 +301,7 @@ function autoSaveForm() {
   if (!courseName.value && !courseDescription.value && !courseNotes.value) {
     return // 无需保存空表单
   }
-  
+
   const formData = {
     courseName: courseName.value,
     courseDescription: courseDescription.value,
@@ -299,7 +310,7 @@ function autoSaveForm() {
     rows: rows.value,
     cols: cols.value
   }
-  
+
   // 保存到localStorage
   try {
     localStorage.setItem('classroomPreparationForm', JSON.stringify(formData))
@@ -318,7 +329,7 @@ function restoreSavedForm() {
       courseName.value = formData.courseName || ''
       courseDescription.value = formData.courseDescription || ''
       courseNotes.value = formData.courseNotes || ''
-      
+
       message.info('已恢复上次编辑的内容')
     }
   } catch (error) {
@@ -341,45 +352,45 @@ async function submitForm() {
   // 验证所有必填字段
   const isNameValid = validateCourseName()
   const isDescriptionValid = validateCourseDescription()
-  
+
   if (!isNameValid || !isDescriptionValid) {
     message.error('请完善必填信息')
     return
   }
-  
+
   if (!isFormValid.value) {
     message.error('表单信息有误，请检查后重试')
     return
   }
-  
+
   isSubmitting.value = true
-  
+
   try {
     // 构建课程记录数据
     const courseRecordData = {
-    id: courseRecordId.value,
-    courseId: courseStore.currentCourseId,
-    teacherId: userStore.teacherInfo?.id || '',
-    studentIds: null,
-    questionIds: null,
-    modelType: selectedClassroomSize.value,
-    totalDesks: rows.value * cols.value,
-    layoutRows: rows.value,
-    layoutColumns: cols.value,
-    spacing: null,
-    layoutConfig: null,
-    classroomLayout: null,
-    startTime: null,
-    overTime: null,
-    status: null,
+      id: courseRecordId.value,
+      courseId: courseStore.currentCourseId,
+      teacherId: userStore.teacherInfo?.id || '',
+      studentIds: null,
+      questionIds: null,
+      modelType: selectedClassroomSize.value,
+      totalDesks: rows.value * cols.value,
+      layoutRows: rows.value,
+      layoutColumns: cols.value,
+      spacing: null,
+      layoutConfig: null,
+      classroomLayout: null,
+      startTime: null,
+      overTime: null,
+      status: null,
     }
 
-    const classroomConfig={
+    const classroomConfig = {
       size: selectedClassroomSize.value,
       rowCount: rows.value,
       colCount: cols.value,
     }
-    
+
     // 根据状态调用不同的API
     let recordId: string | null = null
     if (isEditMode.value) {
@@ -393,17 +404,17 @@ async function submitForm() {
       message.success('课程创建成功')
       recordId = response.data?.id || null
     }
-    
+
     if (!recordId) {
       message.error('无法获取课程记录ID')
       return
     }
-    
+
     // 清除保存的数据（已成功提交）
     clearSavedForm()
-    
+
     // 跳转到教室页面
-    router.push({ path: `/course/${props.courseId}/classroom/${recordId}` })
+    router.push({path: `/course/${props.courseId}/classroom/${recordId}`})
   } catch (error) {
     console.error('提交表单失败:', error)
     message.error(isEditMode.value ? '修改课程失败，请重试' : '创建课程失败，请重试')
@@ -415,30 +426,30 @@ async function submitForm() {
 // 重置表单数据到初始状态
 function resetFormData() {
   console.log('执行表单重置操作')
-  
+
   // 重置课程信息
   courseName.value = ''
   courseDescription.value = ''
   courseNotes.value = ''
-  
+
   // 重置教室配置
   selectedClassroomSize.value = 'classroomMini'
   rows.value = 4
   cols.value = 3
-  
+
   // 清除错误提示
   errors.courseName = ''
   errors.courseDescription = ''
-  
+
   // 重置提交状态
   isSubmitting.value = false
-  
+
   // 清除课程记录ID，切换到创建模式
   courseRecordId.value = null
-  
+
   // 清除本地存储的表单数据
   clearSavedForm()
-  
+
   console.log('表单数据已重置为初始状态')
 }
 
@@ -459,7 +470,7 @@ watch([courseName, courseDescription, courseNotes, selectedClassroomSize, rows, 
   if (autoSaveTimer) {
     clearTimeout(autoSaveTimer)
   }
-  
+
   // 3秒后自动保存
   autoSaveTimer = window.setTimeout(autoSaveForm, 3000)
 })
@@ -469,7 +480,7 @@ async function loadCourseRecordData(id: string) {
   try {
     const response = await getCourseRecordById(id)
     const data = response.data || response // 根据实际API返回格式调整
-    
+
     // 填充表单数据
     courseName.value = data.courseName || ''
     courseDescription.value = ''
@@ -484,7 +495,7 @@ async function loadCourseRecordData(id: string) {
     if (data.layoutColumns) {
       cols.value = data.layoutColumns
     }
-    
+
     message.info('课程数据加载成功')
   } catch (error) {
     console.error('加载课程数据失败:', error)
@@ -501,7 +512,7 @@ onMounted(() => {
     console.log('接收到重置信号，执行重置操作')
     resetFormData()
   })
-  
+
   // 注册事件监听器，监听课程记录选择信号
   eventBus.on('selectCourseRecord', (data) => {
     console.log('接收到课程记录选择信号:', data)
@@ -510,7 +521,7 @@ onMounted(() => {
       loadCourseRecordData(data.id)
     }
   })
-  
+
   // 恢复保存的数据
   restoreSavedForm()
 })
@@ -520,11 +531,11 @@ onBeforeUnmount(() => {
   if (autoSaveTimer) {
     clearTimeout(autoSaveTimer)
   }
-  
+
   // 移除事件监听器，避免内存泄漏
   eventBus.off('resetClassroomDetail')
   eventBus.off('selectCourseRecord')
-  
+
   // 离开前自动保存
   autoSaveForm()
 })
@@ -780,7 +791,7 @@ onBeforeUnmount(() => {
   .seating-layout-container {
     flex-direction: column;
   }
-  
+
   .seating-settings-section,
   .seating-preview-section {
     width: 100%;
@@ -1125,19 +1136,19 @@ onBeforeUnmount(() => {
   .classroom-preparation {
     padding: 1.5rem 1rem;
   }
-  
+
   .form-section {
     padding: 1.5rem;
   }
-  
+
   .page-title {
     font-size: 1.8rem;
   }
-  
+
   .seating-layout-container {
     flex-direction: column;
   }
-  
+
   .seating-settings-section,
   .seating-preview-section {
     width: 100%;
@@ -1149,13 +1160,13 @@ onBeforeUnmount(() => {
     grid-template-columns: 1fr;
     gap: 0.75rem;
   }
-  
+
   .action-buttons {
     flex-direction: column;
     align-items: center;
     gap: 1rem;
   }
-  
+
   :deep(.n-button) {
     width: 100%;
     max-width: 300px;

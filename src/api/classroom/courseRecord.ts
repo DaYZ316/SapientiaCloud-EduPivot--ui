@@ -1,9 +1,5 @@
 import http from '@/utils/http'
-import type {
-    CourseRecordDTO,
-    CourseRecordVO,
-    CourseRecordPageQueryDTO
-} from '@/types/classroom'
+import type {CourseRecordDTO, CourseRecordPageQueryDTO, CourseRecordVO} from '@/types/classroom'
 import type {TableDataResult} from '@/types/common/baseEntity'
 
 // 获取默认课程记录DTO

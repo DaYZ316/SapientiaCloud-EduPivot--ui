@@ -294,6 +294,8 @@ import {uploadFile} from '@/api/minIO'
 import Icon from '@/components/common/Icon.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {useI18n} from 'vue-i18n'
+import {BusinessBucketCodeEnum} from '@/enum/minIO'
+import type {BusinessBucketCode} from '@/types/minIO'
 
 // 自定义Video扩展
 const Video = Node.create({
@@ -349,6 +351,7 @@ interface Props {
   enableVideo?: boolean
   enableTable?: boolean
   enableLink?: boolean
+  bucketCode?: BusinessBucketCode
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -360,7 +363,8 @@ const props = withDefaults(defineProps<Props>(), {
   enableImage: true,
   enableVideo: true,
   enableTable: true,
-  enableLink: true
+  enableLink: true,
+  bucketCode: BusinessBucketCodeEnum.COURSE_PUBLIC
 })
 
 // Emits
@@ -488,7 +492,10 @@ const handleFileSelect = async (event: Event) => {
     message.loading(t('common.richTextEditor.upload.imageUploading'), {duration: 0})
 
     // 上传到MinIO
-    const response = await uploadFile(file, props.uploadPath)
+    const response = await uploadFile(file, {
+      directory: props.uploadPath,
+      bucketCode: props.bucketCode
+    })
 
     if (response.data && response.data.url) {
       // 插入图片到编辑器
@@ -543,7 +550,10 @@ const handleVideoSelect = async (event: Event) => {
     message.loading(t('common.richTextEditor.upload.videoUploading'), {duration: 0})
 
     // 上传到MinIO
-    const response = await uploadFile(file, props.uploadPath)
+    const response = await uploadFile(file, {
+      directory: props.uploadPath,
+      bucketCode: props.bucketCode
+    })
 
     if (response.data && response.data.url) {
       // 插入视频到编辑器

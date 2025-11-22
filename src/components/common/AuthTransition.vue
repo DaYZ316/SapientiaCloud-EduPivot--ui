@@ -12,8 +12,8 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, watch, onBeforeUnmount } from 'vue'
-import { useTransitionStore } from '@/store/modules/transition'
+import {computed, watch, onBeforeUnmount} from 'vue'
+import {useTransitionStore} from '@/store/modules/transition'
 
 const transitionStore = useTransitionStore()
 
@@ -29,7 +29,7 @@ watch(show, (newValue) => {
     // 保存原始样式
     originalBodyOverflow = document.body.style.overflow
     originalHtmlOverflow = document.documentElement.style.overflow
-    
+
     // 禁止滚动
     document.body.style.overflow = 'hidden'
     document.documentElement.style.overflow = 'hidden'
@@ -40,14 +40,14 @@ watch(show, (newValue) => {
     } else {
       document.body.style.overflow = ''
     }
-    
+
     if (originalHtmlOverflow !== null) {
       document.documentElement.style.overflow = originalHtmlOverflow
     } else {
       document.documentElement.style.overflow = ''
     }
   }
-}, { immediate: true })
+}, {immediate: true})
 
 // 组件卸载时恢复滚动
 onBeforeUnmount(() => {
@@ -56,7 +56,7 @@ onBeforeUnmount(() => {
   } else {
     document.body.style.overflow = ''
   }
-  
+
   if (originalHtmlOverflow !== null) {
     document.documentElement.style.overflow = originalHtmlOverflow
   } else {

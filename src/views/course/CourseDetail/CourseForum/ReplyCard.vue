@@ -261,6 +261,7 @@ import Icon from '@/components/common/Icon.vue'
 import ChildReplyCard from './ChildReplyCard.vue'
 import {ForumReplyVO} from '@/types/course/forumReply'
 import {FileInfoDTO} from '@/types/minIO/file'
+import {BusinessBucketCodeEnum} from '@/enum/minIO'
 import {acceptReply, getAllRepliesByParentId, likeReply, unacceptReply, unlikeReply} from '@/api/course/forumReply'
 import * as MinIOApi from '@/api/minIO'
 import {formatToBeijingTime} from '@/utils/dateUtil'
@@ -416,7 +417,10 @@ const loadFileInfo = async () => {
   }
 
   loadingFileInfo.value = true
-  const res = await MinIOApi.getBatchFileInfoByPath(props.reply.attachmentUrls)
+  const res = await MinIOApi.getBatchFileInfoByPath({
+    filePaths: props.reply.attachmentUrls,
+    bucketCode: BusinessBucketCodeEnum.COURSE_PUBLIC
+  })
   if (res && res.success && res.data) {
     fileInfoList.value = res.data.filter(file => !file.error)
   }

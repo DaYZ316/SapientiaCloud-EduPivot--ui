@@ -4,7 +4,7 @@
         :class="[avatarClass, { 'large-avatar': isLargeSize }]"
         :round="round"
         :size="avatarSize"
-        :src="shouldShowImage ? (props.avatarSrc || undefined) : undefined"
+        :src="shouldRenderImage ? displaySrc : undefined"
         :style="avatarStyle"
         @error="handleImageError"
         @load="handleImageLoad"
@@ -15,33 +15,25 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, ref} from 'vue'
+import {computed, ref, watch} from 'vue'
 import {NAvatar} from 'naive-ui'
+import defaultAvatar from '@/assets/image/anonymous-user.png'
+import type {AvatarDisplayProps} from '@/types/components/avatar'
+import {
+  getAvatarColor,
+  getAvatarFontSize,
+  getAvatarInitial,
+  normalizeAvatarSize,
+  resolveUserName
+} from '@/utils/avatarUtil'
 
-// 预定义的头像背景颜色数组
-const avatarColors = [
-  '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD',
-  '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9', '#F8C471', '#82E0AA',
-  '#F1948A', '#D7BDE2'
-]
-
-interface Props {
-  avatarSrc?: string | null
-  username?: string | null
-  nickName?: string | null
-  studentRealName?: string | null
-  teacherRealName?: string | null
-  size?: 'small' | 'medium' | 'large' | number
-  round?: boolean
-  avatarClass?: string
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  avatarSrc: undefined,
-  username: undefined,
-  nickName: undefined,
-  studentRealName: undefined,
-  teacherRealName: undefined,
+const props = withDefaults(defineProps<AvatarDisplayProps>(), {
+  avatarSrc: null,
+  username: null,
+  nickName: null,
+  studentRealName: null,
+  teacherRealName: null,
+  fallbackSrc: null,
   size: 'medium',
   round: true,
   avatarClass: ''
@@ -50,60 +42,40 @@ const props = withDefaults(defineProps<Props>(), {
 // 图片加载失败状态
 const imageError = ref(false)
 
-// 根据用户信息生成稳定的随机颜色
-const getAvatarColor = (text: string): string => {
-  if (!text) return '#000000'
-
-  let hash = 0
-  for (let i = 0; i < text.length; i++) {
-    hash = text.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  return avatarColors[Math.abs(hash) % avatarColors.length]
-}
-
-// 获取用户名（优先级：角色真实姓名 > nickName > username）
-const userName = computed(() => {
-  return props.studentRealName || props.teacherRealName || props.nickName || props.username || ''
-})
-
-// 获取用户名首字母作为头像fallback
-const userInitial = computed(() => {
-  return userName.value ? userName.value.charAt(0).toUpperCase() : ''
-})
-
-// 计算头像尺寸
-const avatarSize = computed(() => {
-  if (typeof props.size === 'number') return props.size
-
-  const sizeMap = {small: 32, medium: 40, large: 48}
-  return sizeMap[props.size] || 40
-})
-
-// 判断是否为最大尺寸
-const isLargeSize = computed(() => {
-  return typeof props.size === 'number' ? props.size >= 48 : props.size === 'large'
-})
-
-// 头像样式
+const userName = computed(() => resolveUserName(props))
+const userInitial = computed(() => getAvatarInitial(userName.value))
+const avatarSize = computed(() => normalizeAvatarSize(props.size))
+const isLargeSize = computed(() => avatarSize.value >= 48)
 const avatarStyle = computed(() => ({
   backgroundColor: getAvatarColor(userName.value),
-  fontSize: Math.max(14, Math.round(avatarSize.value * 0.5)) + 'px'
+  fontSize: getAvatarFontSize(avatarSize.value)
 }))
 
-// 判断是否应该显示图片
-const shouldShowImage = computed(() => {
-  return !!(props.avatarSrc && !imageError.value)
+const fallbackSrc = computed(() => props.fallbackSrc || defaultAvatar)
+const isPrimaryAvatarActive = computed(() => Boolean(props.avatarSrc) && !imageError.value)
+const displaySrc = computed(() => {
+  return isPrimaryAvatarActive.value ? props.avatarSrc : fallbackSrc.value
 })
+const shouldRenderImage = computed(() => Boolean(displaySrc.value))
 
-// 处理图片加载失败
 const handleImageError = () => {
-  imageError.value = true
+  if (isPrimaryAvatarActive.value) {
+    imageError.value = true
+  }
 }
 
-// 处理图片加载成功
 const handleImageLoad = () => {
-  imageError.value = false
+  if (isPrimaryAvatarActive.value) {
+    imageError.value = false
+  }
 }
+
+watch(
+    () => props.avatarSrc,
+    () => {
+      imageError.value = false
+    }
+)
 
 </script>
 

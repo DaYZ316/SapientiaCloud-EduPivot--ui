@@ -230,6 +230,7 @@
             <n-form-item :label="t('course.forum.postContent')" class="content-item" path="content">
               <RichTextEditor
                   v-model="postContent"
+                  :bucket-code="courseBucketCode"
                   :max-height="'600px'"
                   :min-height="'400px'"
                   :placeholder="t('course.forum.postContentPlaceholder')"
@@ -326,6 +327,7 @@
             <n-form-item :label="t('course.forum.postContent')" class="content-item" path="content">
               <RichTextEditor
                   v-model="editPostContent"
+                  :bucket-code="courseBucketCode"
                   :max-height="'600px'"
                   :min-height="'400px'"
                   :placeholder="t('course.forum.postContentPlaceholder')"
@@ -448,6 +450,8 @@ import {formatToBeijingTime} from '@/utils/dateUtil'
 import {ForumTypeEnum} from '@/enum/course/forumTypeEnum'
 import {getPostTypeOptions} from '@/enum/course/postTypeEnum'
 import {useCourseStore} from '@/store'
+import {BusinessBucketCodeEnum} from '@/enum/minIO'
+import {CoursePublicEnum} from '@/enum/course'
 
 // 路由和国际化
 const route = useRoute()
@@ -461,6 +465,13 @@ const courseStore = useCourseStore()
 // 响应式数据
 const forum = ref<CourseForumVO | null>(null)
 const courseInfo = computed(() => courseStore.currentCourseInfo)
+
+// 根据课程是否公开决定使用的桶
+const courseBucketCode = computed(() => {
+  return courseInfo.value?.isPublic === CoursePublicEnum.PUBLIC
+      ? BusinessBucketCodeEnum.COURSE_PUBLIC
+      : BusinessBucketCodeEnum.COURSE_PRIVATE
+})
 const postList = ref<ForumPostVO[]>([])
 const postTotal = ref(0)
 const createPostLoading = ref(false)

@@ -3,16 +3,16 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { oauth2Callback } from '@/api/auth/oauth2'
-import { useUserStore, useTransitionStore } from '@/store'
-import { useMessage } from 'naive-ui'
+import {onMounted} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {oauth2Callback} from '@/api/auth/oauth2'
+import {useTransitionStore, useUserStore} from '@/store'
+import {useMessage} from 'naive-ui'
 
 const route = useRoute()
 const router = useRouter()
-const { t } = useI18n()
+const {t} = useI18n()
 const userStore = useUserStore()
 const transitionStore = useTransitionStore()
 const message = useMessage()
@@ -21,10 +21,10 @@ const message = useMessage()
 const handleOAuthCallback = async () => {
   // 显示过渡动画
   transitionStore.show()
-  
+
   // 从路由参数中获取provider
   const provider = route.params.provider as string
-  
+
   // 从URL查询参数中获取code和state
   const code = route.query.code as string | undefined
   const state = route.query.state as string | undefined
@@ -49,15 +49,15 @@ const handleOAuthCallback = async () => {
     if (accessToken) {
       // 设置登录状态
       userStore.setLoginState(accessToken)
-      
+
       // 刷新用户信息
       await userStore.refreshUserInfo()
-      
+
       message.success(t('auth.loginSuccess'))
-      
+
       // 隐藏过渡动画，确保至少持续1秒
       transitionStore.hide(1250)
-      
+
       // 跳转到首页
       setTimeout(() => {
         router.push('/dashboard')

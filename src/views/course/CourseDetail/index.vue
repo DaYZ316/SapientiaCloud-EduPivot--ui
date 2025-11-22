@@ -199,6 +199,18 @@
                   clearable
               />
             </n-form-item>
+
+            <n-form-item :label="t('course.dialog.isPublic')" path="isPublic">
+              <n-switch
+                  v-model:value="formData.isPublic"
+                  :checked-value="CoursePublicEnum.PUBLIC"
+                  :disabled="true"
+                  :unchecked-value="CoursePublicEnum.PRIVATE"
+              >
+                <template #checked>{{ t('course.coursePublic.PUBLIC') }}</template>
+                <template #unchecked>{{ t('course.coursePublic.PRIVATE') }}</template>
+              </n-switch>
+            </n-form-item>
           </div>
 
           <!-- 右列 -->
@@ -207,6 +219,7 @@
               <ImageUpload
                   v-model="formData.coverImageUrl"
                   :aspect-ratio="16/9"
+                  :bucket-code="BusinessBucketCodeEnum.COURSE_PUBLIC"
                   :crop-size="400"
                   :round="false"
                   :show-crop="true"
@@ -252,8 +265,9 @@ import {CreateOutline, EllipsisHorizontalOutline, ShareSocialOutline, TrashOutli
 import * as CourseApi from '@/api/course/course'
 import * as TeacherApi from '@/api/teacher'
 import type {TeacherVO} from '@/types/teacher'
-import {getCourseStatusOptions, getCourseTypeOptions} from '@/enum/course'
-import {useMenuStore, useCourseStore} from '@/store'
+import {CoursePublicEnum, getCourseStatusOptions, getCourseTypeOptions} from '@/enum/course'
+import {BusinessBucketCodeEnum} from '@/enum/minIO'
+import {useCourseStore, useMenuStore} from '@/store'
 import TeacherCard from '../components/TeacherCard/TeacherCard.vue'
 import CourseCard from '../components/CourseCard/CourseCard.vue'
 import TeacherMarquee from '../components/TeacherMarquee.vue'
@@ -414,7 +428,7 @@ const loadCourseInfo = async () => {
 
   // 使用 courseStore 设置课程ID并获取课程信息
   await courseStore.setCurrentCourseId(courseId.value, true)
-  
+
   // 加载课程信息成功后，更新最后访问的课程信息
   updateLastAccessedCourse()
   // 设置动态标题
@@ -423,7 +437,7 @@ const loadCourseInfo = async () => {
   if (courseInfo.value?.teacherId) {
     await loadTeacherInfo(courseId.value)
   }
-  
+
   loading.value = false
 }
 
@@ -456,7 +470,8 @@ const handleEditCourse = async () => {
     semester: courseInfo.value.semester,
     location: courseInfo.value.location,
     courseType: courseInfo.value.courseType,
-    status: courseInfo.value.status
+    status: courseInfo.value.status,
+    isPublic: courseInfo.value.isPublic ?? CoursePublicEnum.PRIVATE
   }
 
   // 加载教师数据用于编辑表单
@@ -511,7 +526,7 @@ const handleEditSubmit = async () => {
   if (courseInfo.value?.teacherId) {
     await loadTeacherInfo(courseId.value)
   }
-  
+
   editSubmitting.value = false
 }
 

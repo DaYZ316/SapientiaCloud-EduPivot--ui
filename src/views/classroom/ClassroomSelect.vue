@@ -2,19 +2,19 @@
   <div class="classroom-layout">
     <!-- 左侧教室选择组件 - 占75%宽度 -->
     <div class="classroom-select-container">
-      <ClassroomDetail :course-id="courseId" />
+      <ClassroomDetail :course-id="courseId"/>
     </div>
-    
+
     <!-- 右侧教室历史组件 - 占25%宽度 -->
     <div class="classroom-history-container">
-      <ClassroomHistory />
+      <ClassroomHistory/>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import {computed} from 'vue'
+import {useRoute} from 'vue-router'
 import ClassroomDetail from './ClassroomDetail.vue'
 import ClassroomHistory from './ClassroomHistory.vue'
 
@@ -53,7 +53,7 @@ const courseId = computed(() => route.params.courseId);
     flex-direction: column;
     gap: 24px;
   }
-  
+
   .classroom-select-container,
   .classroom-history-container {
     flex: none;
@@ -67,7 +67,7 @@ const courseId = computed(() => route.params.courseId);
     padding: 12px;
     gap: 16px;
   }
-  
+
   .classroom-select-container,
   .classroom-history-container {
     padding: 16px;

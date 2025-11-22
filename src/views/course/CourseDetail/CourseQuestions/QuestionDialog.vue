@@ -118,12 +118,13 @@
               @remove-option="removeOption"
           />
           <n-form-item v-if="optionsError" :show-feedback="true">
-            <n-text type="error" style="font-size: 14px;">
+            <n-text style="font-size: 14px;" type="error">
               {{ optionsError }}
             </n-text>
           </n-form-item>
         </div>
-        <div v-if="form.questionType === QuestionTypeEnum.FILL_BLANK || form.questionType === QuestionTypeEnum.SHORT_ANSWER">
+        <div
+            v-if="form.questionType === QuestionTypeEnum.FILL_BLANK || form.questionType === QuestionTypeEnum.SHORT_ANSWER">
           <QuestionAnswersEditor
               :answers="answers"
               :question-type="form.questionType"
@@ -131,7 +132,7 @@
               @remove-answer="removeAnswer"
           />
           <n-form-item v-if="answersError" :show-feedback="true">
-            <n-text type="error" style="font-size: 14px;">
+            <n-text style="font-size: 14px;" type="error">
               {{ answersError }}
             </n-text>
           </n-form-item>
@@ -176,7 +177,7 @@ import {addQuestion, updateQuestion} from '@/api/course/question'
 import {useUserStore} from '@/store'
 import {QuestionTypeEnum} from '@/enum/course/questionTypeEnum'
 import {QuestionStatusEnum} from '@/enum/course/questionStatusEnum'
-import type {QuestionAddDTO, QuestionDTO, QuestionAnswerDTO} from '@/types/course'
+import type {QuestionAddDTO, QuestionAnswerDTO, QuestionDTO} from '@/types/course'
 import type {QuestionOptionDTO} from '@/types/course/questionOption'
 import type {FormInst, FormRules, SelectOption} from 'naive-ui'
 import {useMessage} from 'naive-ui'
@@ -192,9 +193,13 @@ interface Props {
 
 interface Emits {
   (event: 'cancel'): void
+
   (event: 'confirm'): void
+
   (event: 'save'): void
+
   (event: 'success'): void
+
   (event: 'error', error: any): void
 }
 
@@ -250,9 +255,9 @@ const removeOption = (index: number) => {
 
 const ensureMinimumAnswers = () => {
   if (
-    (form.value.questionType === QuestionTypeEnum.FILL_BLANK ||
-      form.value.questionType === QuestionTypeEnum.SHORT_ANSWER) &&
-    answers.value.length === 0
+      (form.value.questionType === QuestionTypeEnum.FILL_BLANK ||
+          form.value.questionType === QuestionTypeEnum.SHORT_ANSWER) &&
+      answers.value.length === 0
   ) {
     addAnswer()
   }
@@ -311,8 +316,8 @@ watch(() => form.value.questionType, (questionType) => {
   optionsError.value = null
   answersError.value = null
   if (
-    questionType === QuestionTypeEnum.FILL_BLANK ||
-    questionType === QuestionTypeEnum.SHORT_ANSWER
+      questionType === QuestionTypeEnum.FILL_BLANK ||
+      questionType === QuestionTypeEnum.SHORT_ANSWER
   ) {
     ensureMinimumAnswers()
   }
@@ -380,9 +385,9 @@ const validateQuestionConfiguration = (): boolean => {
   const optionsCount = options.value.length
 
   if (
-    questionType === QuestionTypeEnum.SINGLE_CHOICE ||
-    questionType === QuestionTypeEnum.MULTIPLE_CHOICE ||
-    questionType === QuestionTypeEnum.TRUE_FALSE
+      questionType === QuestionTypeEnum.SINGLE_CHOICE ||
+      questionType === QuestionTypeEnum.MULTIPLE_CHOICE ||
+      questionType === QuestionTypeEnum.TRUE_FALSE
   ) {
     if (optionsCount < 2) {
       optionsError.value = t('course.question.optionsMinRequired', {min: 2})
@@ -400,8 +405,8 @@ const validateQuestionConfiguration = (): boolean => {
   }
 
   if (
-    questionType === QuestionTypeEnum.FILL_BLANK ||
-    questionType === QuestionTypeEnum.SHORT_ANSWER
+      questionType === QuestionTypeEnum.FILL_BLANK ||
+      questionType === QuestionTypeEnum.SHORT_ANSWER
   ) {
     if (answers.value.length < 1) {
       answersError.value = t('course.question.answersMinRequired', {min: 1})

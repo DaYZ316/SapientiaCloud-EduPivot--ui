@@ -23,7 +23,7 @@
           class="option-item"
       >
         <div class="option-header">
-          <n-tag type="info" size="medium">
+          <n-tag size="medium" type="info">
             {{ option.optionLabel }}
           </n-tag>
           <n-space>
@@ -55,8 +55,8 @@
           <n-input
               v-model:value="option.optionContent"
               :placeholder="t('course.question.optionContentPlaceholder')"
-              type="textarea"
               :rows="4"
+              type="textarea"
           />
         </n-form-item>
 
@@ -107,7 +107,9 @@ interface Props {
 
 interface Emits {
   (event: 'add-option'): void
+
   (event: 'remove-option', index: number): void
+
   (event: 'update:options', options: QuestionOptionDTO[]): void
 }
 

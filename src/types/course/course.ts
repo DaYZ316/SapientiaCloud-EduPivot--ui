@@ -1,4 +1,4 @@
-import type {CourseStatusEnum, CourseTypeEnum} from '@/enum/course'
+import type {CoursePublicEnum, CourseStatusEnum, CourseTypeEnum} from '@/enum/course'
 
 /**
  * 课程数据传输对象
@@ -25,6 +25,8 @@ export interface CourseDTO {
     courseType?: CourseTypeEnum | null
     /** 课程状态 (0=正常, 1=停课) */
     status?: CourseStatusEnum | null
+    /** 是否公开 (0=仅课程成员, 1=公开) */
+    isPublic?: CoursePublicEnum | null
 }
 
 /**
@@ -60,6 +62,8 @@ export interface CourseVO {
     coverImageUrl?: string
     /** 课程状态 (0=正常, 1=停课) */
     status?: CourseStatusEnum
+    /** 是否公开 (0=仅课程成员, 1=公开) */
+    isPublic?: CoursePublicEnum
     /** 学生总数 */
     studentCount?: number
     /** 章节总数 */
@@ -124,6 +128,8 @@ export interface CourseQueryParams {
     location?: string | null
     /** 课程状态 (0=正常, 1=停课) */
     status?: string | null
+    /** 是否公开 (0=仅课程成员, 1=公开) */
+    isPublic?: string | null
     /** 学生ID */
     studentId?: string | null
     /** 起始时间 */

@@ -40,7 +40,17 @@ export default {
         pin: '置顶',
         unpin: '取消置顶',
         favorite: '收藏',
-        unfavorite: '取消收藏'
+        unfavorite: '取消收藏',
+        files: '对话文件',
+        filesTitle: '会话文件',
+        filesEmpty: '当前会话还没有文件',
+        filesUnnamed: '未命名文件',
+        filesVectorized: '已向量化',
+        filesNotVectorized: '未向量化',
+        filesVectorCount: '向量块：{count}',
+        filesUploadedAt: '上传时间：{time}',
+        filesNoSession: '请先选择会话',
+        filesLoadFailed: '文件加载失败'
     }
 }
 

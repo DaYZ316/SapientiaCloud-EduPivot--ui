@@ -11,6 +11,7 @@ import chat from './chat'
 import info from './info'
 import classroom from './classroom'
 import header from './header'
+import live from './live'
 
 export default {
     app,
@@ -25,5 +26,6 @@ export default {
     chat,
     info,
     classroom,
-    header
+    header,
+    live
 } 

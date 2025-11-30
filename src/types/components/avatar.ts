@@ -28,4 +28,3 @@ export interface AvatarVisualMeta {
     initial: string
     size: number
 }
-

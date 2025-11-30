@@ -1,47 +1,48 @@
 <template>
   <div
-      v-if="show"
-      :class="{ 'empty-seat': !student }"
-      :style="{
+    v-if="show"
+    class="student-info-popup"
+    :class="{ 'empty-seat': !student }"
+    :style="{
       left: `${position.x}px`,
       top: `${position.y}px`
     }"
-      class="student-info-popup"
   >
     <div class="student-info-content">
       <!-- 有学生时显示学生信息 -->
       <template v-if="student">
         <div class="student-header">
           <img
-              v-if="student.studentAvatar"
-              :src="student.studentAvatar"
-              alt="头像"
-              class="student-avatar"
+            v-if="student.studentAvatar && !avatarLoadError"
+            :src="student.studentAvatar"
+            class="student-avatar"
+            :alt="t('classroom.studentInfo.avatar')"
+            @error="handleAvatarError"
           />
           <div v-else class="student-avatar-placeholder">
-            {{ student.studentName?.charAt(0) || '学' }}
+            {{ student.studentName?.charAt(0) || t('classroom.studentInfo.student') }}
           </div>
           <div class="student-name-section">
-            <div class="student-name">{{ student.studentName || '未知' }}</div>
+            <div class="student-name">{{ student.studentName || t('classroom.studentInfo.unknown') }}</div>
             <div class="student-code">{{ student.studentCode || '' }}</div>
           </div>
         </div>
         <div class="student-details">
           <div class="detail-item">
-            <span class="detail-label">座位编号：</span>
-            <span class="detail-value">{{ student.seatIndex !== null ? student.seatIndex + 1 : '未分配' }}</span>
+            <span class="detail-label">{{ t('classroom.studentInfo.seatNumber') }}</span>
+            <span class="detail-value">{{ student.seatIndex !== null ? student.seatIndex + 1 : t('classroom.studentInfo.unassigned') }}</span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">出勤状态：</span>
+            <span class="detail-label">{{ t('classroom.studentInfo.attendanceStatus') }}</span>
             <span
-                :class="getAttendanceStatusClass(student.attendanceStatus)"
-                class="detail-value"
+              class="detail-value"
+              :class="getAttendanceStatusClass(student.attendanceStatus)"
             >
               {{ getAttendanceStatusText(student.attendanceStatus) }}
             </span>
           </div>
           <div v-if="student.participationScore !== null" class="detail-item">
-            <span class="detail-label">互动得分：</span>
+            <span class="detail-label">{{ t('classroom.studentInfo.participationScore') }}</span>
             <span class="detail-value">{{ student.participationScore }}</span>
           </div>
         </div>
@@ -50,16 +51,16 @@
       <template v-else>
         <div class="empty-seat-header">
           <div class="empty-seat-icon">🪑</div>
-          <div class="empty-seat-title">空座位</div>
+          <div class="empty-seat-title">{{ t('classroom.studentInfo.emptySeat') }}</div>
         </div>
         <div class="student-details">
           <div class="detail-item">
-            <span class="detail-label">座位编号：</span>
-            <span class="detail-value">{{ seatIndex !== null ? seatIndex + 1 : '未知' }}</span>
+            <span class="detail-label">{{ t('classroom.studentInfo.seatNumber') }}</span>
+            <span class="detail-value">{{ seatIndex !== null ? seatIndex + 1 : t('classroom.studentInfo.unknown') }}</span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">状态：</span>
-            <span class="detail-value empty-status">暂无学生</span>
+            <span class="detail-label">{{ t('classroom.studentInfo.status') }}</span>
+            <span class="detail-value empty-status">{{ t('classroom.studentInfo.noStudent') }}</span>
           </div>
         </div>
       </template>
@@ -67,41 +68,41 @@
   </div>
 </template>
 
-<script setup>
-import {AttendanceStatusEnum} from '@/enum/classroom/attendanceStatusEnum';
+<script setup lang="ts">
+import { ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { AttendanceStatusEnum } from '@/enum/classroom/attendanceStatusEnum';
+import { getAttendanceStatusLabel } from '@/enum/classroom/attendanceStatusEnum';
+import type { CourseRecordStudentVO } from '@/types/classroom';
 
-const props = defineProps({
-  show: {
-    type: Boolean,
-    default: false
-  },
-  student: {
-    type: Object,
-    default: null
-  },
-  seatIndex: {
-    type: Number,
-    default: null
-  },
-  position: {
-    type: Object,
-    default: () => ({x: 0, y: 0})
-  }
-});
+const { t, locale } = useI18n();
+
+interface Props {
+  show: boolean
+  student: CourseRecordStudentVO | null
+  seatIndex: number | null
+  position: { x: number; y: number }
+}
+
+const props = defineProps<Props>();
+
+// 头像加载错误状态
+const avatarLoadError = ref(false);
+
+// 监听学生变化，重置头像错误状态
+watch(() => props.student, () => {
+  avatarLoadError.value = false;
+}, { immediate: true });
+
+// 处理头像加载错误
+const handleAvatarError = () => {
+  avatarLoadError.value = true;
+};
 
 // 获取出勤状态文本
 const getAttendanceStatusText = (status) => {
-  if (status === null) return '未知';
-  switch (status) {
-    case AttendanceStatusEnum.NOT_SIGNED:
-      return '未签到';
-    case AttendanceStatusEnum.SIGNED:
-      return '已签到';
-    case AttendanceStatusEnum.ABSENT:
-      return '缺席';
-    default:
-      return '未知';
-  }
+  if (status === null) return t('classroom.studentInfo.unknown');
+  return getAttendanceStatusLabel(status, locale.value === 'en-US');
 };
 
 // 获取出勤状态样式类
@@ -223,19 +224,19 @@ const getAttendanceStatusClass = (status) => {
 .detail-value {
   color: var(--text-color);
   font-weight: 500;
-
+  
   &.status-success {
     color: var(--success-color);
   }
-
+  
   &.status-warning {
     color: var(--warning-color);
   }
-
+  
   &.status-error {
     color: var(--error-color);
   }
-
+  
   &.empty-status {
     color: var(--text-secondary-color);
     font-style: italic;

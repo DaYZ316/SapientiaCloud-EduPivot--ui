@@ -9,8 +9,10 @@ export type {
 export type {
     ChatMessage,
     ChatRequestDTO,
+    KafkaChatRequestDTO,
     ReferenceVO,
-    ChatResponseVO
+    ChatResponseVO,
+    SSEEventCallbacks
 } from './chatMessage'
 
 // 知识管理类型
@@ -20,4 +22,14 @@ export type {
     KnowledgeSearchVO,
     VectorizeRequestDTO
 } from './knowledge'
+
+// 文件文档类型
+export type {
+    FileDocumentQueryDTO,
+    FileDocumentVO,
+    PageFileDocumentVO,
+    PageableObject,
+    SortObject,
+    FileDocumentUploadOptions
+} from './fileDocument'
 

@@ -40,7 +40,17 @@ export default {
         pin: 'Pin',
         unpin: 'Unpin',
         favorite: 'Favorite',
-        unfavorite: 'Unfavorite'
+        unfavorite: 'Unfavorite',
+        files: 'Session files',
+        filesTitle: 'Linked files',
+        filesEmpty: 'No files are linked to this session yet',
+        filesUnnamed: 'Unnamed file',
+        filesVectorized: 'Vectorized',
+        filesNotVectorized: 'Awaiting vectorization',
+        filesVectorCount: 'Chunks: {count}',
+        filesUploadedAt: 'Uploaded at {time}',
+        filesNoSession: 'Select a session first',
+        filesLoadFailed: 'Unable to load files'
     }
 }
 

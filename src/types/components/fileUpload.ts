@@ -3,7 +3,6 @@
  */
 
 import type {UploadFileInfo} from 'naive-ui'
-import type {BusinessBucketCode} from '@/types/minIO'
 
 // 文件上传组件Props接口
 export interface FileUploadProps {
@@ -19,8 +18,6 @@ export interface FileUploadProps {
     maxFileCount?: number
     // 上传目录
     uploadDir?: string
-    // 业务桶编码
-    bucketCode?: BusinessBucketCode
     // 是否显示文件列表
     showFileList?: boolean
     // 是否支持多选

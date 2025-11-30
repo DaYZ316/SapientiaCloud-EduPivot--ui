@@ -212,6 +212,24 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
+                path: '/live',
+                name: 'Live',
+                component: () => import('@/views/live/index.vue'),
+                meta: {
+                    title: '直播',
+                    requiresAuth: true
+                }
+            },
+            {
+                path: '/course/:courseId/classroom/:courseRecordId/live',
+                name: 'CourseLive',
+                component: () => import('@/views/live/index.vue'),
+                meta: {
+                    title: '直播',
+                    requiresAuth: true
+                }
+            },
+            {
                 path: '/course/detail/:courseId/tasks',
                 name: 'CourseTasks',
                 component: () => import('@/views/course/CourseDetail/CourseTasks/index.vue'),

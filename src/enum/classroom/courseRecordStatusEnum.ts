@@ -19,7 +19,7 @@ export const courseRecordStatusLabelMap = {
     [CourseRecordStatusEnum.NOT_STARTED]: '未开始',
     [CourseRecordStatusEnum.IN_PROGRESS]: '进行中',
     [CourseRecordStatusEnum.ENDED]: '已结束',
-    [CourseRecordStatusEnum.CANCELLED]: '取消'
+    [CourseRecordStatusEnum.CANCELLED]: '已取消'
 };
 
 /**
@@ -39,7 +39,7 @@ export const courseRecordStatusOptions = [
     {label: '未开始', value: CourseRecordStatusEnum.NOT_STARTED},
     {label: '进行中', value: CourseRecordStatusEnum.IN_PROGRESS},
     {label: '已结束', value: CourseRecordStatusEnum.ENDED},
-    {label: '取消', value: CourseRecordStatusEnum.CANCELLED}
+    {label: '已取消', value: CourseRecordStatusEnum.CANCELLED}
 ];
 
 /**

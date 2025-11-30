@@ -49,7 +49,7 @@ export function listAllCourseRecordStudent() {
 
 // 批量删除学生座位
 export function removeStudentSeatBatch(data: StudentSeatDeleteDTO[]) {
-    return http.delete<number>('/classroom/course-record-student/batch', data)
+    return http.delete<number>('/classroom/course-record-student/batch', {data})
 }
 
 // 检查指定座位是否已被占用
@@ -73,8 +73,10 @@ export function listStudentsByRecordId(recordId: string) {
 }
 
 // 查询学生在课程记录中的座位信息
-export function getStudentSeat(recordId: string) {
-    return http.get<CourseRecordStudentVO>(`/classroom/course-record-student/student-seat/${recordId}`)
+export function getStudentSeat(recordId: string, studentId: string) {
+    return http.get<CourseRecordStudentVO>(`/classroom/course-record-student/student-seat/${recordId}`, {
+        studentId
+    })
 }
 
 // 修改学生座位信息（包括位置、状态、出勤等）

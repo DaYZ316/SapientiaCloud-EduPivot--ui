@@ -1,790 +1,559 @@
 <template>
   <div class="classroom-3d-container">
-    <canvas ref="canvasRef" class="webgl_7"></canvas>
+  <canvas ref="canvasRef" class="webgl_7"></canvas>
+    <!-- 退出教室按钮 -->
+    <n-button 
+      @click="handleExit"
+      class="exit-button"
+      type="default"
+      size="medium"
+    >
+      {{ t('classroom.exit') }}
+    </n-button>
+    <!-- 智慧课堂黑白按钮 -->
+    <n-button 
+      @click="handleLive"
+      class="live-button"
+      type="default"
+      size="medium"
+    >
+      {{ t('classroom.live') }}
+    </n-button>
     <!-- 学生信息框 -->
     <StudentInfoPopup
-        :show="showStudentInfo"
-        :student="currentStudent"
-        :seat-index="currentSeatIndex"
-        :position="popupPosition"
+      :show="showStudentInfo"
+      :student="currentStudent"
+      :seat-index="currentSeatIndex"
+      :position="popupPosition"
     />
   </div>
 </template>
+  
+<script setup lang="ts">
+  import { onMounted, onBeforeUnmount, ref, computed } from 'vue';
+  import { useRoute, useRouter } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+  import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
+  import { ModelClickHandler } from '@/utils/threeModelClickHandler';
+  import { Sky } from 'three/examples/jsm/objects/Sky.js';
+  import { getCourseRecordById } from '@/api/classroom/courseRecord';
+  import { listStudentsByRecordId } from '@/api/classroom/courseRecordStudent';
+  import StudentInfoPopup from './StudentInfoPopup.vue';
+  import { useUserStore } from '@/store/modules/user';
+  import { getGlobalApis } from '@/utils/naiveUIHelper';
+  import { SpriteManager } from '@/views/classroom/composables/spriteManager';
+  import type { CourseRecordVO, CourseRecordStudentVO } from '@/types/classroom';
+  import type { SeatAssignmentContext } from '@/types/components/seatConfirmModal';
+  import type { Texture, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
+  import type { InstancedMesh } from 'three';
+  import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-<script setup>
-import {onMounted, onBeforeUnmount, ref, computed} from 'vue';
-import {useRouter, useRoute} from 'vue-router';
-import * as THREE from 'three';
-import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
-import {PointerLockControls} from 'three/examples/jsm/controls/PointerLockControls.js';
-import {ModelClickHandler} from '@/utils/threeModelClickHandler';
-import {Sky} from 'three/examples/jsm/objects/Sky.js';
-import {getCourseRecordById} from '@/api/classroom/courseRecord';
-import {listStudentsByRecordId} from '@/api/classroom/courseRecordStudent';
-import StudentInfoPopup from './StudentInfoPopup.vue';
+  const { t } = useI18n();
+  const modelClickHandler = new ModelClickHandler();
+  const route = useRoute();
+  const router = useRouter();
+  const userStore = useUserStore();
+  const { dialog } = getGlobalApis();
+  // 课程记录状态
+  const courseRecord = ref<CourseRecordVO | null>(null);
+  const loadingRecord = ref(false);
+  const recordError = ref<string | null>(null);
+  
+  // 学生信息框相关状态
+  const showStudentInfo = ref(false);
+  const currentStudent = ref<CourseRecordStudentVO | null>(null);
+  const currentSeatIndex = ref<number | null>(null);
+  const popupPosition = ref({ x: 0, y: 0 });
+  const studentsList = ref<CourseRecordStudentVO[]>([]);
+  const pendingSeatContext = ref<SeatAssignmentContext | null>(null);
+  const fallbackTextureRef = ref<Texture | null>(null);
 
-const modelClickHandler = new ModelClickHandler();
-const router = useRouter();
-const route = useRoute();
-// 课程记录状态
-const courseRecord = ref(null);
-const loadingRecord = ref(false);
-const recordError = ref(null);
+  const spriteManager = new SpriteManager();
 
-// 学生信息框相关状态
-const showStudentInfo = ref(false);
-const currentStudent = ref(null);
-const currentSeatIndex = ref(null);
-const popupPosition = ref({x: 0, y: 0});
-const studentsList = ref([]);
+  const avatarColors = [
+    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD',
+    '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9', '#F8C471', '#82E0AA',
+    '#F1948A', '#D7BDE2'
+  ];
 
-// 从课程记录获取教室大小
-const classroomSize = computed(() => {
-  // 优先从课程记录获取，没有则使用默认值
-  if (courseRecord.value && courseRecord.value.modelType) {
-    return courseRecord.value.modelType;
-  }
-  return 'classroomMini';
-});
+  const getAvatarColor = (text: string): string => {
+    if (!text) {
+      return '#000000';
+    }
+    let hash = 0;
+    for (let i = 0; i < text.length; i += 1) {
+      hash = text.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return avatarColors[Math.abs(hash) % avatarColors.length];
+  };
 
-// 从课程记录获取行数
-const rowCount = computed(() => {
-  // 优先从课程记录获取，没有则使用默认值
-  if (courseRecord.value && courseRecord.value.layoutRows !== null) {
-    // 添加合理的边界检查
-    return Math.min(Math.max(courseRecord.value.layoutRows, 1), 12);
-  }
-  return 4;
-});
+  const resolveDisplayName = (info: any): string => {
+    if (!info) {
+      return '';
+    }
+    return info.studentRealName
+      || info.teacherRealName
+      || info.nickName
+      || info.username
+      || info.realName
+      || info.name
+      || '';
+  };
 
-// 从课程记录获取列数
-const columnCount = computed(() => {
-  // 优先从课程记录获取，没有则使用默认值
-  if (courseRecord.value && courseRecord.value.layoutColumns !== null) {
-    // 添加合理的边界检查
-    return Math.min(Math.max(courseRecord.value.layoutColumns, 1), 12);
-  }
-  return 3;
-});
+  const createAvatarFallbackTexture = (displayName: string): THREE.CanvasTexture => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 128;
+    const context = canvas.getContext('2d');
+    const initials = displayName ? displayName.charAt(0).toUpperCase() : '';
+    if (context) {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.fillStyle = getAvatarColor(displayName);
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      if (initials) {
+        context.fillStyle = '#FFFFFF';
+        context.font = 'bold 64px sans-serif';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(initials, canvas.width / 2, canvas.height / 2);
+      }
+    }
+    return new THREE.CanvasTexture(canvas);
+  };
 
-// 计算实例数量，添加上限检查（最大50个实例，进一步降低以避免类型化数组错误）
-const instanceCount = computed(() => {
-  const count = rowCount.value * columnCount.value;
-  // 进一步降低上限以避免类型化数组错误
-  return Math.min(count, 50);
-});
+  const disposeFallbackTexture = () => {
+    if (fallbackTextureRef.value) {
+      fallbackTextureRef.value.dispose();
+      fallbackTextureRef.value = null;
+    }
+  };
 
-// 获取课程记录信息
-const fetchCourseRecord = async () => {
-  try {
-    loadingRecord.value = true;
-    recordError.value = null;
+  const resetSeatConfirmState = (shouldDisposeTexture = true) => {
+    pendingSeatContext.value = null;
+    if (shouldDisposeTexture) {
+      disposeFallbackTexture();
+      return;
+    }
+    fallbackTextureRef.value = null;
+  };
 
-    // 从路由参数获取课程记录ID
-    const recordId = route.query.recordId;
-    if (!recordId) {
-      console.warn('未提供课程记录ID，使用默认教室配置');
+  const confirmSeatSelection = () => {
+    if (!pendingSeatContext.value || pendingSeatContext.value.seatIndex === null) {
+      resetSeatConfirmState();
+      return;
+    }
+    if (!spriteManager || !spriteManager.isInitialized) {
+      resetSeatConfirmState();
+      return;
+    }
+    const userInfo = userStore.userInfo;
+    if (!userInfo || !userInfo.id) {
+      resetSeatConfirmState();
+      return;
+    }
+    const seatIndex = pendingSeatContext.value.seatIndex;
+    const avatarUrl = pendingSeatContext.value.avatarUrl;
+    const fallbackTexture = fallbackTextureRef.value || createAvatarFallbackTexture(pendingSeatContext.value.displayName || '');
+
+    const applyTextureToSprite = (texture: Texture, shouldDisposeFallback = true) => {
+      if (!texture) {
+        resetSeatConfirmState();
+        return;
+      }
+      spriteManager.updateSpriteInfo(userInfo.id, texture, seatIndex);
+      resetSeatConfirmState(shouldDisposeFallback);
+    };
+
+    if (!avatarUrl || avatarUrl.trim() === '') {
+      applyTextureToSprite(fallbackTexture, false);
       return;
     }
 
-    // 调用API获取课程记录
-    const response = await getCourseRecordById(String(recordId));
-    courseRecord.value = response?.data || null;
-
-    if (!courseRecord.value) {
-      console.warn('获取到的课程记录为空');
-    }
-
-    // 获取学生列表
-    await fetchStudentsList(String(recordId));
-  } catch (error) {
-    console.error('获取课程记录失败:', error);
-    recordError.value = '获取课程记录失败，使用默认配置';
-    // 发生错误时不阻止组件继续加载，而是使用默认配置
-  } finally {
-    loadingRecord.value = false;
-  }
-};
-
-// 获取学生列表
-const fetchStudentsList = async (recordId) => {
-  try {
-    const response = await listStudentsByRecordId(recordId);
-    studentsList.value = response?.data || [];
-  } catch (error) {
-    console.error('获取学生列表失败:', error);
-    studentsList.value = [];
-  }
-};
-
-// 显示学生信息框
-const showStudentInfoPopup = (event, seatIndex) => {
-  // 查找对应座位的学生
-  const student = studentsList.value.find(s => s.seatIndex === seatIndex);
-
-  // 设置信息框位置在鼠标右侧
-  popupPosition.value = {
-    x: event.clientX + 15,
-    y: event.clientY
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.load(
+      avatarUrl,
+      (texture) => {
+        applyTextureToSprite(texture);
+      },
+      undefined,
+      () => {
+        applyTextureToSprite(fallbackTexture, false);
+      }
+    );
   };
 
-  if (student) {
-    currentStudent.value = student;
-    currentSeatIndex.value = seatIndex;
-  } else {
-    // 如果没有学生，显示空座位信息
+  const formatSeatLabel = (rowIndex: number, columnIndex: number): string => {
+    return t('classroom.formatSeatLabel', { row: rowIndex + 1, column: columnIndex + 1 });
+  };
+
+  const openSeatConfirmModal = (context: SeatAssignmentContext) => {
+    pendingSeatContext.value = {
+      seatIndex: context.seatIndex,
+      seatLabel: context.seatLabel,
+      avatarUrl: context.avatarUrl,
+      displayName: context.displayName
+    };
+    disposeFallbackTexture();
+    fallbackTextureRef.value = createAvatarFallbackTexture(context.displayName || '');
+    
+    const seatTitle = context.seatLabel 
+      ? t('classroom.seatConfirm.titleWithSeat', { seatLabel: context.seatLabel })
+      : t('classroom.seatConfirm.title');
+    const seatSubtitle = context.displayName
+      ? t('classroom.seatConfirm.subtitleWithStudent', { studentName: context.displayName })
+      : t('classroom.seatConfirm.subtitle');
+    
+    if (dialog) {
+      dialog.warning({
+        title: seatTitle,
+        content: seatSubtitle,
+        positiveText: t('classroom.seatConfirm.confirm'),
+        negativeText: t('classroom.seatConfirm.cancel'),
+        onPositiveClick: () => {
+          confirmSeatSelection();
+        },
+        onNegativeClick: () => {
+    resetSeatConfirmState();
+        }
+      });
+    }
+  };
+
+  
+  // 从课程记录获取行数
+  const rowCount = computed(() => {
+    // 优先从课程记录获取，没有则使用默认值
+    if (courseRecord.value && courseRecord.value.layoutRows !== null) {
+      // 添加合理的边界检查
+      return Math.min(Math.max(courseRecord.value.layoutRows, 1), 12);
+    }
+    return 4;
+  });
+  
+  // 从课程记录获取列数
+  const columnCount = computed(() => {
+    // 优先从课程记录获取，没有则使用默认值
+    if (courseRecord.value && courseRecord.value.layoutColumns !== null) {
+      // 添加合理的边界检查
+      return Math.min(Math.max(courseRecord.value.layoutColumns, 1), 12);
+    }
+    return 3;
+  });
+  
+  // 计算实例数量，添加上限检查（最大50个实例，进一步降低以避免类型化数组错误）
+  const instanceCount = computed(() => {
+    const count = rowCount.value * columnCount.value;
+    // 进一步降低上限以避免类型化数组错误
+    return Math.min(count, 50);
+  });
+
+  // 获取课程记录信息
+  const fetchCourseRecord = async () => {
+    try {
+      loadingRecord.value = true;
+      recordError.value = null;
+      
+      // 从路由参数获取课程记录ID
+      const recordId = route.query.recordId;
+      if (!recordId) {
+        return;
+      }
+      
+      // 调用API获取课程记录
+      const response = await getCourseRecordById(String(recordId));
+      courseRecord.value = response?.data || null;
+      
+      // 获取学生列表
+      await fetchStudentsList(String(recordId));
+    } catch (error) {
+      recordError.value = '获取课程记录失败，使用默认配置';
+      // 发生错误时不阻止组件继续加载，而是使用默认配置
+    } finally {
+      loadingRecord.value = false;
+    }
+  };
+  
+  // 获取学生列表
+  const fetchStudentsList = async (recordId: string) => {
+    try {
+      const response = await listStudentsByRecordId(recordId);
+      studentsList.value = response?.data || [];
+    } catch (error) {
+      studentsList.value = [];
+    }
+  };
+  
+  // 显示学生信息框
+  const showStudentInfoPopup = (event: MouseEvent, seatIndex: number) => {
+    // 查找对应座位的学生
+    const student = studentsList.value.find(s => s.seatIndex === seatIndex);
+    
+    // 设置信息框位置在鼠标右侧
+    popupPosition.value = {
+      x: event.clientX + 15,
+      y: event.clientY
+    };
+    
+    if (student) {
+      currentStudent.value = student;
+      currentSeatIndex.value = seatIndex;
+    } else {
+      // 如果没有学生，显示空座位信息
+      currentStudent.value = null;
+      currentSeatIndex.value = seatIndex;
+    }
+    
+    showStudentInfo.value = true;
+  };
+  
+  // 隐藏学生信息框
+  const hideStudentInfoPopup = () => {
+    showStudentInfo.value = false;
     currentStudent.value = null;
-    currentSeatIndex.value = seatIndex;
-  }
-
-  showStudentInfo.value = true;
-};
-
-// 隐藏学生信息框
-const hideStudentInfoPopup = () => {
-  showStudentInfo.value = false;
-  currentStudent.value = null;
-  currentSeatIndex.value = null;
-};
-
-class SpriteManager {
-  /**
-   * 构造函数
-   */
-  constructor() {
-    // 精灵位置数组，私有属性
-    this._positions = null;
-    // 学生数组，长度与座位数量相同，数组元素为空时代表对应位置是空座位
-    this._studentsArray = null;
-    // 默认纹理存储
-    this._defaultTexture = null;
-    // 初始化标志
-    this._initialized = false;
-    // 精灵实例数组
-    this._sprites = [];
-    // 精灵材质数组
-    this._spriteMaterials = [];
-    // 用户纹理映射
-    this._userTextures = new Map();
-    // 场景引用
-    this._scene = null;
-  }
-
-  /**
-   * 初始化函数
-   * @param {number} spriteCount - 精灵数量，必须为正整数
-   * @param {object} defaultTexture - 默认纹理对象
-   * @throws {Error} 当参数类型或值无效时抛出错误
-   */
-  initialize(spriteCount, defaultTexture) {
-    try {
-      // 参数类型验证
-      if (typeof spriteCount !== 'number' || !Number.isInteger(spriteCount) || spriteCount <= 0) {
-        throw new Error('精灵数量必须是正整数');
-      }
-
-      if (typeof defaultTexture !== 'object' || defaultTexture === null) {
-        throw new Error('默认纹理必须是有效的对象类型');
-      }
-
-      // 避免重复初始化
-      if (this._initialized) {
-        throw new Error('精灵管理器已经初始化');
-      }
-
-      // 初始化位置数组
-      this._positions = new Array(spriteCount);
-
-      // 初始化学生数组，长度与座位数量相同，所有元素初始化为null表示空座位
-      this._studentsArray = new Array(spriteCount).fill(null);
-
-      // 初始化默认纹理
-      this._defaultTexture = defaultTexture;
-
-      // 初始化精灵实例数组
-      this._sprites = [];
-      // 初始化精灵材质数组
-      this._spriteMaterials = [];
-      // 初始化用户纹理映射
-      this._userTextures = new Map();
-
-      // 标记为已初始化
-      this._initialized = true;
-
-      console.log(`精灵管理器初始化完成，精灵数量：${spriteCount}`);
-    } catch (error) {
-      console.error('精灵管理器初始化失败:', error);
-      // 重置状态以允许重新初始化
-      this._positions = null;
-      this._studentsArray = null;
-      this._defaultTexture = null;
-      this._sprites = [];
-      this._spriteMaterials = [];
-      this._userTextures = new Map();
-      this._initialized = false;
-      throw error;
-    }
-  }
-
-  /**
-   * 设置精灵位置数组
-   * @param {Array<THREE.Vector3>} positions - 位置数组
-   * @throws {Error} 当位置数组无效或已初始化时抛出错误
-   */
-  setPositions(positions) {
-    try {
-      // 验证初始化状态
-      if (!this._initialized) {
-        throw new Error('精灵管理器尚未初始化');
-      }
-
-      // 验证位置数组
-      if (!Array.isArray(positions) || positions.length !== this._positions.length) {
-        throw new Error('位置数组长度必须与精灵数量匹配');
-      }
-
-      // 复制位置数据
-      for (let i = 0; i < positions.length; i++) {
-        // 验证每个位置是否为有效的Vector3对象
-        if (!(positions[i] instanceof THREE.Vector3)) {
-          throw new Error(`位置索引 ${i} 必须是THREE.Vector3对象`);
-        }
-        // 深拷贝Vector3对象
-        this._positions[i] = positions[i].clone();
-      }
-
-      // 冻结位置数组，使其不可变更
-      Object.freeze(this._positions);
-
-      console.log('精灵位置数组已设置并冻结');
-    } catch (error) {
-      console.error('设置精灵位置失败:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * 设置场景引用
-   * @param {THREE.Scene} scene - Three.js场景对象
-   */
-  setScene(scene) {
-    if (!(scene instanceof THREE.Scene)) {
-      throw new Error('场景必须是有效的THREE.Scene对象');
-    }
-    this._scene = scene;
-  }
-
-  /**
-   * 创建所有精灵模型实例
-   * @returns {boolean} 创建是否成功
-   */
-  createSpriteInstances() {
-    try {
-      // 验证初始化状态
-      if (!this._initialized) {
-        throw new Error('精灵管理器尚未初始化');
-      }
-
-      // 验证场景引用
-      if (!this._scene) {
-        throw new Error('场景引用未设置');
-      }
-
-      // 验证位置数组
-      if (!this._positions || this._positions.length === 0) {
-        throw new Error('精灵位置数组未设置或为空');
-      }
-
-      // 清理现有的精灵实例
-      this.clearSpriteInstances();
-
-      // 为每个位置创建精灵实例
-      for (let i = 0; i < this._positions.length; i++) {
-        const position = this._positions[i];
-
-        // 检查该位置是否有学生，如果有学生则显示精灵模型，否则不显示
-        const hasStudent = this._studentsArray[i] !== null && this._studentsArray[i] !== undefined;
-
-        // 创建精灵材质，使用默认纹理
-        const spriteMaterial = new THREE.SpriteMaterial({
-          map: this._defaultTexture,
-          transparent: true,
-          opacity: hasStudent ? 0.9 : 0, // 如果有学生，透明度设为0.9，否则为0
-          depthWrite: false, // 确保精灵总是正确渲染在3D模型前面
-          blending: THREE.NormalBlending
-        });
-
-        // 创建精灵对象
-        const sprite = new THREE.Sprite(spriteMaterial);
-
-        // 设置精灵位置
-        sprite.position.copy(position);
-
-        // 设置精灵大小
-        sprite.scale.set(0.5, 0.5, 1);
-
-        // 设置精灵名称便于调试
-        sprite.name = `sprite_${i}`;
-
-        // 如果有学生，则显示精灵模型，否则不显示
-        sprite.visible = hasStudent;
-
-        // 将精灵添加到场景
-        this._scene.add(sprite);
-
-        // 存储精灵和材质引用
-        this._sprites[i] = sprite;
-        this._spriteMaterials[i] = spriteMaterial;
-      }
-
-      console.log(`成功创建 ${this._sprites.length} 个精灵实例`);
-      return true;
-    } catch (error) {
-      console.error('创建精灵实例失败:', error);
-      // 清理已创建的精灵
-      this.clearSpriteInstances();
-      throw error;
-    }
-  }
-
-  /**
-   * 清理所有精灵实例
-   */
-  clearSpriteInstances() {
-    if (this._scene) {
-      for (const sprite of this._sprites) {
-        if (sprite) {
-          this._scene.remove(sprite);
-        }
-      }
-    }
-
-    // 清空数组
-    this._sprites.length = 0;
-    this._spriteMaterials.length = 0;
-    console.log('精灵实例已清理');
-  }
-
-  /**
-   * 获取精灵位置
-   * @param {number} positionIndex - 位置索引
-   * @returns {THREE.Vector3} 精灵位置
-   * @throws {Error} 当位置索引无效时抛出错误
-   */
-  getPosition(positionIndex) {
-    this._validatePositionIndex(positionIndex);
-    return this._positions[positionIndex].clone();
-  }
-
-  /**
-   * 精灵信息更新函数
-   * @param {string|number} userId - 用户ID
-   * @param {object} userTexture - 用户纹理对象
-   * @param {number} positionIndex - 位置索引
-   * @returns {boolean} 更新是否成功
-   * @throws {Error} 当参数无效或位置已被占用时抛出错误
-   */
-  updateSpriteInfo(userId, userTexture, positionIndex) {
-    try {
-      // 验证初始化状态
-      if (!this._initialized) {
-        throw new Error('精灵管理器尚未初始化');
-      }
-
-      // 验证用户ID
-      if (userId === undefined || userId === null || userId === '') {
-        throw new Error('用户ID不能为空');
-      }
-
-      // 验证用户纹理
-      if (typeof userTexture !== 'object' || userTexture === null) {
-        throw new Error('用户纹理必须是有效的对象类型');
-      }
-
-      // 验证位置索引
-      this._validatePositionIndex(positionIndex);
-
-      // 检查用户ID是否已被其他位置索引占用
-      for (let i = 0; i < this._studentsArray.length; i++) {
-        if (this._studentsArray[i] === userId && i !== positionIndex) {
-          // 如果用户已在其他位置，先清除原位置的数据
-          this._studentsArray[i] = null;
-          this._updateSpriteTexture(i, this._defaultTexture, 0);
-          this._userTextures.delete(i);
-          console.log(`用户 ${userId} 已从位置索引 ${i} 移除`);
-          break;
-        }
-      }
-
-      // 检查位置索引是否已被占用
-      if (this._studentsArray[positionIndex] !== null && this._studentsArray[positionIndex] !== undefined) {
-        const existingUserId = this._studentsArray[positionIndex];
-        if (existingUserId !== userId) {
-          // 如果位置已被其他用户占用，清除原用户数据
-          this._userTextures.delete(positionIndex);
-          console.log(`位置索引 ${positionIndex} 上的用户 ${existingUserId} 已移除`);
-        }
-      }
-
-      // 更新学生数组和用户纹理映射
-      this._studentsArray[positionIndex] = userId;
-      this._userTextures.set(positionIndex, userTexture);
-
-      // 更新精灵纹理，显示精灵模型
-      if (this._sprites[positionIndex] && this._spriteMaterials[positionIndex]) {
-        this._updateSpriteTexture(positionIndex, userTexture, 1.0);
-      }
-
-      console.log(`用户 ${userId} 已分配到位置索引 ${positionIndex}`);
-      return true;
-    } catch (error) {
-      console.error(`更新精灵信息失败 (用户: ${userId}, 位置: ${positionIndex}):`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * 更新精灵纹理和可见性属性
-   * @private
-   */
-  _updateSpriteTexture(positionIndex, texture, opacity) {
-    if (this._sprites[positionIndex] && this._spriteMaterials[positionIndex]) {
-      try {
-        // 检查该位置是否有学生
-        const hasStudent = this._studentsArray[positionIndex] !== null && this._studentsArray[positionIndex] !== undefined;
-
-        // 更新纹理
-        this._spriteMaterials[positionIndex].map = texture;
-        this._spriteMaterials[positionIndex].needsUpdate = true;
-
-        // 更新透明度和可见性属性
-        // 如果有学生，使用传入的opacity，否则设为0并隐藏
-        if (hasStudent) {
-          this._spriteMaterials[positionIndex].opacity = opacity;
-          this._sprites[positionIndex].visible = opacity > 0;
-        } else {
-          this._spriteMaterials[positionIndex].opacity = 0;
-          this._sprites[positionIndex].visible = false;
-        }
-
-        // 确保精灵总是面向相机
-        this._sprites[positionIndex].lookAt(camera.position);
-      } catch (error) {
-        console.error(`更新位置 ${positionIndex} 的精灵纹理失败:`, error);
-      }
-    }
-  }
-
-  /**
-   * 用户数据删除函数
-   * @param {string|number} userId - 用户ID
-   * @returns {boolean} 删除是否成功
-   * @throws {Error} 当用户ID不存在时抛出错误
-   */
-  removeUserData(userId) {
-    try {
-      // 验证初始化状态
-      if (!this._initialized) {
-        throw new Error('精灵管理器尚未初始化');
-      }
-
-      // 查找用户ID对应的位置索引
-      let positionIndex = -1;
-      for (let i = 0; i < this._studentsArray.length; i++) {
-        if (this._studentsArray[i] === userId) {
-          positionIndex = i;
-          break;
-        }
-      }
-
-      // 验证用户ID是否存在
-      if (positionIndex === -1) {
-        throw new Error(`用户ID ${userId} 不存在`);
-      }
-
-      // 从学生数组和用户纹理映射中删除
-      this._studentsArray[positionIndex] = null;
-      this._userTextures.delete(positionIndex);
-
-      // 隐藏精灵模型（空座位不显示）
-      if (this._sprites[positionIndex] && this._spriteMaterials[positionIndex]) {
-        this._updateSpriteTexture(positionIndex, this._defaultTexture, 0);
-      }
-
-      console.log(`用户 ${userId} 的数据已从位置索引 ${positionIndex} 删除`);
-      return true;
-    } catch (error) {
-      console.error(`删除用户数据失败 (用户: ${userId}):`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * 获取用户ID对应的位置索引
-   * @param {string|number} userId - 用户ID
-   * @returns {number|null} 位置索引，如果不存在则返回null
-   */
-  getPositionIndexByUserId(userId) {
-    for (let i = 0; i < this._studentsArray.length; i++) {
-      if (this._studentsArray[i] === userId) {
-        return i;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * 获取位置索引对应的用户ID
-   * @param {number} positionIndex - 位置索引
-   * @returns {string|number|null} 用户ID，如果不存在则返回null
-   */
-  getUserIdByPositionIndex(positionIndex) {
-    this._validatePositionIndex(positionIndex);
-    const userId = this._studentsArray[positionIndex];
-    return userId !== null && userId !== undefined ? userId : null;
-  }
-
-  /**
-   * 验证位置索引的有效性
-   * @param {number} positionIndex - 位置索引
-   * @throws {Error} 当位置索引无效时抛出错误
-   * @private
-   */
-  _validatePositionIndex(positionIndex) {
-    if (typeof positionIndex !== 'number' || !Number.isInteger(positionIndex)) {
-      throw new Error('位置索引必须是整数');
-    }
-
-    if (this._positions === null || positionIndex < 0 || positionIndex >= this._positions.length) {
-      throw new Error(`位置索引 ${positionIndex} 超出有效范围`);
-    }
-  }
-
-  /**
-   * 获取精灵数量
-   * @returns {number} 精灵数量
-   */
-  get spriteCount() {
-    return this._positions ? this._positions.length : 0;
-  }
-
-  /**
-   * 获取初始化状态
-   * @returns {boolean} 是否已初始化
-   */
-  get isInitialized() {
-    return this._initialized;
-  }
-
-  /**
-   * 获取默认纹理
-   * @returns {object} 默认纹理
-   */
-  get defaultTexture() {
-    return this._defaultTexture;
-  }
-}
-
-let canvas = null;
-let renderer = null;
-let scene = null;
-let camera = null;
-let controls = null;
-let classroomModel = null;
-let loader = null;
-let classroomXLenght = 1;
-let classroomZLenght = 1;
-
-
-const initThree = () => {
-  //窗口大小信息
-  const sizes = {
-    width: window.innerWidth,
-    height: window.innerHeight,
+    currentSeatIndex.value = null;
   };
 
-  /**
-   * 场景环境设置
-   */
-  //画布
-  canvas = document.querySelector('.webgl_7');
-  // 场景
-  scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x0a0a1a);
-
-  /**
-   * 相机
-   */
-  // 相机位置配置对象（组件级别变量）
-  window.cameraPositions = {
-    front: {
-      position: {x: -9, y: 4.5, z: 0},
-      initialRotation: new THREE.Euler(0, Math.PI * 3 / 2, 0) // 初始朝向
-    },
-    rightRear: {
-      position: {x: 9, y: 4.5, z: -7},
-      initialRotation: new THREE.Euler(0, Math.PI * 3 / 4, 0) // 旋转135度
-    },
-    leftRear: {
-      position: {x: 9, y: 4.5, z: 7},
-      initialRotation: new THREE.Euler(0, Math.PI / 4, 0) // 旋转45度
+  // 退出教室
+  const handleExit = () => {
+    const courseId = route.params.courseId as string;
+    if (courseId) {
+      router.push(`/course/detail/${courseId}/classroom`);
+    } else {
+      router.back();
     }
   };
 
-  camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 1000);
-  // 将相机固定在教室内部前部位置
-  // 基于教室模型尺寸计算前部位置，使相机处于教室内部靠前的位置
-  camera.position.set(
+  // 跳转到直播页面
+  const handleLive = () => {
+    const courseId = route.params.courseId as string;
+    const courseRecordId = route.params.courseRecordId as string;
+    if (courseId && courseRecordId) {
+      router.push({
+        name: 'Live',
+        params: {
+          courseId,
+          courseRecordId
+        }
+      });
+    } else {
+      router.push({ name: 'Live' });
+    }
+  };
+
+  let canvas: HTMLCanvasElement | null = null;
+  let renderer: WebGLRenderer | null = null;
+  let scene: Scene | null = null;
+  let camera: PerspectiveCamera | null = null;
+  let controls: PointerLockControls | null = null;
+  let classroomModel: THREE.Group | null = null;
+  let loader: GLTFLoader | null = null;
+  let classroomXLenght = 1;
+  let classroomZLenght = 1;
+  let wheelTimeout: ReturnType<typeof setTimeout> | null = null;
+  let handleMouseWheel: ((event: WheelEvent) => void) | null = null;
+  let spritePositions: THREE.Vector3[] = [];
+
+  
+  const initThree = () => {
+    //窗口大小信息
+    const sizes = {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+  
+    /**
+     * 场景环境设置
+     */
+    //画布
+    canvas = document.querySelector('.webgl_7') as HTMLCanvasElement;
+    // 场景
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0a1a);
+    
+    /**
+     * 相机
+     */
+     // 相机位置配置对象（组件级别变量）
+    window.cameraPositions = {
+      front: { 
+        position: { x: -9, y: 4.5, z: 0 },
+        initialRotation: new THREE.Euler(0, Math.PI * 3 / 2, 0) // 初始朝向
+      },
+      rightRear: { 
+        position: { x: 9, y: 4.5, z: -6.5 },
+        initialRotation: new THREE.Euler(0, Math.PI * 3 / 4, 0), // 初始朝向
+      },
+      leftRear: { 
+        position: { x: 9, y: 4.5, z: 6.5 },
+        initialRotation: new THREE.Euler(0, Math.PI / 4, 0) // 旋转45度
+      }
+    };
+    
+    camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 1000);
+    // 将相机固定在教室内部前部位置
+    // 基于教室模型尺寸计算前部位置，使相机处于教室内部靠前的位置
+    camera.position.set(
       window.cameraPositions.front.position.x,
       window.cameraPositions.front.position.y,
       window.cameraPositions.front.position.z
-  ); // 设置相机在前部较高位置，可观察整个教室
-  camera.setRotationFromEuler(window.cameraPositions.front.initialRotation);
-  scene.add(camera);
-
-  // 将相机引用存储到window对象上
-  window.camera = camera;
-
-  // 当前相机位置标识（组件级别变量）
-  window.currentCameraPosition = 'front';
-
-  // 相机控制 - 使用PointerLockControls实现位置锁定的视角控制
-  controls = new PointerLockControls(camera, canvas);
-
-  // 将控制器引用存储到window对象上
-  window.controls = controls;
-
-  // 不需要额外设置不存在的属性，直接使用标准API
-
-  // 相机位置切换方法（组件级别函数）
-  window.switchCameraPosition = function () {
-    // 定义位置顺序数组
-    const positionOrder = ['front', 'rightRear', 'leftRear'];
-
-    // 获取当前位置在数组中的索引
-    const currentIndex = positionOrder.indexOf(window.currentCameraPosition);
-
-    // 计算下一个位置的索引（循环切换）
-    const nextIndex = (currentIndex + 1) % positionOrder.length;
-
-    // 切换位置标识
-    window.currentCameraPosition = positionOrder[nextIndex];
-    const positionConfig = window.cameraPositions[window.currentCameraPosition];
-
-    // 更新相机位置
-    window.camera.position.set(
+    ); // 设置相机在前部较高位置，可观察整个教室
+    camera.setRotationFromEuler(window.cameraPositions.front.initialRotation);
+    scene.add(camera);
+    
+    // 将相机引用存储到window对象上
+    window.camera = camera;
+    
+    // 当前相机位置标识（组件级别变量）
+    window.currentCameraPosition = 'front';
+    
+    // 相机控制 - 使用PointerLockControls实现位置锁定的视角控制
+    if (canvas) {
+      controls = new PointerLockControls(camera, canvas);
+    }
+    
+    // 将控制器引用存储到window对象上
+    if (controls) {
+      window.controls = controls;
+    }
+    
+    // 不需要额外设置不存在的属性，直接使用标准API
+    
+    // 相机位置切换方法（组件级别函数）
+    window.switchCameraPosition = function() {
+      if (!window.cameraPositions || !window.camera) return;
+      // 定义位置顺序数组
+      const positionOrder: Array<'front' | 'rightRear' | 'leftRear'> = ['front', 'rightRear', 'leftRear'];
+      
+      // 获取当前位置在数组中的索引
+      const currentIndex = window.currentCameraPosition 
+        ? positionOrder.indexOf(window.currentCameraPosition)
+        : 0;
+      
+      // 计算下一个位置的索引（循环切换）
+      const nextIndex = (currentIndex + 1) % positionOrder.length;
+      
+      // 切换位置标识
+      window.currentCameraPosition = positionOrder[nextIndex];
+      const positionConfig = window.cameraPositions[window.currentCameraPosition];
+      
+      if (!positionConfig) return;
+      
+      // 更新相机位置
+      window.camera.position.set(
         positionConfig.position.x,
         positionConfig.position.y,
         positionConfig.position.z
-    );
+      );
+      
+      // 应用初始旋转
+      window.camera.setRotationFromEuler(positionConfig.initialRotation);
+      
+      // 如果指针已锁定，解锁以重置控制器状态
+      if (window.controls && canvas && document.pointerLockElement === canvas) {
+        document.exitPointerLock();
+      }
+    }
+    
+    // 添加鼠标双击事件以启用指针锁定
+    if (canvas && controls) {
+      canvas.addEventListener('dblclick', () => {
+        // 直接调用lock()方法，它不返回Promise
+        controls?.lock();
+      });
+      
+      // 添加指针锁定错误处理
+      const onPointerLockError = () => {
+        // 静默处理指针锁定错误
+      };
+      
+      // 绑定指针锁定错误事件到document
+      document.addEventListener('pointerlockerror', onPointerLockError);
+      
+      // 监听指针锁定状态变化
+      controls.addEventListener('lock', () => {
+      });
+      
+      controls.addEventListener('unlock', () => {
+      });
+    }
 
-    // 应用初始旋转
-    window.camera.setRotationFromEuler(positionConfig.initialRotation);
+    // 渲染器
+    if (canvas) {
+      renderer = new THREE.WebGLRenderer({ canvas });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    }
 
-    // 重置控制器状态
-    window.controls.reset();
+    /**
+     * 背景天空部分
+     */
+    const sky = new Sky();
+    sky.scale.setScalar( 450000 );
+    scene.add( sky );
 
-    console.log(`相机已切换到${window.currentCameraPosition}位置: (${positionConfig.position.x}, ${positionConfig.position.y}, ${positionConfig.position.z})`);
-  }
+    const sun = new THREE.Vector3();
 
-  // 添加鼠标双击事件以启用指针锁定
-  canvas.addEventListener('dblclick', () => {
-    // 直接调用lock()方法，它不返回Promise
-    controls.lock();
-  });
+    /// GUI
 
-  // 添加指针锁定错误处理
-  const onPointerLockError = () => {
-    console.warn('无法锁定指针');
-  };
+    const effectController = {
+      turbidity: 8,          // 降低浑浊度，黎明时空气较清新
+      rayleigh: 5,           // 增加瑞利散射，强化黎明的蓝色和粉色调
+      mieCoefficient: 0.003, // 降低米氏散射，使天空更通透
+      mieDirectionalG: 0.85, // 调整散射方向性
+      elevation: 3.5,        // 设置为低角度，黎明太阳刚升起
+      azimuth: 105,          // 调整为清晨方向（东偏南）
+      exposure: 1.2          // 稍微提高曝光，增强黎明的明亮感
+    };
 
-  // 绑定指针锁定错误事件到document
-  document.addEventListener('pointerlockerror', onPointerLockError);
+    function guiChanged() {
 
-  // 监听指针锁定状态变化
-  controls.addEventListener('lock', () => {
-    console.log('指针已锁定，现在可以使用鼠标控制视角');
-  });
+      const uniforms = sky.material.uniforms;
+      uniforms[ 'turbidity' ].value = effectController.turbidity;
+      uniforms[ 'rayleigh' ].value = effectController.rayleigh;
+      uniforms[ 'mieCoefficient' ].value = effectController.mieCoefficient;
+      uniforms[ 'mieDirectionalG' ].value = effectController.mieDirectionalG;
 
-  controls.addEventListener('unlock', () => {
-    console.log('指针已解锁');
-  });
+      const phi = THREE.MathUtils.degToRad( 90 - effectController.elevation );
+      const theta = THREE.MathUtils.degToRad( effectController.azimuth );
 
-  // 渲染器
-  renderer = new THREE.WebGLRenderer({canvas});
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      sun.setFromSphericalCoords( 1, phi, theta );
 
-  /**
-   * 背景天空部分
-   */
-  const sky = new Sky();
-  sky.scale.setScalar(450000);
-  scene.add(sky);
+      uniforms[ 'sunPosition' ].value.copy( sun );
 
-  const sun = new THREE.Vector3();
+      if (renderer) {
+        renderer.toneMappingExposure = effectController.exposure;
+      }
+    }    
 
-  /// GUI
+    guiChanged();
 
-  const effectController = {
-    turbidity: 8,          // 降低浑浊度，黎明时空气较清新
-    rayleigh: 5,           // 增加瑞利散射，强化黎明的蓝色和粉色调
-    mieCoefficient: 0.003, // 降低米氏散射，使天空更通透
-    mieDirectionalG: 0.85, // 调整散射方向性
-    elevation: 3.5,        // 设置为低角度，黎明太阳刚升起
-    azimuth: 105,          // 调整为清晨方向（东偏南）
-    exposure: 1.2          // 稍微提高曝光，增强黎明的明亮感
-  };
+    /**
+     * 精灵模型
+    */
+    spritePositions = [];
 
-  function guiChanged() {
-
-    const uniforms = sky.material.uniforms;
-    uniforms['turbidity'].value = effectController.turbidity;
-    uniforms['rayleigh'].value = effectController.rayleigh;
-    uniforms['mieCoefficient'].value = effectController.mieCoefficient;
-    uniforms['mieDirectionalG'].value = effectController.mieDirectionalG;
-
-    const phi = THREE.MathUtils.degToRad(90 - effectController.elevation);
-    const theta = THREE.MathUtils.degToRad(effectController.azimuth);
-
-    sun.setFromSphericalCoords(1, phi, theta);
-
-    uniforms['sunPosition'].value.copy(sun);
-
-    renderer.toneMappingExposure = effectController.exposure;
-  }
-
-  guiChanged();
-
-  /**
-   * 精灵模型管理类
-   * 负责精灵模型的统一管理，包括位置管理、用户映射和纹理更新
-   */
-
-      // 创建精灵管理器实例
-  const spriteManager = new SpriteManager();
-
-  /**
-   * 精灵模型
-   */
-  const spritePositions = [];
-
-  console.log(instanceCount);
-
-  /**
-   * 加载教室模型
-   */
-  modelClickHandler.init(scene, camera, renderer.domElement);
-  loader = new GLTFLoader();
-
-  // 加载模型 - 顺序加载实现
-  const loadModelsSequentially = async () => {
-    try {
-      // 加载第一个模型（教室）
-      await new Promise((resolve, reject) => {
+    /**
+     * 加载教室模型
+     */
+    if (scene && camera && renderer) {
+      modelClickHandler.init(scene, camera, renderer.domElement);
+    }
+    loader = new GLTFLoader();
+    
+    // 加载模型 - 顺序加载实现
+    const loadModelsSequentially = async () => {
+      try {
+        // 加载第一个模型（教室）
+      await new Promise<void>((resolve, reject) => {
+        if (!loader) {
+          reject(new Error('Loader not initialized'));
+          return;
+        }
         loader.load(
-            `/src/assets/3Dmodel/classroom/classroomPro.gltf`,
-            (gltf) => {
+          `/src/assets/3Dmodel/classroom/classroomPro.gltf`,
+            (gltf: GLTF) => {
               classroomModel = gltf.scene;
               // 调整模型大小和位置
               classroomModel.position.set(0, 0, 0);
@@ -797,176 +566,363 @@ const initThree = () => {
 
               classroomXLenght = size.x;
               classroomZLenght = size.z;
-
+              
               // 处理Blender中添加的点光源，转换为three.js标准
-              classroomModel.traverse((child) => {
+              classroomModel.traverse((child: THREE.Object3D) => {
                 // 检查是否为光源对象
-                if (child.isLight) {
+                const light = child as THREE.Light;
+                if (light.isLight) {
                   // 点光源增强处理
-                  if (child.isPointLight) {
+                  const pointLight = light as THREE.PointLight;
+                  if (pointLight.isPointLight) {
                     // 设置点光源的强度为0.2
-                    child.intensity = 8;
+                    pointLight.intensity = 8;
                     // 设置合适的衰减
-                    child.decay = 2;
+                    pointLight.decay = 2;
                     // 增加光源范围
-                    child.distance = Math.max(child.distance || 10, 15);
+                    pointLight.distance = Math.max(pointLight.distance || 10, 15);
                   }
                 }
               });
 
               /**
-               * 射线选择
-               */
+              * 射线选择
+              */
               modelClickHandler.addClickListener(
-                  classroomModel,
-                  '大黑板',
-                  (element, event, intersection) => {
-                    // 使用Vue Router跳转到'/html-forest'界面
-                    console.log('大黑板已点击');
-                  }
+                classroomModel,
+                '大黑板',
+                () => {
+                  // 使用Vue Router跳转到'/html-forest'界面
+                }
               );
 
-              scene.add(classroomModel);
-              resolve(true);
+              if (scene && classroomModel) {
+                scene.add(classroomModel);
+              }
+              resolve();
             },
-            (xhr) => {
-              // console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            () => {
+              // 加载进度处理
             },
             (error) => {
-              console.error('An error happened1', error);
               reject(error);
             }
-        );
-      });
+          );
+        });
 
-      // 第一个模型加载完成后，加载第二个模型（桌椅）
-      await new Promise((resolve, reject) => {
-        const startTime = performance.now();
-        console.log('开始批量实例化桌椅模型...');
-
-        loader.load(
-            '/src/assets/3Dmodel/desk_Chair/deskAndChair.gltf',
-            (gltf) => {
+        // 第一个模型加载完成后，加载第二个模型（桌椅）
+        await new Promise<void>((resolve, reject) => {
+          if (!loader) {
+            reject(new Error('Loader not initialized'));
+            return;
+          }
+          loader.load(
+          '/src/assets/3Dmodel/desk_Chair/deskAndChair.gltf',
+            (gltf: GLTF) => {
               try {
-                console.log('桌椅模型加载成功', gltf.scene);
-                // 整体模型处理管理器 - 增强版
-                const modelInstanceManager = {
-                  // 识别并保存模型的子组件结构
-                  identifyModelStructure: function (object) {
-                    const subComponents = [];
-
-                    // 假设模型的直接子节点是主要子组件
-                    if (object.children.length > 0) {
-                      console.log('识别到模型层级结构');
-
-                      // 遍历所有直接子节点
-                      object.children.forEach((child, index) => {
-                        if (child.isObject3D && !child.isMesh) { // 识别子组件（非网格对象）
-                          const componentInfo = {
-                            name: child.name || `component_${index}`,
-                            position: child.position.clone(),
-                            quaternion: child.quaternion.clone(),
-                            scale: child.scale.clone(),
-                            meshes: [] // 用于存储此子组件下的所有网格
-                          };
-
-                          // 递归收集此子组件下的所有网格
-                          this.collectMeshesInComponent(child, componentInfo.meshes);
-
-                          if (componentInfo.meshes.length > 0) {
-                            subComponents.push(componentInfo);
-                            console.log(`识别到子组件: ${componentInfo.name}，包含 ${componentInfo.meshes.length} 个网格`);
+                  // 整体模型处理管理器 - 增强版
+                  const modelInstanceManager = {
+                    // 识别并保存模型的子组件结构
+                    identifyModelStructure: function(object: THREE.Object3D) {
+                      const subComponents: Array<{
+                        name: string
+                        position: THREE.Vector3
+                        quaternion: THREE.Quaternion
+                        scale: THREE.Vector3
+                        meshes: Array<{
+                          mesh: THREE.Mesh
+                          originalPosition: THREE.Vector3
+                          originalQuaternion: THREE.Quaternion
+                          originalScale: THREE.Vector3
+                        }>
+                      }> = [];
+                      
+                      // 假设模型的直接子节点是主要子组件
+                      if (object.children.length > 0) {
+                        
+                        // 遍历所有直接子节点
+                        object.children.forEach((child: THREE.Object3D, index: number) => {
+                          if (child.isObject3D && !(child as THREE.Mesh).isMesh) { // 识别子组件（非网格对象）
+                            const componentInfo = {
+                              name: child.name || `component_${index}`,
+                              position: child.position.clone(),
+                              quaternion: child.quaternion.clone(),
+                              scale: child.scale.clone(),
+                              meshes: [] // 用于存储此子组件下的所有网格
+                            };
+                            
+                            // 递归收集此子组件下的所有网格
+                            this.collectMeshesInComponent(child, componentInfo.meshes);
+                            
+                            if (componentInfo.meshes.length > 0) {
+                              subComponents.push(componentInfo);
+                            }
                           }
-                        }
-                      });
-                    }
-
-                    // 如果没有识别到子组件结构，回退到原有的网格收集方式
-                    if (subComponents.length === 0) {
-                      console.log('未识别到子组件结构，使用默认网格收集方式');
-                      const defaultMeshes = [];
-                      this.collectMeshesInComponent(object, defaultMeshes);
-                      subComponents.push({
-                        name: 'default',
-                        position: new THREE.Vector3(0, 0, 0),
-                        quaternion: new THREE.Quaternion(),
-                        scale: new THREE.Vector3(1, 1, 1),
-                        meshes: defaultMeshes
-                      });
-                    }
-
-                    return subComponents;
-                  },
-
-                  // 收集组件中的所有网格
-                  collectMeshesInComponent: function (object, meshes = []) {
-                    if (object.isMesh) {
-                      if (object.visible && object.geometry) {
-                        // 保存网格及其原始位置信息（相对于父组件）
-                        meshes.push({
-                          mesh: object,
-                          originalPosition: object.position.clone(),
-                          originalQuaternion: object.quaternion.clone(),
-                          originalScale: object.scale.clone()
                         });
                       }
-                    }
-
-                    // 递归处理子节点
-                    for (const child of object.children) {
-                      this.collectMeshesInComponent(child, meshes);
-                    }
-
-                    return meshes;
-                  },
-
-                  // 创建整体模型的实例化网格集合
-                  createGroupedInstancedMeshes: function (subComponents, count) {
-                    const instancedMeshGroups = [];
-
-                    // 为每个子组件中的网格创建实例化网格
-                    subComponents.forEach((component, componentIndex) => {
-                      component.meshes.forEach((meshData, meshIndex) => {
-                        const mesh = meshData.mesh;
-                        try {
-                          // 重用几何体
-                          const geometry = mesh.geometry;
-                          // 克隆材质
-                          const material = mesh.material.clone ? mesh.material.clone() : mesh.material;
-
-                          // 创建实例化网格
-                          const instancedMesh = new THREE.InstancedMesh(geometry, material, count);
-                          instancedMesh.name = `${component.name}_${meshIndex}_instanced`;
-
-                          // 设置渲染属性
-                          instancedMesh.castShadow = mesh.castShadow;
-                          instancedMesh.receiveShadow = mesh.receiveShadow;
-                          instancedMesh.instanceMatrix.usage = THREE.DynamicDrawUsage;
-
-                          // 存储原始位置信息和组件信息用于保持相对关系
-                          instancedMesh.userData = {
-                            meshPosition: meshData.originalPosition,
-                            meshQuaternion: meshData.originalQuaternion,
-                            meshScale: meshData.originalScale,
-                            componentPosition: component.position.clone(),
-                            componentQuaternion: component.quaternion.clone(),
-                            componentScale: component.scale.clone(),
-                            componentName: component.name
-                          };
-
-                          instancedMeshGroups.push(instancedMesh);
-                        } catch (err) {
-                          console.warn(`创建实例化网格失败 (组件 ${component.name}, 索引 ${meshIndex}):`, err);
+                      
+                      // 如果没有识别到子组件结构，回退到原有的网格收集方式
+                      if (subComponents.length === 0) {
+                        const defaultMeshes: Array<{
+                          mesh: THREE.Mesh
+                          originalPosition: THREE.Vector3
+                          originalQuaternion: THREE.Quaternion
+                          originalScale: THREE.Vector3
+                        }> = [];
+                        this.collectMeshesInComponent(object, defaultMeshes);
+                        subComponents.push({
+                          name: 'default',
+                          position: new THREE.Vector3(0, 0, 0),
+                          quaternion: new THREE.Quaternion(),
+                          scale: new THREE.Vector3(1, 1, 1),
+                          meshes: defaultMeshes
+                        });
+                      }
+                      
+                      return subComponents;
+                    },
+                    
+                    // 收集组件中的所有网格
+                    collectMeshesInComponent: function(
+                      object: THREE.Object3D,
+                      meshes: Array<{
+                        mesh: THREE.Mesh
+                        originalPosition: THREE.Vector3
+                        originalQuaternion: THREE.Quaternion
+                        originalScale: THREE.Vector3
+                      }> = []
+                    ) {
+                      if ((object as THREE.Mesh).isMesh) {
+                        const mesh = object as THREE.Mesh;
+                        if (mesh.visible && mesh.geometry) {
+                          // 保存网格及其原始位置信息（相对于父组件）
+                          meshes.push({
+                            mesh: mesh,
+                            originalPosition: mesh.position.clone(),
+                            originalQuaternion: mesh.quaternion.clone(),
+                            originalScale: mesh.scale.clone()
+                          });
+                        }
+                      }
+                      
+                      // 递归处理子节点
+                      for (const child of object.children) {
+                        this.collectMeshesInComponent(child, meshes);
+                      }
+                      
+                      return meshes;
+                    },
+                    
+                    // 创建整体模型的实例化网格集合
+                    createGroupedInstancedMeshes: function(
+                      subComponents: Array<{
+                        name: string
+                        position: THREE.Vector3
+                        quaternion: THREE.Quaternion
+                        scale: THREE.Vector3
+                        meshes: Array<{
+                          mesh: THREE.Mesh
+                          originalPosition: THREE.Vector3
+                          originalQuaternion: THREE.Quaternion
+                          originalScale: THREE.Vector3
+                        }>
+                      }>,
+                      count: number
+                    ) {
+                      const instancedMeshGroups: InstancedMesh[] = [];
+                      
+                      // 为每个子组件中的网格创建实例化网格
+                      subComponents.forEach((component) => {
+                        component.meshes.forEach((meshData, meshIndex) => {
+                          const mesh = meshData.mesh;
+                          try {
+                            // 重用几何体
+                            const geometry = mesh.geometry;
+                            // 克隆材质
+                            const material = Array.isArray(mesh.material)
+                              ? mesh.material.map((m: THREE.Material) => m.clone())
+                              : (mesh.material.clone ? mesh.material.clone() : mesh.material);
+                            
+                            // 创建实例化网格
+                            const instancedMesh = new THREE.InstancedMesh(geometry, material, count);
+                            instancedMesh.name = `${component.name}_${meshIndex}_instanced`;
+                            
+                            // 设置渲染属性
+                            instancedMesh.castShadow = mesh.castShadow;
+                            instancedMesh.receiveShadow = mesh.receiveShadow;
+                            instancedMesh.instanceMatrix.usage = THREE.DynamicDrawUsage;
+                            
+                            // 存储原始位置信息和组件信息用于保持相对关系
+                            instancedMesh.userData = {
+                              meshPosition: meshData.originalPosition,
+                              meshQuaternion: meshData.originalQuaternion,
+                              meshScale: meshData.originalScale,
+                              componentPosition: component.position.clone(),
+                              componentQuaternion: component.quaternion.clone(),
+                              componentScale: component.scale.clone(),
+                              componentName: component.name
+                            };
+                            
+                            instancedMeshGroups.push(instancedMesh);
+                          } catch (err) {
+                            // 静默处理创建实例化网格失败
+                          }
+                        });
+                      });
+                      
+                      return instancedMeshGroups;
+                    },
+                    
+                    // 批量设置实例矩阵 - 保持模型内部相对位置
+                    setInstanceMatricesAsGroup: function(
+                      instancedMeshGroups: InstancedMesh[],
+                      startIndex: number,
+                      count: number,
+                      positionCallback: (instanceId: number, position: THREE.Vector3) => THREE.Vector3
+                    ) {
+                      // 重用矩阵对象以减少GC压力
+                      const matrix = new THREE.Matrix4();
+                      const groupMatrix = new THREE.Matrix4();
+                      const componentMatrix = new THREE.Matrix4();
+                      const globalPosition = new THREE.Vector3();
+                      const localPosition = new THREE.Vector3();
+                      const quaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI / 2, 0));
+                      const groupQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI / 2, 0));
+                      const scale = new THREE.Vector3(1, 1, 1);
+                       
+                      // 批量更新矩阵
+                      for (let i = 0; i < count; i++) {
+                        const instanceId = startIndex + i;
+                        
+                        // 获取整体模型的位置
+                        positionCallback(instanceId, globalPosition);
+                        
+                        // 计算整体模型的变换矩阵
+                        groupMatrix.compose(globalPosition, groupQuaternion, scale);
+                        
+                        // 对每个网格应用相同的整体变换，但保持相对位置
+                        instancedMeshGroups.forEach((instancedMesh: InstancedMesh) => {
+                          // 计算子组件相对于整体模型的变换矩阵
+                          componentMatrix.compose(
+                            instancedMesh.userData.componentPosition,
+                            instancedMesh.userData.componentQuaternion,
+                            instancedMesh.userData.componentScale
+                          );
+                          
+                          // 应用整体模型变换到组件位置
+                          componentMatrix.premultiply(groupMatrix);
+                          
+                          // 使用网格相对于组件的原始位置
+                          localPosition.copy(instancedMesh.userData.meshPosition);
+                          
+                          // 应用组件变换到网格位置
+                          localPosition.applyMatrix4(componentMatrix);
+                                              
+                          // 设置实例矩阵
+                          matrix.compose(localPosition, quaternion, scale);
+                          instancedMesh.setMatrixAt(instanceId, matrix);
+                        });
+                      }
+                       
+                      // 标记所有实例矩阵需要更新
+                      instancedMeshGroups.forEach(instancedMesh => {
+                        instancedMesh.instanceMatrix.needsUpdate = true;
+                      });
+                    },
+                    
+                    // 资源清理函数
+                    disposeResources: function(instancedMeshGroups: InstancedMesh[]) {
+                      instancedMeshGroups.forEach((mesh: InstancedMesh) => {
+                        if (mesh && mesh.dispose) {
+                          mesh.dispose();
                         }
                       });
+                    }
+                  };
+                  
+                  // 1. 识别模型结构并保存子组件和网格信息
+                  const subComponents = modelInstanceManager.identifyModelStructure(gltf.scene);
+                  
+                  // 计算总网格数量
+                  const totalMeshCount = subComponents.reduce((sum, component) => sum + component.meshes.length, 0);
+                  
+                  if (totalMeshCount === 0) {
+                    throw new Error('未在桌椅模型中找到任何网格对象');
+                  }
+                  
+                  // 2. 智能计算安全的实例数量
+                  const hardwareLimit = 65536; // WebGL 1.0 限制
+                  const maxAllowedInstances = Math.min(instanceCount.value, 1000, hardwareLimit); // 综合限制
+                  
+                  // 3. 创建整体模型的实例化网格集合
+                  const instancedMeshGroups = modelInstanceManager.createGroupedInstancedMeshes(subComponents, maxAllowedInstances);
+                  
+                  // 4. 批量计算位置和设置矩阵（优化内存使用）
+                  // 优化的位置计算函数 - 直接修改传入的向量
+                  const calculatePosition = (instanceId: number, position: THREE.Vector3): THREE.Vector3 => {
+                    position.x = 2 * Math.floor(instanceId / columnCount.value) - classroomXLenght/2 + 6;
+                    position.y = 0.0;
+                    position.z = classroomZLenght/2 - classroomZLenght / columnCount.value * (0.5 + instanceId % columnCount.value);
+                    return position;
+                  };
+                  
+                  // 批量设置矩阵 - 保持内部组件相对位置
+                  modelInstanceManager.setInstanceMatricesAsGroup(instancedMeshGroups, 0, maxAllowedInstances, calculatePosition);
+                  
+                  // 5. 批量存储精灵位置 - 优化内存分配
+                  spritePositions.length = 0; // 清空数组以重用
+                  spritePositions.length = maxAllowedInstances; // 预分配空间
+                  
+                  const tempPosition = new THREE.Vector3();
+                  for (let i = 0; i < maxAllowedInstances; i++) {
+                    calculatePosition(i, tempPosition);
+                    // 重用或创建向量以节省内存
+                    if (!spritePositions[i]) {
+                      spritePositions[i] = new THREE.Vector3();
+                    }
+                    spritePositions[i].set(tempPosition.x + 0.5, tempPosition.y + 2.0, tempPosition.z);
+                  }
+                  
+                  // 6. 批量添加到场景
+                  if (scene && instancedMeshGroups.length > 0) {
+                    instancedMeshGroups.forEach((instancedMesh: InstancedMesh) => {
+                      if (scene) {
+                        scene.add(instancedMesh);
+                      }
                     });
-
-                    return instancedMeshGroups;
-                  },
-
-                  // 批量设置实例矩阵 - 保持模型内部相对位置
-                  setInstanceMatricesAsGroup: function (instancedMeshGroups, startIndex, count, positionCallback) {
-                    // 重用矩阵对象以减少GC压力
+                  }
+                  
+                  // 7. 存储实例化网格引用以便后续清理
+                  if (!window.instancedObjects) {
+                    window.instancedObjects = [];
+                  }
+                  window.instancedObjects.push(...instancedMeshGroups);
+                  
+                  // 8. 添加课桌悬浮事件处理
+                  const raycaster = new THREE.Raycaster();
+                  const mouse = new THREE.Vector2();
+                  let currentHoveredDeskId: number | null = null; // 当前悬停的课桌ID
+                  const originalMatrices = new Map<number, THREE.Matrix4>(); // 存储原始矩阵
+                  const hoverScale = 1.1; // 悬浮时的放大倍数
+                  let isCursorPointer = false; // 跟踪当前鼠标样式状态
+                  
+                  // 辅助函数：更新实例的缩放（保持子组件相对位置）
+                  const updateInstanceScale = (instanceId: number, scale: number) => {
+                    // 获取原始矩阵以提取整体模型位置
+                    let originalMatrix = originalMatrices.get(instanceId);
+                    if (!originalMatrix) {
+                      // 如果没有存储原始矩阵，从第一个实例化网格获取
+                      if (instancedMeshGroups.length > 0) {
+                        const tempMatrix = new THREE.Matrix4();
+                        instancedMeshGroups[0].getMatrixAt(instanceId, tempMatrix);
+                        originalMatrices.set(instanceId, tempMatrix.clone());
+                        originalMatrix = originalMatrices.get(instanceId);
+                      } else {
+                        return;
+                      }
+                    }
+                    
+                    // 重用矩阵和向量对象以减少GC压力
                     const matrix = new THREE.Matrix4();
                     const groupMatrix = new THREE.Matrix4();
                     const componentMatrix = new THREE.Matrix4();
@@ -974,235 +930,236 @@ const initThree = () => {
                     const localPosition = new THREE.Vector3();
                     const quaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI / 2, 0));
                     const groupQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI / 2, 0));
-                    const scale = new THREE.Vector3(1, 1, 1);
-
-                    // 批量更新矩阵
-                    for (let i = 0; i < count; i++) {
-                      const instanceId = startIndex + i;
-
-                      // 获取整体模型的位置
-                      positionCallback(instanceId, globalPosition);
-
-                      // 计算整体模型的变换矩阵
-                      groupMatrix.compose(globalPosition, groupQuaternion, scale);
-
-                      // 对每个网格应用相同的整体变换，但保持相对位置
-                      instancedMeshGroups.forEach(instancedMesh => {
-                        // 计算子组件相对于整体模型的变换矩阵
-                        componentMatrix.compose(
-                            instancedMesh.userData.componentPosition,
-                            instancedMesh.userData.componentQuaternion,
-                            instancedMesh.userData.componentScale
-                        );
-
-                        // 应用整体模型变换到组件位置
-                        componentMatrix.premultiply(groupMatrix);
-
-                        // 使用网格相对于组件的原始位置
-                        localPosition.copy(instancedMesh.userData.meshPosition);
-
-                        // 应用组件变换到网格位置
-                        localPosition.applyMatrix4(componentMatrix);
-
-                        // 设置实例矩阵
-                        matrix.compose(localPosition, quaternion, scale);
-                        instancedMesh.setMatrixAt(instanceId, matrix);
-                      });
-                    }
-
-                    // 标记所有实例矩阵需要更新
-                    instancedMeshGroups.forEach(instancedMesh => {
+                    const scaleVec = new THREE.Vector3(scale, scale, scale);
+                    
+                    // 从原始矩阵中提取整体模型的位置（不包含缩放）
+                    // 通过计算位置回调函数来获取原始位置
+                    calculatePosition(instanceId, globalPosition);
+                    
+                    // 计算整体模型的变换矩阵（包含缩放）
+                    groupMatrix.compose(globalPosition, groupQuaternion, scaleVec);
+                    
+                        // 对每个子组件的网格应用相同的整体变换，但保持相对位置
+                        instancedMeshGroups.forEach((instancedMesh: InstancedMesh) => {
+                      // 计算子组件相对于整体模型的变换矩阵（从userData获取）
+                      componentMatrix.compose(
+                        instancedMesh.userData.componentPosition,
+                        instancedMesh.userData.componentQuaternion,
+                        instancedMesh.userData.componentScale
+                      );
+                      
+                      // 应用整体模型变换（包含缩放）到组件位置
+                      componentMatrix.premultiply(groupMatrix);
+                      
+                      // 使用网格相对于组件的原始位置（从userData获取）
+                      localPosition.copy(instancedMesh.userData.meshPosition);
+                      
+                      // 应用组件变换到网格位置（保持子组件相对位置）
+                      localPosition.applyMatrix4(componentMatrix);
+                      
+                      // 设置实例矩阵（缩放已在groupMatrix中应用，这里使用单位缩放）
+                      const finalScale = new THREE.Vector3(1, 1, 1);
+                      matrix.compose(localPosition, quaternion, finalScale);
+                      instancedMesh.setMatrixAt(instanceId, matrix);
                       instancedMesh.instanceMatrix.needsUpdate = true;
                     });
-                  },
-
-                  // 资源清理函数
-                  disposeResources: function (instancedMeshGroups) {
-                    instancedMeshGroups.forEach(mesh => {
-                      if (mesh && mesh.dispose) {
-                        mesh.dispose();
+                  };
+                  
+                  const handleDeskHover = (event: MouseEvent) => {
+                    if (!canvas || !camera) return;
+                    // 计算鼠标在标准化设备坐标中的位置 (-1 到 1)
+                    const rect = canvas.getBoundingClientRect();
+                    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+                    
+                    // 设置射线投射器的射线
+                    raycaster.setFromCamera(mouse, camera);
+                    
+                    let foundDesk = false;
+                    
+                    // 检测与所有实例化网格的交点
+                    for (const instancedMesh of instancedMeshGroups) {
+                      const intersects = raycaster.intersectObject(instancedMesh);
+                      
+                      if (intersects.length > 0) {
+                        const intersection = intersects[0];
+                        
+                        // 检查是否有实例ID（InstancedMesh的intersection会有instanceId）
+                        if (intersection.instanceId !== undefined) {
+                          const instanceId = intersection.instanceId;
+                          
+                          // 如果悬停的是同一个课桌，不需要重复处理
+                          if (currentHoveredDeskId === instanceId) {
+                            // 确保鼠标样式为pointer
+                            if (!isCursorPointer) {
+                              canvas.style.cursor = 'pointer';
+                              isCursorPointer = true;
+                            }
+                            foundDesk = true;
+                            break;
+                          }
+                          
+                          // 如果之前有悬停的课桌，恢复其原始大小
+                          if (currentHoveredDeskId !== null && currentHoveredDeskId !== instanceId) {
+                            updateInstanceScale(currentHoveredDeskId, 1.0);
+                          }
+                          
+                          // 更新当前悬停的课桌ID
+                          currentHoveredDeskId = instanceId;
+                          
+                          // 放大当前悬停的课桌
+                          updateInstanceScale(instanceId, hoverScale);
+                          
+                          // 计算课桌位置
+                          const deskPosition = new THREE.Vector3();
+                          calculatePosition(instanceId, deskPosition);
+                          
+                          // 显示学生信息框
+                          showStudentInfoPopup(event, instanceId);
+                          
+                          // 改变鼠标样式为pointer
+                          if (!isCursorPointer) {
+                            canvas.style.cursor = 'pointer';
+                            isCursorPointer = true;
+                          }
+                          
+                          foundDesk = true;
+                          // 只处理第一个交点，避免重复触发
+                          break;
+                        }
                       }
+                    }
+                    
+                    // 如果鼠标没有悬停在任何课桌上，恢复之前悬停的课桌大小并隐藏信息框
+                    if (!foundDesk) {
+                      if (currentHoveredDeskId !== null) {
+                        updateInstanceScale(currentHoveredDeskId, 1.0);
+                        currentHoveredDeskId = null;
+                        hideStudentInfoPopup();
+                      }
+                      // 恢复鼠标样式为默认
+                      if (isCursorPointer) {
+                        canvas.style.cursor = 'default';
+                        isCursorPointer = false;
+                      }
+                    }
+                  };
+                  
+                  // 添加鼠标移动事件监听器
+                  if (canvas) {
+                    canvas.addEventListener('mousemove', handleDeskHover);
+                  }
+                  
+                  // 添加鼠标离开画布事件，隐藏信息框并恢复课桌大小
+                  const handleMouseLeave = () => {
+                    if (currentHoveredDeskId !== null) {
+                      updateInstanceScale(currentHoveredDeskId, 1.0);
+                      currentHoveredDeskId = null;
+                    }
+                    hideStudentInfoPopup();
+                    // 恢复鼠标样式为默认
+                    if (isCursorPointer && canvas) {
+                      canvas.style.cursor = 'default';
+                      isCursorPointer = false;
+                    }
+                  };
+                  if (canvas) {
+                    canvas.addEventListener('mouseleave', handleMouseLeave);
+                  }
+                  
+                  // 9. 添加课桌点击事件处理
+                  const handleDeskClick = (event: MouseEvent) => {
+                    if (!canvas || !camera) return;
+                    // 检查精灵管理器是否已初始化
+                    if (!spriteManager || !spriteManager.isInitialized) {
+                      return;
+                    }
+                    
+                    // 计算鼠标在标准化设备坐标中的位置 (-1 到 1)
+                    const rect = canvas.getBoundingClientRect();
+                    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+                    
+                    // 设置射线投射器的射线
+                    raycaster.setFromCamera(mouse, camera);
+                    
+                    // 检测与所有实例化网格的交点
+                    for (const instancedMesh of instancedMeshGroups) {
+                      const intersects = raycaster.intersectObject(instancedMesh);
+                      
+                      if (intersects.length > 0) {
+                        const intersection = intersects[0];
+                        
+                        // 检查是否有实例ID
+                        if (intersection.instanceId !== undefined) {
+                          const instanceId = intersection.instanceId;
+                          
+                          // 从user store获取当前用户信息
+                          const userInfo = userStore.userInfo;
+                          if (!userInfo || !userInfo.id) {
+                            return;
+                          }
+                          
+                          // 获取学生信息
+                          const studentInfo = userStore.studentInfo;
+                          const avatarUrl = (userInfo?.avatar) || (studentInfo?.avatar) || null;
+                          const displayName = resolveDisplayName(studentInfo) || resolveDisplayName(userInfo) || '您';
+                          const row = Math.floor(instanceId / columnCount.value);
+                          const column = instanceId % columnCount.value;
+
+                          openSeatConfirmModal({
+                            seatIndex: instanceId,
+                            seatLabel: formatSeatLabel(row, column),
+                            avatarUrl,
+                            displayName
+                          });
+                          
+                          // 只处理第一个交点
+                          break;
+                        }
+                      }
+                    }
+                  };
+                  
+                  // 添加点击事件监听器
+                  if (canvas) {
+                    canvas.addEventListener('click', handleDeskClick);
+                  }
+                  
+                  // 存储事件处理函数引用，以便后续清理
+                  if (!window.deskHoverHandlers) {
+                    window.deskHoverHandlers = [];
+                  }
+                  if (canvas) {
+                    window.deskHoverHandlers.push({
+                      handler: handleDeskHover,
+                      leaveHandler: handleMouseLeave,
+                      clickHandler: handleDeskClick,
+                      canvas: canvas
                     });
                   }
-                };
-
-                // 性能监控开始
-                const findMeshesStartTime = performance.now();
-
-                // 1. 识别模型结构并保存子组件和网格信息
-                const subComponents = modelInstanceManager.identifyModelStructure(gltf.scene);
-                const findMeshesEndTime = performance.now();
-
-                // 计算总网格数量
-                const totalMeshCount = subComponents.reduce((sum, component) => sum + component.meshes.length, 0);
-                console.log(`识别到 ${subComponents.length} 个子组件，总计 ${totalMeshCount} 个网格对象 (耗时: ${(findMeshesEndTime - findMeshesStartTime).toFixed(2)}ms)`);
-
-                if (totalMeshCount === 0) {
-                  throw new Error('未在桌椅模型中找到任何网格对象');
-                }
-
-                // 2. 智能计算安全的实例数量
-                const hardwareLimit = 65536; // WebGL 1.0 限制
-                const maxAllowedInstances = Math.min(instanceCount.value, 1000, hardwareLimit); // 综合限制
-                console.log(`批量实例化数量: ${maxAllowedInstances} (原始请求: ${instanceCount.value})`);
-
-                // 3. 创建整体模型的实例化网格集合
-                const instancedMeshGroups = modelInstanceManager.createGroupedInstancedMeshes(subComponents, maxAllowedInstances);
-                const createMeshesEndTime = performance.now();
-                console.log(`创建实例化网格耗时: ${(createMeshesEndTime - findMeshesEndTime).toFixed(2)}ms`);
-
-                // 4. 批量计算位置和设置矩阵（优化内存使用）
-                // classroomZLenght -= 1;
-                const matrixUpdateStartTime = performance.now();
-
-                // 优化的位置计算函数 - 直接修改传入的向量
-                const calculatePosition = (instanceId, position) => {
-                  position.x = 2 * Math.floor(instanceId / columnCount.value) - classroomXLenght / 2 + 6;
-                  position.y = 0.0;
-                  position.z = classroomZLenght / 2 - classroomZLenght / columnCount.value * (0.5 + instanceId % columnCount.value);
-                  return position;
-                };
-
-                // 批量设置矩阵 - 保持内部组件相对位置
-                modelInstanceManager.setInstanceMatricesAsGroup(instancedMeshGroups, 0, maxAllowedInstances, calculatePosition);
-
-                const matrixUpdateEndTime = performance.now();
-                console.log(`矩阵更新耗时: ${(matrixUpdateEndTime - matrixUpdateStartTime).toFixed(2)}ms`);
-
-                // 5. 批量存储精灵位置 - 优化内存分配
-                const spritePositionsStartTime = performance.now();
-                spritePositions.length = 0; // 清空数组以重用
-                spritePositions.length = maxAllowedInstances; // 预分配空间
-
-                const tempPosition = new THREE.Vector3();
-                for (let i = 0; i < maxAllowedInstances; i++) {
-                  calculatePosition(i, tempPosition);
-                  // 重用或创建向量以节省内存
-                  if (!spritePositions[i]) {
-                    spritePositions[i] = new THREE.Vector3();
-                  }
-                  spritePositions[i].set(tempPosition.x + 0.5, tempPosition.y + 2.0, tempPosition.z);
-                }
-
-                const spritePositionsEndTime = performance.now();
-                console.log(`精灵位置计算耗时: ${(spritePositionsEndTime - spritePositionsStartTime).toFixed(2)}ms`);
-
-                // 6. 批量添加到场景
-                const addToSceneStartTime = performance.now();
-                instancedMeshGroups.forEach(instancedMesh => {
-                  scene.add(instancedMesh);
-                });
-                const addToSceneEndTime = performance.now();
-                console.log(`添加到场景耗时: ${(addToSceneEndTime - addToSceneStartTime).toFixed(2)}ms`);
-
-                // 7. 存储实例化网格引用以便后续清理
-                if (!window.instancedObjects) {
-                  window.instancedObjects = [];
-                }
-                window.instancedObjects.push(...instancedMeshGroups);
-
-                // 8. 添加课桌点击事件处理
-                const raycaster = new THREE.Raycaster();
-                const mouse = new THREE.Vector2();
-
-                const handleDeskClick = (event) => {
-                  // 计算鼠标在标准化设备坐标中的位置 (-1 到 1)
-                  const rect = canvas.getBoundingClientRect();
-                  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-                  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-                  // 设置射线投射器的射线
-                  raycaster.setFromCamera(mouse, camera);
-
-                  // 检测与所有实例化网格的交点
-                  for (const instancedMesh of instancedMeshGroups) {
-                    const intersects = raycaster.intersectObject(instancedMesh);
-
-                    if (intersects.length > 0) {
-                      const intersection = intersects[0];
-
-                      // 检查是否有实例ID（InstancedMesh的intersection会有instanceId）
-                      if (intersection.instanceId !== undefined) {
-                        const instanceId = intersection.instanceId;
-
-                        // 计算课桌位置
-                        const deskPosition = new THREE.Vector3();
-                        calculatePosition(instanceId, deskPosition);
-
-                        // 计算行列信息
-                        const row = Math.floor(instanceId / columnCount.value);
-                        const column = instanceId % columnCount.value;
-
-                        // 构建课桌信息对象
-                        const deskInfo = {
-                          instanceId: instanceId,
-                          row: row,
-                          column: column,
-                          position: {
-                            x: deskPosition.x,
-                            y: deskPosition.y,
-                            z: deskPosition.z
-                          },
-                          intersectionPoint: {
-                            x: intersection.point.x,
-                            y: intersection.point.y,
-                            z: intersection.point.z
-                          }
-                        };
-
-                        // 显示学生信息框
-                        showStudentInfoPopup(event, instanceId);
-
-                        // 只处理第一个交点，避免重复触发
-                        break;
+                  
+                  resolve();
+                } catch (error) {
+                  // 清理已创建的资源
+                  if (window.instancedObjects) {
+                    window.instancedObjects.forEach(obj => {
+                      if (obj && scene) {
+                        scene.remove(obj);
                       }
-                    }
+                    });
+                    // 清空instancedObjects数组
+                    window.instancedObjects = [];
                   }
-                };
-
-                // 添加点击事件监听器
-                canvas.addEventListener('click', handleDeskClick);
-
-                // 存储事件处理函数引用，以便后续清理
-                if (!window.deskClickHandlers) {
-                  window.deskClickHandlers = [];
+                  // 注意：instancedMeshGroups变量只在try块内定义，错误处理中不需要引用
+                  reject(error);
                 }
-                window.deskClickHandlers.push({
-                  handler: handleDeskClick,
-                  canvas: canvas
-                });
-
-                const endTime = performance.now();
-                console.log(`批量实例化完成，总耗时: ${(endTime - startTime).toFixed(2)}ms`);
-                console.log(`成功创建 ${instancedMeshGroups.length} 个实例化网格，每个网格包含 ${maxAllowedInstances} 个实例`);
-
-                // 资源使用统计
-                const estimatedMemoryUsage = (maxAllowedInstances * instancedMeshGroups.length * 64) / (1024 * 1024); // 粗略估计MB
-                console.log(`估计内存占用: ${estimatedMemoryUsage.toFixed(2)} MB`);
-
-                resolve(true);
-              } catch (error) {
-                console.error('批量实例化过程中发生严重错误:', error);
-                // 清理已创建的资源
-                if (window.instancedObjects) {
-                  window.instancedObjects.forEach(obj => {
-                    if (obj && scene) {
-                      scene.remove(obj);
-                    }
-                  });
-                  // 清空instancedObjects数组
-                  window.instancedObjects = [];
-                }
-                // 注意：instancedMeshGroups变量只在try块内定义，错误处理中不需要引用
-                reject(error);
-              }
             },
             undefined,
             (error) => {
-              console.error('模型加载失败:', error);
               // 确保即使加载失败也清理可能已创建的资源
-              if (window.instancedObjects) {
-                window.instancedObjects.forEach(obj => {
+              if (window.instancedObjects && scene) {
+                window.instancedObjects.forEach((obj: InstancedMesh) => {
                   if (obj && scene) {
                     scene.remove(obj);
                   }
@@ -1211,346 +1168,333 @@ const initThree = () => {
               }
               reject(error);
             }
-        );
-      });
+          );
+        });
 
-      await new Promise((resolve) => {
-        // 初始化精灵管理器
-        // 创建默认纹理
-        const defaultSpriteTextureLoader = new THREE.TextureLoader();
-        const defaultSpriteTexture = defaultSpriteTextureLoader.load('/src/assets/image/anonymous-user.png');
-
-        try {
+        await new Promise<void>((resolve) => {
           // 初始化精灵管理器
-          spriteManager.initialize(spritePositions.length, defaultSpriteTexture);
-          // 设置精灵位置数组
-          spriteManager.setPositions(spritePositions);
-          console.log('精灵管理器已成功配置');
-
-          // 示例：更新精灵信息（在实际应用中，这些会根据用户加入事件触发）
-          // 这里仅作为演示，实际使用时需要在合适的地方调用
-          /*
-          // 创建用户纹理（示例）
-          const userTexture = new THREE.Texture();
-
-          // 更新精灵信息
-          try {
-            spriteManager.updateSpriteInfo('student_1', userTexture, 0);
-            spriteManager.updateSpriteInfo('student_2', userTexture, 1);
-            console.log('示例用户已添加到精灵管理器');
-          } catch (error) {
-            console.error('添加用户示例失败:', error);
-          }
-
-          // 获取用户位置信息示例
-          try {
-            const positionIndex = spriteManager.getPositionIndexByUserId('student_1');
-            if (positionIndex !== null) {
-              const position = spriteManager.getPosition(positionIndex);
-              console.log(`学生1的位置: ${position.x}, ${position.y}, ${position.z}`);
+          const initializeSpriteManager = (texture: Texture) => {
+            try {
+              spriteManager.initialize(spritePositions.length, texture);
+              spriteManager.setPositions(spritePositions);
+              
+              // 设置场景引用
+              if (scene && camera) {
+                spriteManager.setScene(scene);
+                spriteManager.setCamera(camera);
+              }
+              
+              // 创建精灵实例
+              try {
+                spriteManager.createSpriteInstances();
+              } catch (error) {
+                // 静默处理错误
+              }
+              
+              // 加载用户纹理（示例代码，实际使用时会在用户加入时触发）
+              const userTextureLoader = new THREE.TextureLoader();
+              userTextureLoader.load(
+                '/src/assets/image/zhuanruzijin.png',
+                (userTexture: Texture) => {
+                  // 纹理加载成功，更新精灵信息
+                  try {
+                    spriteManager.updateSpriteInfo('student_1', userTexture, 0);
+                  } catch {
+                    // 静默处理错误
+                  }
+                },
+                undefined,
+                () => {
+                  // 加载失败，使用默认纹理
+                  try {
+                    if (spriteManager.defaultTexture) {
+                      spriteManager.updateSpriteInfo('student_1', spriteManager.defaultTexture, 0);
+                    }
+                  } catch {
+                    // 静默处理错误
+                  }
+                }
+              );
+            } catch (initError) {
+              // 静默处理错误
             }
-          } catch (error) {
-            console.error('获取用户位置失败:', error);
-          }
+          };
+          
+          const defaultTexture = createAvatarFallbackTexture('');
+          initializeSpriteManager(defaultTexture);
+          resolve();
+        });
+      } catch (error) {
+        // 静默处理模型加载失败
+      }
+    };
 
-          // 删除用户数据示例（在实际应用中，会根据用户离开事件触发）
-          try {
-            spriteManager.removeUserData('student_1');
-            console.log('学生1的信息已删除');
-          } catch (error) {
-            console.error('删除用户示例失败:', error);
-          }
-          */
-        } catch (error) {
-          console.error('精灵管理器初始化失败:', error);
-        }
+    // 启动模型加载
+    loadModelsSequentially()
 
-        const userTextureLoader = new THREE.TextureLoader();
-        const userTexture = userTextureLoader.load('/src/assets/image/zhuanruzijin.png');
 
-        // 设置场景引用
-        spriteManager.setScene(scene);
-
-        // 创建精灵实例
+    
+    /**
+     * 窗口大小调整
+     */
+    window.addEventListener('resize', () => {
+      if (!camera || !renderer) return;
+      // 更新尺寸
+      sizes.width = window.innerWidth;
+      sizes.height = window.innerHeight;
+      
+      // 更新相机
+      camera.aspect = sizes.width / sizes.height;
+      camera.updateProjectionMatrix();
+      
+      // 更新渲染器
+      renderer.setSize(sizes.width, sizes.height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    });
+    
+    /**
+     * 鼠标滚轮事件监听
+     */
+    const WHEEL_DEBOUNCE_DELAY = 500; // 防抖延迟时间（毫秒）
+    
+    handleMouseWheel = (event: WheelEvent) => {
+      // 阻止默认滚动行为
+      event.preventDefault();
+      
+      // 防抖处理，避免快速滚动时频繁切换
+      if (wheelTimeout) {
+        clearTimeout(wheelTimeout);
+      }
+      
+      wheelTimeout = setTimeout(() => {
         try {
-          spriteManager.createSpriteInstances();
-          console.log('精灵实例创建成功');
-        } catch (error) {
-          console.error('精灵实例创建失败:', error);
+          // 切换相机位置
+          if (typeof window.switchCameraPosition === 'function') {
+            window.switchCameraPosition();
+          }
+        } catch {
+          // 静默处理相机切换失败
         }
-
-        // 更新精灵信息
-        try {
-          spriteManager.updateSpriteInfo('student_1', userTexture, 0);
-          console.log('精灵信息更新成功');
-        } catch (error) {
-          console.error('精灵信息更新失败:', error);
-        }
-      });
-    } catch (error) {
-      console.error('模型加载失败:', error);
+      }, WHEEL_DEBOUNCE_DELAY);
+    };
+    
+    // 添加鼠标滚轮事件监听器到画布元素
+    if (canvas) {
+      canvas.addEventListener('wheel', handleMouseWheel);
     }
+
+  
+    /**
+     * 帧更新(动画)
+     */
+    const tick = () => {
+      if (!controls || !renderer || !scene || !camera) {
+        requestAnimationFrame(tick);
+        return;
+      }
+      
+      // 更新控制器
+      if (controls) {
+        (controls as any).update();
+      }
+      
+      // 渲染
+      renderer.render(scene, camera);
+    
+      // 继续调用 tick 函数
+      requestAnimationFrame(tick);
+    };
+  
+    // 启动动画循环
+    tick();
   };
-
-  // 启动模型加载
-  loadModelsSequentially()
-
-
-  /**
-   * 窗口大小调整
-   */
-  window.addEventListener('resize', () => {
-    // 更新尺寸
-    sizes.width = window.innerWidth;
-    sizes.height = window.innerHeight;
-
-    // 更新相机
-    camera.aspect = sizes.width / sizes.height;
-    camera.updateProjectionMatrix();
-
-    // 更新渲染器
-    renderer.setSize(sizes.width, sizes.height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  
+  onMounted(async () => {
+    // 先获取课程记录
+    await fetchCourseRecord();
+    // 然后初始化Three.js场景
+    initThree();
   });
-
-  /**
-   * 鼠标滚轮事件监听
-   */
-  let wheelTimeout = null;
-  const WHEEL_DEBOUNCE_DELAY = 500; // 防抖延迟时间（毫秒）
-
-  function handleMouseWheel(event) {
-    // 阻止默认滚动行为
-    event.preventDefault();
-
-    // 防抖处理，避免快速滚动时频繁切换
+  
+  onBeforeUnmount(() => {
+    // 清理PointerLockControls
+    if (controls && canvas) {
+      // 解锁鼠标指针
+      if (document.pointerLockElement === canvas) {
+        document.exitPointerLock();
+      }
+      // 清理控制器引用
+      controls = null;
+    }
+  
+    // 清理鼠标滚轮事件监听器
+    if (canvas && handleMouseWheel) {
+      canvas.removeEventListener('wheel', handleMouseWheel);
+    }
+  
+    // 清理滚轮防抖定时器
     if (wheelTimeout) {
       clearTimeout(wheelTimeout);
+      wheelTimeout = null;
     }
-
-    wheelTimeout = setTimeout(() => {
-      try {
-        // 切换相机位置
-        if (typeof window.switchCameraPosition === 'function') {
-          console.log('触发相机位置切换');
-          window.switchCameraPosition();
-        } else {
-          console.warn('相机切换函数未定义');
+  
+    // 清理课桌悬浮和点击事件监听器
+    if (window.deskHoverHandlers && Array.isArray(window.deskHoverHandlers)) {
+      window.deskHoverHandlers.forEach(({ handler, leaveHandler, clickHandler, canvas: handlerCanvas }) => {
+        if (handlerCanvas && handler) {
+          handlerCanvas.removeEventListener('mousemove', handler);
         }
-      } catch (error) {
-        console.error('相机切换失败:', error);
-      }
-    }, WHEEL_DEBOUNCE_DELAY);
-  }
-
-  // 添加鼠标滚轮事件监听器到画布元素
-  if (canvas) {
-    canvas.addEventListener('wheel', handleMouseWheel);
-  }
-
-
-  /**
-   * 帧更新(动画)
-   */
-  const clock = new THREE.Clock();
-  const tick = () => {
-    const elapsedTime = clock.getElapsedTime();
-
-
-    // 更新控制器
-    controls.update();
-
-    // 渲染
-    renderer.render(scene, camera);
-
-    // 继续调用 tick 函数
-    requestAnimationFrame(tick);
-  };
-
-  // 启动动画循环
-  tick();
-};
-
-onMounted(async () => {
-  // 先获取课程记录
-  await fetchCourseRecord();
-  // 然后初始化Three.js场景
-  initThree();
-
-  // 添加点击外部区域关闭信息框的事件监听
-  document.addEventListener('click', (event) => {
-    const target = event.target;
-    // 延迟处理，避免与课桌点击事件冲突
-    setTimeout(() => {
-      if (showStudentInfo.value && target && !target.closest('.student-info-popup') && !target.closest('.webgl_7')) {
-        hideStudentInfoPopup();
-      }
-    }, 100);
-  });
-});
-
-onBeforeUnmount(() => {
-  console.log('开始清理3D资源...');
-  const cleanupStartTime = performance.now();
-
-  // 清理PointerLockControls
-  if (controls) {
-    // 解锁鼠标指针
-    if (document.pointerLockElement === canvas) {
-      document.exitPointerLock();
-    }
-    // 移除事件监听器 - 注意：onPointerLockChange可能未定义
-    if (typeof onPointerLockChange === 'function') {
-      document.removeEventListener('pointerlockchange', onPointerLockChange);
-    }
-    // 移除指针锁定错误处理事件监听器
-    if (typeof onPointerLockError === 'function') {
-      document.removeEventListener('pointerlockerror', onPointerLockError);
-    }
-    // 清理控制器引用
-    controls = null;
-  }
-
-  // 清理鼠标滚轮事件监听器
-  if (canvas && typeof handleMouseWheel === 'function') {
-    canvas.removeEventListener('wheel', handleMouseWheel);
-    console.log('鼠标滚轮事件监听器已清理');
-  }
-
-  // 清理滚轮防抖定时器
-  if (wheelTimeout) {
-    clearTimeout(wheelTimeout);
-    wheelTimeout = null;
-    console.log('滚轮防抖定时器已清理');
-  }
-
-  // 清理课桌点击事件监听器
-  if (window.deskClickHandlers && Array.isArray(window.deskClickHandlers)) {
-    window.deskClickHandlers.forEach(({handler, canvas}) => {
-      if (canvas && handler) {
-        canvas.removeEventListener('click', handler);
-      }
+        if (handlerCanvas && leaveHandler) {
+          handlerCanvas.removeEventListener('mouseleave', leaveHandler);
+        }
+        if (handlerCanvas && clickHandler) {
+          handlerCanvas.removeEventListener('click', clickHandler);
+        }
     });
-    window.deskClickHandlers = [];
-    console.log('课桌点击事件监听器已清理');
+    window.deskHoverHandlers = [];
   }
-
-  // 清理点击处理器资源
-  modelClickHandler.dispose();
-
-  // 清理window上的引用
-  if (window.cameraPositions) {
-    delete window.cameraPositions;
-  }
-  if (window.currentCameraPosition) {
-    delete window.currentCameraPosition;
-  }
-  if (window.switchCameraPosition) {
-    delete window.switchCameraPosition;
-  }
-  if (window.camera) {
-    delete window.camera;
-  }
-  if (window.controls) {
-    delete window.controls;
-  }
-
-  // 清理批量实例化的网格对象
-  if (window.instancedObjects) {
-    console.log(`清理 ${window.instancedObjects.length} 个实例化网格...`);
-    window.instancedObjects.forEach(obj => {
-      if (obj) {
-        // 从场景中移除
-        if (scene && obj.parent === scene) {
-          scene.remove(obj);
+    
+    // 清理点击处理器资源
+    modelClickHandler.dispose();
+    
+    // 清理window上的引用
+    if (window.cameraPositions) {
+      delete window.cameraPositions;
+    }
+    if (window.currentCameraPosition) {
+      delete window.currentCameraPosition;
+    }
+    if (window.switchCameraPosition) {
+      delete window.switchCameraPosition;
+    }
+    if (window.camera) {
+      delete window.camera;
+    }
+    if (window.controls) {
+      delete window.controls;
+    }
+  
+    // 清理批量实例化的网格对象
+    if (window.instancedObjects) {
+      window.instancedObjects.forEach((obj: InstancedMesh) => {
+        if (obj) {
+          // 从场景中移除
+          if (scene && obj.parent === scene) {
+            scene.remove(obj);
+          }
+          // 释放资源
+          if (obj.geometry) obj.geometry.dispose();
+          if (obj.material) {
+            if (Array.isArray(obj.material)) {
+              obj.material.forEach(m => m.dispose());
+            } else {
+              obj.material.dispose();
+            }
+          }
+          // 释放实例矩阵（InstancedMesh 的 instanceMatrix 不需要手动 dispose）
         }
-        // 释放资源
-        if (obj.geometry) obj.geometry.dispose();
-        if (obj.material) {
-          if (Array.isArray(obj.material)) {
-            obj.material.forEach(m => m.dispose());
+      });
+      // 清空数组
+      window.instancedObjects.length = 0;
+    }
+  
+    // 清理Three.js核心资源
+    if (renderer) {
+      renderer.dispose();
+      renderer.domElement.remove();
+    }
+    
+    // 清理场景中的其他对象
+    if (scene) {
+      scene.traverse((object: THREE.Object3D) => {
+        if ((object as THREE.Mesh).geometry) (object as THREE.Mesh).geometry.dispose();
+        if ((object as THREE.Mesh).material) {
+          const material = (object as THREE.Mesh).material;
+          if (Array.isArray(material)) {
+            material.forEach((m: THREE.Material) => m.dispose());
           } else {
-            obj.material.dispose();
+            material.dispose();
           }
         }
-        // 释放实例矩阵
-        if (obj.instanceMatrix) {
-          obj.instanceMatrix.dispose();
+        // 清理灯光和其他特殊对象
+        if ((object as THREE.Light).isLight && (object as any).dispose) {
+          (object as any).dispose();
         }
-      }
-    });
-    // 清空数组
-    window.instancedObjects.length = 0;
+      });
+    }
+    
+    // 清理加载器（LoadingManager 不需要手动 dispose）
+    
+    // 清理精灵位置数组
+    spritePositions.length = 0;
+  });
+  </script>
+  
+  <style lang="scss" scoped>
+  @use '@/assets/styles/index.scss' as *;
+  
+  .classroom-3d-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1000;
+  }
+  
+  .webgl_7 {
+    width: 100%;
+    height: 100%;
+    display: block;
   }
 
-  // 清理Three.js核心资源
-  if (renderer) {
-    renderer.dispose();
-    renderer.domElement.remove();
+  .exit-button {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1001;
   }
 
-  // 清理场景中的其他对象
-  if (scene) {
-    scene.traverse((object) => {
-      if (object.geometry) object.geometry.dispose();
-      if (object.material) {
-        if (Array.isArray(object.material)) {
-          object.material.forEach((material) => material.dispose());
-        } else {
-          object.material.dispose();
-        }
-      }
-      // 清理灯光和其他特殊对象
-      if (object.isLight && object.dispose) {
-        object.dispose();
-      }
-    });
+  .live-button {
+    position: fixed;
+    top: 20px;
+    right: 140px;
+    z-index: 1001;
   }
+  
+  @media (max-width: 768px) {
+    .classroom-3d-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100vw;
+      height: 100vh;
+    }
 
-  // 清理加载器
-  if (loader) {
-    if (loader.manager && typeof loader.manager.dispose === 'function') {
-      loader.manager.dispose();
+    .exit-button {
+      top: 1rem;
+      right: 1rem;
+    }
+
+    .live-button {
+      top: 1rem;
+      right: 7rem;
     }
   }
 
-  // 清理精灵位置数组
-  if (spritePositions) {
-    spritePositions.length = 0;
+  @media (max-width: 480px) {
+    .exit-button {
+      top: 0.75rem;
+      right: 0.75rem;
+    }
+
+    .live-button {
+      top: 0.75rem;
+      right: 6rem;
+    }
   }
-
-  const cleanupEndTime = performance.now();
-  console.log(`资源清理完成，耗时: ${(cleanupEndTime - cleanupStartTime).toFixed(2)}ms`);
-});
-</script>
-
-<style lang="scss" scoped>
-@use '@/assets/styles/index.scss' as *;
-
-.classroom-3d-container {
-  position: absolute;
-  top: -24px;
-  left: -24px;
-  right: -24px;
-  bottom: -24px;
-  width: calc(100% + 48px);
-  height: calc(100% + 48px);
-}
-
-.webgl_7 {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-@media (max-width: 768px) {
-  .classroom-3d-container {
-    top: -16px;
-    left: -16px;
-    right: -16px;
-    bottom: -16px;
-    width: calc(100% + 32px);
-    height: calc(100% + 32px);
-  }
-}
-</style>
+  </style>

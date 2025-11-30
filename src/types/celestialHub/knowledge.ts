@@ -36,6 +36,16 @@ export interface KnowledgeItemVO {
     courseId?: string | null
     /** 章节ID */
     chapterId?: string | null
+    /** 题库ID（问题类型时使用） */
+    questionBankId?: string | null
+    /** 问题ID（问题类型时使用） */
+    questionId?: string | null
+    /** 任务ID（任务类型时使用） */
+    taskId?: string | null
+    /** 论坛ID（论坛类型时使用） */
+    forumId?: string | null
+    /** 帖子ID（论坛类型时使用） */
+    postId?: string | null
     /** 标签列表 */
     tags?: string[] | null
     /** 元数据 */
@@ -62,10 +72,8 @@ export interface KnowledgeSearchVO {
 export interface VectorizeRequestDTO {
     /** 课程ID */
     courseId?: string | null
-    /** 章节ID */
-    chapterId?: string | null
-    /** 内容类型: chapter-章节, question-问题, answer-答案, forum-论坛 */
-    contentType?: string | null
+    /** 内容类型: 0-章节, 1-问题, 2-答案, 3-论坛 */
+    contentType?: number | null
     /** 是否强制重新向量化 */
     forceReindex?: boolean | null
     /** 标签过滤 */

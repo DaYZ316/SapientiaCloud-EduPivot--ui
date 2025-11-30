@@ -1,5 +1,6 @@
 <template>
-  <div class="celestial-hub-container">
+  <div class="celestial-hub-page">
+    <div class="celestial-hub-container">
     <!-- 聊天侧边栏 -->
     <ChatSidebar
         ref="chatSidebarRef"
@@ -9,6 +10,14 @@
         @select-session="selectSession"
     />
 
+      <input
+          ref="filePickerRef"
+          class="chat-file-input"
+          multiple
+          type="file"
+          @change="handleFileInputChange"
+      />
+
     <!-- 主内容区域 -->
     <div class="main-content">
       <!-- 聊天头部 -->
@@ -17,6 +26,17 @@
           {{ currentSession.sessionTitle || t('chat.sidebar.newChat') }}
         </div>
         <div class="chat-actions">
+          <n-tooltip trigger="hover">
+            <template #trigger>
+              <n-icon
+                  :component="DocumentsOutline"
+                  class="header-icon"
+                  size="20"
+                  @click="handleShowSessionFiles"
+              />
+            </template>
+            {{ t('chat.session.files') }}
+          </n-tooltip>
           <n-tooltip trigger="hover">
             <template #trigger>
               <n-icon
@@ -65,50 +85,17 @@
           <!-- 输入区域 - Gemini风格 -->
           <div class="input-container">
             <div class="input-wrapper">
-              <div class="gemini-input-area">
-                <div class="gemini-input-container">
-                  <div class="gemini-input-wrapper">
-                    <!-- 输入框 -->
-                    <n-input
-                        v-model:value="input"
-                        :autosize="{ minRows: 1, maxRows: 8 }"
-                        :disabled="isSending"
-                        :placeholder="t('chat.placeholder')"
-                        class="gemini-textarea"
-                        type="textarea"
-                        @keydown.enter="handleKeyDown"
-                    />
-
-                    <!-- 底部工具栏 -->
-                    <div class="input-bottom-tools">
-                      <div class="tool-button">
-                        <n-icon :component="Add" size="18"/>
-                      </div>
-                      <div class="tool-text">{{ t('chat.tools') }}</div>
-                      <div style="flex: 1"></div>
-                      <div class="tool-item" style="gap: 8px;">
-                        <span class="tool-text">{{ t('chat.useRag') }}</span>
-                        <n-switch v-model:value="useRagSwitch" size="small"/>
-                      </div>
-                      <div class="tool-button">
-                        <n-icon :component="MicOutline" size="18"/>
-                      </div>
-                      <n-button
-                          :disabled="!input || isSending"
-                          :loading="isSending"
-                          class="send-button"
-                          size="small"
-                          type="primary"
-                          @click="sendMessage"
-                      >
-                        <template #icon>
-                          <n-icon :component="Send" size="16"/>
-                        </template>
-                      </n-button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <ChatInputBox
+                  v-model="input"
+                  v-model:use-rag="useRagSwitch"
+                  :is-sending="isSending"
+                  :is-uploading-files="isUploadingFiles"
+                  :placeholder="t('chat.placeholder')"
+                  @enter="sendMessage"
+                  @send="sendMessage"
+                  @stop="interruptStreaming"
+                  @trigger-file-select="handleTriggerFileSelect"
+              />
             </div>
           </div>
         </div>
@@ -128,63 +115,71 @@
 
           <!-- 输入区域 -->
           <div class="gemini-input-section">
-            <!-- 输入框 -->
-            <div class="gemini-input-container" @click="focusInput">
-              <div :class="['gemini-input-wrapper', { focused: isInputFocused }]">
-                <input
-                    ref="geminiInputRef"
-                    v-model="input"
-                    :placeholder="t('chat.placeholder')"
-                    class="gemini-input"
-                    @blur="handleInputBlur"
-                    @focus="handleInputFocus"
-                    @keydown.enter="handleKeyDown"
-                />
-              </div>
-            </div>
-
-            <!-- 工具图标区 -->
-            <div class="gemini-tools-row">
-              <div class="tools-left">
-                <div class="tool-item">
-                  <n-icon :component="Add" size="20"/>
-                </div>
-                <div class="tool-item">
-                  <span class="tool-text">{{ t('chat.tools') }}</span>
-                </div>
-              </div>
-              <div class="tools-right">
-                <div class="tool-item">
-                  <n-icon :component="MicOutline" size="20"/>
-                </div>
-                <div class="tool-item">
-                  <span class="tool-text">{{ t('chat.useRag') }}</span>
-                  <n-switch v-model:value="useRagSwitch" size="small"/>
-                </div>
-              </div>
-            </div>
+            <ChatInputBox
+                v-model="input"
+                v-model:use-rag="useRagSwitch"
+                :is-sending="isSending"
+                :is-uploading-files="isUploadingFiles"
+                :placeholder="t('chat.placeholder')"
+                @enter="sendMessage"
+                @send="sendMessage"
+                @stop="interruptStreaming"
+                @trigger-file-select="handleTriggerFileSelect"
+            />
           </div>
         </div>
       </div>
     </div>
+    </div>
+    <n-drawer
+        v-model:show="isFileDrawerVisible"
+        :width="380"
+        placement="right"
+    >
+      <n-drawer-content :title="t('chat.session.filesTitle')" closable>
+        <div class="session-files-drawer">
+          <n-spin :show="isFileListLoading">
+            <FileInfoList
+                v-if="sessionFileInfos.length"
+                :bucket-code="aiQaBucketCode"
+                :file-paths="[]"
+                :file-infos="sessionFileInfos"
+                @preview="handleFilePreview"
+            />
+            <n-empty v-else :description="t('chat.session.filesEmpty')"/>
+          </n-spin>
+        </div>
+      </n-drawer-content>
+    </n-drawer>
   </div>
 </template>
 
 <script lang="ts" setup>
 import {computed, nextTick, ref, watch} from 'vue'
+import {useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
-import {NButton, NIcon, NInput, NTooltip, NSwitch, useMessage} from 'naive-ui'
-import {Add, MicOutline, Pin, Send, Star} from '@vicons/ionicons5'
+import {NDrawer, NDrawerContent, NEmpty, NIcon, NSpin, NTooltip, useMessage} from 'naive-ui'
+import {DocumentsOutline, Pin, Star} from '@vicons/ionicons5'
 import ChatSidebar from './components/ChatSidebar.vue'
 import ChatMessage from './components/ChatMessage.vue'
+import ChatInputBox from './components/ChatInputBox.vue'
 import {useUserStore} from '@/store'
 import {useCelestialChat} from '@/views/celestialHub/composables/useCelestialChat'
-import {favoriteSession, pinSession} from '@/api/celestialHub/chatSession'
+import {addChatSession, favoriteSession, pinSession} from '@/api/celestialHub/chatSession'
+import {getFilesBySessionId, uploadFiles} from '@/api/celestialHub/fileDocument'
+import type {FileDocumentUploadOptions} from '@/types/celestialHub/fileDocument'
+import FileInfoList from '@/components/common/FileInfoList.vue'
+import type {FileInfoDTO} from '@/types/minIO/file'
+import {BusinessBucketCodeEnum} from '@/enum/minIO'
 
 // 状态
-const geminiInputRef = ref<HTMLInputElement | null>(null)
-const isInputFocused = ref(false)
 const chatSidebarRef = ref<InstanceType<typeof ChatSidebar> | null>(null)
+const filePickerRef = ref<HTMLInputElement | null>(null)
+const isUploadingFiles = ref(false)
+const isFileDrawerVisible = ref(false)
+const isFileListLoading = ref(false)
+const sessionFileInfos = ref<FileInfoDTO[]>([])
+const aiQaBucketCode = BusinessBucketCodeEnum.AI_QA_ASSET
 
 // 使用聊天 composable
 const {
@@ -196,6 +191,7 @@ const {
   chatContentRef,
   sendMessage,
   resendMessage,
+  interruptStreaming,
   selectSession,
   newChat,
   scrollToBottom,
@@ -207,6 +203,7 @@ const userStore = useUserStore()
 
 // 国际化
 const {t} = useI18n()
+const router = useRouter()
 
 // 消息提示
 const message = useMessage()
@@ -251,7 +248,7 @@ const userDisplayName = computed(() => {
   return ''
 })
 
-// 将可空的 useRag 转换为开关可用的布尔状态（默认关闭）
+// 将可空的 useRag 转换为开关可用的布尔状态（默认开启）
 const useRagSwitch = computed<boolean>({
   get() {
     return useRag.value === true
@@ -276,28 +273,17 @@ watch(activeSessionId, (newId, oldId) => {
   }
 })
 
-// 处理回车键
-const handleKeyDown = (event: KeyboardEvent) => {
-  if (event.key === 'Enter' && !event.shiftKey) {
-    event.preventDefault()
-    sendMessage()
-  }
-}
-
-// 聚焦输入框
-const focusInput = () => {
-  geminiInputRef.value?.focus()
-}
-
-// 处理输入框聚焦
-const handleInputFocus = () => {
-  isInputFocused.value = true
-}
-
-// 处理输入框失焦
-const handleInputBlur = () => {
-  isInputFocused.value = false
-}
+watch(
+    () => currentSession.value?.id,
+    (newId, oldId) => {
+      if (isFileDrawerVisible.value && newId && newId !== oldId) {
+        loadSessionFiles()
+      }
+      if (!newId) {
+        sessionFileInfos.value = []
+      }
+    }
+)
 
 // 处理反馈
 const handleFeedback = (messageId: string, feedback: number) => {
@@ -346,6 +332,86 @@ const handleResend = (messageIndex: number) => {
   }
 }
 
+// 重置文件选择器
+const resetFilePicker = () => {
+  if (filePickerRef.value) {
+    filePickerRef.value.value = ''
+  }
+}
+
+// 触发文件选择
+const handleTriggerFileSelect = () => {
+  if (isUploadingFiles.value) {
+    return
+  }
+  filePickerRef.value?.click()
+}
+
+// 处理文件变更
+const handleFileInputChange = (event: Event) => {
+  const target = event.target as HTMLInputElement | null
+  const fileList = target?.files ? Array.from(target.files) : []
+  resetFilePicker()
+  if (!fileList.length) {
+    return
+  }
+  uploadSelectedFiles(fileList)
+}
+
+// 确保存在用于绑定文件的会话
+const ensureSessionForUpload = async () => {
+  if (activeSessionId.value) {
+    return activeSessionId.value
+  }
+
+  return addChatSession({
+    sessionType: 0,
+    title: t('chat.sidebar.newChat'),
+    courseId: null
+  })
+      .then((response) => {
+        if (response.data) {
+          activeSessionId.value = response.data.id || null
+          currentSession.value = response.data
+          chatSidebarRef.value?.loadSessions()
+          return activeSessionId.value
+        }
+        return null
+      })
+      .catch(() => null)
+}
+
+// 上传文件
+const uploadSelectedFiles = async (selectedFiles: File[]) => {
+  if (!selectedFiles.length || isUploadingFiles.value) {
+    return
+  }
+
+  const resolvedSessionId = await ensureSessionForUpload()
+  if (!resolvedSessionId) {
+    message.warning(t('common.fail'))
+    return
+  }
+
+  isUploadingFiles.value = true
+  const uploadOptions: FileDocumentUploadOptions = {
+    courseId: null,
+    sessionId: resolvedSessionId,
+    autoVectorize: true
+  }
+
+  await uploadFiles(selectedFiles, uploadOptions)
+      .then(() => {
+        message.success(t('common.uploadSuccess'))
+      })
+      .catch(() => {
+        message.warning(t('common.uploadFailed'))
+      })
+      .finally(() => {
+        isUploadingFiles.value = false
+      })
+}
+
 // 我的收藏
 const handleMyFavorites = () => {
   // TODO: 实现我的收藏功能
@@ -392,352 +458,50 @@ const handleToggleFavorite = async () => {
   // 显示成功提示
   message.success(newFavoriteStatus ? `${t('chat.session.favorite')}${t('common.success')}` : `${t('chat.session.unfavorite')}${t('common.success')}`)
 }
+
+// 打开会话文件抽屉
+const handleShowSessionFiles = async () => {
+  if (!currentSession.value?.id) {
+    message.warning(t('chat.session.filesNoSession'))
+    return
+  }
+  isFileDrawerVisible.value = true
+  await loadSessionFiles()
+}
+
+// 加载会话关联文件
+const loadSessionFiles = async () => {
+  if (!currentSession.value?.id) {
+    sessionFileInfos.value = []
+    return
+  }
+
+  isFileListLoading.value = true
+  await getFilesBySessionId(String(currentSession.value.id))
+      .then((response) => {
+        sessionFileInfos.value = response.data ?? []
+      })
+      .catch(() => {
+        sessionFileInfos.value = []
+        message.warning(t('chat.session.filesLoadFailed'))
+      })
+      .finally(() => {
+        isFileListLoading.value = false
+      })
+}
+
+const handleFilePreview = (fileInfo: FileInfoDTO) => {
+  router.push({
+    name: 'FilePreview',
+    query: {
+      fileInfo: JSON.stringify(fileInfo),
+      from: 'CelestialHub',
+      sessionId: currentSession.value?.id ?? ''
+    }
+  })
+}
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles' as *;
-
-.celestial-hub-container {
-  display: flex;
-  height: 100vh;
-  background-color: var(--background-color);
-  margin: calc(-1 * 24px);
-  padding: 0;
-  overflow: hidden;
-}
-
-.main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background-color: var(--background-color);
-
-  .chat-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 24px;
-    border-bottom: 1px solid var(--border-secondary-color);
-    background-color: var(--background-secondary-color);
-
-    .chat-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text-color);
-    }
-
-    .chat-actions {
-      display: flex;
-      gap: 16px;
-      margin-right: 16px;
-
-      .header-icon {
-        cursor: pointer;
-        color: var(--text-secondary-color);
-        transition: all 0.2s ease;
-
-        &:hover {
-          color: var(--color-primary);
-        }
-
-        &.active {
-          color: var(--warning-color);
-        }
-      }
-    }
-  }
-
-  .chat-content-wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .chat-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-
-    .loading-indicator {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-
-    .messages-wrapper {
-      flex: 1;
-      overflow-y: auto;
-
-      &::-webkit-scrollbar {
-        width: 8px;
-      }
-
-      &::-webkit-scrollbar-track {
-        background: var(--background-tertiary-color);
-      }
-
-      &::-webkit-scrollbar-thumb {
-        background: var(--border-color);
-        border-radius: 4px;
-        transition: background 0.3s ease;
-      }
-
-      &::-webkit-scrollbar-thumb:hover {
-        background: var(--text-secondary-color);
-      }
-    }
-
-    .messages-container {
-      width: 65%;
-      margin: 0 auto;
-      padding: 24px;
-    }
-
-    .input-container {
-      padding: 24px;
-      background-color: var(--background-color);
-
-      .input-wrapper {
-        width: 60%;
-        margin: 0 auto;
-
-        .gemini-input-area {
-          .gemini-input-container {
-            .gemini-input-wrapper {
-              display: flex;
-              flex-direction: column;
-              background-color: var(--background-tertiary-color);
-              border: 1px solid var(--border-color);
-              border-radius: 24px;
-              padding: 16px;
-              transition: all 0.3s ease;
-
-              :deep(.gemini-textarea) {
-                margin-bottom: 8px;
-
-                .n-input__textarea-el {
-                  background: transparent;
-                  border: none;
-                  font-size: 16px;
-                  color: var(--text-color);
-                  resize: none;
-
-                  &::placeholder {
-                    color: var(--text-disabled-color);
-                  }
-                }
-              }
-
-              .input-bottom-tools {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-
-                .tool-item {
-                  display: flex;
-                  align-items: center;
-                  gap: 6px;
-                  padding: 0 4px;
-                }
-
-                .tool-button {
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  width: 32px;
-                  height: 32px;
-                  border-radius: 8px;
-                  cursor: pointer;
-                  transition: all 0.2s ease;
-                  color: var(--text-secondary-color);
-
-                  &:hover {
-                    background-color: var(--background-color);
-                    color: var(--text-color);
-                  }
-                }
-
-                .tool-text {
-                  font-size: 14px;
-                  color: var(--text-secondary-color);
-                  cursor: pointer;
-                  transition: color 0.2s ease;
-
-                  &:hover {
-                    color: var(--text-color);
-                  }
-                }
-
-                .send-button {
-                  border-radius: 8px;
-                  padding: 8px 16px;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  .gemini-empty-state {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 48px 24px;
-    background-color: var(--background-color);
-    position: relative;
-
-    .ai-name-container {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 10;
-      padding: 24px;
-    }
-
-    .greeting-wrapper {
-      width: 60%;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      flex: 1;
-    }
-
-    .ai-name-text {
-      font-size: 32px;
-      font-weight: 700;
-      background: linear-gradient(
-              90deg,
-              #ffd700 0%,
-              #ffb347 25%,
-              #ff8c00 50%,
-              #ffb347 75%,
-              #ffd700 100%
-      );
-      background-size: 200% 100%;
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: goldenFlow 3s linear infinite;
-      text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-
-      @keyframes goldenFlow {
-        0% {
-          background-position: 0% 50%;
-        }
-        100% {
-          background-position: 200% 50%;
-        }
-      }
-    }
-
-    .greeting-text {
-      font-size: 36px;
-      font-weight: 500;
-      color: var(--color-primary);
-      margin-bottom: 48px;
-      text-align: center;
-      width: 100%;
-    }
-
-    .gemini-input-section {
-      width: 100%;
-
-      .gemini-input-container {
-        width: 100%;
-        cursor: text;
-        margin-bottom: 16px;
-
-        .gemini-input-wrapper {
-          display: flex;
-          align-items: center;
-          background-color: var(--background-tertiary-color);
-          border-radius: 28px;
-          padding: 12px 16px;
-          transition: all 0.3s ease;
-          border: 1px solid var(--border-color);
-          min-height: 60px;
-
-
-          &.focused {
-            background-color: var(--background-secondary-color);
-            border-color: var(--color-primary);
-            box-shadow: 0 4px 16px color-mix(in srgb, var(--color-primary) 15%, transparent);
-          }
-
-          .gemini-input {
-            width: 100%;
-            border: none;
-            outline: none;
-            background: transparent;
-            font-size: 16px;
-            color: var(--text-color);
-            font-family: inherit;
-            line-height: 1.5;
-
-            &::placeholder {
-              color: var(--text-disabled-color);
-            }
-          }
-        }
-      }
-
-      .gemini-tools-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-
-        .tools-left {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-        }
-
-        .tools-right {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-        }
-
-        .tool-item {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 8px 12px;
-          border-radius: 16px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-
-          .n-icon {
-            color: var(--text-secondary-color);
-            transition: color 0.2s ease;
-          }
-
-          .tool-text {
-            font-size: 14px;
-            color: var(--text-secondary-color);
-            transition: color 0.2s ease;
-          }
-
-          &:hover {
-            background-color: var(--background-tertiary-color);
-
-            .n-icon,
-            .tool-text {
-              color: var(--color-primary);
-            }
-          }
-        }
-      }
-    }
-  }
-}
+@use './index.scss' as *;
 </style>

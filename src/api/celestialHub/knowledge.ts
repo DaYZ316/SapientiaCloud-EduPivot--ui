@@ -22,7 +22,6 @@ export function getDefaultKnowledgeRequestDTO(): KnowledgeRequestDTO {
 export function getDefaultVectorizeRequestDTO(): VectorizeRequestDTO {
     return {
         courseId: null,
-        chapterId: null,
         contentType: null,
         forceReindex: null,
         tags: null

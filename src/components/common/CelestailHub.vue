@@ -211,15 +211,26 @@ const loadTexture = (texturePath, textureName) => {
         return;
       }
 
-      // 检查路径格式
-      if (!texturePath || typeof texturePath !== 'string') {
-        console.error('无效的纹理路径:', texturePath);
-        reject(new Error('无效的纹理路径'));
+      // 检查路径格式，处理可能的模块导入情况
+      let finalPath = texturePath;
+      if (typeof texturePath !== 'string') {
+        if (texturePath && typeof texturePath === 'object') {
+          finalPath = texturePath.default || texturePath.src || texturePath;
+        } else {
+          console.error('无效的纹理路径:', texturePath);
+          reject(new Error('无效的纹理路径'));
+          return;
+        }
+      }
+      
+      if (!finalPath || typeof finalPath !== 'string') {
+        console.error('无法解析纹理路径:', texturePath);
+        reject(new Error('无法解析纹理路径'));
         return;
       }
 
       textureLoader.load(
-          texturePath,
+          finalPath,
           (texture) => {
             if (!texture) {
               console.error(`${textureName} 纹理加载成功但返回空对象`);
@@ -227,7 +238,6 @@ const loadTexture = (texturePath, textureName) => {
               return;
             }
 
-            console.log(`${textureName} 纹理加载成功`);
             loadedTextures[textureName] = texture;
             resolve(texture);
           },
@@ -236,7 +246,6 @@ const loadTexture = (texturePath, textureName) => {
               // 加载进度
               if (xhr && xhr.loaded !== undefined && xhr.total !== undefined && xhr.total > 0) {
                 const percent = (xhr.loaded / xhr.total * 100).toFixed(0);
-                console.log(`加载 ${textureName} 纹理... ${percent}%`);
               }
             } catch (progressErr) {
               console.warn('获取加载进度时出错:', progressErr);
@@ -247,7 +256,6 @@ const loadTexture = (texturePath, textureName) => {
 
             // 尝试创建一个简单的占位纹理作为回退
             try {
-              console.log('创建占位纹理作为回退');
               const fallbackTexture = createFallbackTexture();
               loadedTextures[textureName] = fallbackTexture;
               console.warn(`使用占位纹理替代 ${textureName}`);
@@ -307,8 +315,6 @@ const loadBookModel = () => {
           // 成功加载模型
           bookModel = gltf.scene;
 
-          console.log('模型加载成功:', bookModel);
-
           // 计算模型尺寸并调整
           const box = new THREE.Box3().setFromObject(bookModel);
           const size = new THREE.Vector3();
@@ -331,14 +337,10 @@ const loadBookModel = () => {
 
           // 加载纹理
           loadingText.value = '正在加载纹理...';
-          const mainTexturePath = mainTextureImage;
-
-          // const textureLoader = new THREE.TextureLoader();
-          // const mainTexture = textureLoader.load(mainTexturePath);
-
-          // mainTexture.flipY = false;
-
-          // bookModel.children[2].material.map = mainTexture;
+          // 确保纹理路径是字符串（处理 Vite/webpack 导入的情况）
+          const mainTexturePath = typeof mainTextureImage === 'string' 
+            ? mainTextureImage 
+            : mainTextureImage.default || mainTextureImage;
 
           try {
             await loadTexture(mainTexturePath, 'mainTexture');
@@ -380,14 +382,14 @@ const applyTexturesToModel = () => {
     return;
   }
 
-  console.log('开始应用纹理到模型');
-
   // 设置纹理属性
   const texture = loadedTextures.mainTexture;
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
+  texture.flipY = false; // GLTF模型通常不需要翻转Y轴
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
   texture.magFilter = THREE.LinearFilter;
   texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.needsUpdate = true; // 确保纹理更新
 
   // 遍历模型中的所有网格对象并应用纹理
   bookModel.traverse((child) => {
@@ -455,7 +457,6 @@ const applyTexturesToModel = () => {
     }
   });
 
-  console.log('纹理应用完成');
 };
 
 // 为缺少UV的几何体创建简单的UV映射
@@ -489,7 +490,6 @@ const createSimpleUVs = (geometry) => {
 
     // 添加UV属性到几何体
     geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-    console.log('已为几何体创建简单UV映射');
   } catch (error) {
     console.error('创建UV映射时出错:', error);
   }
@@ -642,7 +642,6 @@ const cleanup = () => {
     if (controls) {
       try {
         controls.dispose();
-        console.log('控制器已清理');
       } catch (err) {
         console.warn('清理控制器时出错:', err);
       }
@@ -652,7 +651,6 @@ const cleanup = () => {
     if (renderer) {
       try {
         renderer.dispose();
-        console.log('渲染器已清理');
       } catch (err) {
         console.warn('清理渲染器时出错:', err);
       }
@@ -670,7 +668,6 @@ const cleanup = () => {
         }
       });
       loadedTextures = {};
-      console.log('纹理已清理');
     } catch (err) {
       console.warn('清理纹理集合时出错:', err);
     }
@@ -726,7 +723,6 @@ const cleanup = () => {
           disposeObject(child);
         });
 
-        console.log('场景对象已清理');
       } catch (err) {
         console.warn('清理场景时出错:', err);
       }
@@ -736,13 +732,11 @@ const cleanup = () => {
     if (textureLoader) {
       // TextureLoader没有dispose方法，但我们将其设为null
       textureLoader = null;
-      console.log('纹理加载器已清理');
     }
 
     if (loader) {
       // GLTFLoader没有dispose方法，但我们将其设为null
       loader = null;
-      console.log('模型加载器已清理');
     }
 
   } catch (err) {

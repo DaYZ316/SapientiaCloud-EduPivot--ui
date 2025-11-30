@@ -4,7 +4,7 @@
 **简介**:SapientiaCloud-EduPivot--classroom API
 
 
-**HOST**:http://172.16.0.10:31607
+**HOST**:http://192.168.1.21:31607
 
 
 **联系人**:DaYZ
@@ -78,29 +78,16 @@
 |&emsp;&emsp;id|课程记录ID|string(uuid)||
 |&emsp;&emsp;courseId|关联课程ID|string(uuid)||
 |&emsp;&emsp;courseName|课程名称|string||
-|&emsp;&emsp;teacherId|授课教师系统用户ID|string(uuid)||
+|&emsp;&emsp;courseDescription|课程内容简介|string||
+|&emsp;&emsp;teacherId|授课教师ID|string(uuid)||
 |&emsp;&emsp;teacherName|授课教师姓名|string||
 |&emsp;&emsp;teacherAvatar|授课教师头像|string||
-|&emsp;&emsp;studentIds|参与学生ID列表 (JSON数组)|array|string(uuid)|
-|&emsp;&emsp;questionIds|课堂互动题目ID列表 (JSON数组)|array|string(uuid)|
-|&emsp;&emsp;modelType|教室模型类型 (classroomSmall, classroomMiddle, classroomLarge)|string||
-|&emsp;&emsp;totalDesks|桌椅总数 (1-200)|integer(int32)||
+|&emsp;&emsp;classroomType|教室类型 (0=小型教室, 1=中型教室, 2=大型教室, 3=超大型教室)|integer(int32)||
 |&emsp;&emsp;layoutRows|行数 (仅传统布局或对齐布局使用)|integer(int32)||
 |&emsp;&emsp;layoutColumns|列数 (仅传统布局或对齐布局使用)|integer(int32)||
-|&emsp;&emsp;spacing|桌椅间距系数 (0.7-1.5)|number(float)||
-|&emsp;&emsp;layoutConfig|教室布局详细参数|LayoutConfig|LayoutConfig|
-|&emsp;&emsp;&emsp;&emsp;leftLength|左侧长度|integer||
-|&emsp;&emsp;&emsp;&emsp;rightLength|右侧长度|integer||
-|&emsp;&emsp;&emsp;&emsp;bottomLength|底部长度|integer||
-|&emsp;&emsp;&emsp;&emsp;uwidth||number||
-|&emsp;&emsp;classroomLayout|【废弃】旧版布局字段，仅兼容早期版本|object||
 |&emsp;&emsp;startTime|课程开始时间|string(date-time)||
 |&emsp;&emsp;overTime|课程结束时间|string(date-time)||
 |&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=取消)|integer(int32)||
-|&emsp;&emsp;expectedStudents|应到人数|integer(int32)||
-|&emsp;&emsp;actualStudents|实到人数|integer(int32)||
-|&emsp;&emsp;attendanceRate|出勤率 (%)|number(double)||
-|&emsp;&emsp;durationMinutes|课程时长 (分钟)|integer(int32)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
@@ -115,30 +102,16 @@
 		"id": "",
 		"courseId": "",
 		"courseName": "",
+		"courseDescription": "",
 		"teacherId": "",
 		"teacherName": "",
 		"teacherAvatar": "",
-		"studentIds": [],
-		"questionIds": [],
-		"modelType": "",
-		"totalDesks": 0,
+		"classroomType": 0,
 		"layoutRows": 0,
 		"layoutColumns": 0,
-		"spacing": 0,
-		"layoutConfig": {
-			"leftLength": 0,
-			"rightLength": 0,
-			"bottomLength": 0,
-			"uwidth": 0
-		},
-		"classroomLayout": {},
 		"startTime": "",
 		"overTime": "",
 		"status": 0,
-		"expectedStudents": 0,
-		"actualStudents": 0,
-		"attendanceRate": 0,
-		"durationMinutes": 0,
 		"createTime": "",
 		"updateTime": ""
 	}
@@ -335,20 +308,11 @@
   "id": "",
   "courseId": "",
   "teacherId": "",
-  "studentIds": [],
-  "questionIds": [],
-  "modelType": "",
-  "totalDesks": 0,
+  "courseName": "",
+  "courseDescription": "",
+  "classroomType": 0,
   "layoutRows": 0,
   "layoutColumns": 0,
-  "spacing": 0,
-  "layoutConfig": {
-    "leftLength": 0,
-    "rightLength": 0,
-    "bottomLength": 0,
-    "uwidth": 0
-  },
-  "classroomLayout": {},
   "startTime": "",
   "overTime": "",
   "status": 0
@@ -364,20 +328,12 @@
 |courseRecordDTO|课程教学记录数据传输对象|body|true|CourseRecordDTO|CourseRecordDTO|
 |&emsp;&emsp;id|课程记录ID，更新时必须提供||false|string(uuid)||
 |&emsp;&emsp;courseId|关联课程ID||true|string(uuid)||
-|&emsp;&emsp;teacherId|授课教师系统用户ID||true|string(uuid)||
-|&emsp;&emsp;studentIds|参与学生ID列表 (JSON数组)||false|array|string(uuid)|
-|&emsp;&emsp;questionIds|课堂互动题目ID列表 (JSON数组)||false|array|string(uuid)|
-|&emsp;&emsp;modelType|教室模型类型 (classroomSmall, classroomMiddle, classroomLarge)||true|string||
-|&emsp;&emsp;totalDesks|桌椅总数 (1-200)||true|integer(int32)||
+|&emsp;&emsp;teacherId|授课教师ID||true|string(uuid)||
+|&emsp;&emsp;courseName|课程名称||false|string||
+|&emsp;&emsp;courseDescription|课程内容简介||false|string||
+|&emsp;&emsp;classroomType|教室类型 (0=小型教室, 1=中型教室, 2=大型教室, 3=超大型教室)||true|integer(int32)||
 |&emsp;&emsp;layoutRows|行数 (仅传统布局或对齐布局使用)||false|integer(int32)||
 |&emsp;&emsp;layoutColumns|列数 (仅传统布局或对齐布局使用)||false|integer(int32)||
-|&emsp;&emsp;spacing|桌椅间距系数 (0.7-1.5)||false|number(float)||
-|&emsp;&emsp;layoutConfig|教室布局详细参数||false|LayoutConfig|LayoutConfig|
-|&emsp;&emsp;&emsp;&emsp;leftLength|左侧长度||false|integer||
-|&emsp;&emsp;&emsp;&emsp;rightLength|右侧长度||false|integer||
-|&emsp;&emsp;&emsp;&emsp;bottomLength|底部长度||false|integer||
-|&emsp;&emsp;&emsp;&emsp;uwidth|||false|number||
-|&emsp;&emsp;classroomLayout|【废弃】旧版布局字段，仅兼容早期版本||false|object||
 |&emsp;&emsp;startTime|课程开始时间||false|string(date-time)||
 |&emsp;&emsp;overTime|课程结束时间||false|string(date-time)||
 |&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=取消)||false|integer(int32)||
@@ -408,29 +364,16 @@
 |&emsp;&emsp;id|课程记录ID|string(uuid)||
 |&emsp;&emsp;courseId|关联课程ID|string(uuid)||
 |&emsp;&emsp;courseName|课程名称|string||
-|&emsp;&emsp;teacherId|授课教师系统用户ID|string(uuid)||
+|&emsp;&emsp;courseDescription|课程内容简介|string||
+|&emsp;&emsp;teacherId|授课教师ID|string(uuid)||
 |&emsp;&emsp;teacherName|授课教师姓名|string||
 |&emsp;&emsp;teacherAvatar|授课教师头像|string||
-|&emsp;&emsp;studentIds|参与学生ID列表 (JSON数组)|array|string(uuid)|
-|&emsp;&emsp;questionIds|课堂互动题目ID列表 (JSON数组)|array|string(uuid)|
-|&emsp;&emsp;modelType|教室模型类型 (classroomSmall, classroomMiddle, classroomLarge)|string||
-|&emsp;&emsp;totalDesks|桌椅总数 (1-200)|integer(int32)||
+|&emsp;&emsp;classroomType|教室类型 (0=小型教室, 1=中型教室, 2=大型教室, 3=超大型教室)|integer(int32)||
 |&emsp;&emsp;layoutRows|行数 (仅传统布局或对齐布局使用)|integer(int32)||
 |&emsp;&emsp;layoutColumns|列数 (仅传统布局或对齐布局使用)|integer(int32)||
-|&emsp;&emsp;spacing|桌椅间距系数 (0.7-1.5)|number(float)||
-|&emsp;&emsp;layoutConfig|教室布局详细参数|LayoutConfig|LayoutConfig|
-|&emsp;&emsp;&emsp;&emsp;leftLength|左侧长度|integer||
-|&emsp;&emsp;&emsp;&emsp;rightLength|右侧长度|integer||
-|&emsp;&emsp;&emsp;&emsp;bottomLength|底部长度|integer||
-|&emsp;&emsp;&emsp;&emsp;uwidth||number||
-|&emsp;&emsp;classroomLayout|【废弃】旧版布局字段，仅兼容早期版本|object||
 |&emsp;&emsp;startTime|课程开始时间|string(date-time)||
 |&emsp;&emsp;overTime|课程结束时间|string(date-time)||
 |&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=取消)|integer(int32)||
-|&emsp;&emsp;expectedStudents|应到人数|integer(int32)||
-|&emsp;&emsp;actualStudents|实到人数|integer(int32)||
-|&emsp;&emsp;attendanceRate|出勤率 (%)|number(double)||
-|&emsp;&emsp;durationMinutes|课程时长 (分钟)|integer(int32)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
@@ -445,30 +388,16 @@
 		"id": "",
 		"courseId": "",
 		"courseName": "",
+		"courseDescription": "",
 		"teacherId": "",
 		"teacherName": "",
 		"teacherAvatar": "",
-		"studentIds": [],
-		"questionIds": [],
-		"modelType": "",
-		"totalDesks": 0,
+		"classroomType": 0,
 		"layoutRows": 0,
 		"layoutColumns": 0,
-		"spacing": 0,
-		"layoutConfig": {
-			"leftLength": 0,
-			"rightLength": 0,
-			"bottomLength": 0,
-			"uwidth": 0
-		},
-		"classroomLayout": {},
 		"startTime": "",
 		"overTime": "",
 		"status": 0,
-		"expectedStudents": 0,
-		"actualStudents": 0,
-		"attendanceRate": 0,
-		"durationMinutes": 0,
 		"createTime": "",
 		"updateTime": ""
 	}
@@ -576,29 +505,16 @@
 |&emsp;&emsp;id|课程记录ID|string(uuid)||
 |&emsp;&emsp;courseId|关联课程ID|string(uuid)||
 |&emsp;&emsp;courseName|课程名称|string||
-|&emsp;&emsp;teacherId|授课教师系统用户ID|string(uuid)||
+|&emsp;&emsp;courseDescription|课程内容简介|string||
+|&emsp;&emsp;teacherId|授课教师ID|string(uuid)||
 |&emsp;&emsp;teacherName|授课教师姓名|string||
 |&emsp;&emsp;teacherAvatar|授课教师头像|string||
-|&emsp;&emsp;studentIds|参与学生ID列表 (JSON数组)|array|string(uuid)|
-|&emsp;&emsp;questionIds|课堂互动题目ID列表 (JSON数组)|array|string(uuid)|
-|&emsp;&emsp;modelType|教室模型类型 (classroomSmall, classroomMiddle, classroomLarge)|string||
-|&emsp;&emsp;totalDesks|桌椅总数 (1-200)|integer(int32)||
+|&emsp;&emsp;classroomType|教室类型 (0=小型教室, 1=中型教室, 2=大型教室, 3=超大型教室)|integer(int32)||
 |&emsp;&emsp;layoutRows|行数 (仅传统布局或对齐布局使用)|integer(int32)||
 |&emsp;&emsp;layoutColumns|列数 (仅传统布局或对齐布局使用)|integer(int32)||
-|&emsp;&emsp;spacing|桌椅间距系数 (0.7-1.5)|number(float)||
-|&emsp;&emsp;layoutConfig|教室布局详细参数|LayoutConfig|LayoutConfig|
-|&emsp;&emsp;&emsp;&emsp;leftLength|左侧长度|integer||
-|&emsp;&emsp;&emsp;&emsp;rightLength|右侧长度|integer||
-|&emsp;&emsp;&emsp;&emsp;bottomLength|底部长度|integer||
-|&emsp;&emsp;&emsp;&emsp;uwidth||number||
-|&emsp;&emsp;classroomLayout|【废弃】旧版布局字段，仅兼容早期版本|object||
 |&emsp;&emsp;startTime|课程开始时间|string(date-time)||
 |&emsp;&emsp;overTime|课程结束时间|string(date-time)||
 |&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=取消)|integer(int32)||
-|&emsp;&emsp;expectedStudents|应到人数|integer(int32)||
-|&emsp;&emsp;actualStudents|实到人数|integer(int32)||
-|&emsp;&emsp;attendanceRate|出勤率 (%)|number(double)||
-|&emsp;&emsp;durationMinutes|课程时长 (分钟)|integer(int32)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
@@ -614,30 +530,16 @@
 			"id": "",
 			"courseId": "",
 			"courseName": "",
+			"courseDescription": "",
 			"teacherId": "",
 			"teacherName": "",
 			"teacherAvatar": "",
-			"studentIds": [],
-			"questionIds": [],
-			"modelType": "",
-			"totalDesks": 0,
+			"classroomType": 0,
 			"layoutRows": 0,
 			"layoutColumns": 0,
-			"spacing": 0,
-			"layoutConfig": {
-				"leftLength": 0,
-				"rightLength": 0,
-				"bottomLength": 0,
-				"uwidth": 0
-			},
-			"classroomLayout": {},
 			"startTime": "",
 			"overTime": "",
 			"status": 0,
-			"expectedStudents": 0,
-			"actualStudents": 0,
-			"attendanceRate": 0,
-			"durationMinutes": 0,
 			"createTime": "",
 			"updateTime": ""
 		}
@@ -868,29 +770,16 @@
 |&emsp;&emsp;id|课程记录ID|string(uuid)||
 |&emsp;&emsp;courseId|关联课程ID|string(uuid)||
 |&emsp;&emsp;courseName|课程名称|string||
-|&emsp;&emsp;teacherId|授课教师系统用户ID|string(uuid)||
+|&emsp;&emsp;courseDescription|课程内容简介|string||
+|&emsp;&emsp;teacherId|授课教师ID|string(uuid)||
 |&emsp;&emsp;teacherName|授课教师姓名|string||
 |&emsp;&emsp;teacherAvatar|授课教师头像|string||
-|&emsp;&emsp;studentIds|参与学生ID列表 (JSON数组)|array|string(uuid)|
-|&emsp;&emsp;questionIds|课堂互动题目ID列表 (JSON数组)|array|string(uuid)|
-|&emsp;&emsp;modelType|教室模型类型 (classroomSmall, classroomMiddle, classroomLarge)|string||
-|&emsp;&emsp;totalDesks|桌椅总数 (1-200)|integer(int32)||
+|&emsp;&emsp;classroomType|教室类型 (0=小型教室, 1=中型教室, 2=大型教室, 3=超大型教室)|integer(int32)||
 |&emsp;&emsp;layoutRows|行数 (仅传统布局或对齐布局使用)|integer(int32)||
 |&emsp;&emsp;layoutColumns|列数 (仅传统布局或对齐布局使用)|integer(int32)||
-|&emsp;&emsp;spacing|桌椅间距系数 (0.7-1.5)|number(float)||
-|&emsp;&emsp;layoutConfig|教室布局详细参数|LayoutConfig|LayoutConfig|
-|&emsp;&emsp;&emsp;&emsp;leftLength|左侧长度|integer||
-|&emsp;&emsp;&emsp;&emsp;rightLength|右侧长度|integer||
-|&emsp;&emsp;&emsp;&emsp;bottomLength|底部长度|integer||
-|&emsp;&emsp;&emsp;&emsp;uwidth||number||
-|&emsp;&emsp;classroomLayout|【废弃】旧版布局字段，仅兼容早期版本|object||
 |&emsp;&emsp;startTime|课程开始时间|string(date-time)||
 |&emsp;&emsp;overTime|课程结束时间|string(date-time)||
 |&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=取消)|integer(int32)||
-|&emsp;&emsp;expectedStudents|应到人数|integer(int32)||
-|&emsp;&emsp;actualStudents|实到人数|integer(int32)||
-|&emsp;&emsp;attendanceRate|出勤率 (%)|number(double)||
-|&emsp;&emsp;durationMinutes|课程时长 (分钟)|integer(int32)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
@@ -906,30 +795,16 @@
 			"id": "",
 			"courseId": "",
 			"courseName": "",
+			"courseDescription": "",
 			"teacherId": "",
 			"teacherName": "",
 			"teacherAvatar": "",
-			"studentIds": [],
-			"questionIds": [],
-			"modelType": "",
-			"totalDesks": 0,
+			"classroomType": 0,
 			"layoutRows": 0,
 			"layoutColumns": 0,
-			"spacing": 0,
-			"layoutConfig": {
-				"leftLength": 0,
-				"rightLength": 0,
-				"bottomLength": 0,
-				"uwidth": 0
-			},
-			"classroomLayout": {},
 			"startTime": "",
 			"overTime": "",
 			"status": 0,
-			"expectedStudents": 0,
-			"actualStudents": 0,
-			"attendanceRate": 0,
-			"durationMinutes": 0,
 			"createTime": "",
 			"updateTime": ""
 		}
@@ -1125,8 +1000,9 @@
 | 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
 | -------- | -------- | ----- | -------- | -------- | ------ |
 |courseId|关联课程ID|query|false|string||
-|teacherId|授课教师系统用户ID|query|false|string||
-|modelType|教室模型类型 (classroomSmall, classroomMiddle, classroomLarge)|query|false|string||
+|teacherId|授课教师ID|query|false|string||
+|courseName|课程名称（模糊查询）|query|false|string||
+|classroomType|教室类型 (0=小型教室, 1=中型教室, 2=大型教室, 3=超大型教室)|query|false|string||
 |status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=取消)|query|false|string||
 |startTimeBegin|开始时间范围 - 起始|query|false|string||
 |startTimeEnd|开始时间范围 - 结束|query|false|string||
@@ -1276,29 +1152,16 @@
 |&emsp;&emsp;id|课程记录ID|string(uuid)||
 |&emsp;&emsp;courseId|关联课程ID|string(uuid)||
 |&emsp;&emsp;courseName|课程名称|string||
-|&emsp;&emsp;teacherId|授课教师系统用户ID|string(uuid)||
+|&emsp;&emsp;courseDescription|课程内容简介|string||
+|&emsp;&emsp;teacherId|授课教师ID|string(uuid)||
 |&emsp;&emsp;teacherName|授课教师姓名|string||
 |&emsp;&emsp;teacherAvatar|授课教师头像|string||
-|&emsp;&emsp;studentIds|参与学生ID列表 (JSON数组)|array|string(uuid)|
-|&emsp;&emsp;questionIds|课堂互动题目ID列表 (JSON数组)|array|string(uuid)|
-|&emsp;&emsp;modelType|教室模型类型 (classroomSmall, classroomMiddle, classroomLarge)|string||
-|&emsp;&emsp;totalDesks|桌椅总数 (1-200)|integer(int32)||
+|&emsp;&emsp;classroomType|教室类型 (0=小型教室, 1=中型教室, 2=大型教室, 3=超大型教室)|integer(int32)||
 |&emsp;&emsp;layoutRows|行数 (仅传统布局或对齐布局使用)|integer(int32)||
 |&emsp;&emsp;layoutColumns|列数 (仅传统布局或对齐布局使用)|integer(int32)||
-|&emsp;&emsp;spacing|桌椅间距系数 (0.7-1.5)|number(float)||
-|&emsp;&emsp;layoutConfig|教室布局详细参数|LayoutConfig|LayoutConfig|
-|&emsp;&emsp;&emsp;&emsp;leftLength|左侧长度|integer||
-|&emsp;&emsp;&emsp;&emsp;rightLength|右侧长度|integer||
-|&emsp;&emsp;&emsp;&emsp;bottomLength|底部长度|integer||
-|&emsp;&emsp;&emsp;&emsp;uwidth||number||
-|&emsp;&emsp;classroomLayout|【废弃】旧版布局字段，仅兼容早期版本|object||
 |&emsp;&emsp;startTime|课程开始时间|string(date-time)||
 |&emsp;&emsp;overTime|课程结束时间|string(date-time)||
 |&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=取消)|integer(int32)||
-|&emsp;&emsp;expectedStudents|应到人数|integer(int32)||
-|&emsp;&emsp;actualStudents|实到人数|integer(int32)||
-|&emsp;&emsp;attendanceRate|出勤率 (%)|number(double)||
-|&emsp;&emsp;durationMinutes|课程时长 (分钟)|integer(int32)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
@@ -1314,30 +1177,16 @@
 			"id": "",
 			"courseId": "",
 			"courseName": "",
+			"courseDescription": "",
 			"teacherId": "",
 			"teacherName": "",
 			"teacherAvatar": "",
-			"studentIds": [],
-			"questionIds": [],
-			"modelType": "",
-			"totalDesks": 0,
+			"classroomType": 0,
 			"layoutRows": 0,
 			"layoutColumns": 0,
-			"spacing": 0,
-			"layoutConfig": {
-				"leftLength": 0,
-				"rightLength": 0,
-				"bottomLength": 0,
-				"uwidth": 0
-			},
-			"classroomLayout": {},
 			"startTime": "",
 			"overTime": "",
 			"status": 0,
-			"expectedStudents": 0,
-			"actualStudents": 0,
-			"attendanceRate": 0,
-			"durationMinutes": 0,
 			"createTime": "",
 			"updateTime": ""
 		}
@@ -1423,20 +1272,11 @@
   "id": "",
   "courseId": "",
   "teacherId": "",
-  "studentIds": [],
-  "questionIds": [],
-  "modelType": "",
-  "totalDesks": 0,
+  "courseName": "",
+  "courseDescription": "",
+  "classroomType": 0,
   "layoutRows": 0,
   "layoutColumns": 0,
-  "spacing": 0,
-  "layoutConfig": {
-    "leftLength": 0,
-    "rightLength": 0,
-    "bottomLength": 0,
-    "uwidth": 0
-  },
-  "classroomLayout": {},
   "startTime": "",
   "overTime": "",
   "status": 0
@@ -1452,20 +1292,12 @@
 |courseRecordDTO|课程教学记录数据传输对象|body|true|CourseRecordDTO|CourseRecordDTO|
 |&emsp;&emsp;id|课程记录ID，更新时必须提供||false|string(uuid)||
 |&emsp;&emsp;courseId|关联课程ID||true|string(uuid)||
-|&emsp;&emsp;teacherId|授课教师系统用户ID||true|string(uuid)||
-|&emsp;&emsp;studentIds|参与学生ID列表 (JSON数组)||false|array|string(uuid)|
-|&emsp;&emsp;questionIds|课堂互动题目ID列表 (JSON数组)||false|array|string(uuid)|
-|&emsp;&emsp;modelType|教室模型类型 (classroomSmall, classroomMiddle, classroomLarge)||true|string||
-|&emsp;&emsp;totalDesks|桌椅总数 (1-200)||true|integer(int32)||
+|&emsp;&emsp;teacherId|授课教师ID||true|string(uuid)||
+|&emsp;&emsp;courseName|课程名称||false|string||
+|&emsp;&emsp;courseDescription|课程内容简介||false|string||
+|&emsp;&emsp;classroomType|教室类型 (0=小型教室, 1=中型教室, 2=大型教室, 3=超大型教室)||true|integer(int32)||
 |&emsp;&emsp;layoutRows|行数 (仅传统布局或对齐布局使用)||false|integer(int32)||
 |&emsp;&emsp;layoutColumns|列数 (仅传统布局或对齐布局使用)||false|integer(int32)||
-|&emsp;&emsp;spacing|桌椅间距系数 (0.7-1.5)||false|number(float)||
-|&emsp;&emsp;layoutConfig|教室布局详细参数||false|LayoutConfig|LayoutConfig|
-|&emsp;&emsp;&emsp;&emsp;leftLength|左侧长度||false|integer||
-|&emsp;&emsp;&emsp;&emsp;rightLength|右侧长度||false|integer||
-|&emsp;&emsp;&emsp;&emsp;bottomLength|底部长度||false|integer||
-|&emsp;&emsp;&emsp;&emsp;uwidth|||false|number||
-|&emsp;&emsp;classroomLayout|【废弃】旧版布局字段，仅兼容早期版本||false|object||
 |&emsp;&emsp;startTime|课程开始时间||false|string(date-time)||
 |&emsp;&emsp;overTime|课程结束时间||false|string(date-time)||
 |&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=取消)||false|integer(int32)||
@@ -1502,6 +1334,782 @@
 	"code": 200,
 	"message": "操作成功",
 	"data": true
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+# 课堂练习管理
+
+
+## updateClassroomPractice
+
+
+**接口地址**:`/api/classroom/classroom-practice`
+
+
+**请求方式**:`PUT`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>更新课堂练习题目配置</p>
+
+
+
+**请求示例**:
+
+
+```javascript
+{
+  "id": "",
+  "classroomId": "",
+  "questionId": "",
+  "publishOrder": 0,
+  "score": 0,
+  "isRequired": 0,
+  "startTime": "",
+  "endTime": ""
+}
+```
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|classroomQuestionDTO|课堂练习发布与更新DTO|body|true|ClassroomQuestionDTO|ClassroomQuestionDTO|
+|&emsp;&emsp;id|记录ID（更新时必填）||false|string(uuid)||
+|&emsp;&emsp;classroomId|课堂记录ID||true|string(uuid)||
+|&emsp;&emsp;questionId|题目ID||true|string(uuid)||
+|&emsp;&emsp;publishOrder|发布顺序||false|integer(int32)||
+|&emsp;&emsp;score|题目分值||false|number(float)||
+|&emsp;&emsp;isRequired|是否必答 (0=选答,1=必答)||false|integer(int32)||
+|&emsp;&emsp;startTime|题目可作答开始时间||false|string(date-time)||
+|&emsp;&emsp;endTime|题目作答截止时间||false|string(date-time)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultBoolean|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|boolean||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## removeClassroomPractice
+
+
+**接口地址**:`/api/classroom/classroom-practice/{id}`
+
+
+**请求方式**:`DELETE`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>删除课堂已发布的练习题目</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|id|发布记录ID|path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultBoolean|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|boolean||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## addClassroomPractice
+
+
+**接口地址**:`/api/classroom/classroom-practice/add`
+
+
+**请求方式**:`POST`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>发布课堂练习题目</p>
+
+
+
+**请求示例**:
+
+
+```javascript
+{
+  "id": "",
+  "classroomId": "",
+  "questionId": "",
+  "publishOrder": 0,
+  "score": 0,
+  "isRequired": 0,
+  "startTime": "",
+  "endTime": ""
+}
+```
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|classroomQuestionDTO|课堂练习发布与更新DTO|body|true|ClassroomQuestionDTO|ClassroomQuestionDTO|
+|&emsp;&emsp;id|记录ID（更新时必填）||false|string(uuid)||
+|&emsp;&emsp;classroomId|课堂记录ID||true|string(uuid)||
+|&emsp;&emsp;questionId|题目ID||true|string(uuid)||
+|&emsp;&emsp;publishOrder|发布顺序||false|integer(int32)||
+|&emsp;&emsp;score|题目分值||false|number(float)||
+|&emsp;&emsp;isRequired|是否必答 (0=选答,1=必答)||false|integer(int32)||
+|&emsp;&emsp;startTime|题目可作答开始时间||false|string(date-time)||
+|&emsp;&emsp;endTime|题目作答截止时间||false|string(date-time)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultClassroomQuestionVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data||ClassroomQuestionVO|ClassroomQuestionVO|
+|&emsp;&emsp;id|记录ID|string(uuid)||
+|&emsp;&emsp;classroomId|课堂记录ID|string(uuid)||
+|&emsp;&emsp;questionId|题目ID|string(uuid)||
+|&emsp;&emsp;publishOrder|发布顺序|integer(int32)||
+|&emsp;&emsp;score|题目分值|number(float)||
+|&emsp;&emsp;isRequired|是否必答 (0=选答,1=必答)|integer(int32)||
+|&emsp;&emsp;startTime|题目可作答开始时间|string(date-time)||
+|&emsp;&emsp;endTime|题目作答截止时间|string(date-time)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"id": "",
+		"classroomId": "",
+		"questionId": "",
+		"publishOrder": 0,
+		"score": 0,
+		"isRequired": 0,
+		"startTime": "",
+		"endTime": "",
+		"createTime": "",
+		"updateTime": ""
+	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## listByClassroomId
+
+
+**接口地址**:`/api/classroom/classroom-practice/classroom/{classroomId}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>根据课堂ID查询所有已发布练习</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|classroomId|课堂记录ID|path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListClassroomQuestionVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|ClassroomQuestionVO|
+|&emsp;&emsp;id|记录ID|string(uuid)||
+|&emsp;&emsp;classroomId|课堂记录ID|string(uuid)||
+|&emsp;&emsp;questionId|题目ID|string(uuid)||
+|&emsp;&emsp;publishOrder|发布顺序|integer(int32)||
+|&emsp;&emsp;score|题目分值|number(float)||
+|&emsp;&emsp;isRequired|是否必答 (0=选答,1=必答)|integer(int32)||
+|&emsp;&emsp;startTime|题目可作答开始时间|string(date-time)||
+|&emsp;&emsp;endTime|题目作答截止时间|string(date-time)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"classroomId": "",
+			"questionId": "",
+			"publishOrder": 0,
+			"score": 0,
+			"isRequired": 0,
+			"startTime": "",
+			"endTime": "",
+			"createTime": "",
+			"updateTime": ""
+		}
+	]
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## listClassroomPractice
+
+
+**接口地址**:`/api/classroom/classroom-practice/list`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>根据条件分页查询课堂内练习发布记录</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|classroomId|课堂记录ID|query|false|string||
+|startTime|起始时间|query|false|string||
+|endTime|结束时间|query|false|string||
+|pageNum|当前记录起始索引|query|false|string||
+|pageSize|每页显示记录数|query|false|string||
+|orderByColumn|排序列|query|false|string||
+|isAsc|排序的方向,可用值:asc,desc|query|false|string||
+|reasonable|分页参数合理化|query|false|string||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|TableDataResult|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|total|总记录数|integer(int64)|integer(int64)|
+|data|列表数据|array||
+|code|消息状态码|integer(int32)|integer(int32)|
+|message|消息内容|string||
+
+
+**响应示例**:
+```javascript
+{
+	"total": 0,
+	"data": [],
+	"code": 0,
+	"message": ""
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## listStudentSubmissions
+
+
+**接口地址**:`/api/classroom/classroom-practice/submissions/{classroomId}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>获取课堂内所有学生练习作答记录（教师统计）</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|classroomId|课堂记录ID|path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListObject|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": []
 }
 ```
 
@@ -1758,7 +2366,6 @@
 |&emsp;&emsp;studentCode|学号|string||
 |&emsp;&emsp;studentAvatar|学生头像|string||
 |&emsp;&emsp;courseId|课程ID|string(uuid)||
-|&emsp;&emsp;courseName|课程名称|string||
 |&emsp;&emsp;seatIndex|座位编号 (从0开始)|integer(int32)||
 |&emsp;&emsp;locationX|3D坐标X (横向)|number(float)||
 |&emsp;&emsp;locationY|3D坐标Y (高度)|number(float)||
@@ -1784,7 +2391,6 @@
 		"studentCode": "",
 		"studentAvatar": "",
 		"courseId": "",
-		"courseName": "",
 		"seatIndex": 0,
 		"locationX": 0,
 		"locationY": 0,
@@ -1903,7 +2509,6 @@
 |&emsp;&emsp;studentCode|学号|string||
 |&emsp;&emsp;studentAvatar|学生头像|string||
 |&emsp;&emsp;courseId|课程ID|string(uuid)||
-|&emsp;&emsp;courseName|课程名称|string||
 |&emsp;&emsp;seatIndex|座位编号 (从0开始)|integer(int32)||
 |&emsp;&emsp;locationX|3D坐标X (横向)|number(float)||
 |&emsp;&emsp;locationY|3D坐标Y (高度)|number(float)||
@@ -1930,7 +2535,6 @@
 			"studentCode": "",
 			"studentAvatar": "",
 			"courseId": "",
-			"courseName": "",
 			"seatIndex": 0,
 			"locationX": 0,
 			"locationY": 0,
@@ -2527,7 +3131,6 @@
 |&emsp;&emsp;studentCode|学号|string||
 |&emsp;&emsp;studentAvatar|学生头像|string||
 |&emsp;&emsp;courseId|课程ID|string(uuid)||
-|&emsp;&emsp;courseName|课程名称|string||
 |&emsp;&emsp;seatIndex|座位编号 (从0开始)|integer(int32)||
 |&emsp;&emsp;locationX|3D坐标X (横向)|number(float)||
 |&emsp;&emsp;locationY|3D坐标Y (高度)|number(float)||
@@ -2554,7 +3157,6 @@
 			"studentCode": "",
 			"studentAvatar": "",
 			"courseId": "",
-			"courseName": "",
 			"seatIndex": 0,
 			"locationX": 0,
 			"locationY": 0,
@@ -2677,7 +3279,6 @@
 |&emsp;&emsp;studentCode|学号|string||
 |&emsp;&emsp;studentAvatar|学生头像|string||
 |&emsp;&emsp;courseId|课程ID|string(uuid)||
-|&emsp;&emsp;courseName|课程名称|string||
 |&emsp;&emsp;seatIndex|座位编号 (从0开始)|integer(int32)||
 |&emsp;&emsp;locationX|3D坐标X (横向)|number(float)||
 |&emsp;&emsp;locationY|3D坐标Y (高度)|number(float)||
@@ -2703,7 +3304,6 @@
 		"studentCode": "",
 		"studentAvatar": "",
 		"courseId": "",
-		"courseName": "",
 		"seatIndex": 0,
 		"locationX": 0,
 		"locationY": 0,

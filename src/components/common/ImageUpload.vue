@@ -108,7 +108,7 @@ import {computed, nextTick, onUnmounted, ref, watch} from 'vue'
 import Cropper from 'cropperjs'
 import 'cropperjs/dist/cropper.css'
 import type {UploadCustomRequestOptions, UploadFileInfo} from '@/types/naive-ui'
-import {uploadFile} from '@/api'
+import {uploadFile as uploadMinioFile} from '@/api/minIO'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {useI18n} from 'vue-i18n'
 import {
@@ -310,7 +310,7 @@ const confirmCrop = async () => {
 const uploadImageDirectly = async (file: File) => {
   try {
     uploading.value = true
-    const response = await uploadFile(file, {
+    const response = await uploadMinioFile(file, {
       directory: props.uploadDir,
       bucketCode: props.bucketCode
     })
@@ -330,7 +330,7 @@ const uploadCroppedImage = async (blob: Blob) => {
   // 创建File对象并上传
   const fileName = `image_${Date.now()}.jpg`
   const file = new File([blob], fileName, {type: 'image/jpeg'})
-  const response = await uploadFile(file, {
+  const response = await uploadMinioFile(file, {
     directory: props.uploadDir,
     bucketCode: props.bucketCode
   })

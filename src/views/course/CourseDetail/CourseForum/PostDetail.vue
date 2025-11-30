@@ -184,34 +184,11 @@
 
           <!-- 附件和图片 -->
           <div v-if="post.attachmentUrls && post.attachmentUrls.length > 0" class="post-attachments">
-            <div class="file-info-container">
-              <n-spin :show="loadingFileInfo">
-                <n-list>
-                  <n-list-item
-                      v-for="fileInfo in fileInfoList"
-                      :key="fileInfo.objectName"
-                      class="file-info-item"
-                      @click="handleFilePreview(fileInfo)"
-                  >
-                    <template #prefix>
-                      <Icon :component="getFileTypeIcon(fileInfo)" color="var(--color-primary)" size="20"/>
-                    </template>
-
-                    <div class="file-details">
-                      <div class="file-name">{{ fileInfo.fileName }}</div>
-                      <div class="file-meta">
-                        <n-text depth="3" style="font-size: 12px">
-                          {{ formatFileSize(fileInfo.size) }}
-                        </n-text>
-                        <n-text depth="3" style="font-size: 12px; margin-left: 8px">
-                          {{ formatUploadTime(fileInfo.lastModified) }}
-                        </n-text>
-                      </div>
-                    </div>
-                  </n-list-item>
-                </n-list>
-              </n-spin>
-            </div>
+            <FileInfoList
+                :bucket-code="courseBucketCode"
+                :file-paths="post.attachmentUrls"
+                @preview="handleFilePreview"
+            />
           </div>
 
           <div v-if="post.imageUrls && post.imageUrls.length > 0" class="post-images">
@@ -573,22 +550,18 @@ import {
   useMessage
 } from 'naive-ui'
 import {
-  ArchiveOutline,
   Bookmark,
   BookmarkOutline,
   ChatbubbleOutline,
   CreateOutline,
   DocumentTextOutline,
-  FolderOutline,
   Heart,
   HeartOutline,
   ImageOutline,
   LockClosedOutline,
   LockOpenOutline,
-  MusicalNotesOutline,
   RefreshOutline,
-  ShareOutline,
-  VideocamOutline
+  ShareOutline
 } from '@vicons/ionicons5'
 import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
@@ -610,10 +583,9 @@ import {
   viewPost
 } from '@/api/course/forumPost'
 import {addForumReply, getDefaultForumReplyDTO, listForumReply, removeForumReplyById} from '@/api/course/forumReply'
-import * as MinIOApi from '@/api/minIO'
 import {formatToBeijingTime} from '@/utils/dateUtil'
 import {getPostTypeOptions} from '@/enum/course/postTypeEnum'
-import Icon from '@/components/common/Icon.vue'
+import FileInfoList from '@/components/common/FileInfoList.vue'
 import {useCourseStore} from '@/store'
 
 // 路由和国际化
@@ -641,8 +613,6 @@ const isLiked = ref(false)
 const isCollected = ref(false)
 const likeLoading = ref(false)
 const lockLoading = ref(false)
-const fileInfoList = ref<FileInfoDTO[]>([]) // 文件详细信息列表
-const loadingFileInfo = ref(false) // 加载文件信息状态
 const imageErrors = ref<Record<number, boolean>>({}) // 图片加载错误状态
 
 // 对话框状态
@@ -777,9 +747,6 @@ const loadPost = async () => {
       // 记录浏览
       await viewPost(postId)
 
-      // 加载文件信息
-      await loadFileInfo()
-
       // 加载回复
       await loadReplies()
     } else {
@@ -912,62 +879,6 @@ const handleFilePreview = (fileInfo: FileInfoDTO) => {
       forumId: route.params.forumId,
       postId: route.params.postId
     }
-  })
-}
-
-// 加载文件详细信息
-const loadFileInfo = async () => {
-  if (!post.value?.attachmentUrls || post.value.attachmentUrls.length === 0) {
-    fileInfoList.value = []
-    return
-  }
-
-  loadingFileInfo.value = true
-  try {
-    const res = await MinIOApi.getBatchFileInfoByPath({
-      filePaths: post.value.attachmentUrls,
-      bucketCode: BusinessBucketCodeEnum.COURSE_PUBLIC
-    })
-    if (res && res.success && res.data) {
-      // 过滤掉error字段为true的文件
-      fileInfoList.value = res.data.filter(file => !file.error)
-    }
-  } catch (error) {
-    message.error(t('course.chapters.getFileInfoFailed'))
-  } finally {
-    loadingFileInfo.value = false
-  }
-}
-
-// 获取文件类型图标
-const getFileTypeIcon = (fileInfo: FileInfoDTO) => {
-  const contentType = fileInfo.contentType || ''
-  if (contentType.startsWith('image/')) return ImageOutline
-  if (contentType.startsWith('video/')) return VideocamOutline
-  if (contentType.startsWith('audio/')) return MusicalNotesOutline
-  if (contentType.includes('pdf') || contentType.includes('document') || contentType.includes('text')) return DocumentTextOutline
-  if (contentType.includes('zip') || contentType.includes('rar') || contentType.includes('7z')) return ArchiveOutline
-  return FolderOutline
-}
-
-// 格式化文件大小
-const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-}
-
-// 格式化上传时间
-const formatUploadTime = (timeString: string): string => {
-  const date = new Date(timeString)
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
   })
 }
 

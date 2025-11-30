@@ -1,5 +1,12 @@
 import http, {apiConfig} from '@/utils/http'
-import type {ChatMessage, ChatRequestDTO, ChatResponseVO} from '@/types/celestialHub/chatMessage'
+import type {
+    CancelChatStreamKafkaDTO,
+    ChatMessage,
+    ChatRequestDTO,
+    ChatResponseVO,
+    KafkaChatRequestDTO,
+    SSEEventCallbacks
+} from '@/types/celestialHub/chatMessage'
 import {useUserStore} from '@/store'
 import {fetchEventSource} from '@microsoft/fetch-event-source'
 
@@ -9,15 +16,37 @@ import {fetchEventSource} from '@microsoft/fetch-event-source'
 export function getDefaultChatRequestDTO(): ChatRequestDTO {
     return {
         sessionId: null,
+        userId: null,
         message: null,
         courseId: null,
         chapterId: null,
-        sessionType: 0,
-        useRag: true,
-        stream: true,
+        sessionType: null,
+        useRag: null,
+        stream: null,
         temperature: null,
         maxTokens: null,
-        attachments: null
+        attachments: null,
+        fileIds: null
+    }
+}
+
+/**
+ * 获取默认Kafka聊天请求DTO
+ */
+export function getDefaultKafkaChatRequestDTO(): KafkaChatRequestDTO {
+    return {
+        ...getDefaultChatRequestDTO(),
+        requestId: null
+    }
+}
+
+/**
+ * 获取默认取消Kafka流式请求DTO
+ */
+export function getDefaultCancelChatStreamKafkaDTO(): CancelChatStreamKafkaDTO {
+    return {
+        requestId: null,
+        reason: null
     }
 }
 
@@ -60,20 +89,6 @@ export function listMessagesBySessionId(sessionId: string, limit?: number) {
 }
 
 /**
- * SSE事件回调接口
- */
-export interface SSEEventCallbacks {
-    /** 接收到数据事件时调用 */
-    onMessage?: (data: string) => void
-    /** 连接打开时调用 */
-    onOpen?: () => void
-    /** 发生错误时调用 */
-    onError?: (error: Error) => void
-    /** 连接关闭时调用 */
-    onClose?: () => void
-}
-
-/**
  * 可控制的SSE连接控制器
  */
 export class SSEController {
@@ -103,14 +118,17 @@ export class SSEController {
  * @param callbacks SSE事件回调
  * @returns SSEController实例，用于关闭连接
  */
-export function chatStream(data: ChatRequestDTO, callbacks: SSEEventCallbacks): SSEController {
-    // 同步获取token和baseURL
+function createChatStreamRequest(
+    endpoint: string,
+    data: ChatRequestDTO,
+    callbacks: SSEEventCallbacks
+): SSEController {
     const userStore = useUserStore()
     const token = userStore.token
     const baseURL = apiConfig.getBaseUrl()
 
     // 构建完整URL
-    const fullURL = `${baseURL}/celestial-hub/message/stream/kafka`
+    const fullURL = `${baseURL}${endpoint}`
 
     // 创建AbortController用于控制连接
     const abortController = new AbortController()
@@ -123,9 +141,9 @@ export function chatStream(data: ChatRequestDTO, callbacks: SSEEventCallbacks): 
         headers: {
             'Authorization': token ? `Bearer ${token}` : '',
             'Content-Type': 'application/json',
-            'Accept': 'text/event-stream',
+            'Accept': 'text/event-stream'
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(data || {}),
         signal: abortController.signal,
         async onopen(response) {
             if (response.ok && response.headers.get('content-type')?.includes('text/event-stream')) {
@@ -163,6 +181,43 @@ export function chatStream(data: ChatRequestDTO, callbacks: SSEEventCallbacks): 
     })
 
     return controller
+}
+
+/**
+ * 发送消息并以流式方式接收AI回复（标准SSE）
+ * @param data 聊天请求DTO
+ * @param callbacks SSE事件回调
+ */
+export function chatStream(data: ChatRequestDTO, callbacks: SSEEventCallbacks): SSEController {
+    return createChatStreamRequest('/celestial-hub/message/stream', data, callbacks)
+}
+
+/**
+ * 发送消息并以流式方式接收AI回复（Kafka管道）
+ * @param data 聊天请求DTO
+ * @param callbacks SSE事件回调
+ */
+export function chatStreamKafka(data: KafkaChatRequestDTO, callbacks: SSEEventCallbacks): SSEController {
+    return createChatStreamRequest('/celestial-hub/message/stream/kafka', data, callbacks)
+}
+
+/**
+ * 取消Kafka流式聊天请求
+ * @param data 取消请求DTO
+ */
+export function cancelChatStreamKafka(data: CancelChatStreamKafkaDTO) {
+    if (!data.requestId) {
+        return Promise.resolve(false)
+    }
+    return http.post<boolean>(
+        `/celestial-hub/message/stream/kafka/${data.requestId}/cancel`,
+        null,
+        {
+            params: {
+                reason: data.reason
+            }
+        }
+    )
 }
 
 

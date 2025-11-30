@@ -23,6 +23,895 @@
 
 
 
+# 文件文档管理
+
+
+## getFileById
+
+
+**接口地址**:`/api/celestial-hub/file-document/{id}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>根据文件ID获取文件信息</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|id|文件ID|path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultFileDocumentVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data||FileDocumentVO|FileDocumentVO|
+|&emsp;&emsp;id|文件ID|string(uuid)||
+|&emsp;&emsp;fileName|文件名|string||
+|&emsp;&emsp;fileType|文件类型|integer(int32)||
+|&emsp;&emsp;fileTypeName|文件类型名称|string||
+|&emsp;&emsp;fileSize|文件大小（字节）|integer(int64)||
+|&emsp;&emsp;fileSizeFormatted|文件大小（格式化）|string||
+|&emsp;&emsp;mimeType|MIME类型|string||
+|&emsp;&emsp;storagePath|存储路径|string||
+|&emsp;&emsp;sysUserId|上传用户ID|string(uuid)||
+|&emsp;&emsp;courseId|课程ID|string(uuid)||
+|&emsp;&emsp;sessionId|会话ID|string(uuid)||
+|&emsp;&emsp;status|状态|integer(int32)||
+|&emsp;&emsp;statusName|状态名称|string||
+|&emsp;&emsp;isVectorized|是否已向量化|boolean||
+|&emsp;&emsp;vectorCount|向量块数量|integer(int32)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"id": "",
+		"fileName": "",
+		"fileType": 0,
+		"fileTypeName": "",
+		"fileSize": 0,
+		"fileSizeFormatted": "",
+		"mimeType": "",
+		"storagePath": "",
+		"sysUserId": "",
+		"courseId": "",
+		"sessionId": "",
+		"status": 0,
+		"statusName": "",
+		"isVectorized": true,
+		"vectorCount": 0,
+		"createTime": "",
+		"updateTime": ""
+	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## deleteFile
+
+
+**接口地址**:`/api/celestial-hub/file-document/{id}`
+
+
+**请求方式**:`DELETE`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>根据文件ID删除文件</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|id|文件ID|path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultBoolean|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|boolean||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## vectorizeFile
+
+
+**接口地址**:`/api/celestial-hub/file-document/{id}/vectorize`
+
+
+**请求方式**:`POST`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>手动触发文件向量化</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|id|文件ID|path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultBoolean|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|boolean||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## listFiles
+
+
+**接口地址**:`/api/celestial-hub/file-document/list`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>分页查询文件列表</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|sessionId|会话ID|query|false|string(uuid)||
+|courseId|课程ID|query|false|string(uuid)||
+|userId|用户ID|query|false|string(uuid)||
+|isVectorized|是否已向量化|query|false|boolean||
+|fileName|文件名（模糊查询）|query|false|string||
+|pageNum|页码|query|false|integer(int32)||
+|pageSize|每页数量|query|false|integer(int32)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultPageFileDocumentVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data||PageFileDocumentVO|PageFileDocumentVO|
+|&emsp;&emsp;totalElements||integer(int64)||
+|&emsp;&emsp;totalPages||integer(int32)||
+|&emsp;&emsp;size||integer(int32)||
+|&emsp;&emsp;content|文件文档视图对象|array|FileDocumentVO|
+|&emsp;&emsp;&emsp;&emsp;id|文件ID|string||
+|&emsp;&emsp;&emsp;&emsp;fileName|文件名|string||
+|&emsp;&emsp;&emsp;&emsp;fileType|文件类型|integer||
+|&emsp;&emsp;&emsp;&emsp;fileTypeName|文件类型名称|string||
+|&emsp;&emsp;&emsp;&emsp;fileSize|文件大小（字节）|integer||
+|&emsp;&emsp;&emsp;&emsp;fileSizeFormatted|文件大小（格式化）|string||
+|&emsp;&emsp;&emsp;&emsp;mimeType|MIME类型|string||
+|&emsp;&emsp;&emsp;&emsp;storagePath|存储路径|string||
+|&emsp;&emsp;&emsp;&emsp;sysUserId|上传用户ID|string||
+|&emsp;&emsp;&emsp;&emsp;courseId|课程ID|string||
+|&emsp;&emsp;&emsp;&emsp;sessionId|会话ID|string||
+|&emsp;&emsp;&emsp;&emsp;status|状态|integer||
+|&emsp;&emsp;&emsp;&emsp;statusName|状态名称|string||
+|&emsp;&emsp;&emsp;&emsp;isVectorized|是否已向量化|boolean||
+|&emsp;&emsp;&emsp;&emsp;vectorCount|向量块数量|integer||
+|&emsp;&emsp;&emsp;&emsp;createTime|创建时间|string||
+|&emsp;&emsp;&emsp;&emsp;updateTime|更新时间|string||
+|&emsp;&emsp;number||integer(int32)||
+|&emsp;&emsp;sort||SortObject|SortObject|
+|&emsp;&emsp;&emsp;&emsp;empty||boolean||
+|&emsp;&emsp;&emsp;&emsp;sorted||boolean||
+|&emsp;&emsp;&emsp;&emsp;unsorted||boolean||
+|&emsp;&emsp;first||boolean||
+|&emsp;&emsp;last||boolean||
+|&emsp;&emsp;numberOfElements||integer(int32)||
+|&emsp;&emsp;pageable||PageableObject|PageableObject|
+|&emsp;&emsp;&emsp;&emsp;offset||integer||
+|&emsp;&emsp;&emsp;&emsp;sort||SortObject|SortObject|
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;empty||boolean||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;sorted||boolean||
+|&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;unsorted||boolean||
+|&emsp;&emsp;&emsp;&emsp;pageSize||integer||
+|&emsp;&emsp;&emsp;&emsp;pageNumber||integer||
+|&emsp;&emsp;&emsp;&emsp;paged||boolean||
+|&emsp;&emsp;&emsp;&emsp;unpaged||boolean||
+|&emsp;&emsp;empty||boolean||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"totalElements": 0,
+		"totalPages": 0,
+		"size": 0,
+		"content": [
+			{
+				"id": "",
+				"fileName": "",
+				"fileType": 0,
+				"fileTypeName": "",
+				"fileSize": 0,
+				"fileSizeFormatted": "",
+				"mimeType": "",
+				"storagePath": "",
+				"sysUserId": "",
+				"courseId": "",
+				"sessionId": "",
+				"status": 0,
+				"statusName": "",
+				"isVectorized": true,
+				"vectorCount": 0,
+				"createTime": "",
+				"updateTime": ""
+			}
+		],
+		"number": 0,
+		"sort": {
+			"empty": true,
+			"sorted": true,
+			"unsorted": true
+		},
+		"first": true,
+		"last": true,
+		"numberOfElements": 0,
+		"pageable": {
+			"offset": 0,
+			"sort": {
+				"empty": true,
+				"sorted": true,
+				"unsorted": true
+			},
+			"pageSize": 0,
+			"pageNumber": 0,
+			"paged": true,
+			"unpaged": true
+		},
+		"empty": true
+	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## uploadFile
+
+
+**接口地址**:`/api/celestial-hub/file-document/upload`
+
+
+**请求方式**:`POST`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>上传单个文件</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|file|上传的文件|query|true|file||
+|courseId|课程ID（可选）|query|false|string(uuid)||
+|sessionId|会话ID（可选）|query|false|string(uuid)||
+|autoVectorize|是否自动向量化|query|false|boolean||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultFileDocumentVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data||FileDocumentVO|FileDocumentVO|
+|&emsp;&emsp;id|文件ID|string(uuid)||
+|&emsp;&emsp;fileName|文件名|string||
+|&emsp;&emsp;fileType|文件类型|integer(int32)||
+|&emsp;&emsp;fileTypeName|文件类型名称|string||
+|&emsp;&emsp;fileSize|文件大小（字节）|integer(int64)||
+|&emsp;&emsp;fileSizeFormatted|文件大小（格式化）|string||
+|&emsp;&emsp;mimeType|MIME类型|string||
+|&emsp;&emsp;storagePath|存储路径|string||
+|&emsp;&emsp;sysUserId|上传用户ID|string(uuid)||
+|&emsp;&emsp;courseId|课程ID|string(uuid)||
+|&emsp;&emsp;sessionId|会话ID|string(uuid)||
+|&emsp;&emsp;status|状态|integer(int32)||
+|&emsp;&emsp;statusName|状态名称|string||
+|&emsp;&emsp;isVectorized|是否已向量化|boolean||
+|&emsp;&emsp;vectorCount|向量块数量|integer(int32)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"id": "",
+		"fileName": "",
+		"fileType": 0,
+		"fileTypeName": "",
+		"fileSize": 0,
+		"fileSizeFormatted": "",
+		"mimeType": "",
+		"storagePath": "",
+		"sysUserId": "",
+		"courseId": "",
+		"sessionId": "",
+		"status": 0,
+		"statusName": "",
+		"isVectorized": true,
+		"vectorCount": 0,
+		"createTime": "",
+		"updateTime": ""
+	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## uploadFiles
+
+
+**接口地址**:`/api/celestial-hub/file-document/upload/batch`
+
+
+**请求方式**:`POST`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>批量上传多个文件</p>
+
+
+
+**请求示例**:
+
+
+```javascript
+[]
+```
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|strings|string|body|true|array||
+|courseId|课程ID（可选）|query|false|string(uuid)||
+|sessionId|会话ID（可选）|query|false|string(uuid)||
+|autoVectorize|是否自动向量化|query|false|boolean||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListFileDocumentVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|FileDocumentVO|
+|&emsp;&emsp;id|文件ID|string(uuid)||
+|&emsp;&emsp;fileName|文件名|string||
+|&emsp;&emsp;fileType|文件类型|integer(int32)||
+|&emsp;&emsp;fileTypeName|文件类型名称|string||
+|&emsp;&emsp;fileSize|文件大小（字节）|integer(int64)||
+|&emsp;&emsp;fileSizeFormatted|文件大小（格式化）|string||
+|&emsp;&emsp;mimeType|MIME类型|string||
+|&emsp;&emsp;storagePath|存储路径|string||
+|&emsp;&emsp;sysUserId|上传用户ID|string(uuid)||
+|&emsp;&emsp;courseId|课程ID|string(uuid)||
+|&emsp;&emsp;sessionId|会话ID|string(uuid)||
+|&emsp;&emsp;status|状态|integer(int32)||
+|&emsp;&emsp;statusName|状态名称|string||
+|&emsp;&emsp;isVectorized|是否已向量化|boolean||
+|&emsp;&emsp;vectorCount|向量块数量|integer(int32)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"fileName": "",
+			"fileType": 0,
+			"fileTypeName": "",
+			"fileSize": 0,
+			"fileSizeFormatted": "",
+			"mimeType": "",
+			"storagePath": "",
+			"sysUserId": "",
+			"courseId": "",
+			"sessionId": "",
+			"status": 0,
+			"statusName": "",
+			"isVectorized": true,
+			"vectorCount": 0,
+			"createTime": "",
+			"updateTime": ""
+		}
+	]
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
 # 知识管理
 
 
@@ -390,6 +1279,7 @@
   "courseId": "",
   "chapterId": "",
   "contentTypes": [],
+  "sessionId": "",
   "topK": 0,
   "similarityThreshold": 0,
   "tags": []
@@ -407,6 +1297,7 @@
 |&emsp;&emsp;courseId|课程ID||false|string(uuid)||
 |&emsp;&emsp;chapterId|章节ID||false|string(uuid)||
 |&emsp;&emsp;contentTypes|内容类型过滤: 0-章节, 1-问题, 2-答案, 3-论坛||false|array|integer(int32)|
+|&emsp;&emsp;sessionId|会话ID（用于限定file_document向量的可见范围）||false|string(uuid)||
 |&emsp;&emsp;topK|返回结果数量||false|integer(int32)||
 |&emsp;&emsp;similarityThreshold|相似度阈值(0.0-1.0)||false|number(double)||
 |&emsp;&emsp;tags|标签过滤||false|array|string|
@@ -443,6 +1334,12 @@
 |&emsp;&emsp;&emsp;&emsp;score|相似度分数|number||
 |&emsp;&emsp;&emsp;&emsp;courseId|课程ID|string||
 |&emsp;&emsp;&emsp;&emsp;chapterId|章节ID|string||
+|&emsp;&emsp;&emsp;&emsp;questionBankId|题库ID（问题类型时使用）|string||
+|&emsp;&emsp;&emsp;&emsp;questionId|问题ID（问题类型时使用）|string||
+|&emsp;&emsp;&emsp;&emsp;taskId|任务ID（任务类型时使用）|string||
+|&emsp;&emsp;&emsp;&emsp;forumId|论坛ID（论坛类型时使用）|string||
+|&emsp;&emsp;&emsp;&emsp;postId|帖子ID（论坛类型时使用）|string||
+|&emsp;&emsp;&emsp;&emsp;userId|用户ID|string||
 |&emsp;&emsp;&emsp;&emsp;tags|标签列表|array|string|
 |&emsp;&emsp;&emsp;&emsp;metadata|元数据|object||
 |&emsp;&emsp;total|总数|integer(int32)||
@@ -466,6 +1363,12 @@
 				"score": 0,
 				"courseId": "",
 				"chapterId": "",
+				"questionBankId": "",
+				"questionId": "",
+				"taskId": "",
+				"forumId": "",
+				"postId": "",
+				"userId": "",
 				"tags": [],
 				"metadata": {}
 			}
@@ -552,8 +1455,7 @@
 ```javascript
 {
   "courseId": "",
-  "chapterId": "",
-  "contentType": "",
+  "contentType": 0,
   "forceReindex": true,
   "tags": []
 }
@@ -567,8 +1469,7 @@
 | -------- | -------- | ----- | -------- | -------- | ------ |
 |vectorizeRequestDTO|向量化请求|body|true|VectorizeRequestDTO|VectorizeRequestDTO|
 |&emsp;&emsp;courseId|课程ID||false|string(uuid)||
-|&emsp;&emsp;chapterId|章节ID||false|string(uuid)||
-|&emsp;&emsp;contentType|内容类型: chapter-章节, question-问题, answer-答案, forum-论坛||true|string||
+|&emsp;&emsp;contentType|内容类型: 0-章节, 1-问题, 2-答案, 3-论坛||true|integer(int32)||
 |&emsp;&emsp;forceReindex|是否强制重新向量化||false|boolean||
 |&emsp;&emsp;tags|标签过滤||false|array|string|
 
@@ -2067,6 +2968,7 @@
 |&emsp;&emsp;modelName|使用的模型名称|string||
 |&emsp;&emsp;references|引用的参考内容|array|object|
 |&emsp;&emsp;attachments|附件URL列表|array|string|
+|&emsp;&emsp;requestId|请求ID（用于幂等），Kafka传入或HTTP生成|string||
 |&emsp;&emsp;isFeedback|用户反馈: 0-无, 1-有用, -1-无用|integer(int32)||
 |&emsp;&emsp;metadata|元数据|object||
 
@@ -2088,6 +2990,7 @@
 		"modelName": "",
 		"references": [],
 		"attachments": [],
+		"requestId": "",
 		"isFeedback": 0,
 		"metadata": {}
 	}
@@ -2283,6 +3186,7 @@
 ```javascript
 {
   "sessionId": "",
+  "userId": "",
   "message": "",
   "courseId": "",
   "chapterId": "",
@@ -2291,7 +3195,8 @@
   "stream": true,
   "temperature": 0,
   "maxTokens": 0,
-  "attachments": []
+  "attachments": [],
+  "fileIds": []
 }
 ```
 
@@ -2303,6 +3208,7 @@
 | -------- | -------- | ----- | -------- | -------- | ------ |
 |chatRequestDTO|AI对话请求|body|true|ChatRequestDTO|ChatRequestDTO|
 |&emsp;&emsp;sessionId|会话ID（新对话时可为空）||false|string(uuid)||
+|&emsp;&emsp;userId|用户ID（Kafka场景下需要）||false|string(uuid)||
 |&emsp;&emsp;message|用户消息内容||true|string||
 |&emsp;&emsp;courseId|课程ID（课程相关问答时提供）||false|string(uuid)||
 |&emsp;&emsp;chapterId|章节ID（章节相关问答时提供）||false|string(uuid)||
@@ -2312,6 +3218,7 @@
 |&emsp;&emsp;temperature|温度参数(0.0-1.0)||false|number(double)||
 |&emsp;&emsp;maxTokens|最大token数||false|integer(int32)||
 |&emsp;&emsp;attachments|附件URL列表||false|array|string|
+|&emsp;&emsp;fileIds|文件ID列表（用于RAG检索文件内容）||false|array|string(uuid)|
 
 
 **响应状态**:
@@ -2495,6 +3402,7 @@
 |&emsp;&emsp;modelName|使用的模型名称|string||
 |&emsp;&emsp;references|引用的参考内容|array|object|
 |&emsp;&emsp;attachments|附件URL列表|array|string|
+|&emsp;&emsp;requestId|请求ID（用于幂等），Kafka传入或HTTP生成|string||
 |&emsp;&emsp;isFeedback|用户反馈: 0-无, 1-有用, -1-无用|integer(int32)||
 |&emsp;&emsp;metadata|元数据|object||
 
@@ -2517,6 +3425,7 @@
 			"modelName": "",
 			"references": [],
 			"attachments": [],
+			"requestId": "",
 			"isFeedback": 0,
 			"metadata": {}
 		}
@@ -2600,6 +3509,7 @@
 ```javascript
 {
   "sessionId": "",
+  "userId": "",
   "message": "",
   "courseId": "",
   "chapterId": "",
@@ -2608,7 +3518,8 @@
   "stream": true,
   "temperature": 0,
   "maxTokens": 0,
-  "attachments": []
+  "attachments": [],
+  "fileIds": []
 }
 ```
 
@@ -2620,6 +3531,7 @@
 | -------- | -------- | ----- | -------- | -------- | ------ |
 |chatRequestDTO|AI对话请求|body|true|ChatRequestDTO|ChatRequestDTO|
 |&emsp;&emsp;sessionId|会话ID（新对话时可为空）||false|string(uuid)||
+|&emsp;&emsp;userId|用户ID（Kafka场景下需要）||false|string(uuid)||
 |&emsp;&emsp;message|用户消息内容||true|string||
 |&emsp;&emsp;courseId|课程ID（课程相关问答时提供）||false|string(uuid)||
 |&emsp;&emsp;chapterId|章节ID（章节相关问答时提供）||false|string(uuid)||
@@ -2629,6 +3541,7 @@
 |&emsp;&emsp;temperature|温度参数(0.0-1.0)||false|number(double)||
 |&emsp;&emsp;maxTokens|最大token数||false|integer(int32)||
 |&emsp;&emsp;attachments|附件URL列表||false|array|string|
+|&emsp;&emsp;fileIds|文件ID列表（用于RAG检索文件内容）||false|array|string(uuid)|
 
 
 **响应状态**:
@@ -2695,23 +3608,44 @@
 ```
 
 
-## getStreamConnection
+## chatStreamKafka
 
 
-**接口地址**:`/api/celestial-hub/message/stream/{requestId}`
+**接口地址**:`/api/celestial-hub/message/stream/kafka`
 
 
-**请求方式**:`GET`
+**请求方式**:`POST`
 
 
-**请求数据类型**:`application/x-www-form-urlencoded`
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
 
 
 **响应数据类型**:`text/event-stream,*/*`
 
 
-**接口描述**:<p>通过requestId建立SSE连接，接收AI流式响应（异步架构）</p>
+**接口描述**:<p>通过Kafka转发消息并以流式方式接收AI回复</p>
 
+
+
+**请求示例**:
+
+
+```javascript
+{
+  "sessionId": "",
+  "userId": "",
+  "message": "",
+  "courseId": "",
+  "chapterId": "",
+  "sessionType": 0,
+  "useRag": true,
+  "stream": true,
+  "temperature": 0,
+  "maxTokens": 0,
+  "attachments": [],
+  "fileIds": []
+}
+```
 
 
 **请求参数**:
@@ -2719,7 +3653,19 @@
 
 | 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
 | -------- | -------- | ----- | -------- | -------- | ------ |
-|requestId|请求ID|path|true|string(uuid)||
+|kafkaChatRequestDTO|Kafka转发AI对话请求|body|true|KafkaChatRequestDTO|KafkaChatRequestDTO|
+|&emsp;&emsp;sessionId|会话ID（新对话时可为空）||false|string(uuid)||
+|&emsp;&emsp;userId|用户ID||false|string(uuid)||
+|&emsp;&emsp;message|用户消息内容||true|string||
+|&emsp;&emsp;courseId|课程ID（课程相关问答时提供）||false|string(uuid)||
+|&emsp;&emsp;chapterId|章节ID（章节相关问答时提供）||false|string(uuid)||
+|&emsp;&emsp;sessionType|会话类型: 0-普通对话, 1-课程问答, 2-题目辅导, 3-知识检索||false|integer(int32)||
+|&emsp;&emsp;useRag|是否使用RAG检索||false|boolean||
+|&emsp;&emsp;stream|是否流式输出||false|boolean||
+|&emsp;&emsp;temperature|温度参数(0.0-1.0)||false|number(double)||
+|&emsp;&emsp;maxTokens|最大token数||false|integer(int32)||
+|&emsp;&emsp;attachments|附件URL列表||false|array|string|
+|&emsp;&emsp;fileIds|文件ID列表（用于RAG检索文件内容）||false|array|string(uuid)|
 
 
 **响应状态**:
@@ -2727,28 +3673,9 @@
 
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
-|200|OK|SseEmitter|
+|200|OK||
 |400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
-
-
-**响应状态码-200**:
-
-
-**响应参数**:
-
-
-| 参数名称 | 参数说明 | 类型 | schema |
-| -------- | -------- | ----- |----- | 
-|timeout||integer(int64)|integer(int64)|
-
-
-**响应示例**:
-```javascript
-{
-	"timeout": 0
-}
-```
 
 
 **响应状态码-400**:
@@ -2767,12 +3694,14 @@
 
 **响应示例**:
 ```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": {}
-}
+[
+	{
+		"success": true,
+		"code": 200,
+		"message": "操作成功",
+		"data": {}
+	}
+]
 ```
 
 
@@ -2792,51 +3721,34 @@
 
 **响应示例**:
 ```javascript
-{
-	"success": true,
-	"code": 200,
-	"message": "操作成功",
-	"data": ""
-}
+[
+	{
+		"success": true,
+		"code": 200,
+		"message": "操作成功",
+		"data": ""
+	}
+]
 ```
 
 
-## chatStreamAsync
+## cancelChatStreamKafka
 
 
-**接口地址**:`/api/celestial-hub/message/stream/async`
+**接口地址**:`/api/celestial-hub/message/stream/kafka/{requestId}/cancel`
 
 
 **请求方式**:`POST`
 
 
-**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+**请求数据类型**:`application/x-www-form-urlencoded`
 
 
 **响应数据类型**:`*/*`
 
 
-**接口描述**:<p>发送消息到Kafka并立即返回requestId（异步架构）</p>
+**接口描述**:<p>取消Kafka流式聊天请求</p>
 
-
-
-**请求示例**:
-
-
-```javascript
-{
-  "sessionId": "",
-  "message": "",
-  "courseId": "",
-  "chapterId": "",
-  "sessionType": 0,
-  "useRag": true,
-  "stream": true,
-  "temperature": 0,
-  "maxTokens": 0,
-  "attachments": []
-}
-```
 
 
 **请求参数**:
@@ -2844,17 +3756,8 @@
 
 | 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
 | -------- | -------- | ----- | -------- | -------- | ------ |
-|chatRequestDTO|AI对话请求|body|true|ChatRequestDTO|ChatRequestDTO|
-|&emsp;&emsp;sessionId|会话ID（新对话时可为空）||false|string(uuid)||
-|&emsp;&emsp;message|用户消息内容||true|string||
-|&emsp;&emsp;courseId|课程ID（课程相关问答时提供）||false|string(uuid)||
-|&emsp;&emsp;chapterId|章节ID（章节相关问答时提供）||false|string(uuid)||
-|&emsp;&emsp;sessionType|会话类型: 0-普通对话, 1-课程问答, 2-题目辅导, 3-知识检索||false|integer(int32)||
-|&emsp;&emsp;useRag|是否使用RAG检索||false|boolean||
-|&emsp;&emsp;stream|是否流式输出||false|boolean||
-|&emsp;&emsp;temperature|温度参数(0.0-1.0)||false|number(double)||
-|&emsp;&emsp;maxTokens|最大token数||false|integer(int32)||
-|&emsp;&emsp;attachments|附件URL列表||false|array|string|
+|requestId|请求ID|path|true|string||
+|reason|取消原因|query|false|string||
 
 
 **响应状态**:
@@ -2862,7 +3765,7 @@
 
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
-|200|OK|ResultMapStringObject|
+|200|OK|ResultBoolean|
 |400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
 
@@ -2878,7 +3781,7 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data|响应数据体 (泛型)|object||
+|data|响应数据体 (泛型)|boolean||
 
 
 **响应示例**:
@@ -2887,7 +3790,7 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": {}
+	"data": true
 }
 ```
 

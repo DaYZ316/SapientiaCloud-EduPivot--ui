@@ -78,7 +78,7 @@
               :options="replyActionOptions"
               :show-arrow="true"
               trigger="click"
-              @select="(key) => handleReplyAction(key, reply)"
+              @select="handleDropdownSelect(reply)"
           >
             <n-button
                 circle
@@ -146,41 +146,18 @@
       <!-- 附件和文件 -->
       <div v-if="reply.deleted !== 1 && reply.attachmentUrls && reply.attachmentUrls.length > 0"
            class="reply-attachments">
-        <div class="file-info-container">
-          <n-spin :show="loadingFileInfo">
-            <n-list>
-              <n-list-item
-                  v-for="fileInfo in fileInfoList"
-                  :key="fileInfo.objectName"
-                  class="file-info-item"
-                  @click="handleFilePreview(fileInfo)"
-              >
-                <template #prefix>
-                  <Icon :component="getFileTypeIcon(fileInfo)" color="var(--primary-color)" size="14"/>
-                </template>
-
-                <div class="file-details">
-                  <div class="file-name">{{ fileInfo.fileName }}</div>
-                  <div class="file-meta">
-                    <n-text depth="3" style="font-size: 10px">
-                      {{ formatFileSize(fileInfo.size) }}
-                    </n-text>
-                    <n-text depth="3" style="font-size: 10px; margin-left: 6px">
-                      {{ formatUploadTime(fileInfo.lastModified) }}
-                    </n-text>
-                  </div>
-                </div>
-              </n-list-item>
-            </n-list>
-          </n-spin>
-        </div>
+        <FileInfoList
+            :bucket-code="BusinessBucketCodeEnum.COURSE_PUBLIC"
+            :file-paths="reply.attachmentUrls"
+            @preview="handleFilePreview"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import {computed, h, onMounted, ref} from 'vue'
+import {computed, h, ref} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useRouter} from 'vue-router'
 import anonymousUserImg from '@/assets/image/anonymous-user.png'
@@ -190,37 +167,27 @@ import {
   NDropdown,
   NIcon,
   NImage,
-  NList,
-  NListItem,
   NSpace,
-  NSpin,
   NTag,
-  NText,
   useMessage
 } from 'naive-ui'
 import {
-  ArchiveOutline,
   ChatbubbleOutline,
   CheckmarkCircleOutline,
   CloseCircleOutline,
   CreateOutline,
-  DocumentTextOutline,
   EllipsisVertical,
-  FolderOutline,
   Heart,
   HeartOutline,
   ImageOutline,
-  MusicalNotesOutline,
-  TrashOutline,
-  VideocamOutline
+  TrashOutline
 } from '@vicons/ionicons5'
 import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
-import Icon from '@/components/common/Icon.vue'
+import FileInfoList from '@/components/common/FileInfoList.vue'
 import {ForumReplyVO} from '@/types/course/forumReply'
 import {FileInfoDTO} from '@/types/minIO/file'
 import {BusinessBucketCodeEnum} from '@/enum/minIO'
 import {acceptReply, likeReply, unacceptReply, unlikeReply} from '@/api/course/forumReply'
-import * as MinIOApi from '@/api/minIO'
 import {formatToBeijingTime} from '@/utils/dateUtil'
 
 interface Props {
@@ -249,8 +216,6 @@ const message = useMessage()
 // 响应式数据
 const isLiked = ref(false)
 const likeLoading = ref(false)
-const fileInfoList = ref<FileInfoDTO[]>([])
-const loadingFileInfo = ref(false)
 const imageErrors = ref<Record<number, boolean>>({})
 
 // 回复操作选项
@@ -275,6 +240,13 @@ const replyActionOptions = computed(() => [
     icon: () => h(NIcon, {color: '#d03050'}, {default: () => h(TrashOutline)})
   } as any
 ])
+
+const handleDropdownSelect = (reply: ForumReplyVO) => (key: string | number | null) => {
+  if (key === null || key === undefined) {
+    return
+  }
+  handleReplyAction(String(key), reply)
+}
 
 // 权限判断
 const canManageReply = computed(() => {
@@ -337,56 +309,6 @@ const handleFilePreview = (fileInfo: FileInfoDTO) => {
   })
 }
 
-// 加载文件详细信息
-const loadFileInfo = async () => {
-  if (!props.reply.attachmentUrls || props.reply.attachmentUrls.length === 0) {
-    fileInfoList.value = []
-    return
-  }
-
-  loadingFileInfo.value = true
-  const res = await MinIOApi.getBatchFileInfoByPath({
-    filePaths: props.reply.attachmentUrls,
-    bucketCode: BusinessBucketCodeEnum.COURSE_PUBLIC
-  })
-  if (res && res.success && res.data) {
-    fileInfoList.value = res.data.filter(file => !file.error)
-  }
-  loadingFileInfo.value = false
-}
-
-// 获取文件类型图标
-const getFileTypeIcon = (fileInfo: FileInfoDTO) => {
-  const contentType = fileInfo.contentType || ''
-  if (contentType.startsWith('image/')) return ImageOutline
-  if (contentType.startsWith('video/')) return VideocamOutline
-  if (contentType.startsWith('audio/')) return MusicalNotesOutline
-  if (contentType.includes('pdf') || contentType.includes('document') || contentType.includes('text')) return DocumentTextOutline
-  if (contentType.includes('zip') || contentType.includes('rar') || contentType.includes('7z')) return ArchiveOutline
-  return FolderOutline
-}
-
-// 格式化文件大小
-const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-}
-
-// 格式化上传时间
-const formatUploadTime = (timeString: string): string => {
-  const date = new Date(timeString)
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
 // 处理图片加载错误
 const handleImageError = (index: number) => {
   imageErrors.value[index] = true
@@ -422,10 +344,6 @@ const handleReplyAction = async (action: string, reply: ForumReplyVO) => {
   }
 }
 
-// 页面加载时初始化
-onMounted(async () => {
-  await loadFileInfo()
-})
 </script>
 
 <style lang="scss" scoped>
@@ -570,51 +488,6 @@ onMounted(async () => {
 
     .reply-attachments {
       margin: 12px 0;
-
-      .file-info-container {
-        .file-info-item {
-          padding: 6px 10px;
-          border-bottom: 1px solid var(--border-color);
-          cursor: pointer;
-          transition: all 0.2s ease;
-          border-radius: 4px;
-          margin-bottom: 2px;
-
-          &:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-          }
-
-          &:hover {
-            background-color: var(--background-secondary-color);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-          }
-
-          .file-details {
-            flex: 1;
-            margin-left: 6px;
-
-            .file-name {
-              font-weight: 500;
-              margin-bottom: 2px;
-              word-break: break-all;
-              color: var(--text-color);
-              font-size: 11px;
-              transition: color 0.2s ease;
-            }
-
-            .file-meta {
-              display: flex;
-              align-items: center;
-              gap: 4px;
-            }
-          }
-
-          &:hover .file-details .file-name {
-            color: var(--primary-color);
-          }
-        }
-      }
     }
 
     .reply-images {

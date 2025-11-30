@@ -49,35 +49,12 @@
       </div>
 
       <!-- 章节附件 -->
-      <div v-if="chapter.attachmentUrls && chapter.attachmentUrls.length > 0" class="chapter-attachments">
-        <div class="section-title">
-          <h3>{{ t('course.chapters.form.attachments') }}</h3>
-        </div>
-        <div class="file-info-container">
-          <n-spin :show="loadingFileInfo">
-            <n-list>
-              <n-list-item v-for="fileInfo in fileInfoList" :key="fileInfo.objectName" class="file-info-item"
-                           @click="handleFilePreview(fileInfo)">
-                <template #prefix>
-                  <Icon :component="getFileTypeIcon(fileInfo)" color="var(--color-primary)" size="20"/>
-                </template>
-
-                <div class="file-details">
-                  <div class="file-name">{{ fileInfo.fileName }}</div>
-                  <div class="file-meta">
-                    <n-text depth="3" style="font-size: 12px">
-                      {{ formatFileSize(fileInfo.size) }}
-                    </n-text>
-                    <n-text depth="3" style="font-size: 12px; margin-left: 8px">
-                      {{ formatUploadTime(fileInfo.lastModified) }}
-                    </n-text>
-                  </div>
-                </div>
-              </n-list-item>
-            </n-list>
-          </n-spin>
-        </div>
-      </div>
+      <FileInfoList
+          v-if="chapter.attachmentUrls && chapter.attachmentUrls.length > 0"
+          :file-paths="chapter.attachmentUrls"
+          :title="t('course.chapters.form.attachments')"
+          @preview="handleFilePreview"
+      />
 
     </n-card>
 
@@ -85,36 +62,23 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, ref, watch} from 'vue'
+import {computed} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useRouter} from 'vue-router'
 import {
-  ArchiveOutline,
   BookOutline,
   CreateOutline,
-  DocumentTextOutline,
-  FolderOutline,
-  ImageOutline,
-  MusicalNotesOutline,
-  TrashOutline,
-  VideocamOutline
+  TrashOutline
 } from '@vicons/ionicons5'
-import * as MinIOApi from '@/api/minIO'
-import {BusinessBucketCodeEnum} from '@/enum/minIO'
 import type {CourseChapterVO} from '@/types/course/courseChapter'
 import type {FileInfoDTO} from '@/types/minIO/file'
 import Icon from '@/components/common/Icon.vue'
-import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {useUserStore} from '@/store/modules/user'
+import FileInfoList from '@/components/common/FileInfoList.vue'
 
-const {message} = getDiscreteApi()
 const {t} = useI18n()
 const router = useRouter()
 const userStore = useUserStore()
-
-// 响应式数据
-const fileInfoList = ref<FileInfoDTO[]>([]) // 文件详细信息列表
-const loadingFileInfo = ref(false) // 加载文件信息状态
 
 // 权限检查
 const canEditChapter = computed(() => {
@@ -150,7 +114,6 @@ const handleDelete = () => {
   }
 }
 
-// 处理文件预览
 const handleFilePreview = (fileInfo: FileInfoDTO) => {
   // 跳转到文件预览页面，传递文件信息作为查询参数
   router.push({
@@ -163,71 +126,6 @@ const handleFilePreview = (fileInfo: FileInfoDTO) => {
     }
   })
 }
-
-// 加载文件详细信息
-const loadFileInfo = async () => {
-  if (!props.chapter?.attachmentUrls || props.chapter.attachmentUrls.length === 0) {
-    fileInfoList.value = []
-    return
-  }
-
-  loadingFileInfo.value = true
-  try {
-    const res = await MinIOApi.getBatchFileInfoByPath({
-      filePaths: props.chapter.attachmentUrls,
-      bucketCode: BusinessBucketCodeEnum.COURSE_PRIVATE
-    })
-    if (res && res.success && res.data) {
-      // 过滤掉error字段为true的文件
-      fileInfoList.value = res.data.filter(file => !file.error)
-    }
-  } catch (error) {
-    message.error(t('course.chapters.getFileInfoFailed'))
-  } finally {
-    loadingFileInfo.value = false
-  }
-}
-
-// 获取文件类型图标
-const getFileTypeIcon = (fileInfo: FileInfoDTO) => {
-  const contentType = fileInfo.contentType || ''
-  if (contentType.startsWith('image/')) return ImageOutline
-  if (contentType.startsWith('video/')) return VideocamOutline
-  if (contentType.startsWith('audio/')) return MusicalNotesOutline
-  if (contentType.includes('pdf') || contentType.includes('document') || contentType.includes('text')) return DocumentTextOutline
-  if (contentType.includes('zip') || contentType.includes('rar') || contentType.includes('7z')) return ArchiveOutline
-  return FolderOutline
-}
-
-// 格式化文件大小
-const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-}
-
-// 格式化上传时间
-const formatUploadTime = (timeString: string): string => {
-  const date = new Date(timeString)
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
-// 监听章节变化，重新加载文件信息
-watch(() => props.chapter, () => {
-  if (props.chapter) {
-    loadFileInfo()
-  } else {
-    fileInfoList.value = []
-  }
-}, {immediate: true})
 
 
 </script>
@@ -291,68 +189,6 @@ watch(() => props.chapter, () => {
       }
     }
 
-    .chapter-attachments {
-      margin-bottom: 24px;
-
-      .section-title {
-        margin-bottom: 16px;
-
-        h3 {
-          margin: 0;
-          font-size: 18px;
-          font-weight: 600;
-          color: var(--n-text-color);
-        }
-      }
-
-      .file-info-container {
-        .file-info-item {
-          padding: 12px 16px;
-          border-bottom: 1px solid var(--n-border-color);
-          cursor: pointer;
-          transition: all 0.2s ease;
-          border-radius: 8px;
-          margin-bottom: 4px;
-
-          &:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-          }
-
-          &:hover {
-            background-color: var(--n-color-hover);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-          }
-
-          &:active {
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-          }
-
-          .file-details {
-            flex: 1;
-            margin-left: 12px;
-
-            .file-name {
-              font-weight: 500;
-              margin-bottom: 4px;
-              word-break: break-all;
-              color: var(--n-text-color);
-              transition: color 0.2s ease;
-            }
-
-            .file-meta {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-            }
-          }
-
-          &:hover .file-details .file-name {
-            color: var(--color-primary);
-          }
-        }
-      }
-    }
   }
 }
 

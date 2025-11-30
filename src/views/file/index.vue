@@ -1,6 +1,7 @@
 <template>
-  <Teleport :disabled="!isFullscreen" to="body">
-    <div :class="{ 'fullscreen': isFullscreen }" class="file-preview-container">
+  <div class="file-preview-page">
+    <Teleport :disabled="!isFullscreen" to="body">
+      <div :class="{ 'fullscreen': isFullscreen }" class="file-preview-container">
       <!-- 顶部工具栏 -->
       <div v-if="showToolbar" class="file-preview-toolbar">
         <div class="toolbar-left">
@@ -270,14 +271,14 @@
           </div>
         </div>
       </div>
-
     </div>
-  </Teleport>
+    </Teleport>
+  </div>
 </template>
 
 <script lang="ts" setup>
 // 使用动态导入来避免 Vite 7 兼容性问题
-import {computed, defineAsyncComponent, onMounted, onUnmounted, ref, Teleport, watch} from 'vue'
+import {computed, defineAsyncComponent, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useRoute, useRouter} from 'vue-router'
 import {useMenuStore} from '@/store'
@@ -644,6 +645,10 @@ watch(fileType, (newType: FilePreviewTypeString) => {
 </script>
 
 <style lang="scss" scoped>
+.file-preview-page {
+  display: contents;
+}
+
 .file-preview-container {
   height: 100vh;
   display: flex;

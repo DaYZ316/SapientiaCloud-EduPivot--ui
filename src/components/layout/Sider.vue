@@ -119,9 +119,15 @@ const getCurrentMenuKey = (routeName: string): string => {
 }
 
 const currentRoute = computed(() => getCurrentMenuKey(route.name as string))
+const dynamicMenuOptions = computed(() => menuStore.getDynamicMenuItems)
+
 const menuOptions = computed(() => {
   const lastCourse = menuStore.getLastAccessedCourse
-  return getMenuOptions(t, lastCourse?.courseName, lastCourse?.courseId) as any[]
+  const baseMenuOptions = getMenuOptions(t, lastCourse?.courseName, lastCourse?.courseId)
+  if (!dynamicMenuOptions.value.length) {
+    return baseMenuOptions as any[]
+  }
+  return [...baseMenuOptions, ...dynamicMenuOptions.value] as any[]
 })
 const userMenuOptions = computed(() => getUserMenuOptions(t) as any[])
 

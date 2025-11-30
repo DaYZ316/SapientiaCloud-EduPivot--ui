@@ -26,6 +26,8 @@ export interface ChatMessage {
     references?: any[] | null
     /** 附件URL列表 */
     attachments?: string[] | null
+    /** 请求ID（用于幂等） */
+    requestId?: string | null
     /** 用户反馈: 0-无, 1-有用, -1-无用 */
     isFeedback?: number | null
     /** 元数据 */
@@ -38,6 +40,8 @@ export interface ChatMessage {
 export interface ChatRequestDTO {
     /** 会话ID（新对话时可为空） */
     sessionId?: string | null
+    /** 用户ID（Kafka场景下需要） */
+    userId?: string | null
     /** 用户消息内容 */
     message?: string | null
     /** 课程ID（课程相关问答时提供） */
@@ -56,6 +60,16 @@ export interface ChatRequestDTO {
     maxTokens?: number | null
     /** 附件URL列表 */
     attachments?: string[] | null
+    /** 文件ID列表（用于RAG检索文件内容） */
+    fileIds?: string[] | null
+}
+
+/**
+ * Kafka流式聊天请求DTO
+ */
+export interface KafkaChatRequestDTO extends ChatRequestDTO {
+    /** 请求ID（用于Kafka幂等及取消） */
+    requestId?: string | null
 }
 
 /**
@@ -98,5 +112,29 @@ export interface ChatResponseVO {
     finished?: boolean | null
     /** 元数据 */
     metadata?: any | null
+}
+
+/**
+ * 取消Kafka流式聊天请求DTO
+ */
+export interface CancelChatStreamKafkaDTO {
+    /** 请求ID */
+    requestId?: string | null
+    /** 取消原因 */
+    reason?: string | null
+}
+
+/**
+ * SSE事件回调
+ */
+export interface SSEEventCallbacks {
+    /** 接收到数据事件时调用 */
+    onMessage?: (data: string) => void
+    /** 连接打开时调用 */
+    onOpen?: () => void
+    /** 发生错误时调用 */
+    onError?: (error: Error) => void
+    /** 连接关闭时调用 */
+    onClose?: () => void
 }
 

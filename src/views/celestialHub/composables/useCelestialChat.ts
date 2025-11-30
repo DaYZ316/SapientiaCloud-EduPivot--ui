@@ -1,13 +1,28 @@
-import {nextTick, onUnmounted, ref} from 'vue'
+import {nextTick, onUnmounted, ref, watch} from 'vue'
 import type {ChatMessage} from '@/types/celestialHub/chatMessage'
 import type {ChatSessionVO} from '@/types/celestialHub/chatSession'
 import {
-    chatStream,
-    getDefaultChatRequestDTO,
+    cancelChatStreamKafka,
+    chatStreamKafka,
+    getDefaultCancelChatStreamKafkaDTO,
+    getDefaultKafkaChatRequestDTO,
     listMessagesBySessionId,
     type SSEController
 } from '@/api/celestialHub/chatMessage'
 import {addChatSession} from '@/api/celestialHub/chatSession'
+
+const RAG_PREFERENCE_STORAGE_KEY = 'celestialHub_useRag'
+
+const resolveStoredUseRag = (): boolean => {
+    if (typeof window === 'undefined') {
+        return true
+    }
+    const storedValue = window.localStorage.getItem(RAG_PREFERENCE_STORAGE_KEY)
+    if (storedValue === null) {
+        return true
+    }
+    return storedValue === 'true'
+}
 
 export function useCelestialChat() {
     const messages = ref<ChatMessage[]>([])
@@ -17,20 +32,71 @@ export function useCelestialChat() {
     const currentSession = ref<ChatSessionVO | null>(null)
     const chatContentRef = ref<HTMLElement | null>(null)
     const currentSSEController = ref<SSEController | null>(null)
+    const currentRequestId = ref<string | null>(null)
     // 是否使用RAG检索（开关）
     const useRag = ref<boolean | null>(null)
+    useRag.value = resolveStoredUseRag()
     // 是否自动滚动到底（用户一旦上滚则置为false，回到底部再置true）
     const isAutoScroll = ref<boolean | null>(null)
     isAutoScroll.value = true
     // 消息容器元素引用
     let messagesWrapperEl: HTMLElement | null = null
 
+    watch(useRag, (value) => {
+        if (typeof window === 'undefined' || value === null) {
+            return
+        }
+        window.localStorage.setItem(RAG_PREFERENCE_STORAGE_KEY, String(value))
+    }, {immediate: true})
+
+    const createRequestId = () => {
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+            return crypto.randomUUID()
+        }
+        return `${Date.now()}-${Math.random().toString(16).slice(2)}`
+    }
+
+    const cancelActiveRequest = (reason: string | null = 'user_interrupt') => {
+        if (!currentRequestId.value) {
+            return
+        }
+        const cancelDTO = getDefaultCancelChatStreamKafkaDTO()
+        cancelDTO.requestId = currentRequestId.value
+        cancelDTO.reason = reason
+        cancelChatStreamKafka(cancelDTO)
+        currentRequestId.value = null
+    }
+
     // 关闭当前的SSE连接
-    const closeEventSource = () => {
+    const closeEventSource = (shouldCancel = false) => {
+        if (shouldCancel) {
+            cancelActiveRequest()
+        }
         if (currentSSEController.value) {
             currentSSEController.value.close()
             currentSSEController.value = null
         }
+        currentRequestId.value = null
+    }
+
+    const removePendingAssistantMessage = () => {
+        const lastIndex = messages.value.length - 1
+        if (lastIndex < 0) {
+            return
+        }
+        const lastMessage = messages.value[lastIndex]
+        if (lastMessage?.role === 1 && (!lastMessage.content || lastMessage.content.length === 0)) {
+            messages.value.splice(lastIndex, 1)
+        }
+    }
+
+    const interruptStreaming = () => {
+        if (!isLoading.value) {
+            return
+        }
+        closeEventSource(true)
+        isLoading.value = false
+        removePendingAssistantMessage()
     }
 
     // 计算是否接近底部
@@ -120,8 +186,8 @@ export function useCelestialChat() {
             return
         }
 
-        // 如果存在之前的连接，先关闭
-        closeEventSource()
+        // 如果存在之前的连接，先关闭并取消
+        closeEventSource(true)
 
         const content = input.value.trim()
         input.value = ''
@@ -161,19 +227,22 @@ export function useCelestialChat() {
         const assistantIndex = messages.value.length - 1
 
         // 发送流式请求
-        const chatRequest = getDefaultChatRequestDTO()
+        const chatRequest = getDefaultKafkaChatRequestDTO()
         chatRequest.sessionId = activeSessionId.value
         chatRequest.message = content
         chatRequest.sessionType = 0
         chatRequest.useRag = useRag.value === true
         chatRequest.stream = true
+        const requestId = createRequestId()
+        chatRequest.requestId = requestId
+        currentRequestId.value = requestId
 
         // 累积的AI回复内容
         let accumulatedContent = ''
 
         try {
             // 创建SSE连接控制器
-            const sseController = chatStream(chatRequest, {
+            const sseController = chatStreamKafka(chatRequest, {
                 onMessage: (data: string) => {
                     // SSE数据格式：如果后端发送的是纯文本，event.data就是内容
                     // 如果后端发送的是JSON格式，需要解析
@@ -245,8 +314,8 @@ export function useCelestialChat() {
             return
         }
 
-        // 如果存在之前的连接，先关闭
-        closeEventSource()
+        // 如果存在之前的连接，先关闭并取消
+        closeEventSource(true)
 
         const content = messageContent.trim()
         isLoading.value = true
@@ -285,19 +354,22 @@ export function useCelestialChat() {
         const assistantIndex = messages.value.length - 1
 
         // 发送流式请求
-        const chatRequest = getDefaultChatRequestDTO()
+        const chatRequest = getDefaultKafkaChatRequestDTO()
         chatRequest.sessionId = activeSessionId.value
         chatRequest.message = content
         chatRequest.sessionType = 0
         chatRequest.useRag = useRag.value === true
         chatRequest.stream = true
+        const requestId = createRequestId()
+        chatRequest.requestId = requestId
+        currentRequestId.value = requestId
 
         // 累积的AI回复内容
         let accumulatedContent = ''
 
         try {
             // 创建SSE连接控制器
-            const sseController = chatStream(chatRequest, {
+            const sseController = chatStreamKafka(chatRequest, {
                 onMessage: (data: string) => {
                     if (data === '[DONE]') {
                         closeEventSource()
@@ -353,7 +425,7 @@ export function useCelestialChat() {
 
     // 选择会话
     const selectSession = async (session: ChatSessionVO) => {
-        // 关闭当前的连接
+        // 关闭当前的连接但不触发取消接口
         closeEventSource()
 
         activeSessionId.value = session.id || null
@@ -370,7 +442,7 @@ export function useCelestialChat() {
 
     // 新建会话
     const newChat = () => {
-        // 关闭当前的连接
+        // 关闭当前的连接但不触发取消接口
         closeEventSource()
 
         activeSessionId.value = null
@@ -396,6 +468,7 @@ export function useCelestialChat() {
         chatContentRef,
         sendMessage,
         resendMessage,
+        interruptStreaming,
         selectSession,
         newChat,
         loadMessages,

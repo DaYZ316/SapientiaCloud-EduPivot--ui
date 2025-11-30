@@ -8,18 +8,32 @@ export function getDefaultCourseRecordDTO(): CourseRecordDTO {
         id: null,
         courseId: null,
         teacherId: null,
-        studentIds: null,
-        questionIds: null,
-        modelType: null,
-        totalDesks: null,
+        courseName: null,
+        courseDescription: null,
+        classroomType: null,
         layoutRows: null,
         layoutColumns: null,
-        spacing: null,
-        layoutConfig: null,
-        classroomLayout: null,
         startTime: null,
         overTime: null,
         status: null
+    }
+}
+
+// 获取默认课程记录分页查询DTO
+export function getDefaultCourseRecordPageQueryDTO(): CourseRecordPageQueryDTO {
+    return {
+        pageNum: null,
+        pageSize: null,
+        orderByColumn: null,
+        isAsc: null,
+        reasonable: null,
+        courseId: null,
+        teacherId: null,
+        courseName: null,
+        classroomType: null,
+        status: null,
+        startTimeBegin: null,
+        startTimeEnd: null
     }
 }
 
@@ -45,7 +59,7 @@ export function listAllCourseRecord() {
 
 // 根据ID列表批量删除课程记录
 export function removeCourseRecordByIds(ids: string[]) {
-    return http.delete<number>('/classroom/course-record/batch', ids)
+    return http.delete<number>('/classroom/course-record/batch', {data: ids})
 }
 
 // 根据课程ID查询该课程的所有教学记录

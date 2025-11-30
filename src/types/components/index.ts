@@ -8,5 +8,5 @@ export * from './imageUpload'
 export * from './fileUpload'
 // 导出高级表格组件类型
 export * from './advancedTable'
-// 导出头像组件类型
-export * from './avatar'
+// 导出入座确认弹窗类型
+export * from './seatConfirmModal'

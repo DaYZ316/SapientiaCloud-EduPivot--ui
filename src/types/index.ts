@@ -21,3 +21,6 @@ export * from './course/index'
 
 // 导出celestialHub类型
 export * from './celestialHub/index'
+
+// 导出classroom类型
+export * from './classroom/index'

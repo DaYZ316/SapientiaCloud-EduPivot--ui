@@ -27,6 +27,7 @@ export default {
     goBack: 'Go Back',
     retry: 'Retry',
     error: 'Error',
+    refresh: 'Refresh',
 
     // Avatar upload related
     uploadAvatar: 'Upload Avatar',

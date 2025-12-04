@@ -10,3 +10,5 @@ export * from './course';
 export * from './celestialHub';
 // MinIO 相关枚举导出
 export * from './minIO';
+// 直播相关枚举导出
+export * from './live';

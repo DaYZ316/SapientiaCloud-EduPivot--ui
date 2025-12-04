@@ -10,6 +10,7 @@ import {
     type SSEController
 } from '@/api/celestialHub/chatMessage'
 import {addChatSession} from '@/api/celestialHub/chatSession'
+import {useChatScroll} from '@/views/celestialHub/composables/useChatScroll'
 
 const RAG_PREFERENCE_STORAGE_KEY = 'celestialHub_useRag'
 
@@ -30,18 +31,17 @@ export function useCelestialChat() {
     const isLoading = ref(false)
     const activeSessionId = ref<string | null>(null)
     const currentSession = ref<ChatSessionVO | null>(null)
-    const chatContentRef = ref<HTMLElement | null>(null)
+    const {
+        chatContentRef,
+        scrollToBottom,
+        scrollToBottomForce,
+        scrollIntoViewInMessages
+    } = useChatScroll()
     const currentSSEController = ref<SSEController | null>(null)
     const currentRequestId = ref<string | null>(null)
     // 是否使用RAG检索（开关）
     const useRag = ref<boolean | null>(null)
     useRag.value = resolveStoredUseRag()
-    // 是否自动滚动到底（用户一旦上滚则置为false，回到底部再置true）
-    const isAutoScroll = ref<boolean | null>(null)
-    isAutoScroll.value = true
-    // 消息容器元素引用
-    let messagesWrapperEl: HTMLElement | null = null
-
     watch(useRag, (value) => {
         if (typeof window === 'undefined' || value === null) {
             return
@@ -99,82 +99,28 @@ export function useCelestialChat() {
         removePendingAssistantMessage()
     }
 
-    // 计算是否接近底部
-    const isNearBottom = (el: HTMLElement) => {
-        const threshold = 12
-        const distance = el.scrollHeight - el.scrollTop - el.clientHeight
-        return distance <= threshold
-    }
-
-    // 绑定滚动监听（懒绑定）
-    const ensureScrollListener = () => {
-        if (!chatContentRef.value) {
-            return
-        }
-        if (!messagesWrapperEl) {
-            const el = chatContentRef.value.querySelector('.messages-wrapper') as HTMLElement | null
-            if (el) {
-                messagesWrapperEl = el
-                messagesWrapperEl.addEventListener('scroll', handleWrapperScroll, {passive: true})
-                // 初始化一次状态
-                isAutoScroll.value = isNearBottom(messagesWrapperEl)
-            }
-        }
-    }
-
-    const handleWrapperScroll = () => {
-        if (!messagesWrapperEl) {
-            return
-        }
-        // 当用户未在底部时，关闭自动滚动；回到底部再开启
-        isAutoScroll.value = isNearBottom(messagesWrapperEl)
-    }
-
-    // 滚动到底部
-    const scrollToBottom = () => {
-        ensureScrollListener()
-        if (isAutoScroll.value === false) {
-            return
-        }
-        if (messagesWrapperEl) {
-            const container = messagesWrapperEl
-            const scrollHeight = container.scrollHeight
-
-            // 立即滚动一次
-            container.scrollTop = scrollHeight
-
-            // 使用 requestAnimationFrame 确保在下次重绘时滚动
-            requestAnimationFrame(() => {
-                container.scrollTop = scrollHeight
-            })
-
-            // 延迟再次滚动，确保DOM完全渲染
-            setTimeout(() => {
-                if (isAutoScroll.value !== false) {
-                    container.scrollTop = container.scrollHeight
-                }
-            }, 100)
-
-            // 再次延迟滚动，处理异步内容
-            setTimeout(() => {
-                if (isAutoScroll.value !== false) {
-                    container.scrollTop = container.scrollHeight
-                }
-            }, 300)
-        }
-    }
-
     // 加载消息列表
     const loadMessages = async (sessionId: string) => {
         isLoading.value = true
         const response = await listMessagesBySessionId(sessionId)
         if (response.data) {
             messages.value = response.data
-            // 加载完消息后滚动到底部
+            // 加载完消息后，滚动到最后一次用户发起的对话（包括出题请求）
             await nextTick()
-            // 使用更长的延迟确保DOM完全渲染
             setTimeout(() => {
-                scrollToBottom()
+                const currentMessages = messages.value
+                if (!currentMessages.length) {
+                    scrollToBottom()
+                    return
+                }
+                const lastUserLikeMessage = [...currentMessages]
+                    .reverse()
+                    .find((msg) => msg.role === 0 || msg.role === 3)
+                if (lastUserLikeMessage?.id) {
+                    scrollIntoViewInMessages(`.chat-message[data-message-id="${lastUserLikeMessage.id}"]`, 'start')
+                } else {
+                    scrollToBottom()
+                }
             }, 200)
         }
         isLoading.value = false
@@ -225,6 +171,7 @@ export function useCelestialChat() {
         }
         messages.value.push(assistantMessage)
         const assistantIndex = messages.value.length - 1
+        scrollToBottomForce()
 
         // 发送流式请求
         const chatRequest = getDefaultKafkaChatRequestDTO()
@@ -352,6 +299,7 @@ export function useCelestialChat() {
         }
         messages.value.push(assistantMessage)
         const assistantIndex = messages.value.length - 1
+        scrollToBottomForce()
 
         // 发送流式请求
         const chatRequest = getDefaultKafkaChatRequestDTO()
@@ -432,11 +380,6 @@ export function useCelestialChat() {
         currentSession.value = session
         if (activeSessionId.value) {
             await loadMessages(activeSessionId.value)
-            // 确保选择会话后也滚动到底部
-            await nextTick()
-            setTimeout(() => {
-                scrollToBottom()
-            }, 500)
         }
     }
 
@@ -450,13 +393,9 @@ export function useCelestialChat() {
         messages.value = []
     }
 
-    // 组件卸载时关闭连接
+    // 组件卸载时关闭连接（滚动监听的卸载由 useChatScroll 处理）
     onUnmounted(() => {
         closeEventSource()
-        if (messagesWrapperEl) {
-            messagesWrapperEl.removeEventListener('scroll', handleWrapperScroll)
-            messagesWrapperEl = null
-        }
     })
 
     return {
@@ -473,6 +412,7 @@ export function useCelestialChat() {
         newChat,
         loadMessages,
         scrollToBottom,
+        scrollIntoViewInMessages,
         useRag
     }
 }

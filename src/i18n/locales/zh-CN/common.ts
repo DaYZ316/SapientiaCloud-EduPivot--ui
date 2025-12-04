@@ -27,6 +27,7 @@ export default {
     goBack: '返回',
     retry: '重试',
     error: '错误',
+    refresh: '刷新',
 
     // 头像上传相关
     uploadAvatar: '上传头像',
@@ -143,6 +144,7 @@ export default {
     course: '课程',
     teacher: '教师',
     modelType: '模型类型',
+    colon: '：',
 
     // 文件相关
     files: '文件',

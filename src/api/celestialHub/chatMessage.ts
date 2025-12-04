@@ -1,3 +1,4 @@
+import type {AxiosRequestConfig} from 'axios'
 import http, {apiConfig} from '@/utils/http'
 import type {
     CancelChatStreamKafkaDTO,
@@ -81,11 +82,10 @@ export function chat(data: ChatRequestDTO) {
  * 获取指定会话的消息列表
  * @param sessionId 会话ID
  * @param limit 限制数量
+ * @param config Axios 请求配置
  */
-export function listMessagesBySessionId(sessionId: string, limit?: number) {
-    return http.get<ChatMessage[]>(`/celestial-hub/message/session/${sessionId}`, {
-        params: {limit}
-    })
+export function listMessagesBySessionId(sessionId: string, limit?: number, config?: AxiosRequestConfig) {
+    return http.get<ChatMessage[]>(`/celestial-hub/message/session/${sessionId}`, {limit}, config)
 }
 
 /**
@@ -145,15 +145,16 @@ function createChatStreamRequest(
         },
         body: JSON.stringify(data || {}),
         signal: abortController.signal,
+        // 允许在页面不可见（切到其他窗口或最小化）时依然建立和保持连接
+        openWhenHidden: true,
         async onopen(response) {
             if (response.ok && response.headers.get('content-type')?.includes('text/event-stream')) {
                 if (callbacks.onOpen) {
                     callbacks.onOpen()
                 }
             } else {
-                const error = new Error(`Failed to connect to stream: ${response.status} ${response.statusText}`)
                 if (callbacks.onError) {
-                    callbacks.onError(error)
+                    callbacks.onError(new Error(`Failed to connect to stream: ${response.status} ${response.statusText}`))
                 }
                 abortController.abort()
             }
@@ -168,9 +169,9 @@ function createChatStreamRequest(
                 callbacks.onClose()
             }
         },
-        onerror(err) {
+        onerror(error) {
             if (callbacks.onError) {
-                callbacks.onError(err)
+                callbacks.onError(error)
             }
             abortController.abort()
         }

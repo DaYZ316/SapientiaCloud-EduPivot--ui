@@ -5,21 +5,7 @@ import {useThemeStore} from '@/store'
  * @param e 鼠标点击事件
  */
 export const themeAnimation = (e: MouseEvent) => {
-    const x = e.clientX
-    const y = e.clientY
-    // 计算鼠标点击位置距离视窗的最大圆半径
-    const endRadius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))
-
-    // 设置CSS变量
-    document.documentElement.style.setProperty('--x', x + 'px')
-    document.documentElement.style.setProperty('--y', y + 'px')
-    document.documentElement.style.setProperty('--r', endRadius + 'px')
-
-    if (document.startViewTransition) {
-        document.startViewTransition(() => toggleTheme())
-    } else {
-        toggleTheme()
-    }
+    runViewTransition(toggleTheme, e)
 }
 
 /**
@@ -35,6 +21,27 @@ const toggleTheme = () => {
     } else {
         // system模式时根据当前实际状态切换
         themeStore.setThemeMode(themeStore.isDarkMode ? 'light' : 'dark')
+    }
+}
+
+/**
+ * 通用视图过渡动画封装
+ * @param action 视图切换逻辑（例如路由跳转或主题切换）
+ * @param e 可选的鼠标点击事件，用于确定动画起点
+ */
+export const runViewTransition = (action: () => void, e?: MouseEvent) => {
+    const x = e?.clientX ?? innerWidth / 2
+    const y = e?.clientY ?? innerHeight / 2
+    const endRadius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))
+
+    document.documentElement.style.setProperty('--x', x + 'px')
+    document.documentElement.style.setProperty('--y', y + 'px')
+    document.documentElement.style.setProperty('--r', endRadius + 'px')
+
+    if (document.startViewTransition) {
+        document.startViewTransition(() => action())
+    } else {
+        action()
     }
 }
 

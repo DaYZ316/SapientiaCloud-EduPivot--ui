@@ -17,15 +17,15 @@ export interface CourseRecordStudentDTO {
     courseId: string | null
     /** 座位编号 (从0开始) */
     seatIndex: number | null
-    /** 3D坐标X (横向) */
+    /** 学生座位的x坐标 */
     locationX: number | null
-    /** 3D坐标Y (高度) */
+    /** 学生座位的y坐标 */
     locationY: number | null
-    /** 3D坐标Z (纵深) */
+    /** 3D坐标Z (纵深) - 可选，用于3D场景 */
     locationZ: number | null
-    /** 朝向角度 (弧度制) */
+    /** 朝向角度 (弧度制) - 可选，用于3D场景 */
     rotationY: number | null
-    /** 座位状态 (normal, marked, reserved, occupied) */
+    /** 座位状态 (0=正常, 2=已预留, 3=已占用) */
     seatStatus: SeatStatusEnum | null
     /** 出勤状态 (0=未签到, 1=已签到, 2=缺席) */
     attendanceStatus: AttendanceStatusEnum | null
@@ -51,20 +51,20 @@ export interface CourseRecordStudentVO {
     courseId: string
     /** 座位编号 (从0开始) */
     seatIndex: number
-    /** 3D坐标X (横向) */
+    /** 学生座位的x坐标 */
     locationX: number
-    /** 3D坐标Y (高度) */
+    /** 学生座位的y坐标 */
     locationY: number
-    /** 3D坐标Z (纵深) */
-    locationZ: number
-    /** 朝向角度 (弧度制) */
-    rotationY: number
-    /** 座位状态 (normal, marked, reserved, occupied) */
+    /** 3D坐标Z (纵深) - 可选，用于3D场景 */
+    locationZ?: number
+    /** 朝向角度 (弧度制) - 可选，用于3D场景 */
+    rotationY?: number
+    /** 座位状态 (0=正常, 2=已预留, 3=已占用) */
     seatStatus: SeatStatusEnum
-    /** 出勤状态 (0=未签到, 1=已签到, 2=缺席) */
-    attendanceStatus: AttendanceStatusEnum
+    /** 出勤状态 (0=未签到, 1=已签到, 2=缺席) - 可选 */
+    attendanceStatus?: AttendanceStatusEnum
     /** 课堂互动得分 (可选) */
-    participationScore: number
+    participationScore?: number
     /** 创建时间 */
     createTime: string
     /** 更新时间 */

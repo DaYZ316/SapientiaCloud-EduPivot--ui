@@ -21,9 +21,16 @@
             >
               <n-icon :component="Add" size="18"/>
             </div>
+            <n-dropdown
+                placement="bottom-start"
+                trigger="click"
+                :options="toolsOptions"
+                @select="handleToolsSelect"
+            >
             <div class="tool-item">
               <span class="tool-text">{{ t('chat.tools') }}</span>
             </div>
+            </n-dropdown>
           </div>
           <div class="tools-right">
             <div class="tool-item">
@@ -57,7 +64,7 @@
 
 <script lang="ts" setup>
 import {computed, ref} from 'vue'
-import {NButton, NIcon, NInput, NSwitch} from 'naive-ui'
+import {NButton, NDropdown, NIcon, NInput, NSwitch} from 'naive-ui'
 import {Add, MicOutline, Send, Stop} from '@vicons/ionicons5'
 import {useI18n} from 'vue-i18n'
 
@@ -82,9 +89,17 @@ const emit = defineEmits<{
   (e: 'trigger-file-select'): void
   (e: 'send'): void
   (e: 'stop'): void
+  (e: 'open-tools', key: string | number): void
 }>()
 
 const {t} = useI18n()
+
+const toolsOptions = computed(() => [
+  {
+    label: t('chat.toolsMenu.smartQuestion'),
+    key: 'smartQuestion'
+  }
+])
 
 const inputRef = ref<InstanceType<typeof NInput> | null>(null)
 
@@ -134,6 +149,10 @@ const handleSendClick = () => {
     return
   }
   emit('send')
+}
+
+const handleToolsSelect = (key: string | number) => {
+  emit('open-tools', key)
 }
 </script>
 

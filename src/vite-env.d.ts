@@ -38,9 +38,18 @@ declare global {
         switchCameraPosition?: () => void
         instancedObjects?: InstancedMesh[]
         deskHoverHandlers?: Array<{
-            handler: (event: MouseEvent) => void
-            leaveHandler: () => void
-            clickHandler: (event: MouseEvent) => void
+            hoverHandler?: (event: MouseEvent) => void
+            leaveHandler?: () => void
+            clickHandler?: (event: MouseEvent) => void
+            canvas: HTMLCanvasElement
+        }>
+        pointerLockHandlers?: Array<{
+            altKeyDown: (event: KeyboardEvent) => void
+            altKeyUp: (event: KeyboardEvent) => void
+            onPointerLockError: () => void
+            canvasClick: (event: MouseEvent) => void
+            mouseMove: (event: MouseEvent) => void
+            contextMenu: (event: MouseEvent) => void
             canvas: HTMLCanvasElement
         }>
     }

@@ -19,7 +19,7 @@
       />
 
     <!-- 主内容区域 -->
-    <div class="main-content">
+    <div :class="['main-content', { 'with-question-panel': isQuestionPanelActive }]">
       <!-- 聊天头部 -->
       <div v-if="currentSession" class="chat-header">
         <div class="chat-title">
@@ -66,23 +66,27 @@
 
       <!-- 聊天内容 -->
       <div v-if="currentSession" class="chat-content-wrapper">
-        <div ref="chatContentRef" class="chat-content">
-          <!-- 消息列表容器 - Gemini风格 -->
-          <div class="messages-wrapper">
-            <div class="messages-container">
-              <ChatMessage
-                  v-for="(message, index) in messages"
-                  :key="message.id ?? `msg-${index}`"
-                  :is-streaming="isSending && message.role === 1 && index === messages.length - 1"
-                  :message="message"
-                  @copy="handleCopy"
-                  @feedback="handleFeedback"
-                  @resend="handleResend(index)"
-              />
+        <div class="chat-main-column">
+          <div ref="chatContentRef" class="chat-content">
+            <!-- 消息列表容器 - Gemini风格 -->
+            <div class="messages-wrapper">
+              <div class="messages-container">
+                <ChatMessage
+                    v-for="(message, index) in displayMessages"
+                    :key="message.id ?? `msg-${index}`"
+                    :is-streaming="getIsAssistantStreaming(message)"
+                    :message="message"
+                    :active-question-message-id="activeQuestionMessageId"
+                    :active-question-index="activeQuestionIndex"
+                    @copy="handleCopy"
+                    @feedback="handleFeedback"
+                    @resend="handleResend(index)"
+                    @view-questions="handleViewQuestions"
+                />
+              </div>
             </div>
           </div>
-
-          <!-- 输入区域 - Gemini风格 -->
+          <!-- 输入区域（对话态） -->
           <div class="input-container">
             <div class="input-wrapper">
               <ChatInputBox
@@ -95,9 +99,24 @@
                   @send="sendMessage"
                   @stop="interruptStreaming"
                   @trigger-file-select="handleTriggerFileSelect"
+                  @open-tools="handleToolsSelect"
               />
             </div>
           </div>
+        </div>
+        <div
+            class="question-panel-wrapper"
+            :class="{ 'is-visible': isQuestionPanelActive }"
+        >
+          <PreviewPanel
+              v-show="isQuestionPanelActive"
+              :key="`${activeQuestionMessageId || 'question'}-${activeQuestionIndex ?? 0}`"
+              :close-label="t('common.cancel')"
+              :questions="questionPanelData"
+              v-model:active-index="activeQuestionIndex"
+              :title="questionPanelTitle"
+              @close="handleCloseQuestionPanel"
+          />
         </div>
       </div>
 
@@ -112,21 +131,27 @@
         <div class="greeting-wrapper">
           <!-- 问候语 -->
           <div class="greeting-text">{{ t('chat.greeting', {name: userDisplayName || 'Guest'}) }}</div>
+        </div>
+      </div>
 
-          <!-- 输入区域 -->
-          <div class="gemini-input-section">
-            <ChatInputBox
-                v-model="input"
-                v-model:use-rag="useRagSwitch"
-                :is-sending="isSending"
-                :is-uploading-files="isUploadingFiles"
-                :placeholder="t('chat.placeholder')"
-                @enter="sendMessage"
-                @send="sendMessage"
-                @stop="interruptStreaming"
-                @trigger-file-select="handleTriggerFileSelect"
-            />
-          </div>
+      <!-- 输入区域 - 空状态下居中展示 -->
+      <div
+          v-if="!currentSession"
+          :class="['input-container', { 'empty-state-input': !currentSession }]"
+      >
+        <div class="input-wrapper">
+          <ChatInputBox
+              v-model="input"
+              v-model:use-rag="useRagSwitch"
+              :is-sending="isSending"
+              :is-uploading-files="isUploadingFiles"
+              :placeholder="t('chat.placeholder')"
+              @enter="sendMessage"
+              @send="sendMessage"
+              @stop="interruptStreaming"
+              @trigger-file-select="handleTriggerFileSelect"
+              @open-tools="handleToolsSelect"
+          />
         </div>
       </div>
     </div>
@@ -151,12 +176,16 @@
         </div>
       </n-drawer-content>
     </n-drawer>
+    <SmartQuestionModal
+        v-model:show="isQuestionToolsVisible"
+        :session-id="currentSession?.id ?? null"
+        @question-request-success="handleQuestionRequestSuccess"
+    />
   </div>
 </template>
 
 <script lang="ts" setup>
 import {computed, nextTick, ref, watch} from 'vue'
-import {useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {NDrawer, NDrawerContent, NEmpty, NIcon, NSpin, NTooltip, useMessage} from 'naive-ui'
 import {DocumentsOutline, Pin, Star} from '@vicons/ionicons5'
@@ -165,21 +194,16 @@ import ChatMessage from './components/ChatMessage.vue'
 import ChatInputBox from './components/ChatInputBox.vue'
 import {useUserStore} from '@/store'
 import {useCelestialChat} from '@/views/celestialHub/composables/useCelestialChat'
-import {addChatSession, favoriteSession, pinSession} from '@/api/celestialHub/chatSession'
-import {getFilesBySessionId, uploadFiles} from '@/api/celestialHub/fileDocument'
-import type {FileDocumentUploadOptions} from '@/types/celestialHub/fileDocument'
+import {useQuestionGeneration} from '@/views/celestialHub/composables/useQuestionGeneration'
+import {useFileManagement} from '@/views/celestialHub/composables/useFileManagement'
+import {favoriteSession, pinSession} from '@/api/celestialHub/chatSession'
 import FileInfoList from '@/components/common/FileInfoList.vue'
-import type {FileInfoDTO} from '@/types/minIO/file'
-import {BusinessBucketCodeEnum} from '@/enum/minIO'
+import SmartQuestionModal from '@/views/celestialHub/components/SmartQuestionModal.vue'
+import type {ChatMessage as ChatMessageEntity} from '@/types/celestialHub/chatMessage'
+import PreviewPanel from '@/views/celestialHub/components/QuestionPreviewPanel.vue'
 
 // 状态
 const chatSidebarRef = ref<InstanceType<typeof ChatSidebar> | null>(null)
-const filePickerRef = ref<HTMLInputElement | null>(null)
-const isUploadingFiles = ref(false)
-const isFileDrawerVisible = ref(false)
-const isFileListLoading = ref(false)
-const sessionFileInfos = ref<FileInfoDTO[]>([])
-const aiQaBucketCode = BusinessBucketCodeEnum.AI_QA_ASSET
 
 // 使用聊天 composable
 const {
@@ -195,18 +219,76 @@ const {
   selectSession,
   newChat,
   scrollToBottom,
-  useRag
+  useRag,
+  loadMessages,
+  scrollIntoViewInMessages
 } = useCelestialChat()
+
+// 使用出题 composable
+const {
+  isQuestionToolsVisible,
+  activeQuestionMessageId,
+  activeQuestionIndex,
+  questionPanelData,
+  questionPanelTitle,
+  isQuestionPanelActive,
+  handleToolsSelect,
+  handleViewQuestions,
+  handleCloseQuestionPanel,
+  handleQuestionRequestSuccess,
+  getDisplayMessages
+} = useQuestionGeneration(
+    messages,
+    currentSession,
+    scrollToBottom,
+    scrollIntoViewInMessages,
+    loadMessages,
+    selectSession
+)
+
+// 使用文件管理 composable
+const {
+  filePickerRef,
+  isUploadingFiles,
+  isFileDrawerVisible,
+  isFileListLoading,
+  sessionFileInfos,
+  aiQaBucketCode,
+  handleTriggerFileSelect,
+  handleFileInputChange,
+  handleShowSessionFiles,
+  handleFilePreview
+} = useFileManagement(
+    activeSessionId,
+    currentSession,
+    chatSidebarRef
+)
+
+const getIsAssistantStreaming = (messageItem: ChatMessageEntity) => {
+  if (messageItem.role !== 1) {
+    return false
+  }
+  const lastAssistant = [...messages.value].reverse().find(msg => msg.role === 1)
+  if (!lastAssistant) {
+    return false
+  }
+  return messageItem === lastAssistant && isSending.value
+}
+
+const displayMessages = computed<ChatMessageEntity[]>(() => {
+  const sessionId = currentSession.value?.id || null
+  return getDisplayMessages(sessionId)
+})
 
 // 用户store
 const userStore = useUserStore()
 
 // 国际化
 const {t} = useI18n()
-const router = useRouter()
 
 // 消息提示
 const message = useMessage()
+
 
 // 获取用户显示名称（优先级：真名 > 昵称 > 用户名）
 const userDisplayName = computed(() => {
@@ -265,6 +347,7 @@ watch(messages, () => {
   })
 }, {deep: true})
 
+
 // 监听会话ID变化，创建新会话时刷新侧边栏
 watch(activeSessionId, (newId, oldId) => {
   // 当从null变为有值时，说明创建了新会话，需要刷新侧边栏
@@ -273,17 +356,7 @@ watch(activeSessionId, (newId, oldId) => {
   }
 })
 
-watch(
-    () => currentSession.value?.id,
-    (newId, oldId) => {
-      if (isFileDrawerVisible.value && newId && newId !== oldId) {
-        loadSessionFiles()
-      }
-      if (!newId) {
-        sessionFileInfos.value = []
-      }
-    }
-)
+
 
 // 处理反馈
 const handleFeedback = (messageId: string, feedback: number) => {
@@ -315,102 +388,50 @@ const handleCopy = () => {
   }
 }
 
-// 处理重新提问
+// 处理重新提问（删除对应用户提问和AI回复后再重新请求）
 const handleResend = (messageIndex: number) => {
-  // 找到当前AI消息对应的用户消息
-  // 从当前消息往前找，找到最近的一条用户消息
-  let userMessageContent = null
+  // 安全检查：索引是否在当前消息列表范围内
+  if (messageIndex < 0 || messageIndex >= messages.value.length) {
+    return
+  }
+
+  const targetMessage = messages.value[messageIndex]
+  // 仅对AI消息生效
+  if (!targetMessage || targetMessage.role !== 1) {
+    return
+  }
+
+  // 从当前AI消息往前找到最近的一条用户消息
+  let userIndex = -1
   for (let i = messageIndex - 1; i >= 0; i--) {
-    if (messages.value[i].role === 0 && messages.value[i].content) {
-      userMessageContent = messages.value[i].content
+    const msg = messages.value[i]
+    if (msg.role === 0 && msg.content) {
+      userIndex = i
       break
     }
   }
 
-  if (userMessageContent) {
-    resendMessage(userMessageContent)
-  }
-}
-
-// 重置文件选择器
-const resetFilePicker = () => {
-  if (filePickerRef.value) {
-    filePickerRef.value.value = ''
-  }
-}
-
-// 触发文件选择
-const handleTriggerFileSelect = () => {
-  if (isUploadingFiles.value) {
-    return
-  }
-  filePickerRef.value?.click()
-}
-
-// 处理文件变更
-const handleFileInputChange = (event: Event) => {
-  const target = event.target as HTMLInputElement | null
-  const fileList = target?.files ? Array.from(target.files) : []
-  resetFilePicker()
-  if (!fileList.length) {
-    return
-  }
-  uploadSelectedFiles(fileList)
-}
-
-// 确保存在用于绑定文件的会话
-const ensureSessionForUpload = async () => {
-  if (activeSessionId.value) {
-    return activeSessionId.value
-  }
-
-  return addChatSession({
-    sessionType: 0,
-    title: t('chat.sidebar.newChat'),
-    courseId: null
-  })
-      .then((response) => {
-        if (response.data) {
-          activeSessionId.value = response.data.id || null
-          currentSession.value = response.data
-          chatSidebarRef.value?.loadSessions()
-          return activeSessionId.value
-        }
-        return null
-      })
-      .catch(() => null)
-}
-
-// 上传文件
-const uploadSelectedFiles = async (selectedFiles: File[]) => {
-  if (!selectedFiles.length || isUploadingFiles.value) {
+  if (userIndex === -1) {
     return
   }
 
-  const resolvedSessionId = await ensureSessionForUpload()
-  if (!resolvedSessionId) {
-    message.warning(t('common.fail'))
+  const userMessage = messages.value[userIndex]
+  const userMessageContent = userMessage.content
+
+  if (!userMessageContent) {
     return
   }
 
-  isUploadingFiles.value = true
-  const uploadOptions: FileDocumentUploadOptions = {
-    courseId: null,
-    sessionId: resolvedSessionId,
-    autoVectorize: true
+  // 删除用户提问到当前AI回复之间的所有消息（包含两端）
+  const deleteCount = messageIndex - userIndex + 1
+  if (deleteCount > 0) {
+    messages.value.splice(userIndex, deleteCount)
   }
 
-  await uploadFiles(selectedFiles, uploadOptions)
-      .then(() => {
-        message.success(t('common.uploadSuccess'))
-      })
-      .catch(() => {
-        message.warning(t('common.uploadFailed'))
-      })
-      .finally(() => {
-        isUploadingFiles.value = false
-      })
+  // 使用原始用户内容重新请求
+  resendMessage(userMessageContent)
 }
+
 
 // 我的收藏
 const handleMyFavorites = () => {
@@ -459,47 +480,6 @@ const handleToggleFavorite = async () => {
   message.success(newFavoriteStatus ? `${t('chat.session.favorite')}${t('common.success')}` : `${t('chat.session.unfavorite')}${t('common.success')}`)
 }
 
-// 打开会话文件抽屉
-const handleShowSessionFiles = async () => {
-  if (!currentSession.value?.id) {
-    message.warning(t('chat.session.filesNoSession'))
-    return
-  }
-  isFileDrawerVisible.value = true
-  await loadSessionFiles()
-}
-
-// 加载会话关联文件
-const loadSessionFiles = async () => {
-  if (!currentSession.value?.id) {
-    sessionFileInfos.value = []
-    return
-  }
-
-  isFileListLoading.value = true
-  await getFilesBySessionId(String(currentSession.value.id))
-      .then((response) => {
-        sessionFileInfos.value = response.data ?? []
-      })
-      .catch(() => {
-        sessionFileInfos.value = []
-        message.warning(t('chat.session.filesLoadFailed'))
-      })
-      .finally(() => {
-        isFileListLoading.value = false
-      })
-}
-
-const handleFilePreview = (fileInfo: FileInfoDTO) => {
-  router.push({
-    name: 'FilePreview',
-    query: {
-      fileInfo: JSON.stringify(fileInfo),
-      from: 'CelestialHub',
-      sessionId: currentSession.value?.id ?? ''
-    }
-  })
-}
 </script>
 
 <style lang="scss" scoped>

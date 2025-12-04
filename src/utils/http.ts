@@ -13,6 +13,8 @@ declare module 'axios' {
     interface AxiosRequestConfig {
         meta?: {
             hideLoading?: boolean
+            hideBusinessError?: boolean
+            hideHttpError?: boolean
         }
     }
 }
@@ -194,7 +196,9 @@ class HttpClient {
                             const loadingBarStore = useLoadingBarStore()
                             loadingBarStore.finish()
                         }
-                        this.handleErrorCode(res.code || 500, res.message || i18n.global.t('common.http.requestFailed'))
+                        if (!response.config.meta?.hideBusinessError) {
+                            this.handleErrorCode(res.code || 500, res.message || i18n.global.t('common.http.requestFailed'))
+                        }
                     }
                     return Promise.reject(res)
                 }
@@ -219,7 +223,9 @@ class HttpClient {
                 }
 
                 // HTTP错误处理
-                this.handleHttpError(error)
+                if (!error.config?.meta?.hideHttpError) {
+                    this.handleHttpError(error)
+                }
                 return Promise.reject(error)
             }
         )

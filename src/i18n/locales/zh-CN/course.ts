@@ -974,6 +974,7 @@ export default {
         estimatedTime: '预计答题时间',
         estimatedTimePlaceholder: '请输入预计答题时间（分钟）',
         unlimited: '不限',
+        lessThanOneMinute: '< 1 分钟',
         status: '题目状态',
         statusPlaceholder: '请选择题目状态',
         statusRequired: '请选择题目状态',

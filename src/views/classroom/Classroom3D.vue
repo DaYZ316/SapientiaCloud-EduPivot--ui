@@ -3,7 +3,7 @@
   <canvas ref="canvasRef" class="webgl_7"></canvas>
     <!-- 退出教室按钮 -->
     <n-button 
-      @click="handleExit"
+      @click="handleExit($event)"
       class="exit-button"
       type="default"
       size="medium"
@@ -12,7 +12,7 @@
     </n-button>
     <!-- 智慧课堂黑白按钮 -->
     <n-button 
-      @click="handleLive"
+      @click="handleLive($event)"
       class="live-button"
       type="default"
       size="medium"
@@ -26,6 +26,17 @@
       :seat-index="currentSeatIndex"
       :position="popupPosition"
     />
+    <!-- 指针锁定提示 -->
+    <n-alert
+      v-if="showPointerLockHint"
+      type="info"
+      :title="t('classroom.pointerLockHintTitle')"
+      class="pointer-lock-hint"
+      closable
+      @close="showPointerLockHint = false"
+    >
+      {{ t('classroom.pointerLockHint') }}
+    </n-alert>
   </div>
 </template>
   
@@ -39,27 +50,41 @@
   import { ModelClickHandler } from '@/utils/threeModelClickHandler';
   import { Sky } from 'three/examples/jsm/objects/Sky.js';
   import { getCourseRecordById } from '@/api/classroom/courseRecord';
-  import { listStudentsByRecordId } from '@/api/classroom/courseRecordStudent';
+  import { listStudentsByRecordId, addStudentSeat, getDefaultCourseRecordStudentDTO, updateStudentSeat, removeStudentSeat } from '@/api/classroom/courseRecordStudent';
   import StudentInfoPopup from './StudentInfoPopup.vue';
   import { useUserStore } from '@/store/modules/user';
   import { getGlobalApis } from '@/utils/naiveUIHelper';
   import { SpriteManager } from '@/views/classroom/composables/spriteManager';
-  import type { CourseRecordVO, CourseRecordStudentVO } from '@/types/classroom';
+  import { getAvatarColor, getAvatarInitial, resolveUserName } from '@/utils/avatarUtil';
+  import type { AvatarIdentityProps } from '@/types/components/avatar';
+  import type { CourseRecordVO, CourseRecordStudentVO, CourseRecordStudentDTO } from '@/types/classroom';
+  import { SeatStatusEnum } from '@/enum/classroom/seatStatusEnum';
   import type { SeatAssignmentContext } from '@/types/components/seatConfirmModal';
   import type { Texture, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
   import type { InstancedMesh } from 'three';
   import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+  import { useTransitionStore } from '@/store/modules/transition';
+  import { runViewTransition } from '@/utils/themeAnimation';
 
   const { t } = useI18n();
   const modelClickHandler = new ModelClickHandler();
   const route = useRoute();
   const router = useRouter();
   const userStore = useUserStore();
-  const { dialog } = getGlobalApis();
+  const transitionStore = useTransitionStore();
+  const { dialog, message } = getGlobalApis();
   // 课程记录状态
   const courseRecord = ref<CourseRecordVO | null>(null);
   const loadingRecord = ref(false);
   const recordError = ref<string | null>(null);
+  const isClassroomOwner = computed(() => {
+    if (!courseRecord.value) {
+      return false;
+    }
+    const teacherId = courseRecord.value.teacherId;
+    const currentTeacherId = userStore.teacherInfo?.id || null;
+    return Boolean(teacherId && currentTeacherId && teacherId === currentTeacherId);
+  });
   
   // 学生信息框相关状态
   const showStudentInfo = ref(false);
@@ -69,37 +94,29 @@
   const studentsList = ref<CourseRecordStudentVO[]>([]);
   const pendingSeatContext = ref<SeatAssignmentContext | null>(null);
   const fallbackTextureRef = ref<Texture | null>(null);
+  const showPointerLockHint = ref(false);
+  let pointerHintTimeout: number | null = null;
 
   const spriteManager = new SpriteManager();
 
-  const avatarColors = [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD',
-    '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9', '#F8C471', '#82E0AA',
-    '#F1948A', '#D7BDE2'
-  ];
-
-  const getAvatarColor = (text: string): string => {
-    if (!text) {
-      return '#000000';
-    }
-    let hash = 0;
-    for (let i = 0; i < text.length; i += 1) {
-      hash = text.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return avatarColors[Math.abs(hash) % avatarColors.length];
-  };
-
-  const resolveDisplayName = (info: any): string => {
+  const getIdentityName = (info: Record<string, any> | null | undefined): string => {
     if (!info) {
       return '';
     }
-    return info.studentRealName
-      || info.teacherRealName
-      || info.nickName
-      || info.username
-      || info.realName
-      || info.name
-      || '';
+    const identity: AvatarIdentityProps = {
+      avatarSrc: info.avatar ?? info.studentAvatar ?? null,
+      username:
+        info.studentName
+        || info.realName
+        || info.name
+        || info.username
+        || null,
+      nickName: info.nickName ?? null,
+      studentRealName: info.studentRealName ?? info.realName ?? null,
+      teacherRealName: info.teacherRealName ?? null,
+      fallbackSrc: null
+    };
+    return resolveUserName(identity);
   };
 
   const createAvatarFallbackTexture = (displayName: string): THREE.CanvasTexture => {
@@ -107,7 +124,7 @@
     canvas.width = 128;
     canvas.height = 128;
     const context = canvas.getContext('2d');
-    const initials = displayName ? displayName.charAt(0).toUpperCase() : '';
+    const initials = getAvatarInitial(displayName);
     if (context) {
       context.clearRect(0, 0, canvas.width, canvas.height);
       context.fillStyle = getAvatarColor(displayName);
@@ -139,24 +156,73 @@
     fallbackTextureRef.value = null;
   };
 
-  const confirmSeatSelection = () => {
+  const confirmSeatSelection = async () => {
     if (!pendingSeatContext.value || pendingSeatContext.value.seatIndex === null) {
       resetSeatConfirmState();
-      return;
+      return false;
     }
     if (!spriteManager || !spriteManager.isInitialized) {
       resetSeatConfirmState();
-      return;
+      return false;
     }
     const userInfo = userStore.userInfo;
     if (!userInfo || !userInfo.id) {
       resetSeatConfirmState();
-      return;
+      return false;
+    }
+    const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
+    if (!recordId) {
+      resetSeatConfirmState();
+      return false;
     }
     const seatIndex = pendingSeatContext.value.seatIndex;
     const avatarUrl = pendingSeatContext.value.avatarUrl;
     const fallbackTexture = fallbackTextureRef.value || createAvatarFallbackTexture(pendingSeatContext.value.displayName || '');
 
+    // 获取座位3D坐标（如果不存在则使用默认值）
+    const seatPosition = spritePositions[seatIndex];
+    let locationX: number = 0;
+    let locationY: number = 0;
+    let locationZ: number | null = null;
+    
+    if (seatPosition) {
+      locationX = seatPosition.x;
+      locationY = seatPosition.y;
+      locationZ = seatPosition.z;
+    }
+
+    // 构建API请求数据
+    const existingSeat = studentsList.value.find(student => student.studentId === userInfo.id) || null;
+    const seatData: CourseRecordStudentDTO = getDefaultCourseRecordStudentDTO();
+    seatData.recordId = recordId;
+    seatData.studentId = userInfo.id;
+    seatData.courseId = courseRecord.value?.courseId || null;
+    seatData.seatIndex = seatIndex;
+    seatData.locationX = locationX;
+    seatData.locationY = locationY;
+    seatData.locationZ = locationZ;
+    seatData.rotationY = null;
+    seatData.seatStatus = SeatStatusEnum.NORMAL;
+
+    // 调用API添加学生座位
+    const apiResponse = existingSeat ? await updateStudentSeat(seatData) : await addStudentSeat(seatData);
+    const isSuccessResponse = typeof apiResponse === 'boolean'
+      ? apiResponse
+      : Boolean(apiResponse && (apiResponse.success === true || apiResponse.code === 200));
+    
+    if (!isSuccessResponse) {
+      resetSeatConfirmState();
+      return false;
+    }
+    
+    if (message) {
+      const successKey = existingSeat
+        ? t('classroom.seatConfirm.updateSuccess')
+        : t('classroom.seatConfirm.assignSuccess');
+      message.success(successKey);
+    }
+
+    // API调用成功后更新前端显示
     const applyTextureToSprite = (texture: Texture, shouldDisposeFallback = true) => {
       if (!texture) {
         resetSeatConfirmState();
@@ -164,11 +230,15 @@
       }
       spriteManager.updateSpriteInfo(userInfo.id, texture, seatIndex);
       resetSeatConfirmState(shouldDisposeFallback);
+      // 刷新学生列表
+      if (recordId) {
+        fetchStudentsList(recordId);
+      }
     };
 
     if (!avatarUrl || avatarUrl.trim() === '') {
       applyTextureToSprite(fallbackTexture, false);
-      return;
+      return true;
     }
 
     const textureLoader = new THREE.TextureLoader();
@@ -182,6 +252,8 @@
         applyTextureToSprite(fallbackTexture, false);
       }
     );
+    
+    return true;
   };
 
   const formatSeatLabel = (rowIndex: number, columnIndex: number): string => {
@@ -205,14 +277,18 @@
       ? t('classroom.seatConfirm.subtitleWithStudent', { studentName: context.displayName })
       : t('classroom.seatConfirm.subtitle');
     
+    if (controls && canvas && document.pointerLockElement === canvas) {
+      controls.unlock();
+    }
+    
     if (dialog) {
       dialog.warning({
         title: seatTitle,
         content: seatSubtitle,
         positiveText: t('classroom.seatConfirm.confirm'),
         negativeText: t('classroom.seatConfirm.cancel'),
-        onPositiveClick: () => {
-          confirmSeatSelection();
+        onPositiveClick: async () => {
+          await confirmSeatSelection();
         },
         onNegativeClick: () => {
     resetSeatConfirmState();
@@ -256,7 +332,7 @@
       recordError.value = null;
       
       // 从路由参数获取课程记录ID
-      const recordId = route.query.recordId;
+      const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
       if (!recordId) {
         return;
       }
@@ -275,71 +351,94 @@
     }
   };
   
+  // 渲染学生精灵模型
+  const renderStudentSprites = async (students: CourseRecordStudentVO[]) => {
+    if (!spriteManager || !spriteManager.isInitialized) {
+      return;
+    }
+    
+    const textureLoader = new THREE.TextureLoader();
+    
+    for (const student of students) {
+      if (student.seatIndex === null || student.seatIndex === undefined) {
+        continue;
+      }
+      
+      const seatIndex = student.seatIndex;
+      const studentId = student.studentId;
+      const avatarUrl = student.studentAvatar;
+      const displayName = student.studentName || student.studentCode || '';
+      
+      // 如果有头像URL，加载头像纹理
+      if (avatarUrl && avatarUrl.trim() !== '') {
+        textureLoader.load(
+          avatarUrl,
+          (texture: Texture) => {
+            spriteManager.updateSpriteInfo(studentId, texture, seatIndex);
+          },
+          undefined,
+          () => {
+            // 加载失败，使用默认纹理
+            const fallbackTexture = createAvatarFallbackTexture(displayName);
+            spriteManager.updateSpriteInfo(studentId, fallbackTexture, seatIndex);
+          }
+        );
+      } else {
+        // 没有头像，使用默认纹理
+        const fallbackTexture = createAvatarFallbackTexture(displayName);
+        spriteManager.updateSpriteInfo(studentId, fallbackTexture, seatIndex);
+      }
+    }
+  };
+
   // 获取学生列表
   const fetchStudentsList = async (recordId: string) => {
     try {
       const response = await listStudentsByRecordId(recordId);
       studentsList.value = response?.data || [];
+      
+      // 渲染学生精灵模型
+      if (studentsList.value.length > 0 && spriteManager && spriteManager.isInitialized) {
+        await renderStudentSprites(studentsList.value);
+      }
     } catch (error) {
       studentsList.value = [];
     }
   };
   
-  // 显示学生信息框
-  const showStudentInfoPopup = (event: MouseEvent, seatIndex: number) => {
-    // 查找对应座位的学生
-    const student = studentsList.value.find(s => s.seatIndex === seatIndex);
-    
-    // 设置信息框位置在鼠标右侧
-    popupPosition.value = {
-      x: event.clientX + 15,
-      y: event.clientY
-    };
-    
-    if (student) {
-      currentStudent.value = student;
-      currentSeatIndex.value = seatIndex;
-    } else {
-      // 如果没有学生，显示空座位信息
-      currentStudent.value = null;
-      currentSeatIndex.value = seatIndex;
-    }
-    
-    showStudentInfo.value = true;
-  };
-  
-  // 隐藏学生信息框
-  const hideStudentInfoPopup = () => {
-    showStudentInfo.value = false;
-    currentStudent.value = null;
-    currentSeatIndex.value = null;
-  };
+  // 学生信息框展示逻辑移除悬停触发，保留基础状态，后续如需点击展示可在此扩展
 
-  // 退出教室
-  const handleExit = () => {
+  // 退出教室，使用全局过渡动画
+  const handleExit = (e: MouseEvent) => {
+    transitionStore.show();
     const courseId = route.params.courseId as string;
-    if (courseId) {
-      router.push(`/course/detail/${courseId}/classroom`);
-    } else {
-      router.back();
-    }
+    runViewTransition(() => {
+      if (courseId) {
+        router.push(`/course/detail/${courseId}/classroom`);
+      } else {
+        router.back();
+      }
+    }, e);
   };
 
-  // 跳转到直播页面
-  const handleLive = () => {
+  // 跳转到直播页面，使用全局过渡动画
+  const handleLive = (e: MouseEvent) => {
+    transitionStore.show();
     const courseId = route.params.courseId as string;
     const courseRecordId = route.params.courseRecordId as string;
-    if (courseId && courseRecordId) {
-      router.push({
-        name: 'Live',
-        params: {
-          courseId,
-          courseRecordId
-        }
-      });
-    } else {
-      router.push({ name: 'Live' });
-    }
+    runViewTransition(() => {
+      if (courseId && courseRecordId) {
+        router.push({
+          name: 'CourseLive',
+          params: {
+            courseId,
+            courseRecordId
+          }
+        });
+      } else {
+        router.push({ name: 'Live' });
+      }
+    }, e);
   };
 
   let canvas: HTMLCanvasElement | null = null;
@@ -351,9 +450,8 @@
   let loader: GLTFLoader | null = null;
   let classroomXLenght = 1;
   let classroomZLenght = 1;
-  let wheelTimeout: ReturnType<typeof setTimeout> | null = null;
-  let handleMouseWheel: ((event: WheelEvent) => void) | null = null;
   let spritePositions: THREE.Vector3[] = [];
+  let isAltPressed = false; // Alt键状态跟踪
 
   
   const initThree = () => {
@@ -450,32 +548,132 @@
       // 应用初始旋转
       window.camera.setRotationFromEuler(positionConfig.initialRotation);
       
-      // 如果指针已锁定，解锁以重置控制器状态
-      if (window.controls && canvas && document.pointerLockElement === canvas) {
-        document.exitPointerLock();
-      }
+      // 保持指针锁定状态（如果之前已锁定）
+      // PointerLockControls 会自动处理相机旋转，切换位置后继续使用即可
     }
     
-    // 添加鼠标双击事件以启用指针锁定
-    if (canvas && controls) {
-      canvas.addEventListener('dblclick', () => {
-        // 直接调用lock()方法，它不返回Promise
-        controls?.lock();
-      });
-      
       // 添加指针锁定错误处理
-      const onPointerLockError = () => {
-        // 静默处理指针锁定错误
-      };
+      if (canvas && controls) {
+        const onPointerLockError = () => {
+          // 显示自定义提示
+          showPointerLockHint.value = true;
+        };
       
       // 绑定指针锁定错误事件到document
       document.addEventListener('pointerlockerror', onPointerLockError);
       
       // 监听指针锁定状态变化
       controls.addEventListener('lock', () => {
+        // 锁定指针时隐藏鼠标
+        if (canvas) {
+          canvas.style.cursor = 'none';
+        }
       });
       
       controls.addEventListener('unlock', () => {
+        // 解锁指针时显示鼠标
+        if (canvas) {
+          canvas.style.cursor = 'default';
+        }
+      });
+      
+      // Alt键按下时解锁指针显示鼠标
+      const handleAltKeyDown = (event: KeyboardEvent) => {
+        // 检查是否是Alt键（包括左右Alt键）
+        if (event.key === 'Alt' || event.altKey) {
+          // 防止Alt键触发浏览器菜单
+          event.preventDefault();
+          isAltPressed = true;
+          
+          // 隐藏提示（用户已经知道如何操作）
+          showPointerLockHint.value = false;
+          
+          // 如果指针已锁定，解锁以显示鼠标
+          if (canvas && document.pointerLockElement === canvas) {
+            document.exitPointerLock();
+          }
+        }
+      };
+      
+      // Alt键释放时立即尝试重新锁定指针
+      const handleAltKeyUp = (event: KeyboardEvent) => {
+        // 检查是否是Alt键
+        if (event.key === 'Alt' || (!event.altKey && isAltPressed)) {
+          isAltPressed = false;
+          // 在键盘抬起事件（用户手势）中直接调用 lock()，满足浏览器要求
+          if (canvas && controls && document.pointerLockElement !== canvas) {
+            controls.lock();
+          }
+        }
+      };
+      
+      // 鼠标移动时检查Alt键状态（作为备用检测方法）
+      const handleMouseMove = (event: MouseEvent) => {
+        const altCurrentlyPressed = event.altKey;
+        
+        // 如果Alt键状态发生变化
+        if (altCurrentlyPressed !== isAltPressed) {
+          isAltPressed = altCurrentlyPressed;
+          
+          if (altCurrentlyPressed) {
+            // Alt键刚被按下：解锁指针显示鼠标
+            if (canvas && document.pointerLockElement === canvas) {
+              document.exitPointerLock();
+            }
+          }
+          // 鼠标移动事件中不做自动锁定，锁定逻辑在 Alt 抬起或点击画布时处理
+        }
+      };
+      
+      // 点击画布时自动锁定指针（如果未锁定且Alt键未按下）
+      const handleCanvasClick = (event: MouseEvent) => {
+        // 如果Alt键未按下，才自动锁定
+        if (!event.altKey && !isAltPressed && canvas && controls && document.pointerLockElement !== canvas) {
+          // 首次点击时显示提示
+          if (!localStorage.getItem('pointerLockHintShown')) {
+            showPointerLockHint.value = true;
+            localStorage.setItem('pointerLockHintShown', 'true');
+          }
+          // 在用户点击事件中直接调用 lock()，这是有效的用户手势
+          controls.lock();
+        }
+      };
+      
+      // 防止Alt键触发浏览器菜单
+      const handleContextMenu = (event: MouseEvent) => {
+        if (event.altKey) {
+          event.preventDefault();
+        }
+      };
+      
+      // 添加Alt键事件监听器
+      document.addEventListener('keydown', handleAltKeyDown, true);
+      document.addEventListener('keyup', handleAltKeyUp, true);
+      
+      // 添加鼠标移动事件监听器作为备用检测
+      if (canvas) {
+        canvas.addEventListener('mousemove', handleMouseMove);
+        // 防止Alt键触发浏览器菜单
+        canvas.addEventListener('contextmenu', handleContextMenu);
+      }
+      
+      // 添加点击画布事件监听器（用于自动锁定指针）
+      if (canvas) {
+        canvas.addEventListener('click', handleCanvasClick);
+      }
+      
+      // 存储事件处理函数以便后续清理
+      if (!window.pointerLockHandlers) {
+        window.pointerLockHandlers = [];
+      }
+      window.pointerLockHandlers.push({
+        altKeyDown: handleAltKeyDown,
+        altKeyUp: handleAltKeyUp,
+        onPointerLockError: onPointerLockError,
+        canvasClick: handleCanvasClick,
+        mouseMove: handleMouseMove,
+        contextMenu: handleContextMenu,
+        canvas: canvas
       });
     }
 
@@ -880,7 +1078,8 @@
                     if (!spritePositions[i]) {
                       spritePositions[i] = new THREE.Vector3();
                     }
-                    spritePositions[i].set(tempPosition.x + 0.5, tempPosition.y + 2.0, tempPosition.z);
+                    // 将精灵头像在面向讲台方向略微前移，避免与桌椅重叠
+                    spritePositions[i].set(tempPosition.x, tempPosition.y + 2.0, tempPosition.z);
                   }
                   
                   // 6. 批量添加到场景
@@ -898,75 +1097,19 @@
                   }
                   window.instancedObjects.push(...instancedMeshGroups);
                   
-                  // 8. 添加课桌悬浮事件处理
+                  // 8. 添加课桌悬浮事件处理（仅变更鼠标样式）
                   const raycaster = new THREE.Raycaster();
                   const mouse = new THREE.Vector2();
-                  let currentHoveredDeskId: number | null = null; // 当前悬停的课桌ID
-                  const originalMatrices = new Map<number, THREE.Matrix4>(); // 存储原始矩阵
-                  const hoverScale = 1.1; // 悬浮时的放大倍数
                   let isCursorPointer = false; // 跟踪当前鼠标样式状态
-                  
-                  // 辅助函数：更新实例的缩放（保持子组件相对位置）
-                  const updateInstanceScale = (instanceId: number, scale: number) => {
-                    // 获取原始矩阵以提取整体模型位置
-                    let originalMatrix = originalMatrices.get(instanceId);
-                    if (!originalMatrix) {
-                      // 如果没有存储原始矩阵，从第一个实例化网格获取
-                      if (instancedMeshGroups.length > 0) {
-                        const tempMatrix = new THREE.Matrix4();
-                        instancedMeshGroups[0].getMatrixAt(instanceId, tempMatrix);
-                        originalMatrices.set(instanceId, tempMatrix.clone());
-                        originalMatrix = originalMatrices.get(instanceId);
-                      } else {
-                        return;
-                      }
-                    }
-                    
-                    // 重用矩阵和向量对象以减少GC压力
-                    const matrix = new THREE.Matrix4();
-                    const groupMatrix = new THREE.Matrix4();
-                    const componentMatrix = new THREE.Matrix4();
-                    const globalPosition = new THREE.Vector3();
-                    const localPosition = new THREE.Vector3();
-                    const quaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI / 2, 0));
-                    const groupQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI / 2, 0));
-                    const scaleVec = new THREE.Vector3(scale, scale, scale);
-                    
-                    // 从原始矩阵中提取整体模型的位置（不包含缩放）
-                    // 通过计算位置回调函数来获取原始位置
-                    calculatePosition(instanceId, globalPosition);
-                    
-                    // 计算整体模型的变换矩阵（包含缩放）
-                    groupMatrix.compose(globalPosition, groupQuaternion, scaleVec);
-                    
-                        // 对每个子组件的网格应用相同的整体变换，但保持相对位置
-                        instancedMeshGroups.forEach((instancedMesh: InstancedMesh) => {
-                      // 计算子组件相对于整体模型的变换矩阵（从userData获取）
-                      componentMatrix.compose(
-                        instancedMesh.userData.componentPosition,
-                        instancedMesh.userData.componentQuaternion,
-                        instancedMesh.userData.componentScale
-                      );
-                      
-                      // 应用整体模型变换（包含缩放）到组件位置
-                      componentMatrix.premultiply(groupMatrix);
-                      
-                      // 使用网格相对于组件的原始位置（从userData获取）
-                      localPosition.copy(instancedMesh.userData.meshPosition);
-                      
-                      // 应用组件变换到网格位置（保持子组件相对位置）
-                      localPosition.applyMatrix4(componentMatrix);
-                      
-                      // 设置实例矩阵（缩放已在groupMatrix中应用，这里使用单位缩放）
-                      const finalScale = new THREE.Vector3(1, 1, 1);
-                      matrix.compose(localPosition, quaternion, finalScale);
-                      instancedMesh.setMatrixAt(instanceId, matrix);
-                      instancedMesh.instanceMatrix.needsUpdate = true;
-                    });
-                  };
                   
                   const handleDeskHover = (event: MouseEvent) => {
                     if (!canvas || !camera) return;
+                    
+                    // 如果指针已锁定，不处理悬停
+                    if (document.pointerLockElement === canvas) {
+                      return;
+                    }
+                    
                     // 计算鼠标在标准化设备坐标中的位置 (-1 到 1)
                     const rect = canvas.getBoundingClientRect();
                     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -980,108 +1123,78 @@
                     // 检测与所有实例化网格的交点
                     for (const instancedMesh of instancedMeshGroups) {
                       const intersects = raycaster.intersectObject(instancedMesh);
-                      
                       if (intersects.length > 0) {
-                        const intersection = intersects[0];
-                        
-                        // 检查是否有实例ID（InstancedMesh的intersection会有instanceId）
-                        if (intersection.instanceId !== undefined) {
-                          const instanceId = intersection.instanceId;
-                          
-                          // 如果悬停的是同一个课桌，不需要重复处理
-                          if (currentHoveredDeskId === instanceId) {
-                            // 确保鼠标样式为pointer
-                            if (!isCursorPointer) {
-                              canvas.style.cursor = 'pointer';
-                              isCursorPointer = true;
-                            }
-                            foundDesk = true;
-                            break;
-                          }
-                          
-                          // 如果之前有悬停的课桌，恢复其原始大小
-                          if (currentHoveredDeskId !== null && currentHoveredDeskId !== instanceId) {
-                            updateInstanceScale(currentHoveredDeskId, 1.0);
-                          }
-                          
-                          // 更新当前悬停的课桌ID
-                          currentHoveredDeskId = instanceId;
-                          
-                          // 放大当前悬停的课桌
-                          updateInstanceScale(instanceId, hoverScale);
-                          
-                          // 计算课桌位置
-                          const deskPosition = new THREE.Vector3();
-                          calculatePosition(instanceId, deskPosition);
-                          
-                          // 显示学生信息框
-                          showStudentInfoPopup(event, instanceId);
-                          
-                          // 改变鼠标样式为pointer
-                          if (!isCursorPointer) {
-                            canvas.style.cursor = 'pointer';
-                            isCursorPointer = true;
-                          }
-                          
-                          foundDesk = true;
-                          // 只处理第一个交点，避免重复触发
-                          break;
-                        }
+                        foundDesk = true;
+                        break;
                       }
                     }
                     
-                    // 如果鼠标没有悬停在任何课桌上，恢复之前悬停的课桌大小并隐藏信息框
-                    if (!foundDesk) {
-                      if (currentHoveredDeskId !== null) {
-                        updateInstanceScale(currentHoveredDeskId, 1.0);
-                        currentHoveredDeskId = null;
-                        hideStudentInfoPopup();
-                      }
-                      // 恢复鼠标样式为默认
-                      if (isCursorPointer) {
-                        canvas.style.cursor = 'default';
-                        isCursorPointer = false;
-                      }
-                    }
-                  };
-                  
-                  // 添加鼠标移动事件监听器
-                  if (canvas) {
-                    canvas.addEventListener('mousemove', handleDeskHover);
-                  }
-                  
-                  // 添加鼠标离开画布事件，隐藏信息框并恢复课桌大小
-                  const handleMouseLeave = () => {
-                    if (currentHoveredDeskId !== null) {
-                      updateInstanceScale(currentHoveredDeskId, 1.0);
-                      currentHoveredDeskId = null;
-                    }
-                    hideStudentInfoPopup();
-                    // 恢复鼠标样式为默认
-                    if (isCursorPointer && canvas) {
+                    // 根据是否命中课桌更新鼠标样式
+                    if (foundDesk && !isCursorPointer) {
+                      canvas.style.cursor = 'pointer';
+                      isCursorPointer = true;
+                    } else if (!foundDesk && isCursorPointer) {
                       canvas.style.cursor = 'default';
                       isCursorPointer = false;
                     }
                   };
+                  
                   if (canvas) {
+                    const handleMouseLeave = () => {
+                      if (isCursorPointer) {
+                        (canvas as HTMLCanvasElement).style.cursor = 'default';
+                        isCursorPointer = false;
+                      }
+                    };
+                    canvas.addEventListener('mousemove', handleDeskHover);
                     canvas.addEventListener('mouseleave', handleMouseLeave);
+                    
+                    if (!window.deskHoverHandlers) {
+                      window.deskHoverHandlers = [];
+                    }
+                    window.deskHoverHandlers.push({
+                      hoverHandler: handleDeskHover,
+                      leaveHandler: handleMouseLeave,
+                      canvas: canvas as HTMLCanvasElement
+                    });
                   }
                   
-                  // 9. 添加课桌点击事件处理
+                  // 9. 添加课桌点击事件处理（左键入座 / 右键站起）
                   const handleDeskClick = (event: MouseEvent) => {
                     if (!canvas || !camera) return;
+                    
+                    // 只处理左键点击入座逻辑，右键交由上下文菜单事件处理
+                    if (event.button !== 0) return;
+                    
+                    // 如果指针已锁定，直接切换视角（不处理课桌点击，因为无法准确获取鼠标位置）
+                    if (document.pointerLockElement === canvas) {
+                      if (typeof window.switchCameraPosition === 'function') {
+                        window.switchCameraPosition();
+                      }
+                      return;
+                    }
+                    
                     // 检查精灵管理器是否已初始化
                     if (!spriteManager || !spriteManager.isInitialized) {
+                      // 如果没有初始化，可能是要切换视角
+                      if (typeof window.switchCameraPosition === 'function') {
+                        window.switchCameraPosition();
+                      }
                       return;
                     }
                     
                     // 计算鼠标在标准化设备坐标中的位置 (-1 到 1)
                     const rect = canvas.getBoundingClientRect();
-                    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-                    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+                    const mouseX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                    const mouseY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+                    
+                    mouse.x = mouseX;
+                    mouse.y = mouseY;
                     
                     // 设置射线投射器的射线
                     raycaster.setFromCamera(mouse, camera);
+                    
+                    let clickedDesk = false;
                     
                     // 检测与所有实例化网格的交点
                     for (const instancedMesh of instancedMeshGroups) {
@@ -1094,16 +1207,38 @@
                         if (intersection.instanceId !== undefined) {
                           const instanceId = intersection.instanceId;
                           
+                          if (isClassroomOwner.value) {
+                            if (message) {
+                              message.info(t('classroom.seatConfirm.ownerForbiddenMessage'));
+                            }
+                            clickedDesk = true;
+                            break;
+                          }
+                          
                           // 从user store获取当前用户信息
                           const userInfo = userStore.userInfo;
                           if (!userInfo || !userInfo.id) {
                             return;
                           }
                           
+                          // 检查该座位是否已有学生
+                          const existingStudent = studentsList.value.find(student => student.seatIndex === instanceId);
+                          if (existingStudent) {
+                            if (existingStudent.studentId === userInfo.id) {
+                              if (message) {
+                                message.info(t('classroom.seatConfirm.selfSeatMessage'));
+                              }
+                            } else if (message) {
+                              message.info(t('classroom.seatConfirm.occupiedMessage'));
+                            }
+                            clickedDesk = true;
+                            break;
+                          }
+                          
                           // 获取学生信息
                           const studentInfo = userStore.studentInfo;
                           const avatarUrl = (userInfo?.avatar) || (studentInfo?.avatar) || null;
-                          const displayName = resolveDisplayName(studentInfo) || resolveDisplayName(userInfo) || '您';
+                          const displayName = getIdentityName(studentInfo) || getIdentityName(userInfo) || '您';
                           const row = Math.floor(instanceId / columnCount.value);
                           const column = instanceId % columnCount.value;
 
@@ -1114,6 +1249,7 @@
                             displayName
                           });
                           
+                          clickedDesk = true;
                           // 只处理第一个交点
                           break;
                         }
@@ -1121,19 +1257,110 @@
                     }
                   };
                   
+                  // 右键站起事件处理
+                  const handleDeskContextMenu = async (event: MouseEvent) => {
+                    if (!canvas || !camera) return;
+                    
+                    // 禁用默认右键菜单
+                    event.preventDefault();
+                    
+                    // 指针锁定状态下不处理站起逻辑
+                    if (document.pointerLockElement === canvas) {
+                      return;
+                    }
+                    
+                    const userInfo = userStore.userInfo;
+                    if (!userInfo || !userInfo.id) {
+                      return;
+                    }
+                    
+                    const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
+                    if (!recordId) {
+                      return;
+                    }
+                    
+                    // 计算鼠标在标准化设备坐标中的位置 (-1 到 1)
+                    const rect = canvas.getBoundingClientRect();
+                    const mouseX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                    const mouseY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+                    
+                    mouse.x = mouseX;
+                    mouse.y = mouseY;
+                    
+                    raycaster.setFromCamera(mouse, camera);
+                    
+                    for (const instancedMesh of instancedMeshGroups) {
+                      const intersects = raycaster.intersectObject(instancedMesh);
+                      
+                      if (intersects.length > 0) {
+                        const intersection = intersects[0];
+                        
+                        if (intersection.instanceId !== undefined) {
+                          const instanceId = intersection.instanceId;
+                          
+                          // 查找该座位是否是当前用户
+                          const existingStudent = studentsList.value.find(student => student.seatIndex === instanceId);
+                          if (!existingStudent || existingStudent.studentId !== userInfo.id) {
+                            return;
+                          }
+                          
+                          const doStandUp = async () => {
+                            const apiResult = await removeStudentSeat(recordId, userInfo.id);
+                            const isSuccess = typeof apiResult === 'boolean'
+                              ? apiResult
+                              : Boolean(apiResult && (apiResult.success === true || apiResult.code === 200));
+                            
+                            if (!isSuccess) {
+                              return false;
+                            }
+                            
+                            // 前端移除座位信息
+                            studentsList.value = studentsList.value.filter(student => student.studentId !== userInfo.id);
+                            
+                            // 从精灵管理器中移除
+                            try {
+                              spriteManager.removeUserData(userInfo.id);
+                            } catch (e) {
+                              // 静默处理
+                            }
+                            
+                            if (message) {
+                              message.success(t('classroom.seatConfirm.standUpSuccess'));
+                            }
+                            
+                            return true;
+                          };
+                          
+                          if (dialog) {
+                            dialog.warning({
+                              title: t('classroom.seatConfirm.standUpTitle'),
+                              content: t('classroom.seatConfirm.standUpContent'),
+                              positiveText: t('common.confirm'),
+                              negativeText: t('common.cancel'),
+                              onPositiveClick: async () => {
+                                await doStandUp();
+                              }
+                            });
+                          } else {
+                            await doStandUp();
+                          }
+                          
+                          return;
+                        }
+                      }
+                    }
+                  };
+                  
                   // 添加点击事件监听器
+                  // 使用 click 事件（按下并抬起一次）来触发视角切换或入座
                   if (canvas) {
                     canvas.addEventListener('click', handleDeskClick);
-                  }
-                  
-                  // 存储事件处理函数引用，以便后续清理
-                  if (!window.deskHoverHandlers) {
-                    window.deskHoverHandlers = [];
-                  }
-                  if (canvas) {
+                    canvas.addEventListener('contextmenu', handleDeskContextMenu);
+                    
+                    if (!window.deskHoverHandlers) {
+                      window.deskHoverHandlers = [];
+                    }
                     window.deskHoverHandlers.push({
-                      handler: handleDeskHover,
-                      leaveHandler: handleMouseLeave,
                       clickHandler: handleDeskClick,
                       canvas: canvas
                     });
@@ -1191,30 +1418,10 @@
                 // 静默处理错误
               }
               
-              // 加载用户纹理（示例代码，实际使用时会在用户加入时触发）
-              const userTextureLoader = new THREE.TextureLoader();
-              userTextureLoader.load(
-                '/src/assets/image/zhuanruzijin.png',
-                (userTexture: Texture) => {
-                  // 纹理加载成功，更新精灵信息
-                  try {
-                    spriteManager.updateSpriteInfo('student_1', userTexture, 0);
-                  } catch {
-                    // 静默处理错误
-                  }
-                },
-                undefined,
-                () => {
-                  // 加载失败，使用默认纹理
-                  try {
-                    if (spriteManager.defaultTexture) {
-                      spriteManager.updateSpriteInfo('student_1', spriteManager.defaultTexture, 0);
-                    }
-                  } catch {
-                    // 静默处理错误
-                  }
-                }
-              );
+              // 如果已有学生列表，渲染学生精灵
+              if (studentsList.value.length > 0) {
+                renderStudentSprites(studentsList.value);
+              }
             } catch (initError) {
               // 静默处理错误
             }
@@ -1230,7 +1437,30 @@
     };
 
     // 启动模型加载
-    loadModelsSequentially()
+    const showPointerHintOnce = () => {
+      if (pointerHintTimeout) {
+        clearTimeout(pointerHintTimeout);
+      }
+      showPointerLockHint.value = true;
+      pointerHintTimeout = window.setTimeout(() => {
+        showPointerLockHint.value = false;
+        pointerHintTimeout = null;
+      }, 5000);
+    };
+
+    loadModelsSequentially().then(async () => {
+      // 模型加载完成后，显示提示信息
+      showPointerHintOnce();
+      
+      // 如果已有学生列表且精灵管理器已初始化，渲染学生精灵
+      if (studentsList.value.length > 0 && spriteManager && spriteManager.isInitialized) {
+        await renderStudentSprites(studentsList.value);
+      }
+      
+      // 注意：Pointer Lock API 需要用户手势才能请求锁定
+      // 因此不在模型加载完成后自动锁定，而是等待用户点击画布
+      // 用户点击画布时会通过 handleCanvasClick 函数触发锁定
+    });
 
 
     
@@ -1252,36 +1482,8 @@
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     });
     
-    /**
-     * 鼠标滚轮事件监听
-     */
-    const WHEEL_DEBOUNCE_DELAY = 500; // 防抖延迟时间（毫秒）
-    
-    handleMouseWheel = (event: WheelEvent) => {
-      // 阻止默认滚动行为
-      event.preventDefault();
-      
-      // 防抖处理，避免快速滚动时频繁切换
-      if (wheelTimeout) {
-        clearTimeout(wheelTimeout);
-      }
-      
-      wheelTimeout = setTimeout(() => {
-        try {
-          // 切换相机位置
-          if (typeof window.switchCameraPosition === 'function') {
-            window.switchCameraPosition();
-          }
-        } catch {
-          // 静默处理相机切换失败
-        }
-      }, WHEEL_DEBOUNCE_DELAY);
-    };
-    
-    // 添加鼠标滚轮事件监听器到画布元素
-    if (canvas) {
-      canvas.addEventListener('wheel', handleMouseWheel);
-    }
+    // 移除滚轮事件监听，改为左键点击触发视角切换
+    // 视角切换逻辑已集成到 handleDeskClick 中
 
   
     /**
@@ -1310,10 +1512,9 @@
   };
   
   onMounted(async () => {
-    // 先获取课程记录
     await fetchCourseRecord();
-    // 然后初始化Three.js场景
     initThree();
+    transitionStore.hide(1250);
   });
   
   onBeforeUnmount(() => {
@@ -1327,22 +1528,39 @@
       controls = null;
     }
   
-    // 清理鼠标滚轮事件监听器
-    if (canvas && handleMouseWheel) {
-      canvas.removeEventListener('wheel', handleMouseWheel);
-    }
-  
-    // 清理滚轮防抖定时器
-    if (wheelTimeout) {
-      clearTimeout(wheelTimeout);
-      wheelTimeout = null;
+    // 滚轮事件已移除，无需清理
+    
+    // 清理Alt键事件监听器和点击事件监听器
+    if (window.pointerLockHandlers && Array.isArray(window.pointerLockHandlers)) {
+      window.pointerLockHandlers.forEach(({ altKeyDown, altKeyUp, onPointerLockError, canvasClick, mouseMove, contextMenu, canvas: handlerCanvas }) => {
+        if (altKeyDown) {
+          document.removeEventListener('keydown', altKeyDown, true);
+        }
+        if (altKeyUp) {
+          document.removeEventListener('keyup', altKeyUp, true);
+        }
+        if (onPointerLockError) {
+          document.removeEventListener('pointerlockerror', onPointerLockError);
+        }
+        if (canvasClick && handlerCanvas) {
+          handlerCanvas.removeEventListener('click', canvasClick);
+        }
+        if (mouseMove && handlerCanvas) {
+          handlerCanvas.removeEventListener('mousemove', mouseMove);
+        }
+        if (contextMenu && handlerCanvas) {
+          handlerCanvas.removeEventListener('contextmenu', contextMenu);
+        }
+      });
+      window.pointerLockHandlers = [];
     }
   
     // 清理课桌悬浮和点击事件监听器
     if (window.deskHoverHandlers && Array.isArray(window.deskHoverHandlers)) {
-      window.deskHoverHandlers.forEach(({ handler, leaveHandler, clickHandler, canvas: handlerCanvas }) => {
-        if (handlerCanvas && handler) {
-          handlerCanvas.removeEventListener('mousemove', handler);
+      window.deskHoverHandlers.forEach(({ hoverHandler, leaveHandler, clickHandler, canvas: handlerCanvas }) => {
+        if (handlerCanvas && hoverHandler) {
+          handlerCanvas.removeEventListener('mousemove', hoverHandler);
+          handlerCanvas.style.cursor = 'default';
         }
         if (handlerCanvas && leaveHandler) {
           handlerCanvas.removeEventListener('mouseleave', leaveHandler);
@@ -1350,9 +1568,9 @@
         if (handlerCanvas && clickHandler) {
           handlerCanvas.removeEventListener('click', clickHandler);
         }
-    });
-    window.deskHoverHandlers = [];
-  }
+      });
+      window.deskHoverHandlers = [];
+    }
     
     // 清理点击处理器资源
     modelClickHandler.dispose();
@@ -1427,6 +1645,10 @@
     
     // 清理精灵位置数组
     spritePositions.length = 0;
+    if (pointerHintTimeout) {
+      clearTimeout(pointerHintTimeout);
+      pointerHintTimeout = null;
+    }
   });
   </script>
   
@@ -1462,6 +1684,16 @@
     top: 20px;
     right: 140px;
     z-index: 1001;
+  }
+
+  .pointer-lock-hint {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1002;
+    max-width: 400px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   }
   
   @media (max-width: 768px) {

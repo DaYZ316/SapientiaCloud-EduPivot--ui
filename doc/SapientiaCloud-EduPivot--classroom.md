@@ -87,7 +87,7 @@
 |&emsp;&emsp;layoutColumns|列数 (仅传统布局或对齐布局使用)|integer(int32)||
 |&emsp;&emsp;startTime|课程开始时间|string(date-time)||
 |&emsp;&emsp;overTime|课程结束时间|string(date-time)||
-|&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=取消)|integer(int32)||
+|&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=已取消)|integer(int32)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
@@ -336,7 +336,7 @@
 |&emsp;&emsp;layoutColumns|列数 (仅传统布局或对齐布局使用)||false|integer(int32)||
 |&emsp;&emsp;startTime|课程开始时间||false|string(date-time)||
 |&emsp;&emsp;overTime|课程结束时间||false|string(date-time)||
-|&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=取消)||false|integer(int32)||
+|&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=已取消)||false|integer(int32)||
 
 
 **响应状态**:
@@ -373,7 +373,7 @@
 |&emsp;&emsp;layoutColumns|列数 (仅传统布局或对齐布局使用)|integer(int32)||
 |&emsp;&emsp;startTime|课程开始时间|string(date-time)||
 |&emsp;&emsp;overTime|课程结束时间|string(date-time)||
-|&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=取消)|integer(int32)||
+|&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=已取消)|integer(int32)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
@@ -514,7 +514,7 @@
 |&emsp;&emsp;layoutColumns|列数 (仅传统布局或对齐布局使用)|integer(int32)||
 |&emsp;&emsp;startTime|课程开始时间|string(date-time)||
 |&emsp;&emsp;overTime|课程结束时间|string(date-time)||
-|&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=取消)|integer(int32)||
+|&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=已取消)|integer(int32)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
@@ -779,7 +779,7 @@
 |&emsp;&emsp;layoutColumns|列数 (仅传统布局或对齐布局使用)|integer(int32)||
 |&emsp;&emsp;startTime|课程开始时间|string(date-time)||
 |&emsp;&emsp;overTime|课程结束时间|string(date-time)||
-|&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=取消)|integer(int32)||
+|&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=已取消)|integer(int32)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
@@ -1003,7 +1003,7 @@
 |teacherId|授课教师ID|query|false|string||
 |courseName|课程名称（模糊查询）|query|false|string||
 |classroomType|教室类型 (0=小型教室, 1=中型教室, 2=大型教室, 3=超大型教室)|query|false|string||
-|status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=取消)|query|false|string||
+|status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=已取消)|query|false|string||
 |startTimeBegin|开始时间范围 - 起始|query|false|string||
 |startTimeEnd|开始时间范围 - 结束|query|false|string||
 |startTime|起始时间|query|false|string||
@@ -1161,7 +1161,7 @@
 |&emsp;&emsp;layoutColumns|列数 (仅传统布局或对齐布局使用)|integer(int32)||
 |&emsp;&emsp;startTime|课程开始时间|string(date-time)||
 |&emsp;&emsp;overTime|课程结束时间|string(date-time)||
-|&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=取消)|integer(int32)||
+|&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=已取消)|integer(int32)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
@@ -1300,7 +1300,7 @@
 |&emsp;&emsp;layoutColumns|列数 (仅传统布局或对齐布局使用)||false|integer(int32)||
 |&emsp;&emsp;startTime|课程开始时间||false|string(date-time)||
 |&emsp;&emsp;overTime|课程结束时间||false|string(date-time)||
-|&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=取消)||false|integer(int32)||
+|&emsp;&emsp;status|课程状态 (0=未开始, 1=进行中, 2=已结束, 3=已取消)||false|integer(int32)||
 
 
 **响应状态**:
@@ -2310,11 +2310,7 @@
   "seatIndex": 0,
   "locationX": 0,
   "locationY": 0,
-  "locationZ": 0,
-  "rotationY": 0,
-  "seatStatus": "",
-  "attendanceStatus": 0,
-  "participationScore": 0
+  "seatStatus": 0
 }
 ```
 
@@ -2329,13 +2325,9 @@
 |&emsp;&emsp;studentId|学生ID||true|string(uuid)||
 |&emsp;&emsp;courseId|课程ID||true|string(uuid)||
 |&emsp;&emsp;seatIndex|座位编号 (从0开始)||true|integer(int32)||
-|&emsp;&emsp;locationX|3D坐标X (横向)||true|number(float)||
-|&emsp;&emsp;locationY|3D坐标Y (高度)||true|number(float)||
-|&emsp;&emsp;locationZ|3D坐标Z (纵深)||true|number(float)||
-|&emsp;&emsp;rotationY|朝向角度 (弧度制)||false|number(float)||
-|&emsp;&emsp;seatStatus|座位状态 (normal, marked, reserved, occupied)||false|string||
-|&emsp;&emsp;attendanceStatus|出勤状态 (0=未签到, 1=已签到, 2=缺席)||false|integer(int32)||
-|&emsp;&emsp;participationScore|课堂互动得分 (可选)||false|number(float)||
+|&emsp;&emsp;locationX|学生座位的x坐标||true|integer(int32)||
+|&emsp;&emsp;locationY|学生座位的y坐标||true|integer(int32)||
+|&emsp;&emsp;seatStatus|座位状态 (0=正常, 2=已预留, 3=已占用)||false|integer(int32)||
 
 
 **响应状态**:
@@ -2367,13 +2359,9 @@
 |&emsp;&emsp;studentAvatar|学生头像|string||
 |&emsp;&emsp;courseId|课程ID|string(uuid)||
 |&emsp;&emsp;seatIndex|座位编号 (从0开始)|integer(int32)||
-|&emsp;&emsp;locationX|3D坐标X (横向)|number(float)||
-|&emsp;&emsp;locationY|3D坐标Y (高度)|number(float)||
-|&emsp;&emsp;locationZ|3D坐标Z (纵深)|number(float)||
-|&emsp;&emsp;rotationY|朝向角度 (弧度制)|number(float)||
-|&emsp;&emsp;seatStatus|座位状态 (normal, marked, reserved, occupied)|string||
-|&emsp;&emsp;attendanceStatus|出勤状态 (0=未签到, 1=已签到, 2=缺席)|integer(int32)||
-|&emsp;&emsp;participationScore|课堂互动得分 (可选)|number(float)||
+|&emsp;&emsp;locationX|学生座位的x坐标|integer(int32)||
+|&emsp;&emsp;locationY|学生座位的y坐标|integer(int32)||
+|&emsp;&emsp;seatStatus|座位状态 (0=正常, 2=已预留, 3=已占用)|integer(int32)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
@@ -2394,11 +2382,7 @@
 		"seatIndex": 0,
 		"locationX": 0,
 		"locationY": 0,
-		"locationZ": 0,
-		"rotationY": 0,
-		"seatStatus": "",
-		"attendanceStatus": 0,
-		"participationScore": 0,
+		"seatStatus": 0,
 		"createTime": "",
 		"updateTime": ""
 	}
@@ -2510,13 +2494,9 @@
 |&emsp;&emsp;studentAvatar|学生头像|string||
 |&emsp;&emsp;courseId|课程ID|string(uuid)||
 |&emsp;&emsp;seatIndex|座位编号 (从0开始)|integer(int32)||
-|&emsp;&emsp;locationX|3D坐标X (横向)|number(float)||
-|&emsp;&emsp;locationY|3D坐标Y (高度)|number(float)||
-|&emsp;&emsp;locationZ|3D坐标Z (纵深)|number(float)||
-|&emsp;&emsp;rotationY|朝向角度 (弧度制)|number(float)||
-|&emsp;&emsp;seatStatus|座位状态 (normal, marked, reserved, occupied)|string||
-|&emsp;&emsp;attendanceStatus|出勤状态 (0=未签到, 1=已签到, 2=缺席)|integer(int32)||
-|&emsp;&emsp;participationScore|课堂互动得分 (可选)|number(float)||
+|&emsp;&emsp;locationX|学生座位的x坐标|integer(int32)||
+|&emsp;&emsp;locationY|学生座位的y坐标|integer(int32)||
+|&emsp;&emsp;seatStatus|座位状态 (0=正常, 2=已预留, 3=已占用)|integer(int32)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
@@ -2538,11 +2518,7 @@
 			"seatIndex": 0,
 			"locationX": 0,
 			"locationY": 0,
-			"locationZ": 0,
-			"rotationY": 0,
-			"seatStatus": "",
-			"attendanceStatus": 0,
-			"participationScore": 0,
+			"seatStatus": 0,
 			"createTime": "",
 			"updateTime": ""
 		}
@@ -2980,8 +2956,7 @@
 |recordId|课程记录ID|query|false|string||
 |studentId|学生ID|query|false|string||
 |courseId|课程ID|query|false|string||
-|seatStatus|座位状态 (normal, marked, reserved, occupied)|query|false|string||
-|attendanceStatus|出勤状态 (0=未签到, 1=已签到, 2=缺席)|query|false|string||
+|seatStatus|座位状态 (0=正常, 2=已预留, 3=已占用)|query|false|string||
 |startTime|起始时间|query|false|string||
 |endTime|结束时间|query|false|string||
 |pageNum|当前记录起始索引|query|false|string||
@@ -3132,13 +3107,9 @@
 |&emsp;&emsp;studentAvatar|学生头像|string||
 |&emsp;&emsp;courseId|课程ID|string(uuid)||
 |&emsp;&emsp;seatIndex|座位编号 (从0开始)|integer(int32)||
-|&emsp;&emsp;locationX|3D坐标X (横向)|number(float)||
-|&emsp;&emsp;locationY|3D坐标Y (高度)|number(float)||
-|&emsp;&emsp;locationZ|3D坐标Z (纵深)|number(float)||
-|&emsp;&emsp;rotationY|朝向角度 (弧度制)|number(float)||
-|&emsp;&emsp;seatStatus|座位状态 (normal, marked, reserved, occupied)|string||
-|&emsp;&emsp;attendanceStatus|出勤状态 (0=未签到, 1=已签到, 2=缺席)|integer(int32)||
-|&emsp;&emsp;participationScore|课堂互动得分 (可选)|number(float)||
+|&emsp;&emsp;locationX|学生座位的x坐标|integer(int32)||
+|&emsp;&emsp;locationY|学生座位的y坐标|integer(int32)||
+|&emsp;&emsp;seatStatus|座位状态 (0=正常, 2=已预留, 3=已占用)|integer(int32)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
@@ -3160,11 +3131,7 @@
 			"seatIndex": 0,
 			"locationX": 0,
 			"locationY": 0,
-			"locationZ": 0,
-			"rotationY": 0,
-			"seatStatus": "",
-			"attendanceStatus": 0,
-			"participationScore": 0,
+			"seatStatus": 0,
 			"createTime": "",
 			"updateTime": ""
 		}
@@ -3280,13 +3247,9 @@
 |&emsp;&emsp;studentAvatar|学生头像|string||
 |&emsp;&emsp;courseId|课程ID|string(uuid)||
 |&emsp;&emsp;seatIndex|座位编号 (从0开始)|integer(int32)||
-|&emsp;&emsp;locationX|3D坐标X (横向)|number(float)||
-|&emsp;&emsp;locationY|3D坐标Y (高度)|number(float)||
-|&emsp;&emsp;locationZ|3D坐标Z (纵深)|number(float)||
-|&emsp;&emsp;rotationY|朝向角度 (弧度制)|number(float)||
-|&emsp;&emsp;seatStatus|座位状态 (normal, marked, reserved, occupied)|string||
-|&emsp;&emsp;attendanceStatus|出勤状态 (0=未签到, 1=已签到, 2=缺席)|integer(int32)||
-|&emsp;&emsp;participationScore|课堂互动得分 (可选)|number(float)||
+|&emsp;&emsp;locationX|学生座位的x坐标|integer(int32)||
+|&emsp;&emsp;locationY|学生座位的y坐标|integer(int32)||
+|&emsp;&emsp;seatStatus|座位状态 (0=正常, 2=已预留, 3=已占用)|integer(int32)||
 |&emsp;&emsp;createTime|创建时间|string(date-time)||
 |&emsp;&emsp;updateTime|更新时间|string(date-time)||
 
@@ -3307,11 +3270,7 @@
 		"seatIndex": 0,
 		"locationX": 0,
 		"locationY": 0,
-		"locationZ": 0,
-		"rotationY": 0,
-		"seatStatus": "",
-		"attendanceStatus": 0,
-		"participationScore": 0,
+		"seatStatus": 0,
 		"createTime": "",
 		"updateTime": ""
 	}
@@ -3399,11 +3358,7 @@
   "seatIndex": 0,
   "locationX": 0,
   "locationY": 0,
-  "locationZ": 0,
-  "rotationY": 0,
-  "seatStatus": "",
-  "attendanceStatus": 0,
-  "participationScore": 0
+  "seatStatus": 0
 }
 ```
 
@@ -3418,13 +3373,9 @@
 |&emsp;&emsp;studentId|学生ID||true|string(uuid)||
 |&emsp;&emsp;courseId|课程ID||true|string(uuid)||
 |&emsp;&emsp;seatIndex|座位编号 (从0开始)||true|integer(int32)||
-|&emsp;&emsp;locationX|3D坐标X (横向)||true|number(float)||
-|&emsp;&emsp;locationY|3D坐标Y (高度)||true|number(float)||
-|&emsp;&emsp;locationZ|3D坐标Z (纵深)||true|number(float)||
-|&emsp;&emsp;rotationY|朝向角度 (弧度制)||false|number(float)||
-|&emsp;&emsp;seatStatus|座位状态 (normal, marked, reserved, occupied)||false|string||
-|&emsp;&emsp;attendanceStatus|出勤状态 (0=未签到, 1=已签到, 2=缺席)||false|integer(int32)||
-|&emsp;&emsp;participationScore|课堂互动得分 (可选)||false|number(float)||
+|&emsp;&emsp;locationX|学生座位的x坐标||true|integer(int32)||
+|&emsp;&emsp;locationY|学生座位的y坐标||true|integer(int32)||
+|&emsp;&emsp;seatStatus|座位状态 (0=正常, 2=已预留, 3=已占用)||false|integer(int32)||
 
 
 **响应状态**:

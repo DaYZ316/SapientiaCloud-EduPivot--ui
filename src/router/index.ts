@@ -221,6 +221,15 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
+                path: '/live/room/:roomId',
+                name: 'LiveRoom',
+                component: () => import('@/views/live/LiveRoom/index.vue'),
+                meta: {
+                    title: '直播间',
+                    requiresAuth: true
+                }
+            },
+            {
                 path: '/course/:courseId/classroom/:courseRecordId/live',
                 name: 'CourseLive',
                 component: () => import('@/views/live/index.vue'),
@@ -450,6 +459,12 @@ router.afterEach((to, from) => {
     if (isLoginTransition || isLogoutTransition || isLoginPageRefresh || isAuthPageRefresh) {
         // 隐藏过渡动画，确保至少持续1秒
         transitionStore.hide(1250)
+        return
+    }
+
+    // 处理其他通过全局过渡触发的路由跳转（例如3D教室进出）
+    if (transitionStore.showTransition) {
+        transitionStore.hide(800)
     }
 })
 

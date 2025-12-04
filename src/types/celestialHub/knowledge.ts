@@ -1,69 +1,67 @@
 /**
- * 知识检索请求DTO
+ * 知识检索请求DTO（searchKnowledge）
  */
-export interface KnowledgeRequestDTO {
-    /** 查询内容 */
+export interface KnowledgeSearchRequestDTO {
+    /** 检索查询内容 */
     query?: string | null
-    /** 课程ID */
-    courseId?: string | null
-    /** 章节ID */
-    chapterId?: string | null
-    /** 内容类型过滤: 0-章节, 1-问题, 2-答案, 3-论坛 */
-    contentTypes?: number[] | null
-    /** 返回结果数量 */
+    /** 返回结果数量（TopK） */
     topK?: number | null
-    /** 相似度阈值(0.0-1.0) */
+    /** 相似度阈值 */
     similarityThreshold?: number | null
-    /** 标签过滤 */
-    tags?: string[] | null
+    /** 会话ID */
+    sessionId?: string | null
 }
 
 /**
- * 知识项VO
+ * 知识检索结果VO（KnowledgeSearchResultVO）
  */
-export interface KnowledgeItemVO {
-    /** 内容ID */
-    id?: string | null
-    /** 内容类型: 0-章节, 1-问题, 2-答案, 3-论坛 */
+export interface KnowledgeSearchResultVO {
+    /** 向量ID */
+    vectorId?: string | null
+    /** 向量存储ID（Redis） */
+    documentId?: string | null
+    /** 内容类型 */
     contentType?: number | null
     /** 标题 */
     title?: string | null
-    /** 内容 */
+    /** 内容片段 */
     content?: string | null
-    /** 相似度分数 */
+    /** 分数 */
     score?: number | null
+    /** 距离 */
+    distance?: number | null
+    /** Chunk索引 */
+    chunkIndex?: number | null
+    /** 标签 */
+    tags?: string[] | null
     /** 课程ID */
     courseId?: string | null
     /** 章节ID */
     chapterId?: string | null
-    /** 题库ID（问题类型时使用） */
+    /** 内容ID */
+    contentId?: string | null
+    /** 题库ID */
     questionBankId?: string | null
-    /** 问题ID（问题类型时使用） */
+    /** 问题ID */
     questionId?: string | null
-    /** 任务ID（任务类型时使用） */
+    /** 任务ID */
     taskId?: string | null
-    /** 论坛ID（论坛类型时使用） */
+    /** 论坛ID */
     forumId?: string | null
-    /** 帖子ID（论坛类型时使用） */
+    /** 帖子ID */
     postId?: string | null
-    /** 标签列表 */
-    tags?: string[] | null
-    /** 元数据 */
-    metadata?: any | null
-}
-
-/**
- * 知识搜索响应VO
- */
-export interface KnowledgeSearchVO {
-    /** 查询内容 */
-    query?: string | null
-    /** 知识项 */
-    items?: KnowledgeItemVO[] | null
-    /** 总数 */
-    total?: number | null
-    /** 查询耗时(ms) */
-    queryTime?: number | null
+    /** 文件ID */
+    fileId?: string | null
+    /** 会话ID */
+    sessionId?: string | null
+    /** 聊天消息ID */
+    messageId?: string | null
+    /** 用户ID */
+    userId?: string | null
+    /** 创建时间 */
+    createTime?: string | null
+    /** 嵌入模型 */
+    embeddingModel?: string | null
 }
 
 /**

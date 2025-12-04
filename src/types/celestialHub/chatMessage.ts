@@ -32,6 +32,10 @@ export interface ChatMessage {
     isFeedback?: number | null
     /** 元数据 */
     metadata?: any | null
+    /** 出题请求JSON字符串（role=3时使用） */
+    questionRequest?: string | null
+    /** 出题响应JSON字符串（role=4时使用） */
+    questionResponse?: string | null
 }
 
 /**

@@ -12,16 +12,12 @@
       <!-- 有学生时显示学生信息 -->
       <template v-if="student">
         <div class="student-header">
-          <img
-            v-if="student.studentAvatar && !avatarLoadError"
-            :src="student.studentAvatar"
-            class="student-avatar"
-            :alt="t('classroom.studentInfo.avatar')"
-            @error="handleAvatarError"
+          <AvatarDisplay
+            :avatar-src="student.studentAvatar || null"
+            :username="student.studentName || null"
+            size="medium"
+            avatar-class="student-avatar"
           />
-          <div v-else class="student-avatar-placeholder">
-            {{ student.studentName?.charAt(0) || t('classroom.studentInfo.student') }}
-          </div>
           <div class="student-name-section">
             <div class="student-name">{{ student.studentName || t('classroom.studentInfo.unknown') }}</div>
             <div class="student-code">{{ student.studentCode || '' }}</div>
@@ -69,11 +65,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { AttendanceStatusEnum } from '@/enum/classroom/attendanceStatusEnum';
 import { getAttendanceStatusLabel } from '@/enum/classroom/attendanceStatusEnum';
 import type { CourseRecordStudentVO } from '@/types/classroom';
+import AvatarDisplay from '@/components/common/AvatarDisplay.vue';
 
 const { t, locale } = useI18n();
 
@@ -84,30 +80,17 @@ interface Props {
   position: { x: number; y: number }
 }
 
-const props = defineProps<Props>();
-
-// 头像加载错误状态
-const avatarLoadError = ref(false);
-
-// 监听学生变化，重置头像错误状态
-watch(() => props.student, () => {
-  avatarLoadError.value = false;
-}, { immediate: true });
-
-// 处理头像加载错误
-const handleAvatarError = () => {
-  avatarLoadError.value = true;
-};
+defineProps<Props>();
 
 // 获取出勤状态文本
-const getAttendanceStatusText = (status) => {
-  if (status === null) return t('classroom.studentInfo.unknown');
+const getAttendanceStatusText = (status: AttendanceStatusEnum | null | undefined) => {
+  if (status === null || status === undefined) return t('classroom.studentInfo.unknown');
   return getAttendanceStatusLabel(status, locale.value === 'en-US');
 };
 
 // 获取出勤状态样式类
-const getAttendanceStatusClass = (status) => {
-  if (status === null) return '';
+const getAttendanceStatusClass = (status: AttendanceStatusEnum | null | undefined) => {
+  if (status === null || status === undefined) return '';
   switch (status) {
     case AttendanceStatusEnum.NOT_SIGNED:
       return 'status-warning';
@@ -166,20 +149,6 @@ const getAttendanceStatusClass = (status) => {
   height: 48px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid var(--border-color);
-}
-
-.student-avatar-placeholder {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  color: var(--background-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  font-weight: 600;
   border: 2px solid var(--border-color);
 }
 

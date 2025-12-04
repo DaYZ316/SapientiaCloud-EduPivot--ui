@@ -602,6 +602,149 @@
 ```
 
 
+## getFilesBySessionId
+
+
+**接口地址**:`/api/celestial-hub/file-document/session/{sessionId}/files`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>根据会话ID获取文件信息列表</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|sessionId|会话ID|path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListFileInfo|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|FileInfo|
+|&emsp;&emsp;objectName|文件对象名称|string||
+|&emsp;&emsp;fileName|文件名|string||
+|&emsp;&emsp;size|文件大小（字节）|integer(int64)||
+|&emsp;&emsp;contentType|文件内容类型|string||
+|&emsp;&emsp;lastModified|最后修改时间|string(date-time)||
+|&emsp;&emsp;etag|ETag|string||
+|&emsp;&emsp;isDir|是否为目录|boolean||
+|&emsp;&emsp;url|文件访问URL|string||
+|&emsp;&emsp;extension|文件扩展名|string||
+|&emsp;&emsp;path|文件路径（不包含文件名）|string||
+|&emsp;&emsp;bucketName|存储桶名称|string||
+|&emsp;&emsp;bucketCode|业务桶编码|string||
+|&emsp;&emsp;error|是否有错误|boolean||
+|&emsp;&emsp;errorMessage|错误信息|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"objectName": "2024/01/15/example.jpg",
+			"fileName": "example.jpg",
+			"size": 1024000,
+			"contentType": "image/jpeg",
+			"lastModified": "",
+			"etag": "\"d41d8cd98f00b204e9800998ecf8427e\"",
+			"isDir": false,
+			"url": "http://localhost:9000/bucket/2024/01/15/example.jpg",
+			"extension": ".jpg",
+			"path": "2024/01/15/",
+			"bucketName": "edupivot-files",
+			"bucketCode": "COURSE_PUBLIC",
+			"error": false,
+			"errorMessage": "文件不存在"
+		}
+	]
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
 ## uploadFile
 
 
@@ -1254,7 +1397,7 @@
 ## searchKnowledge
 
 
-**接口地址**:`/api/celestial-hub/search`
+**接口地址**:`/api/celestial-hub/knowledge/search`
 
 
 **请求方式**:`POST`
@@ -1266,7 +1409,7 @@
 **响应数据类型**:`*/*`
 
 
-**接口描述**:<p>基于向量相似度检索知识内容</p>
+**接口描述**:<p>检索知识向量内容</p>
 
 
 
@@ -1276,13 +1419,9 @@
 ```javascript
 {
   "query": "",
-  "courseId": "",
-  "chapterId": "",
-  "contentTypes": [],
-  "sessionId": "",
   "topK": 0,
   "similarityThreshold": 0,
-  "tags": []
+  "sessionId": ""
 }
 ```
 
@@ -1292,15 +1431,11 @@
 
 | 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
 | -------- | -------- | ----- | -------- | -------- | ------ |
-|knowledgeRequestDTO|知识检索请求|body|true|KnowledgeRequestDTO|KnowledgeRequestDTO|
-|&emsp;&emsp;query|查询内容||true|string||
-|&emsp;&emsp;courseId|课程ID||false|string(uuid)||
-|&emsp;&emsp;chapterId|章节ID||false|string(uuid)||
-|&emsp;&emsp;contentTypes|内容类型过滤: 0-章节, 1-问题, 2-答案, 3-论坛||false|array|integer(int32)|
-|&emsp;&emsp;sessionId|会话ID（用于限定file_document向量的可见范围）||false|string(uuid)||
-|&emsp;&emsp;topK|返回结果数量||false|integer(int32)||
-|&emsp;&emsp;similarityThreshold|相似度阈值(0.0-1.0)||false|number(double)||
-|&emsp;&emsp;tags|标签过滤||false|array|string|
+|knowledgeSearchRequestDTO|知识检索请求|body|true|KnowledgeSearchRequestDTO|KnowledgeSearchRequestDTO|
+|&emsp;&emsp;query|检索查询内容||true|string||
+|&emsp;&emsp;topK|返回结果数量（TopK）||false|integer(int32)||
+|&emsp;&emsp;similarityThreshold|相似度阈值||false|number(double)||
+|&emsp;&emsp;sessionId|会话ID||false|string(uuid)||
 
 
 **响应状态**:
@@ -1308,7 +1443,7 @@
 
 | 状态码 | 说明 | schema |
 | -------- | -------- | ----- | 
-|200|OK|ResultKnowledgeSearchVO|
+|200|OK|ResultListKnowledgeSearchResultVO|
 |400|Bad Request|ResultMapStringString|
 |403|Forbidden|ResultString|
 
@@ -1324,26 +1459,30 @@
 |success|请求是否成功|boolean||
 |code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
 |message|响应消息|string||
-|data||KnowledgeSearchVO|KnowledgeSearchVO|
-|&emsp;&emsp;query|查询内容|string||
-|&emsp;&emsp;items|知识项|array|KnowledgeItemVO|
-|&emsp;&emsp;&emsp;&emsp;id|内容ID|string||
-|&emsp;&emsp;&emsp;&emsp;contentType|内容类型: 0-章节, 1-问题, 2-答案, 3-论坛|integer||
-|&emsp;&emsp;&emsp;&emsp;title|标题|string||
-|&emsp;&emsp;&emsp;&emsp;content|内容|string||
-|&emsp;&emsp;&emsp;&emsp;score|相似度分数|number||
-|&emsp;&emsp;&emsp;&emsp;courseId|课程ID|string||
-|&emsp;&emsp;&emsp;&emsp;chapterId|章节ID|string||
-|&emsp;&emsp;&emsp;&emsp;questionBankId|题库ID（问题类型时使用）|string||
-|&emsp;&emsp;&emsp;&emsp;questionId|问题ID（问题类型时使用）|string||
-|&emsp;&emsp;&emsp;&emsp;taskId|任务ID（任务类型时使用）|string||
-|&emsp;&emsp;&emsp;&emsp;forumId|论坛ID（论坛类型时使用）|string||
-|&emsp;&emsp;&emsp;&emsp;postId|帖子ID（论坛类型时使用）|string||
-|&emsp;&emsp;&emsp;&emsp;userId|用户ID|string||
-|&emsp;&emsp;&emsp;&emsp;tags|标签列表|array|string|
-|&emsp;&emsp;&emsp;&emsp;metadata|元数据|object||
-|&emsp;&emsp;total|总数|integer(int32)||
-|&emsp;&emsp;queryTime|查询耗时(ms)|integer(int64)||
+|data|响应数据体 (泛型)|array|KnowledgeSearchResultVO|
+|&emsp;&emsp;vectorId|向量ID|string||
+|&emsp;&emsp;documentId|向量存储ID（Redis）|string||
+|&emsp;&emsp;contentType|内容类型|integer(int32)||
+|&emsp;&emsp;title|标题|string||
+|&emsp;&emsp;content|内容片段|string||
+|&emsp;&emsp;score|分数|number(double)||
+|&emsp;&emsp;distance|距离|number(double)||
+|&emsp;&emsp;chunkIndex|Chunk索引|integer(int32)||
+|&emsp;&emsp;tags|标签|array|string|
+|&emsp;&emsp;courseId|课程ID|string(uuid)||
+|&emsp;&emsp;chapterId|章节ID|string(uuid)||
+|&emsp;&emsp;contentId|内容ID|string(uuid)||
+|&emsp;&emsp;questionBankId|题库ID|string(uuid)||
+|&emsp;&emsp;questionId|问题ID|string(uuid)||
+|&emsp;&emsp;taskId|任务ID|string(uuid)||
+|&emsp;&emsp;forumId|论坛ID|string(uuid)||
+|&emsp;&emsp;postId|帖子ID|string(uuid)||
+|&emsp;&emsp;fileId|文件ID|string(uuid)||
+|&emsp;&emsp;sessionId|会话ID|string(uuid)||
+|&emsp;&emsp;messageId|聊天消息ID|string(uuid)||
+|&emsp;&emsp;userId|用户ID|string(uuid)||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;embeddingModel|嵌入模型|string||
 
 
 **响应示例**:
@@ -1352,30 +1491,33 @@
 	"success": true,
 	"code": 200,
 	"message": "操作成功",
-	"data": {
-		"query": "",
-		"items": [
-			{
-				"id": "",
-				"contentType": 0,
-				"title": "",
-				"content": "",
-				"score": 0,
-				"courseId": "",
-				"chapterId": "",
-				"questionBankId": "",
-				"questionId": "",
-				"taskId": "",
-				"forumId": "",
-				"postId": "",
-				"userId": "",
-				"tags": [],
-				"metadata": {}
-			}
-		],
-		"total": 0,
-		"queryTime": 0
-	}
+	"data": [
+		{
+			"vectorId": "",
+			"documentId": "",
+			"contentType": 0,
+			"title": "",
+			"content": "",
+			"score": 0,
+			"distance": 0,
+			"chunkIndex": 0,
+			"tags": [],
+			"courseId": "",
+			"chapterId": "",
+			"contentId": "",
+			"questionBankId": "",
+			"questionId": "",
+			"taskId": "",
+			"forumId": "",
+			"postId": "",
+			"fileId": "",
+			"sessionId": "",
+			"messageId": "",
+			"userId": "",
+			"createTime": "",
+			"embeddingModel": ""
+		}
+	]
 }
 ```
 
@@ -1469,7 +1611,7 @@
 | -------- | -------- | ----- | -------- | -------- | ------ |
 |vectorizeRequestDTO|向量化请求|body|true|VectorizeRequestDTO|VectorizeRequestDTO|
 |&emsp;&emsp;courseId|课程ID||false|string(uuid)||
-|&emsp;&emsp;contentType|内容类型: 0-章节, 1-问题, 2-答案, 3-论坛||true|integer(int32)||
+|&emsp;&emsp;contentType|内容类型: 0-章节, 1-问题, 2-任务, 3-论坛||true|integer(int32)||
 |&emsp;&emsp;forceReindex|是否强制重新向量化||false|boolean||
 |&emsp;&emsp;tags|标签过滤||false|array|string|
 
@@ -1505,6 +1647,201 @@
 	"code": 200,
 	"message": "操作成功",
 	"data": true
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+# AI出题
+
+
+## generateQuestions
+
+
+**接口地址**:`/api/celestial-hub/question/generate`
+
+
+**请求方式**:`POST`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>通过AI自动生成题目（Kafka转发）</p>
+
+
+
+**请求示例**:
+
+
+```javascript
+{
+  "sessionId": "",
+  "questionCount": 0,
+  "questionType": 0,
+  "difficulty": 0,
+  "scorePerQuestion": 0,
+  "requirement": ""
+}
+```
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|questionGenerateRequestDTO|AI出题请求参数|body|true|QuestionGenerateRequestDTO|QuestionGenerateRequestDTO|
+|&emsp;&emsp;sessionId|会话ID（可选，若为空则由后端创建新的出题会话）||false|string(uuid)||
+|&emsp;&emsp;questionCount|生成题目数量||true|integer(int32)||
+|&emsp;&emsp;questionType|题目类型 (0=单选题, 1=多选题, 2=判断题, 3=填空题, 4=简答题, 5=混合出题)||true|integer(int32)||
+|&emsp;&emsp;difficulty|难度等级 (0=随机, 1=简单, 2=中等, 3=困难)||true|integer(int32)||
+|&emsp;&emsp;scorePerQuestion|每题分数，若为空则由AI统一或按难度分配||false|number||
+|&emsp;&emsp;requirement|出题详细要求（题型组合、考查能力、场景限制等）||false|string||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListQuestionResponseDTO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|QuestionResponseDTO|
+|&emsp;&emsp;id|题目ID（后期落库时注入）|string(uuid)||
+|&emsp;&emsp;sysUserId|创建用户ID（后期注入，可选）|string(uuid)||
+|&emsp;&emsp;questionTitle|题目标题|string||
+|&emsp;&emsp;questionContent|题目内容|string||
+|&emsp;&emsp;questionType|题目类型 (0=单选题, 1=多选题, 2=判断题, 3=填空题, 4=简答题)|integer(int32)||
+|&emsp;&emsp;difficulty|难度等级 (1=简单, 2=中等, 3=困难)|integer(int32)||
+|&emsp;&emsp;score|题目分数|number||
+|&emsp;&emsp;estimatedTime|预计答题时间 (分钟)|integer(int32)||
+|&emsp;&emsp;tags|标签列表|array|string|
+|&emsp;&emsp;options|AI出题结果选项DTO|array|QuestionOptionSimpleDTO|
+|&emsp;&emsp;&emsp;&emsp;id|选项ID|string||
+|&emsp;&emsp;&emsp;&emsp;questionId|所属题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;optionContent|选项内容|string||
+|&emsp;&emsp;&emsp;&emsp;optionLabel|选项标签 (A, B, C, D等)|string||
+|&emsp;&emsp;&emsp;&emsp;isCorrect|是否为正确答案 (0=错误, 1=正确)|integer||
+|&emsp;&emsp;&emsp;&emsp;score|选项分数 (多选题部分得分使用)|number||
+|&emsp;&emsp;&emsp;&emsp;imageUrls|图片URL列表|array|string|
+|&emsp;&emsp;&emsp;&emsp;explanation|选项解析|string||
+|&emsp;&emsp;answers|AI出题结果答案DTO|array|QuestionAnswerSimpleDTO|
+|&emsp;&emsp;&emsp;&emsp;id|答案ID|string||
+|&emsp;&emsp;&emsp;&emsp;questionId|题目ID|string||
+|&emsp;&emsp;&emsp;&emsp;answerContent|本空答案|string||
+|&emsp;&emsp;&emsp;&emsp;explanation|本空解析|string||
+|&emsp;&emsp;&emsp;&emsp;score|分数|number||
+|&emsp;&emsp;&emsp;&emsp;sortOrder|本空序号|integer||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"sysUserId": "",
+			"questionTitle": "",
+			"questionContent": "",
+			"questionType": 0,
+			"difficulty": 0,
+			"score": 0,
+			"estimatedTime": 0,
+			"tags": [],
+			"options": [
+				{
+					"id": "",
+					"questionId": "",
+					"optionContent": "",
+					"optionLabel": "",
+					"isCorrect": 0,
+					"score": 0,
+					"imageUrls": [],
+					"explanation": ""
+				}
+			],
+			"answers": [
+				{
+					"id": "",
+					"questionId": "",
+					"answerContent": "",
+					"explanation": "",
+					"score": 0,
+					"sortOrder": 0
+				}
+			]
+		}
+	]
 }
 ```
 
@@ -2971,6 +3308,8 @@
 |&emsp;&emsp;requestId|请求ID（用于幂等），Kafka传入或HTTP生成|string||
 |&emsp;&emsp;isFeedback|用户反馈: 0-无, 1-有用, -1-无用|integer(int32)||
 |&emsp;&emsp;metadata|元数据|object||
+|&emsp;&emsp;questionRequest|出题请求参数（JSON），当角色为出题请求者时使用|string||
+|&emsp;&emsp;questionResponse|AI出题生成结果（JSON），当角色为出题者时使用|string||
 
 
 **响应示例**:
@@ -2992,7 +3331,9 @@
 		"attachments": [],
 		"requestId": "",
 		"isFeedback": 0,
-		"metadata": {}
+		"metadata": {},
+		"questionRequest": "",
+		"questionResponse": ""
 	}
 }
 ```
@@ -3405,6 +3746,8 @@
 |&emsp;&emsp;requestId|请求ID（用于幂等），Kafka传入或HTTP生成|string||
 |&emsp;&emsp;isFeedback|用户反馈: 0-无, 1-有用, -1-无用|integer(int32)||
 |&emsp;&emsp;metadata|元数据|object||
+|&emsp;&emsp;questionRequest|出题请求参数（JSON），当角色为出题请求者时使用|string||
+|&emsp;&emsp;questionResponse|AI出题生成结果（JSON），当角色为出题者时使用|string||
 
 
 **响应示例**:
@@ -3427,7 +3770,9 @@
 			"attachments": [],
 			"requestId": "",
 			"isFeedback": 0,
-			"metadata": {}
+			"metadata": {},
+			"questionRequest": "",
+			"questionResponse": ""
 		}
 	]
 }
@@ -3632,6 +3977,7 @@
 
 ```javascript
 {
+  "requestId": "",
   "sessionId": "",
   "userId": "",
   "message": "",
@@ -3654,6 +4000,7 @@
 | 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
 | -------- | -------- | ----- | -------- | -------- | ------ |
 |kafkaChatRequestDTO|Kafka转发AI对话请求|body|true|KafkaChatRequestDTO|KafkaChatRequestDTO|
+|&emsp;&emsp;requestId|请求ID，前端生成用于取消等场景（可选）||false|string||
 |&emsp;&emsp;sessionId|会话ID（新对话时可为空）||false|string(uuid)||
 |&emsp;&emsp;userId|用户ID||false|string(uuid)||
 |&emsp;&emsp;message|用户消息内容||true|string||

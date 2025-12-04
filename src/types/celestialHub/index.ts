@@ -17,9 +17,8 @@ export type {
 
 // 知识管理类型
 export type {
-    KnowledgeRequestDTO,
-    KnowledgeItemVO,
-    KnowledgeSearchVO,
+    KnowledgeSearchRequestDTO,
+    KnowledgeSearchResultVO,
     VectorizeRequestDTO
 } from './knowledge'
 
@@ -32,4 +31,12 @@ export type {
     SortObject,
     FileDocumentUploadOptions
 } from './fileDocument'
+
+// AI出题类型
+export type {
+    QuestionGenerateRequestDTO,
+    QuestionOptionSimpleDTO,
+    QuestionAnswerSimpleDTO,
+    QuestionResponseDTO
+} from './question'
 

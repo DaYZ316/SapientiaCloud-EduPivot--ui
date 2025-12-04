@@ -76,7 +76,13 @@ export default {
         subtitle: 'Confirming will place your account at this seat.',
         subtitleWithStudent: '{studentName} will be placed at this seat.',
         cancel: 'Cancel',
-        confirm: 'Confirm'
+        confirm: 'Confirm',
+        selfSeatMessage: 'This is your current seat. Right-click your desk to stand up.',
+        occupiedMessage: 'Someone is already seated here. Please choose another seat.',
+        assignSuccess: 'Seat assigned successfully.',
+        updateSuccess: 'Seat updated successfully.',
+        ownerForbiddenMessage: 'Classroom owners cannot take a seat.',
+        standUpSuccess: 'You have stood up from your seat.'
     },
     studentInfo: {
         avatar: 'Avatar',
@@ -97,6 +103,8 @@ export default {
     enterClassroom: 'Enter Classroom',
     live: 'Smart Classroom Live',
     formatSeatLabel: 'Row {row} Column {column}',
+    pointerLockHint: 'Click left mouse button to enter view mode, hold Alt to show cursor',
+    pointerLockHintTitle: 'Operation Hint',
     searchForm: {
         courseName: 'Course Name',
         courseNamePlaceholder: 'Please enter course name',

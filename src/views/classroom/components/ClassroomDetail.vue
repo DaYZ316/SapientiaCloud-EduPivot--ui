@@ -48,7 +48,11 @@
               <div v-if="isEditMode && courseRecordId" class="tech-button-wrapper">
                 <div class="tech-button-border"></div>
                 <div class="tech-button-glow"></div>
-                <n-button type="primary" class="tech-button" @click="handleEnterClassroomFromDetail">
+                <n-button
+                  type="primary"
+                  class="tech-button"
+                  @click="handleEnterClassroomFromDetail($event)"
+                >
                   <template #icon>
                     <n-icon><LogInOutline /></n-icon>
                   </template>
@@ -219,9 +223,11 @@ import { Book, Grid, TrashOutline, CheckmarkOutline, CreateOutline, CloseOutline
 import eventBus from '@/utils/eventBus'
 import { addCourseRecord, updateCourseRecord, getCourseRecordById, getDefaultCourseRecordDTO, removeCourseRecordById } from '@/api/classroom/courseRecord'
 import { useUserStore, useCourseStore } from '@/store'
+import { useTransitionStore } from '@/store/modules/transition'
 import type { CourseRecordDTO, CourseRecordVO } from '@/types/classroom'
 import { getClassroomTypeFromString, getClassroomTypeString } from '@/enum/classroom/classroomTypeEnum'
 import { CourseRecordStatusEnum } from '@/enum/classroom/courseRecordStatusEnum'
+import { runViewTransition } from '@/utils/themeAnimation'
 
 interface Props {
   courseId: string
@@ -235,6 +241,7 @@ const dialog = useDialog()
 const router = useRouter()
 const userStore = useUserStore()
 const courseStore = useCourseStore()
+const transitionStore = useTransitionStore()
 
 // 表单数据
 const courseName = ref('')
@@ -487,26 +494,35 @@ function handleStayHere() {
   message.success(t('classroom.detail.createSuccess'))
 }
 
-// 处理进入智慧教室
+// 统一的进入智慧教室导航（带全局过渡动画）
+function navigateToClassroom(recordId: string, e?: MouseEvent) {
+  transitionStore.show()
+  const action = () => {
+    router.push({
+      name: 'Classroom3D',
+      params: {
+        courseId: props.courseId,
+        courseRecordId: recordId
+      }
+    })
+  }
+  runViewTransition(action, e)
+}
+
+// 处理进入智慧教室（创建完成后的对话框）
 function handleEnterClassroom() {
   if (createdRecordId.value) {
     const recordId = createdRecordId.value
     createdRecordId.value = null
     message.success(t('classroom.detail.createSuccess'))
-    router.push({ path: `/course/${props.courseId}/classroom/${recordId}` })
+    navigateToClassroom(recordId)
   }
 }
 
 // 处理从详情页进入教室
-function handleEnterClassroomFromDetail() {
+function handleEnterClassroomFromDetail(e: MouseEvent) {
   if (courseRecordId.value) {
-    router.push({
-      name: 'Classroom3D',
-      params: {
-        courseId: props.courseId,
-        courseRecordId: courseRecordId.value
-      }
-    })
+    navigateToClassroom(courseRecordId.value, e)
   }
 }
 

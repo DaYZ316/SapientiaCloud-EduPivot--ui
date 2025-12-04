@@ -57,6 +57,7 @@
     "echarts": "^6.0.0",
     "highlight.js": "^11.11.1",
     "katex": "^0.16.25",
+    "livekit-client": "^2.16.0",
     "markdown-it": "^14.1.0",
     "markdown-it-abbr": "^2.0.0",
     "markdown-it-anchor": "^9.2.0",

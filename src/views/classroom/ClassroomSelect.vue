@@ -23,7 +23,7 @@
                     :options="classroomTypeOptions"
                     :placeholder="t('classroom.searchForm.classroomTypePlaceholder')"
                     clearable
-                    style="min-width: 224px;"
+                    style="min-width: 180px;"
                 />
               </n-form-item>
               <n-form-item :label="t('classroom.searchForm.status')" path="status">
@@ -32,7 +32,7 @@
                     :options="statusOptions"
                     :placeholder="t('classroom.searchForm.statusPlaceholder')"
                     clearable
-                    style="min-width: 200px;"
+                    style="min-width: 180px;"
                 />
               </n-form-item>
               <n-form-item :label="t('classroom.searchForm.startTimeRange')" path="startTimeRange">

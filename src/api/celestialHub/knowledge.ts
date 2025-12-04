@@ -1,18 +1,19 @@
 import http from '@/utils/http'
-import type {KnowledgeRequestDTO, KnowledgeSearchVO, VectorizeRequestDTO} from '@/types/celestialHub/knowledge'
+import type {
+    KnowledgeSearchRequestDTO,
+    KnowledgeSearchResultVO,
+    VectorizeRequestDTO
+} from '@/types/celestialHub/knowledge'
 
 /**
  * 获取默认知识检索请求DTO
  */
-export function getDefaultKnowledgeRequestDTO(): KnowledgeRequestDTO {
+export function getDefaultKnowledgeRequestDTO(): KnowledgeSearchRequestDTO {
     return {
         query: null,
-        courseId: null,
-        chapterId: null,
-        contentTypes: null,
         topK: null,
         similarityThreshold: null,
-        tags: null
+        sessionId: null
     }
 }
 
@@ -56,8 +57,8 @@ export function getCourseVectorCount(courseId: string) {
  * 基于向量相似度检索知识内容
  * @param data 知识检索请求DTO
  */
-export function searchKnowledge(data: KnowledgeRequestDTO) {
-    return http.post<KnowledgeSearchVO>('/celestial-hub/search', data)
+export function searchKnowledge(data: KnowledgeSearchRequestDTO) {
+    return http.post<KnowledgeSearchResultVO[]>('/celestial-hub/knowledge/search', data)
 }
 
 /**

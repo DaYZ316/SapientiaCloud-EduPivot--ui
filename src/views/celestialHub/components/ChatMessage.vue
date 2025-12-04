@@ -1,22 +1,40 @@
 <template>
-  <div :class="['chat-message', messageRole]">
-    <div class="message-text">
-      <div v-if="isThinking" class="thinking-dots">
-        <span></span>
-        <span></span>
-        <span></span>
+  <div
+      :class="['chat-message', messageRole]"
+      :data-message-id="message.id || null"
+  >
+    <!-- 出题请求者消息 (role=3) -->
+    <QuestionRequesterMessage
+        v-if="message.role === 3"
+        :message="message"
+    />
+    <!-- 出题者消息 (role=4) -->
+    <QuestionGeneratorMessage
+        v-else-if="message.role === 4"
+        :is-active="isQuestionBubbleActive"
+        :active-index="props.activeQuestionIndex ?? null"
+        :message="message"
+        @view-questions="handleViewQuestions"
+    />
+    <!-- 普通消息 -->
+    <template v-else>
+      <div class="message-text">
+        <div v-if="isThinking" class="thinking-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div v-else-if="messageRole === 'user'" class="user-content">
+          {{ message.content }}
+        </div>
+        <MarkdownRenderer
+            v-else-if="messageRole === 'assistant'"
+            :content="message.content || ''"
+            class="ai-content"
+        />
+        <div v-else class="ai-content-empty">正在思考...</div>
       </div>
-      <div v-else-if="messageRole === 'user'" class="user-content">
-        {{ message.content }}
-      </div>
-      <MarkdownRenderer
-          v-else-if="messageRole === 'assistant'"
-          :content="message.content || ''"
-          class="ai-content"
-      />
-      <div v-else class="ai-content-empty">正在思考...</div>
-    </div>
-    <div v-if="messageRole === 'assistant' && !isThinking && !isStreaming" class="message-actions">
+      <div v-if="messageRole === 'assistant' && !isThinking && !isStreaming" class="message-actions">
       <n-tooltip trigger="hover">
         <template #trigger>
           <n-icon
@@ -51,7 +69,8 @@
         </template>
         {{ t('chat.copy') }}
       </n-tooltip>
-    </div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -61,13 +80,18 @@ import {NIcon, NTooltip, useMessage} from 'naive-ui'
 import {CopyOutline, RefreshOutline, ThumbsDownOutline, ThumbsUpOutline} from '@vicons/ionicons5'
 import {useI18n} from 'vue-i18n'
 import type {ChatMessage} from '@/types/celestialHub/chatMessage'
+import type {QuestionResponseDTO} from '@/types/celestialHub/question'
 import {feedbackMessage} from '@/api/celestialHub/chatMessage'
 import MarkdownRenderer from '@/components/common/MarkdownRenderer.vue'
+import QuestionRequesterMessage from './QuestionRequesterMessage.vue'
+import QuestionGeneratorMessage from './QuestionGeneratorMessage.vue'
 
 // Props
 const props = defineProps<{
   message: ChatMessage
   isStreaming?: boolean
+  activeQuestionMessageId?: string | null
+  activeQuestionIndex?: number | null
 }>()
 
 // Emits
@@ -75,6 +99,11 @@ const emit = defineEmits<{
   feedback: [messageId: string, feedback: number]
   copy: []
   resend: []
+  'view-questions': [{
+    messageId: string | null
+    questions: QuestionResponseDTO[]
+    activeIndex: number | null
+  }]
 }>()
 
 // 国际化
@@ -105,6 +134,17 @@ const isPositiveFeedback = computed(() => {
 const isNegativeFeedback = computed(() => {
   return props.message.isFeedback === -1
 })
+
+const isQuestionBubbleActive = computed(() => {
+  if (!props.message.id) {
+    return false
+  }
+  return props.activeQuestionMessageId === props.message.id
+})
+
+const handleViewQuestions = (payload: { messageId: string | null; questions: QuestionResponseDTO[]; activeIndex: number | null }) => {
+  emit('view-questions', payload)
+}
 
 // 处理反馈
 const handleFeedback = async (feedbackType: number) => {

@@ -969,6 +969,7 @@ export default {
         estimatedTime: 'Estimated Time',
         estimatedTimePlaceholder: 'Please enter estimated time (minutes)',
         unlimited: 'Unlimited',
+        lessThanOneMinute: '< 1 minute',
         status: 'Question Status',
         statusPlaceholder: 'Please select question status',
         statusRequired: 'Please select question status',

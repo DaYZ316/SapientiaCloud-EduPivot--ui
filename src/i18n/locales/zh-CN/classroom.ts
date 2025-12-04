@@ -76,7 +76,15 @@ export default {
         subtitle: '确认后将把当前账号放置到该座位。',
         subtitleWithStudent: '{studentName} 将被放置到该座位。',
         cancel: '取消',
-        confirm: '确定入座'
+        confirm: '确定入座',
+        selfSeatMessage: '这是您的座位，如需站起请右击自己的桌椅。',
+        occupiedMessage: '该座位已有同学入座，请选择其他空位。',
+        assignSuccess: '入座成功。',
+        updateSuccess: '换座成功。',
+        ownerForbiddenMessage: '开课教室不允许坐下。',
+        standUpSuccess: '已成功站起。',
+        standUpTitle: '是否站起？',
+        standUpContent: '站起后将释放当前座位，是否确认站起？'
     },
     studentInfo: {
         avatar: '头像',
@@ -97,6 +105,8 @@ export default {
     enterClassroom: '进入教室',
     live: '智慧课堂黑白',
     formatSeatLabel: '{row}排{column}列',
+    pointerLockHint: '点击鼠标左键进入视角控制模式，长按 Alt 键可显示鼠标',
+    pointerLockHintTitle: '操作提示',
     searchForm: {
         courseName: '课程名称',
         courseNamePlaceholder: '请输入课程名称',

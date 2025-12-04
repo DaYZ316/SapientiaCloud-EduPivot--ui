@@ -3,13 +3,11 @@
  */
 export enum SeatStatusEnum {
     /** 正常 */
-    NORMAL = 'normal',
-    /** 标记 */
-    MARKED = 'marked',
-    /** 预留 */
-    RESERVED = 'reserved',
+    NORMAL = 0,
+    /** 已预留 */
+    RESERVED = 2,
     /** 已占用 */
-    OCCUPIED = 'occupied'
+    OCCUPIED = 3
 }
 
 /**
@@ -17,8 +15,7 @@ export enum SeatStatusEnum {
  */
 export const seatStatusLabelMap = {
     [SeatStatusEnum.NORMAL]: '正常',
-    [SeatStatusEnum.MARKED]: '标记',
-    [SeatStatusEnum.RESERVED]: '预留',
+    [SeatStatusEnum.RESERVED]: '已预留',
     [SeatStatusEnum.OCCUPIED]: '已占用'
 };
 
@@ -27,7 +24,6 @@ export const seatStatusLabelMap = {
  */
 export const seatStatusEnLabelMap = {
     [SeatStatusEnum.NORMAL]: 'Normal',
-    [SeatStatusEnum.MARKED]: 'Marked',
     [SeatStatusEnum.RESERVED]: 'Reserved',
     [SeatStatusEnum.OCCUPIED]: 'Occupied'
 };
@@ -37,8 +33,7 @@ export const seatStatusEnLabelMap = {
  */
 export const seatStatusOptions = [
     {label: '正常', value: SeatStatusEnum.NORMAL},
-    {label: '标记', value: SeatStatusEnum.MARKED},
-    {label: '预留', value: SeatStatusEnum.RESERVED},
+    {label: '已预留', value: SeatStatusEnum.RESERVED},
     {label: '已占用', value: SeatStatusEnum.OCCUPIED}
 ];
 
@@ -47,7 +42,6 @@ export const seatStatusOptions = [
  */
 export const seatStatusEnOptions = [
     {label: 'Normal', value: SeatStatusEnum.NORMAL},
-    {label: 'Marked', value: SeatStatusEnum.MARKED},
     {label: 'Reserved', value: SeatStatusEnum.RESERVED},
     {label: 'Occupied', value: SeatStatusEnum.OCCUPIED}
 ];
@@ -67,8 +61,9 @@ export function getSeatStatusOptions(isEn: boolean = false) {
  * @param isEn 是否为英文
  * @returns 座位状态标签
  */
-export function getSeatStatusLabel(value: SeatStatusEnum | string, isEn: boolean = false): string {
-    const enumValue = value as SeatStatusEnum;
+export function getSeatStatusLabel(value: SeatStatusEnum | number | string, isEn: boolean = false): string {
+    const numValue = (typeof value === 'string') ? parseInt(value, 10) : value;
+    const enumValue = numValue as SeatStatusEnum;
     const map = isEn ? seatStatusEnLabelMap : seatStatusLabelMap;
     return map[enumValue] || map[SeatStatusEnum.NORMAL];
 }

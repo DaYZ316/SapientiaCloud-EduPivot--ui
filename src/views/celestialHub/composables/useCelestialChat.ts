@@ -1,6 +1,7 @@
 import {nextTick, onUnmounted, ref, watch} from 'vue'
 import type {ChatMessage} from '@/types/celestialHub/chatMessage'
 import type {ChatSessionVO} from '@/types/celestialHub/chatSession'
+import type {FileReference} from '@/types/celestialHub/knowledge'
 import {
     cancelChatStreamKafka,
     chatStreamKafka,
@@ -11,6 +12,7 @@ import {
 } from '@/api/celestialHub/chatMessage'
 import {addChatSession} from '@/api/celestialHub/chatSession'
 import {useChatScroll} from '@/views/celestialHub/composables/useChatScroll'
+import {useUserStore} from '@/store'
 
 const RAG_PREFERENCE_STORAGE_KEY = 'celestialHub_useRag'
 
@@ -39,15 +41,32 @@ export function useCelestialChat() {
     } = useChatScroll()
     const currentSSEController = ref<SSEController | null>(null)
     const currentRequestId = ref<string | null>(null)
+    const userStore = useUserStore()
+
     // 是否使用RAG检索（开关）
     const useRag = ref<boolean | null>(null)
-    useRag.value = resolveStoredUseRag()
+    const isAdmin = () => userStore.hasRole('ADMIN')
+
+    // 初始化useRag：非admin用户始终为true
+    if (isAdmin()) {
+        useRag.value = resolveStoredUseRag()
+    } else {
+        useRag.value = true
+    }
+
     watch(useRag, (value) => {
         if (typeof window === 'undefined' || value === null) {
             return
         }
+        // 非admin用户不允许修改，始终为true
+        if (!isAdmin()) {
+            useRag.value = true
+            return
+        }
         window.localStorage.setItem(RAG_PREFERENCE_STORAGE_KEY, String(value))
     }, {immediate: true})
+    // 文件引用列表
+    const fileReferences = ref<FileReference[] | null>(null)
 
     const createRequestId = () => {
         if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -152,12 +171,16 @@ export function useCelestialChat() {
             }
         }
 
+        // 保存当前文件引用（发送前保存，发送后会清空）
+        const currentFileReferences = fileReferences.value
+
         // 添加用户消息
         const userMessage: ChatMessage = {
             role: 0,
             content: content,
             sessionId: activeSessionId.value,
-            messageType: 0
+            messageType: 0,
+            metadata: currentFileReferences ? {fileReferences: currentFileReferences} : null
         }
         messages.value.push(userMessage)
 
@@ -180,9 +203,13 @@ export function useCelestialChat() {
         chatRequest.sessionType = 0
         chatRequest.useRag = useRag.value === true
         chatRequest.stream = true
+        chatRequest.fileReferences = fileReferences.value
         const requestId = createRequestId()
         chatRequest.requestId = requestId
         currentRequestId.value = requestId
+
+        // 清空文件引用（发送后清空）
+        fileReferences.value = null
 
         // 累积的AI回复内容
         let accumulatedContent = ''
@@ -280,12 +307,16 @@ export function useCelestialChat() {
             }
         }
 
+        // 保存当前文件引用（发送前保存，发送后会清空）
+        const currentFileReferences = fileReferences.value
+
         // 添加用户消息
         const userMessage: ChatMessage = {
             role: 0,
             content: content,
             sessionId: activeSessionId.value,
-            messageType: 0
+            messageType: 0,
+            metadata: currentFileReferences ? {fileReferences: currentFileReferences} : null
         }
         messages.value.push(userMessage)
 
@@ -308,9 +339,13 @@ export function useCelestialChat() {
         chatRequest.sessionType = 0
         chatRequest.useRag = useRag.value === true
         chatRequest.stream = true
+        chatRequest.fileReferences = fileReferences.value
         const requestId = createRequestId()
         chatRequest.requestId = requestId
         currentRequestId.value = requestId
+
+        // 清空文件引用（发送后清空）
+        fileReferences.value = null
 
         // 累积的AI回复内容
         let accumulatedContent = ''
@@ -413,7 +448,8 @@ export function useCelestialChat() {
         loadMessages,
         scrollToBottom,
         scrollIntoViewInMessages,
-        useRag
+        useRag,
+        fileReferences
     }
 }
 

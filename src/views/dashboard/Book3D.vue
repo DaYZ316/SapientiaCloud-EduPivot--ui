@@ -89,7 +89,7 @@ const initThree = () => {
     /**
      * 灯光设置
      */
-    // 温暖的黄色主灯光
+        // 温暖的黄色主灯光
     const keyLight = new THREE.PointLight(0xffe28a, 6);
     keyLight.position.set(0.6, 1.2, 1.6);
     scene.add(keyLight);

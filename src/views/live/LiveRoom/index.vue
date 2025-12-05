@@ -27,12 +27,12 @@
         </n-space>
       </div>
 
-      <div class="room-layout" :class="{'is-connected': isConnected}">
+      <div :class="{'is-connected': isConnected}" class="room-layout">
         <section v-if="isConnected" class="video-panel">
           <template v-if="isConnected">
             <div class="video-grid">
               <div class="video-item local-video">
-                <video ref="localVideoRef" autoplay playsinline muted/>
+                <video ref="localVideoRef" autoplay muted playsinline/>
                 <div class="video-label">{{ t('live.room.localVideo') }}</div>
               </div>
               <div
@@ -40,7 +40,8 @@
                   :key="participant.participantId"
                   class="video-item"
               >
-                <video :ref="el => setRemoteVideoRef(el as HTMLVideoElement | null, participant.participantId)" autoplay playsinline/>
+                <video :ref="el => setRemoteVideoRef(el as HTMLVideoElement | null, participant.participantId)" autoplay
+                       playsinline/>
                 <div class="video-label">{{ participant.participantId }}</div>
               </div>
             </div>
@@ -66,13 +67,13 @@
 
         <section class="chat-panel">
           <ChatPanel
-              :messages="chatMessages"
-              :loading="false"
-              :show-header="true"
-              :title="t('live.room.chatTitle')"
-              :sub-title="t('live.room.chatDescription')"
               :can-send="true"
               :extra="`${chatOnlineCount} ${t('live.room.members')}`"
+              :loading="false"
+              :messages="chatMessages"
+              :show-header="true"
+              :sub-title="t('live.room.chatDescription')"
+              :title="t('live.room.chatTitle')"
               @send="handleSendMessage"
           />
         </section>
@@ -84,14 +85,14 @@
 <script lang="ts" setup>
 import {computed, onBeforeUnmount, onMounted, ref} from 'vue'
 import {useRoute} from 'vue-router'
-import {Room, RoomEvent, Track, RemoteParticipant, RemoteTrackPublication} from 'livekit-client'
-import {VideocamOutline, VideocamOffOutline, MicOutline, MicOffOutline} from '@vicons/ionicons5'
+import {RemoteParticipant, RemoteTrackPublication, Room, RoomEvent, Track} from 'livekit-client'
+import {MicOffOutline, MicOutline, VideocamOffOutline, VideocamOutline} from '@vicons/ionicons5'
 import {useI18n} from 'vue-i18n'
 import Icon from '@/components/common/Icon.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import ChatPanel from '@/components/common/ChatPanel.vue'
 import * as liveApi from '@/api/live'
-import {LiveRoomRoleEnum, LiveRoomStatusEnum, getLiveRoomRoleLabel, getLiveRoomStatusLabel} from '@/enum/live'
+import {getLiveRoomRoleLabel, getLiveRoomStatusLabel, LiveRoomRoleEnum, LiveRoomStatusEnum} from '@/enum/live'
 import type {LiveRoomVO} from '@/types/live'
 import {useUserStore} from '@/store'
 

@@ -6,12 +6,12 @@
     <div class="message-text">
       <!-- 出题中状态：使用按钮样式 + 文案 + 右侧loading -->
       <div v-if="isPending" class="question-card pending-card">
-        <n-icon :component="DocumentTextOutline" size="20" class="card-icon"/>
+        <n-icon :component="DocumentTextOutline" class="card-icon" size="20"/>
         <div class="card-content">
           <div class="card-title">{{ pendingTitle }}</div>
           <div class="card-time">{{ pendingSubTitle }}</div>
         </div>
-        <n-spin size="small" class="card-loading"/>
+        <n-spin class="card-loading" size="small"/>
       </div>
       <MarkdownRenderer
           v-else-if="message.content"
@@ -23,14 +23,14 @@
         <div
             v-for="(questionItem, questionIndex) in questionList"
             :key="questionItem.id ?? `question-card-${questionIndex}`"
-            :data-question-index="questionIndex"
             :class="['question-card', { 'is-active': isActive && activeIndex === questionIndex }]"
+            :data-question-index="questionIndex"
             @click="handleCardClick(questionIndex)"
-      >
-        <n-icon :component="DocumentTextOutline" size="20" class="card-icon"/>
-        <div class="card-content">
+        >
+          <n-icon :component="DocumentTextOutline" class="card-icon" size="20"/>
+          <div class="card-content">
             <div class="card-title">{{ getQuestionCardTitle(questionItem, questionIndex) }}</div>
-          <div class="card-time">{{ formattedTime }}</div>
+            <div class="card-time">{{ formattedTime }}</div>
           </div>
         </div>
       </div>
@@ -55,7 +55,11 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'view-questions', payload: { messageId: string | null; questions: QuestionResponseDTO[]; activeIndex: number | null }): void
+  (e: 'view-questions', payload: {
+    messageId: string | null;
+    questions: QuestionResponseDTO[];
+    activeIndex: number | null
+  }): void
 }>()
 
 const {t} = useI18n()
@@ -150,20 +154,20 @@ const handleCardClick = (index: number) => {
     flex-direction: column;
     gap: 12px;
 
-      .pending-content {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 16px;
-        border-radius: 16px;
-        background: var(--background-secondary-color);
-        color: var(--text-secondary-color);
+    .pending-content {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border-radius: 16px;
+      background: var(--background-secondary-color);
+      color: var(--text-secondary-color);
 
-        .pending-text {
-          font-size: 14px;
-          line-height: 1.4;
-        }
+      .pending-text {
+        font-size: 14px;
+        line-height: 1.4;
       }
+    }
 
     .ai-content {
       max-width: 100%;

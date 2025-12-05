@@ -11,8 +11,8 @@
     <!-- 出题者消息 (role=4) -->
     <QuestionGeneratorMessage
         v-else-if="message.role === 4"
-        :is-active="isQuestionBubbleActive"
         :active-index="props.activeQuestionIndex ?? null"
+        :is-active="isQuestionBubbleActive"
         :message="message"
         @view-questions="handleViewQuestions"
     />
@@ -24,8 +24,16 @@
           <span></span>
           <span></span>
         </div>
-        <div v-else-if="messageRole === 'user'" class="user-content">
-          {{ message.content }}
+        <div v-else-if="messageRole === 'user'" class="user-section">
+          <div
+              v-if="userFileReferences && userFileReferences.length > 0"
+              class="file-references-above"
+          >
+            <FileReferenceSelector :model-value="userFileReferences"/>
+          </div>
+          <div class="user-content">
+            <div class="message-text-content">{{ message.content }}</div>
+          </div>
         </div>
         <MarkdownRenderer
             v-else-if="messageRole === 'assistant'"
@@ -35,40 +43,40 @@
         <div v-else class="ai-content-empty">正在思考...</div>
       </div>
       <div v-if="messageRole === 'assistant' && !isThinking && !isStreaming" class="message-actions">
-      <n-tooltip trigger="hover">
-        <template #trigger>
-          <n-icon
-              :class="['action-icon', { 'feedback-active': isPositiveFeedback }]"
-              :component="ThumbsUpOutline"
-              size="16"
-              @click="handleFeedback(1)"
-          />
-        </template>
-        {{ t('chat.feedback.helpful') }}
-      </n-tooltip>
-      <n-tooltip trigger="hover">
-        <template #trigger>
-          <n-icon
-              :class="['action-icon', { 'feedback-negative': isNegativeFeedback }]"
-              :component="ThumbsDownOutline"
-              size="16"
-              @click="handleFeedback(-1)"
-          />
-        </template>
-        {{ t('chat.feedback.notHelpful') }}
-      </n-tooltip>
-      <n-tooltip trigger="hover">
-        <template #trigger>
-          <n-icon :component="RefreshOutline" class="action-icon" size="16" @click="handleResend"/>
-        </template>
-        {{ t('chat.resend') }}
-      </n-tooltip>
-      <n-tooltip trigger="hover">
-        <template #trigger>
-          <n-icon :component="CopyOutline" class="action-icon" size="16" @click="handleCopy"/>
-        </template>
-        {{ t('chat.copy') }}
-      </n-tooltip>
+        <n-tooltip trigger="hover">
+          <template #trigger>
+            <n-icon
+                :class="['action-icon', { 'feedback-active': isPositiveFeedback }]"
+                :component="ThumbsUpOutline"
+                size="16"
+                @click="handleFeedback(1)"
+            />
+          </template>
+          {{ t('chat.feedback.helpful') }}
+        </n-tooltip>
+        <n-tooltip trigger="hover">
+          <template #trigger>
+            <n-icon
+                :class="['action-icon', { 'feedback-negative': isNegativeFeedback }]"
+                :component="ThumbsDownOutline"
+                size="16"
+                @click="handleFeedback(-1)"
+            />
+          </template>
+          {{ t('chat.feedback.notHelpful') }}
+        </n-tooltip>
+        <n-tooltip trigger="hover">
+          <template #trigger>
+            <n-icon :component="RefreshOutline" class="action-icon" size="16" @click="handleResend"/>
+          </template>
+          {{ t('chat.resend') }}
+        </n-tooltip>
+        <n-tooltip trigger="hover">
+          <template #trigger>
+            <n-icon :component="CopyOutline" class="action-icon" size="16" @click="handleCopy"/>
+          </template>
+          {{ t('chat.copy') }}
+        </n-tooltip>
       </div>
     </template>
   </div>
@@ -81,10 +89,12 @@ import {CopyOutline, RefreshOutline, ThumbsDownOutline, ThumbsUpOutline} from '@
 import {useI18n} from 'vue-i18n'
 import type {ChatMessage} from '@/types/celestialHub/chatMessage'
 import type {QuestionResponseDTO} from '@/types/celestialHub/question'
+import type {FileReference} from '@/types/celestialHub/knowledge'
 import {feedbackMessage} from '@/api/celestialHub/chatMessage'
 import MarkdownRenderer from '@/components/common/MarkdownRenderer.vue'
 import QuestionRequesterMessage from './QuestionRequesterMessage.vue'
 import QuestionGeneratorMessage from './QuestionGeneratorMessage.vue'
+import FileReferenceSelector from '@/views/celestialHub/components/FileReferenceSelector.vue'
 
 // Props
 const props = defineProps<{
@@ -142,7 +152,32 @@ const isQuestionBubbleActive = computed(() => {
   return props.activeQuestionMessageId === props.message.id
 })
 
-const handleViewQuestions = (payload: { messageId: string | null; questions: QuestionResponseDTO[]; activeIndex: number | null }) => {
+const userFileReferences = computed<FileReference[] | null>(() => {
+  if (messageRole.value !== 'user') {
+    return null
+  }
+  const metadata = props.message.metadata as any
+  const metadataRefs = metadata?.fileReferences as FileReference[] | null | undefined
+  const messageRefs = props.message.fileReferences
+  const merged = [...(metadataRefs || []), ...(messageRefs || [])]
+  if (!merged.length) {
+    return null
+  }
+  const seen = new Set<string>()
+  const unique = merged.filter((item) => {
+    const key = item.id ?? `${item.fileName ?? ''}-${item.storagePath ?? ''}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+  return unique
+})
+
+const handleViewQuestions = (payload: {
+  messageId: string | null;
+  questions: QuestionResponseDTO[];
+  activeIndex: number | null
+}) => {
   emit('view-questions', payload)
 }
 
@@ -179,8 +214,34 @@ const handleResend = () => {
 
     .message-text {
       display: flex;
-      justify-content: flex-end;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
       width: 100%;
+
+      .user-section {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+        width: 100%;
+      }
+
+      .file-references-above {
+        width: fit-content;
+        max-width: 70%;
+        align-self: flex-end;
+
+        :deep(.remove-button) {
+          opacity: 0 !important;
+          pointer-events: none !important;
+        }
+
+        :deep(.file-reference-item:hover .remove-button) {
+          opacity: 0 !important;
+          pointer-events: none !important;
+        }
+      }
 
       .user-content {
         max-width: 70%;
@@ -191,6 +252,10 @@ const handleResend = () => {
         white-space: pre-wrap;
         word-break: break-word;
         line-height: 1.6;
+
+        .message-text-content {
+          margin-bottom: 0;
+        }
       }
     }
   }

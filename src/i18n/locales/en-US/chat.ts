@@ -73,6 +73,23 @@ export default {
         filesUploadedAt: 'Uploaded at {time}',
         filesNoSession: 'Select a session first',
         filesLoadFailed: 'Unable to load files'
+    },
+    fileReference: {
+        selectFile: 'Select File Reference',
+        vectorized: 'Vectorized',
+        noFiles: 'No files available'
+    },
+    speech: {
+        notSupported: 'Your browser does not support speech recognition',
+        startRecording: 'Start recording',
+        stopRecording: 'Stop recording',
+        listening: 'Listening...',
+        noSpeech: 'No speech detected',
+        audioCaptureError: 'Cannot access microphone',
+        permissionDenied: 'Microphone permission denied',
+        networkError: 'Network error',
+        aborted: 'Speech recognition aborted',
+        error: 'Speech recognition error'
     }
 }
 

@@ -43,31 +43,31 @@
     </div>
 
     <!-- 数据列表 -->
-    <div v-else class="record-list" ref="recordListRef" @scroll="handleScroll">
-      <div 
-        v-for="item in records" 
-        :key="item.id" 
-        class="record" 
-        :class="{ 'record-active': selectedRecordId === item.id }"
-        @click="handleRecordClick(item)"
+    <div v-else ref="recordListRef" class="record-list" @scroll="handleScroll">
+      <div
+          v-for="item in records"
+          :key="item.id"
+          :class="{ 'record-active': selectedRecordId === item.id }"
+          class="record"
+          @click="handleRecordClick(item)"
       >
         <div class="record-header">
           <p class="course-name">{{ item.courseName || t('classroom.history.unnamedCourse') }}</p>
-          <span v-if="item.status !== undefined" class="record-status" :class="'status-' + item.status">
+          <span v-if="item.status !== undefined" :class="'status-' + item.status" class="record-status">
             {{ getStatusText(item.status) }}
           </span>
         </div>
         <div class="record-info">
           <span v-if="item.teacherName" class="info-item">
-            <n-icon class="info-icon"><PersonOutline /></n-icon>
+            <n-icon class="info-icon"><PersonOutline/></n-icon>
             {{ item.teacherName }}
           </span>
           <span class="info-item">
-            <n-icon class="info-icon"><TimeOutline /></n-icon>
+            <n-icon class="info-icon"><TimeOutline/></n-icon>
             {{ formatTime(item.updateTime) }}
           </span>
           <span class="info-item">
-            <n-icon class="info-icon"><GridOutline /></n-icon>
+            <n-icon class="info-icon"><GridOutline/></n-icon>
             {{ item.classroomType !== undefined && item.classroomType !== null ? getClassroomTypeLabel(item.classroomType, locale === 'en-US') : t('classroom.history.noModelType') }}
           </span>
         </div>
@@ -75,7 +75,7 @@
 
       <!-- 加载更多提示 -->
       <div v-if="loadingMore" class="loading-more">
-        <n-spin size="small" />
+        <n-spin size="small"/>
         <span>{{ t('classroom.history.loadingMore') }}</span>
       </div>
       <div v-else-if="!hasMore && records.length > 0" class="no-more">
@@ -88,7 +88,14 @@
 <script lang="ts" setup>
 import {ref, onMounted, onBeforeUnmount, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {AddOutline, DocumentTextOutline, WarningOutline, PersonOutline, TimeOutline, GridOutline} from '@vicons/ionicons5'
+import {
+  AddOutline,
+  DocumentTextOutline,
+  WarningOutline,
+  PersonOutline,
+  TimeOutline,
+  GridOutline
+} from '@vicons/ionicons5'
 import {NIcon, NSpin} from 'naive-ui'
 import {listCourseRecord} from '@/api/classroom/courseRecord'
 import eventBus from '@/utils/eventBus'
@@ -144,7 +151,7 @@ const formatTime = (time: string | null | undefined): string => {
     const now = new Date()
     const diff = now.getTime() - date.getTime()
     const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-    
+
     if (days === 0) {
       // 今天，显示时间
       const hours = date.getHours()
@@ -190,21 +197,21 @@ const loadData = async (autoSelectFirst: boolean = true) => {
   error.value = false
   pageNum.value = 1
   records.value = []
-  
+
   const params: CourseRecordPageQueryDTO = {
     pageNum: searchParams.value?.pageNum ?? 1,
     pageSize: searchParams.value?.pageSize ?? pageSize.value,
     courseId: courseStore.currentCourseId || null,
     ...(searchParams.value || {})
   }
-  
+
   const res = await listCourseRecord(params)
   if (res) {
     const {list, total: totalCount} = parseResponse(res)
     records.value = list
     total.value = totalCount
     hasMore.value = records.value.length < total.value
-    
+
     // 如果启用自动选择且没有选中记录，默认选择第一个
     if (autoSelectFirst && records.value.length > 0 && !selectedRecordId.value) {
       const firstRecord = records.value[0]
@@ -230,14 +237,14 @@ const loadMoreData = async () => {
   }
   loadingMore.value = true
   pageNum.value += 1
-  
+
   const params: CourseRecordPageQueryDTO = {
     pageNum: pageNum.value,
     pageSize: pageSize.value,
     courseId: courseStore.currentCourseId || null,
     ...(searchParams.value || {})
   }
-  
+
   const res = await listCourseRecord(params)
   if (res) {
     const {list} = parseResponse(res)
@@ -284,7 +291,7 @@ const handleResetClassroomDetail = () => {
 const handleRefreshClassroomHistory = async () => {
   const currentSelectedId = selectedRecordId.value
   await loadData(false)
-  
+
   // 刷新后，如果之前的选中记录还在列表中，保持选中；否则选择第一个
   if (currentSelectedId && records.value.some(r => r.id === currentSelectedId)) {
     selectedRecordId.value = currentSelectedId

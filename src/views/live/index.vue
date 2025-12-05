@@ -2,7 +2,7 @@
   <div class="live-management-container">
     <page-header :title="t('live.title')"/>
 
-    <n-alert v-if="!hasContext" type="warning" class="context-alert">
+    <n-alert v-if="!hasContext" class="context-alert" type="warning">
       {{ t('live.singleRoom.contextMissing') }}
     </n-alert>
 
@@ -10,9 +10,9 @@
       <n-gi :span="2">
         <n-card size="small">
           <template #header>{{ t('live.singleRoom.courseSection') }}</template>
-          <n-skeleton v-if="loadingCourse" text :repeat="4"/>
+          <n-skeleton v-if="loadingCourse" :repeat="4" text/>
           <div v-else>
-            <n-descriptions v-if="courseRecord" :column="2" label-placement="left" size="small" bordered>
+            <n-descriptions v-if="courseRecord" :column="2" bordered label-placement="left" size="small">
               <n-descriptions-item :label="t('live.singleRoom.courseName')">
                 {{ courseRecord.courseName }}
               </n-descriptions-item>
@@ -26,7 +26,7 @@
                 {{ courseRecord.overTime }}
               </n-descriptions-item>
             </n-descriptions>
-            <n-empty v-else :description="t('live.singleRoom.courseEmpty')" />
+            <n-empty v-else :description="t('live.singleRoom.courseEmpty')"/>
           </div>
         </n-card>
       </n-gi>
@@ -40,8 +40,8 @@
       </n-gi>
       <n-gi>
         <live-room-manage
-            :live-room="liveRoom"
             :course-record="courseRecord"
+            :live-room="liveRoom"
             :loading="loadingLive"
             @refresh="handleLiveRoomUpdated"
         />

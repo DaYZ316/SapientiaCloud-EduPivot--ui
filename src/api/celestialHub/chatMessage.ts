@@ -27,7 +27,7 @@ export function getDefaultChatRequestDTO(): ChatRequestDTO {
         temperature: null,
         maxTokens: null,
         attachments: null,
-        fileIds: null
+        fileReferences: null
     }
 }
 

@@ -1,9 +1,5 @@
 import http from '@/utils/http'
-import type {
-    ClassroomQuestionDTO,
-    ClassroomQuestionPageQueryDTO,
-    ClassroomQuestionVO
-} from '@/types/classroom'
+import type {ClassroomQuestionDTO, ClassroomQuestionPageQueryDTO, ClassroomQuestionVO} from '@/types/classroom'
 import type {TableDataResult} from '@/types/common/baseEntity'
 
 // 获取默认课堂练习DTO

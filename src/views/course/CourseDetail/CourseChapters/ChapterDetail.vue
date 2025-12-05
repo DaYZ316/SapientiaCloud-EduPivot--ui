@@ -65,11 +65,7 @@
 import {computed} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useRouter} from 'vue-router'
-import {
-  BookOutline,
-  CreateOutline,
-  TrashOutline
-} from '@vicons/ionicons5'
+import {BookOutline, CreateOutline, TrashOutline} from '@vicons/ionicons5'
 import type {CourseChapterVO} from '@/types/course/courseChapter'
 import type {FileInfoDTO} from '@/types/minIO/file'
 import Icon from '@/components/common/Icon.vue'

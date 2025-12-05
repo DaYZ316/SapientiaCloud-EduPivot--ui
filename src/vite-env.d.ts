@@ -12,9 +12,8 @@ declare module '*.vue' {
 declare module '@vicons/ionicons5';
 
 // 扩展 Window 接口以支持 Three.js 相关属性
-import type { PerspectiveCamera, Euler } from 'three'
-import type { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js'
-import type { InstancedMesh } from 'three'
+import type {Euler, InstancedMesh, PerspectiveCamera} from 'three'
+import type {PointerLockControls} from 'three/examples/jsm/controls/PointerLockControls.js'
 
 declare global {
     interface Window {

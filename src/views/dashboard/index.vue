@@ -4,7 +4,7 @@
 
     </div>
     <!-- <CelestailHub /> -->
-    <Book3D />
+    <Book3D/>
   </div>
 </template>
 

@@ -1,26 +1,26 @@
 <template>
   <div class="chat-panel">
-    <header class="chat-panel__header" v-if="showHeader">
+    <header v-if="showHeader" class="chat-panel__header">
       <div class="chat-panel__titles">
         <h3 class="chat-panel__title">{{ title }}</h3>
         <p v-if="subTitle" class="chat-panel__subtitle">
           {{ subTitle }}
         </p>
       </div>
-      <div class="chat-panel__extra" v-if="extra">
+      <div v-if="extra" class="chat-panel__extra">
         {{ extra }}
       </div>
     </header>
 
     <main class="chat-panel__body">
       <div v-if="loading" class="chat-panel__loading">
-        <n-skeleton text :repeat="4" />
+        <n-skeleton :repeat="4" text/>
       </div>
-      <div v-else class="chat-panel__messages" ref="listRef">
+      <div v-else ref="listRef" class="chat-panel__messages">
         <div
-          v-for="item in messages"
-          :key="item.id"
-          class="chat-panel__message"
+            v-for="item in messages"
+            :key="item.id"
+            class="chat-panel__message"
         >
           <div class="chat-panel__message-header">
             <span class="chat-panel__message-sender">{{ item.sender }}</span>
@@ -31,28 +31,28 @@
           </div>
         </div>
         <div
-          v-if="!messages.length"
-          class="chat-panel__empty"
+            v-if="!messages.length"
+            class="chat-panel__empty"
         >
           {{ emptyText }}
         </div>
       </div>
     </main>
 
-    <footer class="chat-panel__footer" v-if="canSend">
+    <footer v-if="canSend" class="chat-panel__footer">
       <n-input
-        v-model:value="inputValue"
-        type="textarea"
-        :autosize="{ minRows: 2, maxRows: 4 }"
-        :placeholder="placeholder"
-        @keyup.enter.exact.prevent="handleSend"
+          v-model:value="inputValue"
+          :autosize="{ minRows: 2, maxRows: 4 }"
+          :placeholder="placeholder"
+          type="textarea"
+          @keyup.enter.exact.prevent="handleSend"
       />
       <div class="chat-panel__footer-actions">
         <n-button
-          type="primary"
-          size="small"
-          :disabled="!trimmedValue"
-          @click="handleSend"
+            :disabled="!trimmedValue"
+            size="small"
+            type="primary"
+            @click="handleSend"
         >
           {{ sendText }}
         </n-button>
@@ -62,8 +62,8 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, nextTick, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
+import {computed, nextTick, ref, watch} from 'vue'
+import {useI18n} from 'vue-i18n'
 
 interface ChatMessage {
   id: string
@@ -89,7 +89,7 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const { t } = useI18n()
+const {t} = useI18n()
 
 const inputValue = ref('')
 const listRef = ref<HTMLDivElement | null>(null)
@@ -101,13 +101,13 @@ const sendText = computed(() => t('chat.send'))
 const emptyText = computed(() => t('common.noData'))
 
 watch(
-  () => props.messages.length,
-  () => {
-    nextTick(() => {
-      if (!listRef.value) return
-      listRef.value.scrollTop = listRef.value.scrollHeight
-    })
-  }
+    () => props.messages.length,
+    () => {
+      nextTick(() => {
+        if (!listRef.value) return
+        listRef.value.scrollTop = listRef.value.scrollHeight
+      })
+    }
 )
 
 function handleSend() {

@@ -212,7 +212,6 @@ import {
   NSpace,
   NSpin,
   NTag,
-  NText,
   useMessage
 } from 'naive-ui'
 import {
@@ -220,7 +219,6 @@ import {
   CheckmarkCircleOutline,
   CloseCircleOutline,
   CreateOutline,
-  DocumentTextOutline,
   EllipsisVertical,
   Heart,
   HeartOutline,

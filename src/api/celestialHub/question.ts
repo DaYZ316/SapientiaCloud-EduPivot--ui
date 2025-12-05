@@ -1,9 +1,6 @@
 import type {AxiosRequestConfig} from 'axios'
 import http from '@/utils/http'
-import type {
-    QuestionGenerateRequestDTO,
-    QuestionResponseDTO
-} from '@/types/celestialHub/question'
+import type {QuestionGenerateRequestDTO, QuestionResponseDTO} from '@/types/celestialHub/question'
 
 /**
  * 获取默认AI出题请求DTO

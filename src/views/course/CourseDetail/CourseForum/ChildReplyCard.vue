@@ -161,16 +161,7 @@ import {computed, h, ref} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useRouter} from 'vue-router'
 import anonymousUserImg from '@/assets/image/anonymous-user.png'
-import {
-  NAvatar,
-  NButton,
-  NDropdown,
-  NIcon,
-  NImage,
-  NSpace,
-  NTag,
-  useMessage
-} from 'naive-ui'
+import {NAvatar, NButton, NDropdown, NIcon, NImage, NSpace, NTag, useMessage} from 'naive-ui'
 import {
   ChatbubbleOutline,
   CheckmarkCircleOutline,

@@ -2,276 +2,276 @@
   <div class="file-preview-page">
     <Teleport :disabled="!isFullscreen" to="body">
       <div :class="{ 'fullscreen': isFullscreen }" class="file-preview-container">
-      <!-- 顶部工具栏 -->
-      <div v-if="showToolbar" class="file-preview-toolbar">
-        <div class="toolbar-left">
-          <n-button
-              quaternary
-              size="small"
-              @click="handleBack"
-          >
-            <template #icon>
-              <Icon :component="ArrowBackOutline"/>
-            </template>
-            {{ t('common.back') }}
-          </n-button>
-
-          <n-divider vertical/>
-
-          <n-text :title="fileInfo.fileName" class="file-name">
-            {{ fileInfo.fileName }}
-          </n-text>
-        </div>
-
-        <div class="toolbar-center">
-          <!-- PDF 页码控制 -->
-          <div v-if="fileType === 'pdf' && totalPages > 1" class="page-controls">
+        <!-- 顶部工具栏 -->
+        <div v-if="showToolbar" class="file-preview-toolbar">
+          <div class="toolbar-left">
             <n-button
-                :disabled="currentPage <= 1"
                 quaternary
                 size="small"
-                @click="handlePreviousPage"
+                @click="handleBack"
             >
               <template #icon>
-                <Icon :component="ChevronBackOutline"/>
+                <Icon :component="ArrowBackOutline"/>
               </template>
+              {{ t('common.back') }}
             </n-button>
 
-            <n-input-number
-                v-model:value="currentPage"
-                :max="totalPages"
-                :min="1"
+            <n-divider vertical/>
+
+            <n-text :title="fileInfo.fileName" class="file-name">
+              {{ fileInfo.fileName }}
+            </n-text>
+          </div>
+
+          <div class="toolbar-center">
+            <!-- PDF 页码控制 -->
+            <div v-if="fileType === 'pdf' && totalPages > 1" class="page-controls">
+              <n-button
+                  :disabled="currentPage <= 1"
+                  quaternary
+                  size="small"
+                  @click="handlePreviousPage"
+              >
+                <template #icon>
+                  <Icon :component="ChevronBackOutline"/>
+                </template>
+              </n-button>
+
+              <n-input-number
+                  v-model:value="currentPage"
+                  :max="totalPages"
+                  :min="1"
+                  size="small"
+                  style="width: 80px"
+                  @update:value="handlePageChange"
+              />
+
+              <n-text depth="3" style="margin: 0 8px">
+                {{ t('common.filePreview.pageInfo', {current: currentPage, total: totalPages}) }}
+              </n-text>
+
+              <n-button
+                  :disabled="currentPage >= totalPages"
+                  quaternary
+                  size="small"
+                  @click="handleNextPage"
+              >
+                <template #icon>
+                  <Icon :component="ChevronForwardOutline"/>
+                </template>
+              </n-button>
+            </div>
+          </div>
+
+          <div class="toolbar-right">
+            <!-- 缩放控制 -->
+            <div v-if="showZoomControls" class="zoom-controls">
+              <n-button
+                  :disabled="zoom <= 0.5"
+                  quaternary
+                  size="small"
+                  @click="handleZoomOut"
+              >
+                <template #icon>
+                  <Icon :component="RemoveOutline"/>
+                </template>
+              </n-button>
+
+              <n-text depth="3" style="margin: 0 8px; min-width: 60px; text-align: center">
+                {{ Math.round(zoom * 100) }}%
+              </n-text>
+
+              <n-button
+                  :disabled="zoom >= 3"
+                  quaternary
+                  size="small"
+                  @click="handleZoomIn"
+              >
+                <template #icon>
+                  <Icon :component="AddOutline"/>
+                </template>
+              </n-button>
+
+              <n-button
+                  quaternary
+                  size="small"
+                  @click="handleResetZoom"
+              >
+                {{ t('common.filePreview.resetZoom') }}
+              </n-button>
+            </div>
+
+            <n-divider vertical/>
+
+            <!-- 下载按钮 -->
+            <n-button
+                v-if="allowDownload"
+                quaternary
                 size="small"
-                style="width: 80px"
-                @update:value="handlePageChange"
+                @click="handleDownload"
+            >
+              <template #icon>
+                <Icon :component="DownloadOutline"/>
+              </template>
+              {{ t('common.filePreview.downloadFile') }}
+            </n-button>
+
+            <!-- 打印按钮 -->
+            <n-button
+                v-if="allowPrint"
+                quaternary
+                size="small"
+                @click="handlePrint"
+            >
+              <template #icon>
+                <Icon :component="PrintOutline"/>
+              </template>
+              {{ t('common.filePreview.printFile') }}
+            </n-button>
+
+            <!-- 全屏按钮 -->
+            <n-button
+                quaternary
+                size="small"
+                @click="toggleFullscreen"
+            >
+              <template #icon>
+                <Icon :component="isFullscreen ? ContractOutline : ExpandOutline"/>
+              </template>
+              {{ isFullscreen ? t('common.filePreview.exitFullscreen') : t('common.filePreview.fullscreen') }}
+            </n-button>
+          </div>
+        </div>
+
+        <!-- 文件预览区域 -->
+        <div :style="contentStyle" class="file-preview-content">
+          <!-- 加载状态 -->
+          <div v-if="loading" class="loading-container">
+            <n-spin size="large">
+              <template #description>
+                {{ t('common.filePreview.loading') }}
+              </template>
+            </n-spin>
+          </div>
+
+          <!-- 错误状态 -->
+          <div v-else-if="error" class="error-container">
+            <n-result
+                :description="error"
+                :title="t('common.filePreview.loadFailed')"
+                status="error"
+            >
+              <template #icon>
+                <Icon :component="WarningOutline" size="48"/>
+              </template>
+              <template #footer>
+                <n-button @click="handleRetry">
+                  {{ t('common.retry') }}
+                </n-button>
+              </template>
+            </n-result>
+          </div>
+
+          <!-- 不支持的文件格式 -->
+          <div v-else-if="fileType === 'unsupported'" class="unsupported-container">
+            <n-result
+                :description="t('common.filePreview.errors.unsupportedBrowser')"
+                :title="t('common.filePreview.unsupportedFormat')"
+                status="warning"
+            >
+              <template #icon>
+                <Icon :component="DocumentTextOutline" size="48"/>
+              </template>
+              <template #footer>
+                <n-button @click="handleDownload">
+                  {{ t('common.filePreview.downloadFile') }}
+                </n-button>
+              </template>
+            </n-result>
+          </div>
+
+          <!-- 文件预览内容 -->
+          <div v-else class="preview-content">
+            <!-- PDF 预览 -->
+            <VueOfficePdf
+                v-if="fileType === 'pdf'"
+                :src="fileInfo.url"
+                :style="pdfStyle"
+                @error="handlePdfError"
+                @rendered="handlePdfRendered"
             />
 
-            <n-text depth="3" style="margin: 0 8px">
-              {{ t('common.filePreview.pageInfo', {current: currentPage, total: totalPages}) }}
-            </n-text>
-
-            <n-button
-                :disabled="currentPage >= totalPages"
-                quaternary
-                size="small"
-                @click="handleNextPage"
-            >
-              <template #icon>
-                <Icon :component="ChevronForwardOutline"/>
-              </template>
-            </n-button>
-          </div>
-        </div>
-
-        <div class="toolbar-right">
-          <!-- 缩放控制 -->
-          <div v-if="showZoomControls" class="zoom-controls">
-            <n-button
-                :disabled="zoom <= 0.5"
-                quaternary
-                size="small"
-                @click="handleZoomOut"
-            >
-              <template #icon>
-                <Icon :component="RemoveOutline"/>
-              </template>
-            </n-button>
-
-            <n-text depth="3" style="margin: 0 8px; min-width: 60px; text-align: center">
-              {{ Math.round(zoom * 100) }}%
-            </n-text>
-
-            <n-button
-                :disabled="zoom >= 3"
-                quaternary
-                size="small"
-                @click="handleZoomIn"
-            >
-              <template #icon>
-                <Icon :component="AddOutline"/>
-              </template>
-            </n-button>
-
-            <n-button
-                quaternary
-                size="small"
-                @click="handleResetZoom"
-            >
-              {{ t('common.filePreview.resetZoom') }}
-            </n-button>
-          </div>
-
-          <n-divider vertical/>
-
-          <!-- 下载按钮 -->
-          <n-button
-              v-if="allowDownload"
-              quaternary
-              size="small"
-              @click="handleDownload"
-          >
-            <template #icon>
-              <Icon :component="DownloadOutline"/>
-            </template>
-            {{ t('common.filePreview.downloadFile') }}
-          </n-button>
-
-          <!-- 打印按钮 -->
-          <n-button
-              v-if="allowPrint"
-              quaternary
-              size="small"
-              @click="handlePrint"
-          >
-            <template #icon>
-              <Icon :component="PrintOutline"/>
-            </template>
-            {{ t('common.filePreview.printFile') }}
-          </n-button>
-
-          <!-- 全屏按钮 -->
-          <n-button
-              quaternary
-              size="small"
-              @click="toggleFullscreen"
-          >
-            <template #icon>
-              <Icon :component="isFullscreen ? ContractOutline : ExpandOutline"/>
-            </template>
-            {{ isFullscreen ? t('common.filePreview.exitFullscreen') : t('common.filePreview.fullscreen') }}
-          </n-button>
-        </div>
-      </div>
-
-      <!-- 文件预览区域 -->
-      <div :style="contentStyle" class="file-preview-content">
-        <!-- 加载状态 -->
-        <div v-if="loading" class="loading-container">
-          <n-spin size="large">
-            <template #description>
-              {{ t('common.filePreview.loading') }}
-            </template>
-          </n-spin>
-        </div>
-
-        <!-- 错误状态 -->
-        <div v-else-if="error" class="error-container">
-          <n-result
-              :description="error"
-              :title="t('common.filePreview.loadFailed')"
-              status="error"
-          >
-            <template #icon>
-              <Icon :component="WarningOutline" size="48"/>
-            </template>
-            <template #footer>
-              <n-button @click="handleRetry">
-                {{ t('common.retry') }}
-              </n-button>
-            </template>
-          </n-result>
-        </div>
-
-        <!-- 不支持的文件格式 -->
-        <div v-else-if="fileType === 'unsupported'" class="unsupported-container">
-          <n-result
-              :description="t('common.filePreview.errors.unsupportedBrowser')"
-              :title="t('common.filePreview.unsupportedFormat')"
-              status="warning"
-          >
-            <template #icon>
-              <Icon :component="DocumentTextOutline" size="48"/>
-            </template>
-            <template #footer>
-              <n-button @click="handleDownload">
-                {{ t('common.filePreview.downloadFile') }}
-              </n-button>
-            </template>
-          </n-result>
-        </div>
-
-        <!-- 文件预览内容 -->
-        <div v-else class="preview-content">
-          <!-- PDF 预览 -->
-          <VueOfficePdf
-              v-if="fileType === 'pdf'"
-              :src="fileInfo.url"
-              :style="pdfStyle"
-              @error="handlePdfError"
-              @rendered="handlePdfRendered"
-          />
-
-          <!-- Word 文档预览 -->
-          <VueOfficeDocx
-              v-else-if="fileType === 'docx'"
-              :src="fileInfo.url"
-              :style="docxStyle"
-              @error="handleDocxError"
-              @rendered="handleDocxRendered"
-          />
-
-          <!-- Excel 预览 -->
-          <VueOfficeExcel
-              v-else-if="fileType === 'excel'"
-              :src="fileInfo.url"
-              :style="excelStyle"
-              @error="handleExcelError"
-              @rendered="handleExcelRendered"
-          />
-
-          <!-- PowerPoint 预览 -->
-          <VueOfficePptx
-              v-else-if="fileType === 'pptx'"
-              :src="fileInfo.url"
-              :style="pptxStyle"
-              @error="handlePptxError"
-              @rendered="handlePptxRendered"
-          />
-
-          <!-- 图片预览 -->
-          <div v-else-if="fileType === 'image'" class="image-preview">
-            <img
-                :alt="fileInfo.fileName"
+            <!-- Word 文档预览 -->
+            <VueOfficeDocx
+                v-else-if="fileType === 'docx'"
                 :src="fileInfo.url"
-                :style="imageStyle"
-                @error="handleImageError"
-                @load="handleImageLoad"
+                :style="docxStyle"
+                @error="handleDocxError"
+                @rendered="handleDocxRendered"
             />
-          </div>
 
-          <!-- 视频预览 -->
-          <div v-else-if="fileType === 'video'" class="video-preview">
-            <video
-                :controls="true"
+            <!-- Excel 预览 -->
+            <VueOfficeExcel
+                v-else-if="fileType === 'excel'"
                 :src="fileInfo.url"
-                :style="videoStyle"
-                @error="handleVideoError"
-                @loadeddata="handleVideoLoad"
-            >
-              {{ t('common.filePreview.errors.unsupportedBrowser') }}
-            </video>
-          </div>
+                :style="excelStyle"
+                @error="handleExcelError"
+                @rendered="handleExcelRendered"
+            />
 
-          <!-- 音频预览 -->
-          <div v-else-if="fileType === 'audio'" class="audio-preview">
-            <audio
-                :controls="true"
+            <!-- PowerPoint 预览 -->
+            <VueOfficePptx
+                v-else-if="fileType === 'pptx'"
                 :src="fileInfo.url"
-                :style="audioStyle"
-                @error="handleAudioError"
-                @loadeddata="handleAudioLoad"
-            >
-              {{ t('common.filePreview.errors.unsupportedBrowser') }}
-            </audio>
-          </div>
+                :style="pptxStyle"
+                @error="handlePptxError"
+                @rendered="handlePptxRendered"
+            />
 
-          <!-- 文本预览 -->
-          <div v-else-if="fileType === 'text'" class="text-preview">
-            <pre :style="textStyle">{{ textContent }}</pre>
+            <!-- 图片预览 -->
+            <div v-else-if="fileType === 'image'" class="image-preview">
+              <img
+                  :alt="fileInfo.fileName"
+                  :src="fileInfo.url"
+                  :style="imageStyle"
+                  @error="handleImageError"
+                  @load="handleImageLoad"
+              />
+            </div>
+
+            <!-- 视频预览 -->
+            <div v-else-if="fileType === 'video'" class="video-preview">
+              <video
+                  :controls="true"
+                  :src="fileInfo.url"
+                  :style="videoStyle"
+                  @error="handleVideoError"
+                  @loadeddata="handleVideoLoad"
+              >
+                {{ t('common.filePreview.errors.unsupportedBrowser') }}
+              </video>
+            </div>
+
+            <!-- 音频预览 -->
+            <div v-else-if="fileType === 'audio'" class="audio-preview">
+              <audio
+                  :controls="true"
+                  :src="fileInfo.url"
+                  :style="audioStyle"
+                  @error="handleAudioError"
+                  @loadeddata="handleAudioLoad"
+              >
+                {{ t('common.filePreview.errors.unsupportedBrowser') }}
+              </audio>
+            </div>
+
+            <!-- 文本预览 -->
+            <div v-else-if="fileType === 'text'" class="text-preview">
+              <pre :style="textStyle">{{ textContent }}</pre>
+            </div>
           </div>
         </div>
       </div>
-    </div>
     </Teleport>
   </div>
 </template>

@@ -7,7 +7,7 @@
           :current-page="t('course.navigation.classroom')"
       >
         <template #actions>
-          <n-card size="small" class="search-form-card">
+          <n-card class="search-form-card" size="small">
             <n-form :model="searchForm" class="search-form" inline>
               <n-form-item :label="t('classroom.searchForm.courseName')" path="courseName">
                 <n-input
@@ -68,17 +68,17 @@
     <div class="classroom-content">
       <!-- 左侧教室历史组件 - 占25%宽度 -->
       <div class="classroom-history-container">
-        <ClassroomHistory />
+        <ClassroomHistory/>
       </div>
       <!-- 右侧教室选择组件 - 占75%宽度 -->
       <div class="classroom-select-container">
-        <ClassroomDetail :course-id="courseId" />
+        <ClassroomDetail :course-id="courseId"/>
       </div>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import {computed, onMounted, reactive, ref} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
@@ -189,7 +189,7 @@ onMounted(async () => {
   width: 100%;
   flex-shrink: 0;
   padding: 0;
-  
+
   // 单独为classroom页面设置样式
   :deep(.breadcrumb-container) {
     margin-bottom: 0;
@@ -202,7 +202,7 @@ onMounted(async () => {
   background-color: var(--background-color);
   padding: 0 12px;
   border: none;
-  
+
   :deep(.n-card__content) {
     padding: 0;
   }
@@ -210,13 +210,13 @@ onMounted(async () => {
 
 .search-form {
   margin: 0;
-  
+
   :deep(.n-form-item) {
     margin-bottom: 0;
     margin-right: 12px;
     margin-top: 0;
   }
-  
+
   :deep(.n-form-item-label) {
     padding-right: 8px;
     padding-bottom: 0;
@@ -269,7 +269,7 @@ onMounted(async () => {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .classroom-select-container,
   .classroom-history-container {
     flex: none;
@@ -284,11 +284,11 @@ onMounted(async () => {
   .classroom-layout {
     gap: 8px;
   }
-  
+
   .classroom-content {
     gap: 8px;
   }
-  
+
   .classroom-select-container,
   .classroom-history-container {
     max-height: 45vh;

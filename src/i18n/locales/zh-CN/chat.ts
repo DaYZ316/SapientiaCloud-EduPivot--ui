@@ -73,6 +73,23 @@ export default {
         filesUploadedAt: '上传时间：{time}',
         filesNoSession: '请先选择会话',
         filesLoadFailed: '文件加载失败'
+    },
+    fileReference: {
+        selectFile: '选择文件引用',
+        vectorized: '已向量化',
+        noFiles: '暂无可用文件'
+    },
+    speech: {
+        notSupported: '您的浏览器不支持语音识别功能',
+        startRecording: '开始录音',
+        stopRecording: '停止录音',
+        listening: '正在聆听...',
+        noSpeech: '未检测到语音输入',
+        audioCaptureError: '无法访问麦克风',
+        permissionDenied: '麦克风权限被拒绝',
+        networkError: '网络错误',
+        aborted: '语音识别已中止',
+        error: '语音识别错误'
     }
 }
 

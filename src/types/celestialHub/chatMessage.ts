@@ -1,3 +1,5 @@
+import type {FileReference} from './knowledge'
+
 /**
  * 聊天消息实体
  */
@@ -26,15 +28,17 @@ export interface ChatMessage {
     references?: any[] | null
     /** 附件URL列表 */
     attachments?: string[] | null
+    /** 引用文件数组（用于索引文件向量数据） */
+    fileReferences?: FileReference[] | null
     /** 请求ID（用于幂等） */
     requestId?: string | null
     /** 用户反馈: 0-无, 1-有用, -1-无用 */
     isFeedback?: number | null
     /** 元数据 */
     metadata?: any | null
-    /** 出题请求JSON字符串（role=3时使用） */
+    /** 出题请求参数（JSON），当角色为出题请求者时使用 */
     questionRequest?: string | null
-    /** 出题响应JSON字符串（role=4时使用） */
+    /** AI出题生成结果（JSON），当角色为出题者时使用 */
     questionResponse?: string | null
 }
 
@@ -47,7 +51,7 @@ export interface ChatRequestDTO {
     /** 用户ID（Kafka场景下需要） */
     userId?: string | null
     /** 用户消息内容 */
-    message?: string | null
+    message: string | null
     /** 课程ID（课程相关问答时提供） */
     courseId?: string | null
     /** 章节ID（章节相关问答时提供） */
@@ -64,8 +68,8 @@ export interface ChatRequestDTO {
     maxTokens?: number | null
     /** 附件URL列表 */
     attachments?: string[] | null
-    /** 文件ID列表（用于RAG检索文件内容） */
-    fileIds?: string[] | null
+    /** 文件引用信息 */
+    fileReferences?: FileReference[] | null
 }
 
 /**
@@ -82,7 +86,7 @@ export interface KafkaChatRequestDTO extends ChatRequestDTO {
 export interface ReferenceVO {
     /** 内容ID */
     contentId?: string | null
-    /** 内容类型: 0-章节, 1-问题, 2-答案, 3-论坛 */
+    /** 内容类型: 0-章节, 1-问题, 2-任务, 3-论坛 */
     contentType?: number | null
     /** 标题 */
     title?: string | null
@@ -108,6 +112,8 @@ export interface ChatResponseVO {
     model?: string | null
     /** token使用量 */
     tokenCount?: number | null
+    /** 引用文件数组（用于索引文件向量数据） */
+    fileReferences?: FileReference[] | null
     /** 引用内容 */
     references?: ReferenceVO[] | null
     /** 响应时间 */

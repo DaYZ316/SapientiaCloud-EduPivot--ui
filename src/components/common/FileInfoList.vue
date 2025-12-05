@@ -10,7 +10,9 @@
               v-for="fileInfo in fileInfoList"
               :key="fileInfo.objectName"
               class="file-info-item"
+              draggable="true"
               @click="emitPreview(fileInfo)"
+              @dragstart="handleDragStart($event, fileInfo)"
           >
             <template #prefix>
               <Icon
@@ -69,7 +71,20 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   preview: [fileInfo: FileInfoDTO]
+  dragstart: [fileInfo: FileInfoDTO]
 }>()
+
+const handleDragStart = (event: DragEvent, fileInfo: FileInfoDTO) => {
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'copy'
+    event.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'file-reference',
+      fileInfo: fileInfo
+    }))
+    // 通知父组件开始拖拽，可以关闭侧边栏
+    emit('dragstart', fileInfo)
+  }
+}
 
 const fileInfoList = ref<FileInfoDTO[]>([])
 const loading = ref(false)

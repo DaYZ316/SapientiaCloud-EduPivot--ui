@@ -1,12 +1,12 @@
 <template>
-  <n-card size="small" class="live-room-settings-card">
+  <n-card class="live-room-settings-card" size="small">
     <n-form
         ref="formRef"
+        :disabled="!courseRecordId"
         :model="formData"
         :rules="formRules"
         label-placement="left"
         label-width="120"
-        :disabled="!courseRecordId"
     >
       <n-grid :cols="2" :x-gap="24">
         <n-gi :span="2">
@@ -22,8 +22,8 @@
           <n-form-item :label="t('live.form.maxParticipants')" path="maxParticipants">
             <n-input-number
                 v-model:value="formData.maxParticipants"
-                :min="1"
                 :max="10000"
+                :min="1"
                 :placeholder="t('live.form.maxParticipantsPlaceholder')"
                 clearable
             />
@@ -42,15 +42,15 @@
           </n-form-item>
         </n-gi>
       </n-grid>
-      <div class="form-hint" v-if="!courseRecordId">
-        <n-alert type="warning" :title="t('live.form.courseRecordMissing')">
+      <div v-if="!courseRecordId" class="form-hint">
+        <n-alert :title="t('live.form.courseRecordMissing')" type="warning">
           {{ t('live.form.courseRecordMissingDesc') }}
         </n-alert>
       </div>
       <div class="form-actions">
         <n-space>
-          <n-button @click="handleReset" :disabled="!courseRecordId">{{ t('common.reset') }}</n-button>
-          <n-button :loading="submitting" type="primary" :disabled="!courseRecordId" @click="handleSubmit">
+          <n-button :disabled="!courseRecordId" @click="handleReset">{{ t('common.reset') }}</n-button>
+          <n-button :disabled="!courseRecordId" :loading="submitting" type="primary" @click="handleSubmit">
             {{ t('live.actions.create') }}
           </n-button>
         </n-space>

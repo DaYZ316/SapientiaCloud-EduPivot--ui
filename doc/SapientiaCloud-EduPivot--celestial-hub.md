@@ -1421,7 +1421,23 @@
   "query": "",
   "topK": 0,
   "similarityThreshold": 0,
-  "sessionId": ""
+  "sessionId": "",
+  "fileReferences": [
+    {
+      "id": "",
+      "fileName": "",
+      "fileType": 0,
+      "fileSize": 0,
+      "mimeType": "",
+      "storagePath": "",
+      "bucketCode": "",
+      "sysUserId": "",
+      "sessionId": "",
+      "status": 0,
+      "isVectorized": true,
+      "vectorCount": 0
+    }
+  ]
 }
 ```
 
@@ -1436,6 +1452,19 @@
 |&emsp;&emsp;topK|返回结果数量（TopK）||false|integer(int32)||
 |&emsp;&emsp;similarityThreshold|相似度阈值||false|number(double)||
 |&emsp;&emsp;sessionId|会话ID||false|string(uuid)||
+|&emsp;&emsp;fileReferences|文件引用信息||false|array|FileReference|
+|&emsp;&emsp;&emsp;&emsp;id|文件ID||true|string||
+|&emsp;&emsp;&emsp;&emsp;fileName|文件名||false|string||
+|&emsp;&emsp;&emsp;&emsp;fileType|文件类型: 0-PDF, 1-DOC, 2-DOCX, 3-XLS, 4-XLSX, 5-TXT, 6-MD, 7-RTF||false|integer||
+|&emsp;&emsp;&emsp;&emsp;fileSize|文件大小（字节）||false|integer||
+|&emsp;&emsp;&emsp;&emsp;mimeType|MIME类型||false|string||
+|&emsp;&emsp;&emsp;&emsp;storagePath|存储路径（MinIO对象名）||false|string||
+|&emsp;&emsp;&emsp;&emsp;bucketCode|存储桶代码||false|string||
+|&emsp;&emsp;&emsp;&emsp;sysUserId|上传用户ID||false|string||
+|&emsp;&emsp;&emsp;&emsp;sessionId|会话ID（可选，关联会话）||false|string||
+|&emsp;&emsp;&emsp;&emsp;status|状态: 0-正常, 1-已删除, 2-处理中, 3-处理失败||false|integer||
+|&emsp;&emsp;&emsp;&emsp;isVectorized|是否已向量化||false|boolean||
+|&emsp;&emsp;&emsp;&emsp;vectorCount|向量块数量||false|integer||
 
 
 **响应状态**:
@@ -1842,6 +1871,118 @@
 			]
 		}
 	]
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## checkKafkaRequest
+
+
+**接口地址**:`/api/celestial-hub/question/status/{requestId}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>通过requestId查看Kafka请求状态</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|requestId|请求ID|path|true|string||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultBoolean|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|boolean||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
 }
 ```
 
@@ -3305,6 +3446,19 @@
 |&emsp;&emsp;modelName|使用的模型名称|string||
 |&emsp;&emsp;references|引用的参考内容|array|object|
 |&emsp;&emsp;attachments|附件URL列表|array|string|
+|&emsp;&emsp;fileReferences|文件引用信息|array|FileReference|
+|&emsp;&emsp;&emsp;&emsp;id|文件ID|string||
+|&emsp;&emsp;&emsp;&emsp;fileName|文件名|string||
+|&emsp;&emsp;&emsp;&emsp;fileType|文件类型: 0-PDF, 1-DOC, 2-DOCX, 3-XLS, 4-XLSX, 5-TXT, 6-MD, 7-RTF|integer||
+|&emsp;&emsp;&emsp;&emsp;fileSize|文件大小（字节）|integer||
+|&emsp;&emsp;&emsp;&emsp;mimeType|MIME类型|string||
+|&emsp;&emsp;&emsp;&emsp;storagePath|存储路径（MinIO对象名）|string||
+|&emsp;&emsp;&emsp;&emsp;bucketCode|存储桶代码|string||
+|&emsp;&emsp;&emsp;&emsp;sysUserId|上传用户ID|string||
+|&emsp;&emsp;&emsp;&emsp;sessionId|会话ID（可选，关联会话）|string||
+|&emsp;&emsp;&emsp;&emsp;status|状态: 0-正常, 1-已删除, 2-处理中, 3-处理失败|integer||
+|&emsp;&emsp;&emsp;&emsp;isVectorized|是否已向量化|boolean||
+|&emsp;&emsp;&emsp;&emsp;vectorCount|向量块数量|integer||
 |&emsp;&emsp;requestId|请求ID（用于幂等），Kafka传入或HTTP生成|string||
 |&emsp;&emsp;isFeedback|用户反馈: 0-无, 1-有用, -1-无用|integer(int32)||
 |&emsp;&emsp;metadata|元数据|object||
@@ -3329,6 +3483,22 @@
 		"modelName": "",
 		"references": [],
 		"attachments": [],
+		"fileReferences": [
+			{
+				"id": "",
+				"fileName": "",
+				"fileType": 0,
+				"fileSize": 0,
+				"mimeType": "",
+				"storagePath": "",
+				"bucketCode": "",
+				"sysUserId": "",
+				"sessionId": "",
+				"status": 0,
+				"isVectorized": true,
+				"vectorCount": 0
+			}
+		],
 		"requestId": "",
 		"isFeedback": 0,
 		"metadata": {},
@@ -3537,7 +3707,22 @@
   "temperature": 0,
   "maxTokens": 0,
   "attachments": [],
-  "fileIds": []
+  "fileReferences": [
+    {
+      "id": "",
+      "fileName": "",
+      "fileType": 0,
+      "fileSize": 0,
+      "mimeType": "",
+      "storagePath": "",
+      "bucketCode": "",
+      "sysUserId": "",
+      "sessionId": "",
+      "status": 0,
+      "isVectorized": true,
+      "vectorCount": 0
+    }
+  ]
 }
 ```
 
@@ -3559,7 +3744,19 @@
 |&emsp;&emsp;temperature|温度参数(0.0-1.0)||false|number(double)||
 |&emsp;&emsp;maxTokens|最大token数||false|integer(int32)||
 |&emsp;&emsp;attachments|附件URL列表||false|array|string|
-|&emsp;&emsp;fileIds|文件ID列表（用于RAG检索文件内容）||false|array|string(uuid)|
+|&emsp;&emsp;fileReferences|文件引用信息||false|array|FileReference|
+|&emsp;&emsp;&emsp;&emsp;id|文件ID||true|string||
+|&emsp;&emsp;&emsp;&emsp;fileName|文件名||false|string||
+|&emsp;&emsp;&emsp;&emsp;fileType|文件类型: 0-PDF, 1-DOC, 2-DOCX, 3-XLS, 4-XLSX, 5-TXT, 6-MD, 7-RTF||false|integer||
+|&emsp;&emsp;&emsp;&emsp;fileSize|文件大小（字节）||false|integer||
+|&emsp;&emsp;&emsp;&emsp;mimeType|MIME类型||false|string||
+|&emsp;&emsp;&emsp;&emsp;storagePath|存储路径（MinIO对象名）||false|string||
+|&emsp;&emsp;&emsp;&emsp;bucketCode|存储桶代码||false|string||
+|&emsp;&emsp;&emsp;&emsp;sysUserId|上传用户ID||false|string||
+|&emsp;&emsp;&emsp;&emsp;sessionId|会话ID（可选，关联会话）||false|string||
+|&emsp;&emsp;&emsp;&emsp;status|状态: 0-正常, 1-已删除, 2-处理中, 3-处理失败||false|integer||
+|&emsp;&emsp;&emsp;&emsp;isVectorized|是否已向量化||false|boolean||
+|&emsp;&emsp;&emsp;&emsp;vectorCount|向量块数量||false|integer||
 
 
 **响应状态**:
@@ -3596,6 +3793,19 @@
 |&emsp;&emsp;&emsp;&emsp;snippet|内容片段|string||
 |&emsp;&emsp;&emsp;&emsp;similarityScore|相似度分数|number||
 |&emsp;&emsp;&emsp;&emsp;sourceUrl|来源URL|string||
+|&emsp;&emsp;fileReferences|文件引用信息|array|FileReference|
+|&emsp;&emsp;&emsp;&emsp;id|文件ID|string||
+|&emsp;&emsp;&emsp;&emsp;fileName|文件名|string||
+|&emsp;&emsp;&emsp;&emsp;fileType|文件类型: 0-PDF, 1-DOC, 2-DOCX, 3-XLS, 4-XLSX, 5-TXT, 6-MD, 7-RTF|integer||
+|&emsp;&emsp;&emsp;&emsp;fileSize|文件大小（字节）|integer||
+|&emsp;&emsp;&emsp;&emsp;mimeType|MIME类型|string||
+|&emsp;&emsp;&emsp;&emsp;storagePath|存储路径（MinIO对象名）|string||
+|&emsp;&emsp;&emsp;&emsp;bucketCode|存储桶代码|string||
+|&emsp;&emsp;&emsp;&emsp;sysUserId|上传用户ID|string||
+|&emsp;&emsp;&emsp;&emsp;sessionId|会话ID（可选，关联会话）|string||
+|&emsp;&emsp;&emsp;&emsp;status|状态: 0-正常, 1-已删除, 2-处理中, 3-处理失败|integer||
+|&emsp;&emsp;&emsp;&emsp;isVectorized|是否已向量化|boolean||
+|&emsp;&emsp;&emsp;&emsp;vectorCount|向量块数量|integer||
 |&emsp;&emsp;responseTime|响应时间|string(date-time)||
 |&emsp;&emsp;finished|是否完成|boolean||
 |&emsp;&emsp;metadata|元数据|object||
@@ -3621,6 +3831,22 @@
 				"snippet": "",
 				"similarityScore": 0,
 				"sourceUrl": ""
+			}
+		],
+		"fileReferences": [
+			{
+				"id": "",
+				"fileName": "",
+				"fileType": 0,
+				"fileSize": 0,
+				"mimeType": "",
+				"storagePath": "",
+				"bucketCode": "",
+				"sysUserId": "",
+				"sessionId": "",
+				"status": 0,
+				"isVectorized": true,
+				"vectorCount": 0
 			}
 		],
 		"responseTime": "",
@@ -3743,6 +3969,19 @@
 |&emsp;&emsp;modelName|使用的模型名称|string||
 |&emsp;&emsp;references|引用的参考内容|array|object|
 |&emsp;&emsp;attachments|附件URL列表|array|string|
+|&emsp;&emsp;fileReferences|文件引用信息|array|FileReference|
+|&emsp;&emsp;&emsp;&emsp;id|文件ID|string||
+|&emsp;&emsp;&emsp;&emsp;fileName|文件名|string||
+|&emsp;&emsp;&emsp;&emsp;fileType|文件类型: 0-PDF, 1-DOC, 2-DOCX, 3-XLS, 4-XLSX, 5-TXT, 6-MD, 7-RTF|integer||
+|&emsp;&emsp;&emsp;&emsp;fileSize|文件大小（字节）|integer||
+|&emsp;&emsp;&emsp;&emsp;mimeType|MIME类型|string||
+|&emsp;&emsp;&emsp;&emsp;storagePath|存储路径（MinIO对象名）|string||
+|&emsp;&emsp;&emsp;&emsp;bucketCode|存储桶代码|string||
+|&emsp;&emsp;&emsp;&emsp;sysUserId|上传用户ID|string||
+|&emsp;&emsp;&emsp;&emsp;sessionId|会话ID（可选，关联会话）|string||
+|&emsp;&emsp;&emsp;&emsp;status|状态: 0-正常, 1-已删除, 2-处理中, 3-处理失败|integer||
+|&emsp;&emsp;&emsp;&emsp;isVectorized|是否已向量化|boolean||
+|&emsp;&emsp;&emsp;&emsp;vectorCount|向量块数量|integer||
 |&emsp;&emsp;requestId|请求ID（用于幂等），Kafka传入或HTTP生成|string||
 |&emsp;&emsp;isFeedback|用户反馈: 0-无, 1-有用, -1-无用|integer(int32)||
 |&emsp;&emsp;metadata|元数据|object||
@@ -3768,6 +4007,22 @@
 			"modelName": "",
 			"references": [],
 			"attachments": [],
+			"fileReferences": [
+				{
+					"id": "",
+					"fileName": "",
+					"fileType": 0,
+					"fileSize": 0,
+					"mimeType": "",
+					"storagePath": "",
+					"bucketCode": "",
+					"sysUserId": "",
+					"sessionId": "",
+					"status": 0,
+					"isVectorized": true,
+					"vectorCount": 0
+				}
+			],
 			"requestId": "",
 			"isFeedback": 0,
 			"metadata": {},
@@ -3864,7 +4119,22 @@
   "temperature": 0,
   "maxTokens": 0,
   "attachments": [],
-  "fileIds": []
+  "fileReferences": [
+    {
+      "id": "",
+      "fileName": "",
+      "fileType": 0,
+      "fileSize": 0,
+      "mimeType": "",
+      "storagePath": "",
+      "bucketCode": "",
+      "sysUserId": "",
+      "sessionId": "",
+      "status": 0,
+      "isVectorized": true,
+      "vectorCount": 0
+    }
+  ]
 }
 ```
 
@@ -3886,7 +4156,19 @@
 |&emsp;&emsp;temperature|温度参数(0.0-1.0)||false|number(double)||
 |&emsp;&emsp;maxTokens|最大token数||false|integer(int32)||
 |&emsp;&emsp;attachments|附件URL列表||false|array|string|
-|&emsp;&emsp;fileIds|文件ID列表（用于RAG检索文件内容）||false|array|string(uuid)|
+|&emsp;&emsp;fileReferences|文件引用信息||false|array|FileReference|
+|&emsp;&emsp;&emsp;&emsp;id|文件ID||true|string||
+|&emsp;&emsp;&emsp;&emsp;fileName|文件名||false|string||
+|&emsp;&emsp;&emsp;&emsp;fileType|文件类型: 0-PDF, 1-DOC, 2-DOCX, 3-XLS, 4-XLSX, 5-TXT, 6-MD, 7-RTF||false|integer||
+|&emsp;&emsp;&emsp;&emsp;fileSize|文件大小（字节）||false|integer||
+|&emsp;&emsp;&emsp;&emsp;mimeType|MIME类型||false|string||
+|&emsp;&emsp;&emsp;&emsp;storagePath|存储路径（MinIO对象名）||false|string||
+|&emsp;&emsp;&emsp;&emsp;bucketCode|存储桶代码||false|string||
+|&emsp;&emsp;&emsp;&emsp;sysUserId|上传用户ID||false|string||
+|&emsp;&emsp;&emsp;&emsp;sessionId|会话ID（可选，关联会话）||false|string||
+|&emsp;&emsp;&emsp;&emsp;status|状态: 0-正常, 1-已删除, 2-处理中, 3-处理失败||false|integer||
+|&emsp;&emsp;&emsp;&emsp;isVectorized|是否已向量化||false|boolean||
+|&emsp;&emsp;&emsp;&emsp;vectorCount|向量块数量||false|integer||
 
 
 **响应状态**:
@@ -3989,7 +4271,22 @@
   "temperature": 0,
   "maxTokens": 0,
   "attachments": [],
-  "fileIds": []
+  "fileReferences": [
+    {
+      "id": "",
+      "fileName": "",
+      "fileType": 0,
+      "fileSize": 0,
+      "mimeType": "",
+      "storagePath": "",
+      "bucketCode": "",
+      "sysUserId": "",
+      "sessionId": "",
+      "status": 0,
+      "isVectorized": true,
+      "vectorCount": 0
+    }
+  ]
 }
 ```
 
@@ -4012,7 +4309,19 @@
 |&emsp;&emsp;temperature|温度参数(0.0-1.0)||false|number(double)||
 |&emsp;&emsp;maxTokens|最大token数||false|integer(int32)||
 |&emsp;&emsp;attachments|附件URL列表||false|array|string|
-|&emsp;&emsp;fileIds|文件ID列表（用于RAG检索文件内容）||false|array|string(uuid)|
+|&emsp;&emsp;fileReferences|文件引用信息||false|array|FileReference|
+|&emsp;&emsp;&emsp;&emsp;id|文件ID||true|string||
+|&emsp;&emsp;&emsp;&emsp;fileName|文件名||false|string||
+|&emsp;&emsp;&emsp;&emsp;fileType|文件类型: 0-PDF, 1-DOC, 2-DOCX, 3-XLS, 4-XLSX, 5-TXT, 6-MD, 7-RTF||false|integer||
+|&emsp;&emsp;&emsp;&emsp;fileSize|文件大小（字节）||false|integer||
+|&emsp;&emsp;&emsp;&emsp;mimeType|MIME类型||false|string||
+|&emsp;&emsp;&emsp;&emsp;storagePath|存储路径（MinIO对象名）||false|string||
+|&emsp;&emsp;&emsp;&emsp;bucketCode|存储桶代码||false|string||
+|&emsp;&emsp;&emsp;&emsp;sysUserId|上传用户ID||false|string||
+|&emsp;&emsp;&emsp;&emsp;sessionId|会话ID（可选，关联会话）||false|string||
+|&emsp;&emsp;&emsp;&emsp;status|状态: 0-正常, 1-已删除, 2-处理中, 3-处理失败||false|integer||
+|&emsp;&emsp;&emsp;&emsp;isVectorized|是否已向量化||false|boolean||
+|&emsp;&emsp;&emsp;&emsp;vectorCount|向量块数量||false|integer||
 
 
 **响应状态**:

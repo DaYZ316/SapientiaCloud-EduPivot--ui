@@ -1,15 +1,15 @@
 <template>
-  <n-card size="small" class="live-room-overview" :segmented="{content: true, footer: 'soft'}">
+  <n-card :segmented="{content: true, footer: 'soft'}" class="live-room-overview" size="small">
     <template #header>
       <div class="overview-header">
         <span>{{ t('live.singleRoom.title') }}</span>
-        <n-tag v-if="statusLabel" type="info" size="small">{{ statusLabel }}</n-tag>
+        <n-tag v-if="statusLabel" size="small" type="info">{{ statusLabel }}</n-tag>
       </div>
     </template>
-    <n-skeleton v-if="loading" text :repeat="5" />
+    <n-skeleton v-if="loading" :repeat="5" text/>
     <div v-else>
       <div v-if="liveRoom && liveRoom.id" class="overview-body">
-        <n-descriptions :column="2" label-placement="left" size="small" bordered>
+        <n-descriptions :column="2" bordered label-placement="left" size="small">
           <n-descriptions-item :label="t('live.singleRoom.roomName')">
             {{ liveRoom.roomName || '-' }}
           </n-descriptions-item>
@@ -30,25 +30,25 @@
           </n-descriptions-item>
         </n-descriptions>
       </div>
-      <n-empty v-else :description="t('live.singleRoom.empty')" />
+      <n-empty v-else :description="t('live.singleRoom.empty')"/>
     </div>
     <template #footer>
       <div class="overview-actions">
         <n-space>
-          <n-button type="primary" :disabled="!canEnterRoom" @click="handleJoinRoom">
+          <n-button :disabled="!canEnterRoom" type="primary" @click="handleJoinRoom">
             {{ t('live.singleRoom.enterRoom') }}
           </n-button>
-          <n-button secondary :disabled="!canIssueToken" @click="openTokenModal">
+          <n-button :disabled="!canIssueToken" secondary @click="openTokenModal">
             {{ t('live.actions.issueToken') }}
           </n-button>
         </n-space>
-        <n-button quaternary size="small" :disabled="loading" @click="emitRefresh">
+        <n-button :disabled="loading" quaternary size="small" @click="emitRefresh">
           {{ t('common.refresh') }}
         </n-button>
       </div>
     </template>
   </n-card>
-  <n-modal v-model:show="showTokenModal" preset="card" :title="t('live.token.modalTitle')" class="token-modal">
+  <n-modal v-model:show="showTokenModal" :title="t('live.token.modalTitle')" class="token-modal" preset="card">
     <n-form label-placement="left" label-width="120">
       <n-form-item :label="t('live.token.roleLabel')">
         <n-select
@@ -62,7 +62,7 @@
         <n-button quaternary @click="showTokenModal = false">
           {{ t('common.cancel') }}
         </n-button>
-        <n-button type="primary" :loading="issuingToken" @click="handleIssueToken">
+        <n-button :loading="issuingToken" type="primary" @click="handleIssueToken">
           {{ t('live.token.issueButton') }}
         </n-button>
       </n-space>
@@ -71,8 +71,8 @@
       <div class="token-field">
         <span>{{ t('live.token.issuedToken') }}</span>
         <div class="token-field__content">
-          <n-input :value="issuedToken" readonly />
-          <n-button tertiary size="small" @click="copyToClipboard(issuedToken)">
+          <n-input :value="issuedToken" readonly/>
+          <n-button size="small" tertiary @click="copyToClipboard(issuedToken)">
             {{ t('live.token.copyToken') }}
           </n-button>
         </div>
@@ -80,8 +80,8 @@
       <div v-if="shareLink" class="token-field">
         <span>{{ t('live.token.shareLink') }}</span>
         <div class="token-field__content">
-          <n-input :value="shareLink" readonly />
-          <n-button tertiary size="small" @click="copyToClipboard(shareLink)">
+          <n-input :value="shareLink" readonly/>
+          <n-button size="small" tertiary @click="copyToClipboard(shareLink)">
             {{ t('live.token.copyLink') }}
           </n-button>
         </div>
@@ -96,7 +96,7 @@ import {useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import type * as liveType from '@/types/live'
 import type {CourseRecordVO} from '@/types/classroom'
-import {LiveRoomRoleEnum, getLiveRoomRoleOptions, getLiveRoomStatusLabel} from '@/enum/live'
+import {getLiveRoomRoleOptions, getLiveRoomStatusLabel, LiveRoomRoleEnum} from '@/enum/live'
 import * as liveApi from '@/api/live'
 
 const {t} = useI18n()

@@ -1,28 +1,28 @@
 <template>
   <div class="classroom-detail">
-    <n-button 
-      @click="showClassroomSelect"
-      class="sunrise-exit-button"
+    <n-button
+        class="sunrise-exit-button"
+        @click="showClassroomSelect"
     >
       {{ t('classroom.exit') }}
     </n-button>
-    <Classroom3D />
+    <Classroom3D/>
   </div>
 </template>
 
 <script setup>
-  import Classroom3D from './Classroom3D.vue';
-  import { useRouter, useRoute } from 'vue-router';
-  import { useI18n } from 'vue-i18n';
+import Classroom3D from './Classroom3D.vue';
+import {useRouter, useRoute} from 'vue-router';
+import {useI18n} from 'vue-i18n';
 
-  const { t } = useI18n();
+const {t} = useI18n();
 
-  const router = useRouter();
-  const route = useRoute();
+const router = useRouter();
+const route = useRoute();
 
-  function showClassroomSelect() {
-    router.push(`/course/detail/${route.params.courseId}/classroom`)
-  }
+function showClassroomSelect() {
+  router.push(`/course/detail/${route.params.courseId}/classroom`)
+}
 </script>
 
 <style scoped>
@@ -49,36 +49,32 @@
   background-color: var(--background-color);
   color: var(--text-color);
   border: 1px solid var(--border-color);
-  box-shadow: 
-    0 4px 12px var(--shadow-secondary-color),
-    inset 0 -1px 0 var(--border-secondary-color);
+  box-shadow: 0 4px 12px var(--shadow-secondary-color),
+  inset 0 -1px 0 var(--border-secondary-color);
   transition: all 0.3s ease;
 }
 
 /* 悬停状态 */
 .sunrise-exit-button:hover {
   transform: translateY(-2px);
-  box-shadow: 
-    0 6px 16px var(--shadow-color),
-    inset 0 -1px 0 var(--border-color);
+  box-shadow: 0 6px 16px var(--shadow-color),
+  inset 0 -1px 0 var(--border-color);
   background-color: var(--background-secondary-color);
 }
 
 /* 点击状态 */
 .sunrise-exit-button:active {
   transform: translateY(0);
-  box-shadow: 
-    0 2px 6px var(--shadow-secondary-color),
-    inset 0 1px 3px var(--shadow-color);
+  box-shadow: 0 2px 6px var(--shadow-secondary-color),
+  inset 0 1px 3px var(--shadow-color);
   background-color: var(--background-tertiary-color);
 }
 
 /* 聚焦状态 - 符合全局设计 */
 .sunrise-exit-button:focus {
   outline: none;
-  box-shadow: 
-    0 0 0 3px color-mix(in srgb, var(--primary-color) 30%, transparent),
-    0 4px 12px var(--shadow-secondary-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 30%, transparent),
+  0 4px 12px var(--shadow-secondary-color);
 }
 
 /* 荧光效果 - 使用全局荧光样式变量 */
@@ -94,10 +90,10 @@
   right: 0;
   bottom: 0;
   background: radial-gradient(
-    circle at center,
-    color-mix(in srgb, var(--primary-color) var(--glow-intensity), transparent) 0%,
-    color-mix(in srgb, var(--primary-color) calc(var(--glow-intensity) * 0.5), transparent) 50%,
-    transparent 100%
+      circle at center,
+      color-mix(in srgb, var(--primary-color) var(--glow-intensity), transparent) 0%,
+      color-mix(in srgb, var(--primary-color) calc(var(--glow-intensity) * 0.5), transparent) 50%,
+      transparent 100%
   );
   border-radius: inherit;
   pointer-events: none;
@@ -134,7 +130,7 @@
     border-width: 2px;
     box-shadow: none;
   }
-  
+
   .sunrise-exit-button::before {
     display: none;
   }

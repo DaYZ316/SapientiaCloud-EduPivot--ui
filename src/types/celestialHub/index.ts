@@ -19,7 +19,8 @@ export type {
 export type {
     KnowledgeSearchRequestDTO,
     KnowledgeSearchResultVO,
-    VectorizeRequestDTO
+    VectorizeRequestDTO,
+    FileReference
 } from './knowledge'
 
 // 文件文档类型

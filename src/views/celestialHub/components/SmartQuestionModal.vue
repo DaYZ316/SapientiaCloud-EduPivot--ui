@@ -1,13 +1,13 @@
 <template>
   <n-modal
       v-model:show="innerShow"
-      preset="dialog"
-      :mask-closable="false"
-      :close-on-esc="false"
       :auto-focus="false"
+      :close-on-esc="false"
+      :mask-closable="false"
       :show-icon="false"
-      class="smart-question-modal"
       :style="{ width: '80vw', maxWidth: '80vw', height: '80vh', maxHeight: '80vh' }"
+      class="smart-question-modal"
+      preset="dialog"
   >
     <template #header>
       {{ t('chat.toolsMenu.smartQuestion') }}
@@ -20,46 +20,46 @@
           label-placement="top"
       >
         <div class="smart-question-form-grid">
-          <n-form-item path="questionCount" :label="t('chat.toolsMenu.questionCount')">
+          <n-form-item :label="t('chat.toolsMenu.questionCount')" path="questionCount">
             <n-input-number
                 v-model:value="questionForm.questionCount"
-                :min="1"
                 :max="50"
+                :min="1"
                 :precision="0"
                 placeholder="1 - 50"
             />
           </n-form-item>
-          <n-form-item path="questionType" :label="t('chat.toolsMenu.questionType')">
+          <n-form-item :label="t('chat.toolsMenu.questionType')" path="questionType">
             <n-select
                 v-model:value="questionForm.questionType"
                 :options="questionTypeOptions"
                 clearable
             />
           </n-form-item>
-          <n-form-item path="difficulty" :label="t('chat.toolsMenu.difficulty')">
+          <n-form-item :label="t('chat.toolsMenu.difficulty')" path="difficulty">
             <n-select
                 v-model:value="questionForm.difficulty"
                 :options="difficultyOptions"
                 clearable
             />
           </n-form-item>
-          <n-form-item path="scorePerQuestion" :label="t('chat.toolsMenu.scorePerQuestion')">
+          <n-form-item :label="t('chat.toolsMenu.scorePerQuestion')" path="scorePerQuestion">
             <n-input-number
                 v-model:value="questionForm.scorePerQuestion"
-                :min="1"
                 :max="100"
+                :min="1"
                 :precision="0"
                 placeholder="1 - 100"
             />
           </n-form-item>
         </div>
-        <n-form-item path="requirement" :label="t('chat.toolsMenu.requirement')">
+        <n-form-item :label="t('chat.toolsMenu.requirement')" path="requirement">
           <n-input
               v-model:value="questionForm.requirement"
-              type="textarea"
               :autosize="{ minRows: 4, maxRows: 8 }"
               :maxlength="1000"
               :placeholder="t('chat.toolsMenu.requirementPlaceholder')"
+              type="textarea"
           />
         </n-form-item>
       </n-form>
@@ -227,7 +227,7 @@ const handleClose = () => {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 @use '@/assets/styles' as *;
 
 .smart-question-modal {

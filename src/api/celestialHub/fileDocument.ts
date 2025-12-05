@@ -1,9 +1,9 @@
 import http from '@/utils/http'
 import type {
     FileDocumentQueryDTO,
+    FileDocumentUploadOptions,
     FileDocumentVO,
-    PageFileDocumentVO,
-    FileDocumentUploadOptions
+    PageFileDocumentVO
 } from '@/types/celestialHub/fileDocument'
 import type {FileInfoDTO} from '@/types/minIO/file'
 

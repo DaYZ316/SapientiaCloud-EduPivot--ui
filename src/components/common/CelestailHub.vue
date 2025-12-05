@@ -222,7 +222,7 @@ const loadTexture = (texturePath, textureName) => {
           return;
         }
       }
-      
+
       if (!finalPath || typeof finalPath !== 'string') {
         console.error('无法解析纹理路径:', texturePath);
         reject(new Error('无法解析纹理路径'));
@@ -338,9 +338,9 @@ const loadBookModel = () => {
           // 加载纹理
           loadingText.value = '正在加载纹理...';
           // 确保纹理路径是字符串（处理 Vite/webpack 导入的情况）
-          const mainTexturePath = typeof mainTextureImage === 'string' 
-            ? mainTextureImage 
-            : mainTextureImage.default || mainTextureImage;
+          const mainTexturePath = typeof mainTextureImage === 'string'
+              ? mainTextureImage
+              : mainTextureImage.default || mainTextureImage;
 
           try {
             await loadTexture(mainTexturePath, 'mainTexture');

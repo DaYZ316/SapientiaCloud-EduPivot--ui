@@ -7,40 +7,46 @@
         <div class="form-subsection">
           <div class="subsection-header">
             <h4 class="subsection-title">
-              <n-icon><Book /></n-icon>
+              <n-icon>
+                <Book/>
+              </n-icon>
               {{ t('classroom.detail.basicInfo') }}
             </h4>
             <n-space>
-              <n-button 
-                v-if="isEditMode"
-                type="error"
-                :loading="isDeleting"
-                @click="handleDeleteCourseRecord"
-              >
-                <template #icon>
-                  <n-icon><TrashOutline /></n-icon>
-                </template>
-                {{ t('classroom.detail.deleteCourse') }}
-              </n-button>
-              <n-button 
-                v-if="isEditMode"
-                :loading="isCancelling"
-                @click="handleCancelCourseRecord"
-              >
-                <template #icon>
-                  <n-icon><CloseOutline /></n-icon>
-                </template>
-                {{ t('classroom.detail.cancelCourse') }}
-              </n-button>
-              <n-button 
-                type="info" 
-                :loading="isSubmitting"
-                @click="submitForm"
+              <n-button
+                  v-if="isEditMode"
+                  :loading="isDeleting"
+                  type="error"
+                  @click="handleDeleteCourseRecord"
               >
                 <template #icon>
                   <n-icon>
-                    <CheckmarkOutline v-if="!isEditMode" />
-                    <CreateOutline v-else />
+                    <TrashOutline/>
+                  </n-icon>
+                </template>
+                {{ t('classroom.detail.deleteCourse') }}
+              </n-button>
+              <n-button
+                  v-if="isEditMode"
+                  :loading="isCancelling"
+                  @click="handleCancelCourseRecord"
+              >
+                <template #icon>
+                  <n-icon>
+                    <CloseOutline/>
+                  </n-icon>
+                </template>
+                {{ t('classroom.detail.cancelCourse') }}
+              </n-button>
+              <n-button
+                  :loading="isSubmitting"
+                  type="info"
+                  @click="submitForm"
+              >
+                <template #icon>
+                  <n-icon>
+                    <CheckmarkOutline v-if="!isEditMode"/>
+                    <CreateOutline v-else/>
                   </n-icon>
                 </template>
                 {{ isEditMode ? t('classroom.detail.updateCourse') : t('classroom.detail.publishCourse') }}
@@ -49,99 +55,104 @@
                 <div class="tech-button-border"></div>
                 <div class="tech-button-glow"></div>
                 <n-button
-                  type="primary"
-                  class="tech-button"
-                  @click="handleEnterClassroomFromDetail($event)"
+                    class="tech-button"
+                    type="primary"
+                    @click="handleEnterClassroomFromDetail($event)"
                 >
                   <template #icon>
-                    <n-icon><LogInOutline /></n-icon>
+                    <n-icon>
+                      <LogInOutline/>
+                    </n-icon>
                   </template>
                   {{ t('classroom.enterClassroom') }}
                 </n-button>
               </div>
             </n-space>
           </div>
-          
+
           <!-- 课程名称 -->
           <div class="form-group">
             <label class="form-label required">{{ t('classroom.detail.courseName') }}</label>
             <n-input
-              v-model:value="courseName"
-              :placeholder="t('classroom.detail.courseNamePlaceholder')"
-              :maxlength="50"
-              show-count
-              @blur="validateCourseName"
+                v-model:value="courseName"
+                :maxlength="50"
+                :placeholder="t('classroom.detail.courseNamePlaceholder')"
+                show-count
+                @blur="validateCourseName"
             />
             <div v-if="errors.courseName" class="error-message">{{ errors.courseName }}</div>
           </div>
-          
+
           <!-- 课程时间 -->
           <div class="form-group time-group">
             <div class="time-item">
               <label class="form-label required">{{ t('classroom.detail.startTime') }}</label>
               <n-date-picker
-                v-model:value="startTime"
-                :placeholder="t('classroom.detail.startTimePlaceholder')"
-                type="datetime"
-                style="width: 100%"
-                @update:value="validateStartTime"
+                  v-model:value="startTime"
+                  :placeholder="t('classroom.detail.startTimePlaceholder')"
+                  style="width: 100%"
+                  type="datetime"
+                  @update:value="validateStartTime"
               />
               <div v-if="errors.startTime" class="error-message">{{ errors.startTime }}</div>
             </div>
             <div class="time-item">
               <label class="form-label required">{{ t('classroom.detail.endTime') }}</label>
               <n-date-picker
-                v-model:value="endTime"
-                :placeholder="t('classroom.detail.endTimePlaceholder')"
-                type="datetime"
-                style="width: 100%"
-                @update:value="validateEndTime"
+                  v-model:value="endTime"
+                  :placeholder="t('classroom.detail.endTimePlaceholder')"
+                  style="width: 100%"
+                  type="datetime"
+                  @update:value="validateEndTime"
               />
               <div v-if="errors.endTime" class="error-message">{{ errors.endTime }}</div>
             </div>
           </div>
-          
+
           <!-- 课程简介 -->
           <div class="form-group">
             <label class="form-label">{{ t('classroom.detail.courseDescription') }}</label>
             <n-input
-              v-model:value="courseDescription"
-              type="textarea"
-              :placeholder="t('classroom.detail.courseDescriptionPlaceholder')"
-              :minlength="0"
-              :maxlength="200"
-              show-count
-              :rows="4"
-              @blur="validateCourseDescription"
+                v-model:value="courseDescription"
+                :maxlength="200"
+                :minlength="0"
+                :placeholder="t('classroom.detail.courseDescriptionPlaceholder')"
+                :rows="4"
+                show-count
+                type="textarea"
+                @blur="validateCourseDescription"
             />
             <div v-if="errors.courseDescription" class="error-message">{{ errors.courseDescription }}</div>
           </div>
         </div>
-        
+
         <!-- 分隔线 -->
         <div class="subsection-divider"></div>
-        
+
         <!-- 教室配置区域 -->
         <div class="form-subsection">
           <h4 class="subsection-title">
-            <n-icon><Grid /></n-icon>
+            <n-icon>
+              <Grid/>
+            </n-icon>
             {{ t('classroom.detail.classroomConfig') }}
           </h4>
-          
+
           <!-- 教室规格选择 -->
           <div class="form-group">
             <label class="form-label required">{{ t('classroom.detail.classroomSize') }}</label>
             <n-radio-group v-model:value="selectedClassroomSize" @change="onClassroomSizeChange">
               <div class="classroom-specs-container">
-                <div class="classroom-spec-card" v-for="spec in classroomSpecs" :key="spec.value">
-                  <n-radio-button :value="spec.value" :class="['spec-radio', { 'active': selectedClassroomSize === spec.value }]">
-                    <div class="spec-checkmark" v-if="selectedClassroomSize === spec.value">
-                      <n-icon :component="CheckmarkOutline" class="checkmark-icon" />
+                <div v-for="spec in classroomSpecs" :key="spec.value" class="classroom-spec-card">
+                  <n-radio-button :class="['spec-radio', { 'active': selectedClassroomSize === spec.value }]"
+                                  :value="spec.value">
+                    <div v-if="selectedClassroomSize === spec.value" class="spec-checkmark">
+                      <n-icon :component="CheckmarkOutline" class="checkmark-icon"/>
                     </div>
                     <div class="spec-content">
                       <div class="spec-header">
                         <div class="spec-icon-wrapper">
-                          <n-icon :component="spec.icon" class="spec-icon" />
+                          <n-icon :component="spec.icon" class="spec-icon"/>
                         </div>
                         <div class="spec-name">{{ spec.name }}</div>
                       </div>
@@ -159,9 +170,9 @@
               </div>
             </n-radio-group>
           </div>
-          
+
           <!-- 座位排布设置和预览 -->
-          <div class="form-group seating-arrangement-group">      
+          <div class="form-group seating-arrangement-group">
             <div class="seating-layout-container">
               <!-- 座位排布设置部分 (25% 宽度) -->
               <div class="seating-settings-section">
@@ -170,15 +181,15 @@
                   <div class="input-group">
                     <label class="input-label">{{ t('classroom.detail.rows') }}</label>
                     <n-input-number
-                      v-model:value="rows"
-                      :placeholder="t('classroom.detail.rowsPlaceholder')"
+                        v-model:value="rows"
+                        :placeholder="t('classroom.detail.rowsPlaceholder')"
                     />
                   </div>
                   <div class="input-group">
                     <label class="input-label">{{ t('classroom.detail.columns') }}</label>
                     <n-input-number
-                      v-model:value="cols"
-                      :placeholder="t('classroom.detail.columnsPlaceholder')"
+                        v-model:value="cols"
+                        :placeholder="t('classroom.detail.columnsPlaceholder')"
                     />
                   </div>
                 </div>
@@ -186,18 +197,18 @@
               <!-- 座位预览部分 (75% 宽度) -->
               <div class="seating-preview-section">
                 <label class="form-label required">{{ t('classroom.detail.seatingPreview') }}</label>
-                <div v-if="rows > 0 && cols > 0" class="seating-preview">              
+                <div v-if="rows > 0 && cols > 0" class="seating-preview">
                   <div class="preview-grid">
-                    <div 
-                      v-for="(_row, rowIndex) in rows" 
-                      :key="`row-${rowIndex}`" 
-                      class="preview-row"
+                    <div
+                        v-for="(_row, rowIndex) in rows"
+                        :key="`row-${rowIndex}`"
+                        class="preview-row"
                     >
-                      <div 
-                        v-for="(_col, colIndex) in cols" 
-                        :key="`seat-${rowIndex}-${colIndex}`" 
-                        class="preview-seat"
-                        :title="`${t('classroom.detail.seat')}: ${String.fromCharCode(65 + colIndex)}${rowIndex + 1}`"
+                      <div
+                          v-for="(_col, colIndex) in cols"
+                          :key="`seat-${rowIndex}-${colIndex}`"
+                          :title="`${t('classroom.detail.seat')}: ${String.fromCharCode(65 + colIndex)}${rowIndex + 1}`"
+                          class="preview-seat"
                       >
                         {{ String.fromCharCode(65 + colIndex) }}{{ rowIndex + 1 }}
                       </div>
@@ -214,20 +225,38 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useMessage, useDialog } from 'naive-ui'
-import { useRouter} from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { Book, Grid, TrashOutline, CheckmarkOutline, CreateOutline, CloseOutline, LogInOutline, HomeOutline, BusinessOutline, SchoolOutline, LibraryOutline } from '@vicons/ionicons5'
+<script lang="ts" setup>
+import {ref, reactive, computed, onMounted, onBeforeUnmount} from 'vue'
+import {useMessage, useDialog} from 'naive-ui'
+import {useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {
+  Book,
+  Grid,
+  TrashOutline,
+  CheckmarkOutline,
+  CreateOutline,
+  CloseOutline,
+  LogInOutline,
+  HomeOutline,
+  BusinessOutline,
+  SchoolOutline,
+  LibraryOutline
+} from '@vicons/ionicons5'
 import eventBus from '@/utils/eventBus'
-import { addCourseRecord, updateCourseRecord, getCourseRecordById, getDefaultCourseRecordDTO, removeCourseRecordById } from '@/api/classroom/courseRecord'
-import { useUserStore, useCourseStore } from '@/store'
-import { useTransitionStore } from '@/store/modules/transition'
-import type { CourseRecordDTO, CourseRecordVO } from '@/types/classroom'
-import { getClassroomTypeFromString, getClassroomTypeString } from '@/enum/classroom/classroomTypeEnum'
-import { CourseRecordStatusEnum } from '@/enum/classroom/courseRecordStatusEnum'
-import { runViewTransition } from '@/utils/themeAnimation'
+import {
+  addCourseRecord,
+  updateCourseRecord,
+  getCourseRecordById,
+  getDefaultCourseRecordDTO,
+  removeCourseRecordById
+} from '@/api/classroom/courseRecord'
+import {useUserStore, useCourseStore} from '@/store'
+import {useTransitionStore} from '@/store/modules/transition'
+import type {CourseRecordDTO, CourseRecordVO} from '@/types/classroom'
+import {getClassroomTypeFromString, getClassroomTypeString} from '@/enum/classroom/classroomTypeEnum'
+import {CourseRecordStatusEnum} from '@/enum/classroom/courseRecordStatusEnum'
+import {runViewTransition} from '@/utils/themeAnimation'
 
 interface Props {
   courseId: string
@@ -235,7 +264,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const { t } = useI18n()
+const {t} = useI18n()
 const message = useMessage()
 const dialog = useDialog()
 const router = useRouter()
@@ -319,7 +348,7 @@ const validateCourseName = () => {
 }
 
 const validateCourseDescription = () => {
-if (courseDescription.value.trim().length > 200) {
+  if (courseDescription.value.trim().length > 200) {
     errors.courseDescription = t('classroom.detail.courseDescriptionMaxLength')
     return false
   } else {
@@ -356,11 +385,11 @@ const validateEndTime = () => {
 }
 
 const isFormValid = computed(() => {
-  return courseName.value.trim().length >= 2 && 
-         courseDescription.value.trim().length <= 200 &&
-         startTime.value !== null &&
-         endTime.value !== null &&
-         endTime.value > startTime.value
+  return courseName.value.trim().length >= 2 &&
+      courseDescription.value.trim().length <= 200 &&
+      startTime.value !== null &&
+      endTime.value !== null &&
+      endTime.value > startTime.value
 })
 
 // 教室大小变化处理
@@ -397,17 +426,17 @@ async function submitForm() {
   const isDescriptionValid = validateCourseDescription()
   const isStartTimeValid = validateStartTime()
   const isEndTimeValid = validateEndTime()
-  
+
   if (!isNameValid || !isDescriptionValid || !isStartTimeValid || !isEndTimeValid) {
     return
   }
-  
+
   if (!isFormValid.value) {
     return
   }
-  
+
   isSubmitting.value = true
-  
+
   try {
     // 构建课程记录数据
     const courseRecordData: CourseRecordDTO = getDefaultCourseRecordDTO()
@@ -421,7 +450,7 @@ async function submitForm() {
     courseRecordData.classroomType = getClassroomTypeFromString(selectedClassroomSize.value)
     courseRecordData.startTime = startTime.value ? new Date(startTime.value).toISOString() : null
     courseRecordData.overTime = endTime.value ? new Date(endTime.value).toISOString() : null
-    
+
     // 根据状态调用不同的API
     let recordId: string | null = null
     if (isEditMode.value) {
@@ -434,7 +463,7 @@ async function submitForm() {
       // 创建课程
       const response = await addCourseRecord(courseRecordData)
       recordId = response.data?.id || null
-      
+
       if (recordId) {
         // 保存创建的记录ID，显示成功对话框询问是否进入
         createdRecordId.value = recordId
@@ -450,7 +479,7 @@ async function submitForm() {
             handleStayHere()
           }
         })
-    }
+      }
     }
   } catch (error) {
     console.error('提交表单失败:', error)
@@ -461,25 +490,25 @@ async function submitForm() {
 
 // 重置表单数据到初始状态
 function resetFormData() {
-  
+
   // 重置课程信息
   courseName.value = ''
   courseDescription.value = ''
   startTime.value = null
   endTime.value = null
-  
+
   // 重置教室配置
   selectedClassroomSize.value = 'classroomMini'
   rows.value = 4
   cols.value = 3
-  
+
   // 清除错误提示
   errors.courseName = ''
   errors.courseDescription = ''
-  
+
   // 重置提交状态
   isSubmitting.value = false
-  
+
   // 清除课程记录ID，切换到创建模式
   courseRecordId.value = null
 }
@@ -531,7 +560,7 @@ function handleDeleteCourseRecord() {
   if (!courseRecordId.value) {
     return
   }
-  
+
   dialog.warning({
     title: t('classroom.detail.deleteCourse'),
     content: t('classroom.detail.deleteConfirm'),
@@ -561,7 +590,7 @@ function handleCancelCourseRecord() {
   if (!courseRecordId.value) {
     return
   }
-  
+
   dialog.warning({
     title: t('classroom.detail.cancelCourse'),
     content: t('classroom.detail.cancelConfirm'),
@@ -584,7 +613,7 @@ function handleCancelCourseRecord() {
         courseRecordData.overTime = endTime.value ? new Date(endTime.value).toISOString() : null
         // 更新状态为取消
         courseRecordData.status = CourseRecordStatusEnum.CANCELLED
-        
+
         await updateCourseRecord(courseRecordData)
         message.success(t('classroom.detail.cancelSuccess'))
         // 触发事件，更新课程历史记录列表
@@ -605,7 +634,7 @@ async function loadCourseRecordData(id: string) {
   try {
     const response = await getCourseRecordById(id)
     const data: CourseRecordVO = response.data || response // 根据实际API返回格式调整
-    
+
     // 填充表单数据
     courseName.value = data.courseName || ''
     courseDescription.value = data.courseDescription || ''
@@ -632,7 +661,7 @@ onMounted(() => {
   eventBus.on('resetClassroomDetail', () => {
     resetFormData()
   })
-  
+
   // 注册事件监听器，监听课程记录选择信号
   eventBus.on('selectCourseRecord', (data) => {
     if (data && data.id) {

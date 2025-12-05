@@ -1,22 +1,22 @@
 <template>
   <div
-    v-if="show"
-    class="student-info-popup"
-    :class="{ 'empty-seat': !student }"
-    :style="{
+      v-if="show"
+      :class="{ 'empty-seat': !student }"
+      :style="{
       left: `${position.x}px`,
       top: `${position.y}px`
     }"
+      class="student-info-popup"
   >
     <div class="student-info-content">
       <!-- 有学生时显示学生信息 -->
       <template v-if="student">
         <div class="student-header">
           <AvatarDisplay
-            :avatar-src="student.studentAvatar || null"
-            :username="student.studentName || null"
-            size="medium"
-            avatar-class="student-avatar"
+              :avatar-src="student.studentAvatar || null"
+              :username="student.studentName || null"
+              avatar-class="student-avatar"
+              size="medium"
           />
           <div class="student-name-section">
             <div class="student-name">{{ student.studentName || t('classroom.studentInfo.unknown') }}</div>
@@ -31,8 +31,8 @@
           <div class="detail-item">
             <span class="detail-label">{{ t('classroom.studentInfo.attendanceStatus') }}</span>
             <span
-              class="detail-value"
-              :class="getAttendanceStatusClass(student.attendanceStatus)"
+                :class="getAttendanceStatusClass(student.attendanceStatus)"
+                class="detail-value"
             >
               {{ getAttendanceStatusText(student.attendanceStatus) }}
             </span>
@@ -52,7 +52,8 @@
         <div class="student-details">
           <div class="detail-item">
             <span class="detail-label">{{ t('classroom.studentInfo.seatNumber') }}</span>
-            <span class="detail-value">{{ seatIndex !== null ? seatIndex + 1 : t('classroom.studentInfo.unknown') }}</span>
+            <span
+                class="detail-value">{{ seatIndex !== null ? seatIndex + 1 : t('classroom.studentInfo.unknown') }}</span>
           </div>
           <div class="detail-item">
             <span class="detail-label">{{ t('classroom.studentInfo.status') }}</span>
@@ -64,14 +65,14 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import { AttendanceStatusEnum } from '@/enum/classroom/attendanceStatusEnum';
-import { getAttendanceStatusLabel } from '@/enum/classroom/attendanceStatusEnum';
-import type { CourseRecordStudentVO } from '@/types/classroom';
+<script lang="ts" setup>
+import {useI18n} from 'vue-i18n';
+import {AttendanceStatusEnum} from '@/enum/classroom/attendanceStatusEnum';
+import {getAttendanceStatusLabel} from '@/enum/classroom/attendanceStatusEnum';
+import type {CourseRecordStudentVO} from '@/types/classroom';
 import AvatarDisplay from '@/components/common/AvatarDisplay.vue';
 
-const { t, locale } = useI18n();
+const {t, locale} = useI18n();
 
 interface Props {
   show: boolean
@@ -193,19 +194,19 @@ const getAttendanceStatusClass = (status: AttendanceStatusEnum | null | undefine
 .detail-value {
   color: var(--text-color);
   font-weight: 500;
-  
+
   &.status-success {
     color: var(--success-color);
   }
-  
+
   &.status-warning {
     color: var(--warning-color);
   }
-  
+
   &.status-error {
     color: var(--error-color);
   }
-  
+
   &.empty-status {
     color: var(--text-secondary-color);
     font-style: italic;

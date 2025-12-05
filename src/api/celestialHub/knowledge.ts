@@ -13,7 +13,8 @@ export function getDefaultKnowledgeRequestDTO(): KnowledgeSearchRequestDTO {
         query: null,
         topK: null,
         similarityThreshold: null,
-        sessionId: null
+        sessionId: null,
+        fileReferences: null
     }
 }
 

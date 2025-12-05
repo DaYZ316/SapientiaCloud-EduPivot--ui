@@ -3,7 +3,7 @@
     <div class="message-text">
       <div class="requester-content">
         <div class="content-header">
-          <n-icon :component="DocumentTextOutline" size="20" class="header-icon"/>
+          <n-icon :component="DocumentTextOutline" class="header-icon" size="20"/>
           <span class="header-text">{{ t('chat.toolsMenu.requirement') }}</span>
         </div>
         <div v-if="requestData" class="request-details">

@@ -18,28 +18,28 @@
             class="question-panel-navigation"
         >
           <n-button
-              tertiary
-              circle
-              size="small"
-              class="nav-button"
               :disabled="!canPrev"
-              @click="handlePrev"
               :title="t('common.previous')"
               aria-label="previous-question"
+              circle
+              class="nav-button"
+              size="small"
+              tertiary
+              @click="handlePrev"
           >
             <template #icon>
               <n-icon :component="ChevronBack" size="16"/>
             </template>
           </n-button>
           <n-button
-              tertiary
-              circle
-              size="small"
-              class="nav-button"
               :disabled="!canNext"
-              @click="handleNext"
               :title="t('common.next')"
               aria-label="next-question"
+              circle
+              class="nav-button"
+              size="small"
+              tertiary
+              @click="handleNext"
           >
             <template #icon>
               <n-icon :component="ChevronForward" size="16"/>
@@ -58,19 +58,19 @@
               size="small"
           />
         </div>
-      <n-button
-          tertiary
-          circle
-          size="small"
-          class="question-panel-close"
-          @click="handleClose"
-          :title="closeLabel"
-          aria-label="close"
-      >
-        <template #icon>
-          <n-icon :component="CloseOutline" size="16"/>
-        </template>
-      </n-button>
+        <n-button
+            :title="closeLabel"
+            aria-label="close"
+            circle
+            class="question-panel-close"
+            size="small"
+            tertiary
+            @click="handleClose"
+        >
+          <template #icon>
+            <n-icon :component="CloseOutline" size="16"/>
+          </template>
+        </n-button>
       </div>
     </div>
     <div class="question-panel-body">
@@ -185,7 +185,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import {computed, ref, toRefs, watch} from 'vue'
 import {NButton, NEmpty, NIcon, NSwitch, NTag} from 'naive-ui'
 import {ChevronBack, ChevronForward, CloseOutline} from '@vicons/ionicons5'
@@ -366,7 +366,7 @@ const getOptionLabel = (option: QuestionOptionSimpleDTO | null, index: number) =
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 @use '@/assets/styles' as *;
 
 .question-panel {

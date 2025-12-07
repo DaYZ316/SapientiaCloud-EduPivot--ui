@@ -124,6 +124,8 @@ export default {
     actions: '操作',
     points: '分',
     minutes: '分钟',
+    previous: '上一步',
+    next: '下一步',
 
     // 时间相关
     createTime: '创建时间',

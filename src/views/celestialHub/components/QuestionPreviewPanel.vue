@@ -59,6 +59,17 @@
           />
         </div>
         <n-button
+            v-if="canAddToQuestionBank"
+            :title="t('course.question.addToQuestionBank')"
+            aria-label="add-to-question-bank"
+            class="add-to-bank-button"
+            size="small"
+            type="primary"
+            @click="handleAddToQuestionBank"
+        >
+          {{ t('course.question.addToQuestionBank') }}
+        </n-button>
+        <n-button
             :title="closeLabel"
             aria-label="close"
             circle
@@ -182,15 +193,23 @@
       </template>
       <n-empty v-else class="question-panel-empty"/>
     </div>
+    <AddToQuestionBankDialog
+        v-model:show="showAddToBankDialog"
+        :question="currentQuestion"
+        @success="handleAddToBankSuccess"
+    />
   </div>
 </template>
 
 <script lang="ts" setup>
-import {computed, ref, toRefs, watch} from 'vue'
+import {computed, ref, toRefs} from 'vue'
 import {NButton, NEmpty, NIcon, NSwitch, NTag} from 'naive-ui'
 import {ChevronBack, ChevronForward, CloseOutline} from '@vicons/ionicons5'
 import {useI18n} from 'vue-i18n'
+import {useUserStore} from '@/store'
+import {useQuestionAnswerToggle} from '@/composables/useQuestionAnswerToggle'
 import MarkdownRenderer from '@/components/common/MarkdownRenderer.vue'
+import AddToQuestionBankDialog from './AddToQuestionBankDialog.vue'
 import type {QuestionOptionSimpleDTO, QuestionResponseDTO} from '@/types/celestialHub/question'
 import {getQuestionTypeLabel} from '@/enum/course/questionTypeEnum'
 import {getQuestionBankDifficultyLabel} from '@/enum/course/questionBankDifficultyEnum'
@@ -212,6 +231,15 @@ const {questions, title, closeLabel, activeIndex} = toRefs(props)
 // 国际化
 const {t, locale} = useI18n()
 const isEnLocale = computed(() => locale.value === 'en-US')
+
+// 用户角色
+const userStore = useUserStore()
+const canAddToQuestionBank = computed(() => {
+  return userStore.hasRole('ADMIN') || userStore.hasRole('TEACHER')
+})
+
+// 加入题库对话框
+const showAddToBankDialog = ref(false)
 
 const getSafeActiveIndex = () => {
   if (!questions.value?.length) {
@@ -251,27 +279,7 @@ const currentQuestionOrder = computed<number | null>(() => {
 const hasOptions = computed(() => Boolean(currentQuestion.value?.options?.length))
 const hasAnswers = computed(() => Boolean(currentQuestion.value?.answers?.length))
 
-const ANSWER_TOGGLE_STORAGE_KEY = 'celestialHub_question_showAnswers'
-
-const resolveStoredShowAnswers = (): boolean => {
-  if (typeof window === 'undefined') {
-    return false
-  }
-  const storedValue = window.localStorage.getItem(ANSWER_TOGGLE_STORAGE_KEY)
-  if (storedValue === null) {
-    return false
-  }
-  return storedValue === 'true'
-}
-
-const showAnswers = ref(resolveStoredShowAnswers())
-
-watch(showAnswers, (value) => {
-  if (typeof window === 'undefined') {
-    return
-  }
-  window.localStorage.setItem(ANSWER_TOGGLE_STORAGE_KEY, String(value))
-})
+const {showAnswers} = useQuestionAnswerToggle()
 
 const hasVisibleAnswers = computed(() => hasAnswers.value && showAnswers.value)
 const hasSolutions = computed(() => hasAnswers.value || hasOptions.value)
@@ -364,6 +372,14 @@ const getOptionLabel = (option: QuestionOptionSimpleDTO | null, index: number) =
   const alphabetCode = 65 + index
   return String.fromCharCode(alphabetCode)
 }
+
+const handleAddToQuestionBank = () => {
+  showAddToBankDialog.value = true
+}
+
+const handleAddToBankSuccess = () => {
+  showAddToBankDialog.value = false
+}
 </script>
 
 <style lang="scss" scoped>
@@ -391,6 +407,8 @@ const getOptionLabel = (option: QuestionOptionSimpleDTO | null, index: number) =
       display: flex;
       align-items: center;
       gap: 10px;
+      flex: 1;
+      min-width: 0;
 
       .question-panel-count {
         min-width: 28px;
@@ -405,10 +423,16 @@ const getOptionLabel = (option: QuestionOptionSimpleDTO | null, index: number) =
         font-weight: 600;
         color: var(--color-primary);
         background: var(--background-tertiary-color);
+        flex-shrink: 0;
       }
 
       .question-panel-text {
         line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+        min-width: 0;
       }
     }
 
@@ -439,6 +463,12 @@ const getOptionLabel = (option: QuestionOptionSimpleDTO | null, index: number) =
           color: var(--text-secondary-color);
         }
       }
+
+      .add-to-bank-button {
+        height: 28px;
+        padding: 0 12px;
+        font-size: 12px;
+      }
     }
 
     .question-panel-close {
@@ -467,8 +497,8 @@ const getOptionLabel = (option: QuestionOptionSimpleDTO | null, index: number) =
     .detail-header {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      padding: 16px;
+      gap: 16px;
+      padding: 20px;
       border-radius: 16px;
       background: var(--background-color);
       border: 1px solid var(--border-color);
@@ -476,24 +506,38 @@ const getOptionLabel = (option: QuestionOptionSimpleDTO | null, index: number) =
 
     .detail-meta {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
     }
 
     .meta-item {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
+      align-items: center;
+      text-align: center;
+      padding: 12px;
+      border-radius: 8px;
+      background: var(--background-secondary-color);
+      transition: background-color 0.2s ease;
+      user-select: none;
+
+      &:hover {
+        background: color-mix(in srgb, var(--color-primary) 5%, var(--background-secondary-color));
+      }
 
       .meta-label {
         font-size: 12px;
         color: var(--text-secondary-color);
+        font-weight: 500;
+        letter-spacing: 0.3px;
       }
 
       .meta-value {
-        font-size: 14px;
-        font-weight: 500;
+        font-size: 15px;
+        font-weight: 600;
         color: var(--text-color);
+        line-height: 1.4;
       }
     }
 
@@ -501,6 +545,7 @@ const getOptionLabel = (option: QuestionOptionSimpleDTO | null, index: number) =
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
+      padding-top: 4px;
     }
 
     .detail-section {

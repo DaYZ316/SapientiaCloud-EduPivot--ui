@@ -68,6 +68,7 @@ export default {
         descriptionPlaceholder: 'Please enter course description',
         teacherId: 'Main Instructor',
         teacherIdPlaceholder: 'Please select main instructor',
+        teacherName: 'Main Instructor',
         assistantTeachers: 'Assistant Teachers',
         assistantTeachersPlaceholder: 'Please select assistant teachers',
         semester: 'Semester',
@@ -1018,6 +1019,7 @@ export default {
         createFirst: 'Create first question',
         deleteConfirm: 'Confirm delete question',
         deleteConfirmContent: 'Are you sure you want to delete question "{questionTitle}"? This action cannot be undone.',
+        confirmDelete: 'Confirm Delete',
         deleteSuccess: 'Question deleted successfully',
         deleteFailed: 'Failed to delete question',
         viewCount: 'View count',
@@ -1043,7 +1045,14 @@ export default {
         optionsMinRequired: 'Single choice, multiple choice, and true/false questions require at least {min} options',
         optionsMaxRequired: 'True/false questions can have at most {max} options',
         atLeastOneCorrectRequired: 'At least one option must be marked as correct',
-        answersMinRequired: 'Fill-in-the-blank and short answer questions require at least {min} answers'
+        answersMinRequired: 'Fill-in-the-blank and short answer questions require at least {min} answers',
+        addToQuestionBank: 'Add to Question Bank',
+        addToQuestionBankTitle: 'Add to Question Bank',
+        addToQuestionBankContent: 'Are you sure you want to add this question to the question bank?',
+        addToQuestionBankSuccess: 'Question has been successfully added to the question bank',
+        selectCourse: 'Select Course',
+        selectQuestionBank: 'Select Question Bank',
+        tianshuQuestion: 'CELESTIAL HUB QUESTION GENERATION'
     },
 
     // Question status

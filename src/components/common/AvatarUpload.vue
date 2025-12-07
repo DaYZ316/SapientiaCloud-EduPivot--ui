@@ -11,13 +11,10 @@
           :class="props.avatarClass"
           :round="props.round"
           :size="avatarSize"
-          :src="shouldShowImage ? displayAvatarSrc : undefined"
-          :style="avatarStyle"
+          :src="displayAvatarSrc"
           @error="handleImageError"
           @load="handleImageLoad"
-      >
-        {{ userInitial }}
-      </n-avatar>
+      />
 
       <!-- 上传遮罩层 -->
       <div v-if="!props.disabled" class="upload-overlay">
@@ -129,15 +126,14 @@ import {
   SwapVerticalOutline
 } from '@vicons/ionicons5'
 import {useI18n} from 'vue-i18n'
+import {createAvatar} from '@dicebear/core'
+import * as avatarCollection from '@dicebear/collection'
 import {uploadFile} from '@/api/minIO'
 import type {AvatarUploadEmits, AvatarUploadProps} from '@/types/minIO/file'
 import {BusinessBucketCodeEnum} from '@/enum/minIO'
 import Icon from '@/components/common/Icon.vue'
-import defaultAvatar from '@/assets/image/anonymous-user.png'
 import {
-  getAvatarColor,
-  getAvatarFontSize,
-  getAvatarInitial,
+  getGradientColors,
   normalizeAvatarSize,
   resolveUserName
 } from '@/utils/avatarUtil'
@@ -171,38 +167,84 @@ const cropImageUrl = ref<string | null>(null)
 const uploading = ref(false)
 const cropperInstance = ref<Cropper | null>(null)
 const imageError = ref(false)
+const dicebearAvatarUrl = ref<string | null>(null)
 
 const previewSize = computed(() => {
   const baseSize = props.cropSize ?? 200
   return Math.max(80, Math.round(baseSize * 0.4))
 })
 const userName = computed(() => resolveUserName(props))
-const userInitial = computed(() => getAvatarInitial(userName.value))
 const avatarSize = computed(() => normalizeAvatarSize(props.size))
-const avatarStyle = computed(() => ({
-  backgroundColor: getAvatarColor(userName.value),
-  fontSize: getAvatarFontSize(avatarSize.value)
-}))
-const fallbackSrc = computed<string | undefined>(() => {
-  return props.fallbackSrc || defaultAvatar
-})
-const isPrimaryAvatarActive = computed(() => Boolean(props.modelValue) && !imageError.value)
+
+// 生成DiceBear头像URL（缓存）
+const generateDicebearAvatar = () => {
+  if (!userName.value) {
+    dicebearAvatarUrl.value = null
+    return
+  }
+  try {
+    // 根据用户名生成稳定的渐变颜色组合
+    const [color1, color2, color3] = getGradientColors(userName.value)
+    const gradientId = `gradient-${userName.value.replace(/[^a-zA-Z0-9]/g, '')}-${avatarSize.value}`
+    
+    const avatar = createAvatar(avatarCollection.bottts, {
+      seed: userName.value,
+      size: avatarSize.value
+    })
+    
+    // 获取 SVG 字符串并添加渐变背景和动画
+    const svgString = avatar.toString()
+    
+    // 创建渐变定义和动画
+    const gradientDef = `
+      <defs>
+        <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:${color1};stop-opacity:1">
+            <animate attributeName="stop-color" values="${color1};${color2};${color3};${color1}" dur="8s" repeatCount="indefinite"/>
+          </stop>
+          <stop offset="50%" style="stop-color:${color2};stop-opacity:1">
+            <animate attributeName="stop-color" values="${color2};${color3};${color1};${color2}" dur="8s" repeatCount="indefinite"/>
+          </stop>
+          <stop offset="100%" style="stop-color:${color3};stop-opacity:1">
+            <animate attributeName="stop-color" values="${color3};${color1};${color2};${color3}" dur="8s" repeatCount="indefinite"/>
+          </stop>
+        </linearGradient>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#${gradientId})"/>
+    `
+    
+    // 在 SVG 开头添加渐变背景
+    const svgWithBackground = svgString.replace(
+      /<svg([^>]*)>/,
+      `<svg$1>${gradientDef}`
+    )
+    
+    // 转换为 data URI（使用 URL 编码）
+    dicebearAvatarUrl.value = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgWithBackground)}`
+  } catch {
+    dicebearAvatarUrl.value = null
+  }
+}
+
+// 计算最终显示的头像源
 const displayAvatarSrc = computed<string | undefined>(() => {
-  if (isPrimaryAvatarActive.value && props.modelValue) {
+  // 优先使用传入的头像源（如果存在且未出错）
+  if (props.modelValue && !imageError.value) {
     return props.modelValue
   }
-  return fallbackSrc.value
+
+  // 如果头像src加载失败或不存在，使用DiceBear生成的头像作为后备
+  return dicebearAvatarUrl.value || props.fallbackSrc || undefined
 })
-const shouldShowImage = computed(() => Boolean(displayAvatarSrc.value))
 
 const handleImageError = () => {
-  if (isPrimaryAvatarActive.value) {
+  if (props.modelValue) {
     imageError.value = true
   }
 }
 
 const handleImageLoad = () => {
-  if (isPrimaryAvatarActive.value) {
+  if (props.modelValue) {
     imageError.value = false
   }
 }
@@ -407,6 +449,18 @@ watch(
     }
 )
 
+// 监听userName和avatarSize变化，生成DiceBear头像
+watch(
+    [userName, avatarSize],
+    () => {
+      if (userName.value) {
+        generateDicebearAvatar()
+      }
+    },
+    {immediate: true}
+)
+
+// 监听avatarSrc变化，重置错误状态
 watch(
     () => props.modelValue,
     () => {

@@ -188,6 +188,12 @@ export function useQuestionGeneration(
     // 处理工具选择
     const handleToolsSelect = (key: string | number) => {
         if (key === 'smartQuestion') {
+            // 如果 QuestionPreviewPanel 是打开的，先关闭它
+            if (isQuestionPanelVisible.value) {
+                isQuestionPanelVisible.value = false
+                activeQuestionMessageId.value = null
+                activeQuestionIndex.value = null
+            }
             isQuestionToolsVisible.value = true
         }
     }
@@ -198,6 +204,10 @@ export function useQuestionGeneration(
         questions: QuestionResponseDTO[];
         activeIndex: number | null
     }) => {
+        // 如果 SmartQuestionModal 是打开的，先关闭它
+        if (isQuestionToolsVisible.value) {
+            isQuestionToolsVisible.value = false
+        }
         activeQuestionMessageId.value = payload.messageId
         activeQuestionList.value = (payload.questions ?? []).slice()
         if (activeQuestionList.value.length) {
@@ -322,6 +332,23 @@ export function useQuestionGeneration(
             }
         }
     )
+
+    // 监听两个面板状态，确保互斥
+    watch(isQuestionToolsVisible, (newValue) => {
+        if (newValue && isQuestionPanelVisible.value) {
+            // 如果 SmartQuestionModal 打开，关闭 QuestionPreviewPanel
+            isQuestionPanelVisible.value = false
+            activeQuestionMessageId.value = null
+            activeQuestionIndex.value = null
+        }
+    })
+
+    watch(isQuestionPanelVisible, (newValue) => {
+        if (newValue && isQuestionToolsVisible.value) {
+            // 如果 QuestionPreviewPanel 打开，关闭 SmartQuestionModal
+            isQuestionToolsVisible.value = false
+        }
+    })
 
     // 监听待处理任务数量变化
     watch(

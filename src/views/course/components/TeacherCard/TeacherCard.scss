@@ -112,8 +112,13 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
 
 .teacher-name {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
   margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   .first-name {
     font-size: 28px;
@@ -121,6 +126,9 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
     color: $primary-color;
     line-height: 1.2;
     text-shadow: 0 2px 4px $accent-shadow;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .last-name {
@@ -129,6 +137,9 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
     color: $text-color;
     line-height: 1.2;
     text-shadow: 0 2px 4px $shadow-color;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
@@ -138,6 +149,12 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
   font-weight: 400;
   opacity: 0.9;
   margin-left: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.5;
 }
 
 .contact-info {
@@ -258,6 +275,10 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
   align-items: center;
   justify-content: center;
   padding: 24px;
+  
+  .brand-circle {
+    margin-left: -20px;
+  }
 
   // 添加背景装饰元素
   &::before {
@@ -300,20 +321,6 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
   box-shadow: 0 0 0 4px $accent-shadow-light,
   0 8px 32px $shadow-color;
   z-index: 2;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: -20px;
-    left: -20px;
-    right: -20px;
-    bottom: -20px;
-    background: linear-gradient(45deg, var(--warning-color) 10%, var(--error-color) 30%, $primary-color 70%);
-    border-radius: 50%;
-    opacity: 0.25;
-    z-index: -1;
-    animation: rotate 10s linear infinite;
-  }
 
   // 教师头像样式
   .teacher-avatar {
@@ -361,16 +368,6 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
   }
 }
 
-// 旋转动画
-@keyframes rotate {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
 // 脉冲动画
 @keyframes pulse {
   0%, 100% {
@@ -401,10 +398,15 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
   .teacher-brand-section {
     flex: 0 0 300px;
     padding: 24px;
+    justify-content: center;
 
     &::before {
       top: 15px;
       left: -35px;
+    }
+    
+    .brand-circle {
+      margin-left: -20px;
     }
   }
 
@@ -462,10 +464,15 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
   .teacher-brand-section {
     flex: 0 0 240px;
     padding: 20px;
+    justify-content: center;
 
     &::before {
       top: 12px;
       left: -35px;
+    }
+    
+    .brand-circle {
+      margin-left: -15px;
     }
   }
 
@@ -517,10 +524,15 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
   .teacher-brand-section {
     padding: 20px;
     flex: 0 0 250px;
+    justify-content: center;
 
     &::before {
       top: 20px;
       left: -30px;
+    }
+    
+    .brand-circle {
+      margin-left: -15px;
     }
   }
 

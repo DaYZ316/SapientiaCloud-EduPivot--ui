@@ -1,7 +1,7 @@
 <template>
-  <div :class="{ collapsed: collapsed }" class="chat-sidebar">
-    <!-- 顶部工具栏 -->
-    <div class="sidebar-header">
+  <div :class="{ collapsed: collapsed, embedded: embeddedMode }" class="chat-sidebar">
+    <!-- 顶部工具栏 (嵌入模式下隐藏) -->
+    <div v-if="!embeddedMode" class="sidebar-header">
       <div class="header-top">
         <n-icon
             :component="MenuOutline"
@@ -138,6 +138,7 @@ import {useUserStore} from '@/store'
 // Props
 const props = defineProps<{
   activeSessionId?: string | number | null
+  embeddedMode?: boolean // 嵌入模式，用于在全局侧边栏中显示
 }>()
 
 // Emits
@@ -148,7 +149,8 @@ const emit = defineEmits<{
 }>()
 
 // 状态
-const collapsed = ref(false)
+const collapsed = computed(() => props.embeddedMode ? false : collapsedState.value)
+const collapsedState = ref(false)
 const showSearchInput = ref(false)
 const searchText = ref('')
 const sessions = ref<ChatSessionVO[]>([])
@@ -217,7 +219,7 @@ const favoriteIcon = computed(() => {
 
 // 方法
 const toggleCollapse = () => {
-  collapsed.value = !collapsed.value
+  collapsedState.value = !collapsedState.value
 }
 
 const handleNewChat = () => {
@@ -372,7 +374,20 @@ defineExpose({
   transition: all 0.3s ease;
   position: relative;
 
-  &.collapsed {
+  &.embedded {
+    width: 100%;
+    height: 100%;
+    border-right: none;
+    border-top: none;
+    
+    .sidebar-content {
+      padding: 8px 12px;
+      flex: 1;
+      min-height: 0;
+    }
+  }
+
+  &.collapsed:not(.embedded) {
     width: 64px;
 
     .sidebar-header {

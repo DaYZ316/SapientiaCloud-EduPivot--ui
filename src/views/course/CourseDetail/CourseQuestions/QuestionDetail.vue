@@ -30,7 +30,7 @@
 
     <!-- 搜索和筛选区域 -->
     <div class="search-section">
-      <div>
+      <div class="search-section-content">
         <n-form :model="searchForm" inline>
           <n-form-item :label="$t('course.question.questionTitle')">
             <n-input
@@ -79,6 +79,9 @@
             </n-space>
           </n-form-item>
         </n-form>
+        <button class="tianshu-question-button" @click="(e) => handleTianshuQuestion(e)">
+          {{ $t('course.question.tianshuQuestion') }}
+        </button>
       </div>
     </div>
 
@@ -140,119 +143,113 @@
         <n-card v-else class="question-info-card">
           <n-spin :show="loading" size="large">
             <div class="detail-header">
-              <div class="detail-title">
-                <h2>{{ selectedQuestion.questionTitle }}</h2>
-                <div class="detail-tags">
-                  <n-tag :type="getQuestionTypeTagType(selectedQuestion.questionType) as any" size="small">
-                    {{ getQuestionTypeText(selectedQuestion.questionType) }}
-                  </n-tag>
-                  <n-tag :type="getDifficultyTagType(selectedQuestion.difficulty) as any" size="small">
-                    {{ getDifficultyText(selectedQuestion.difficulty) }}
-                  </n-tag>
-                  <n-tag v-if="selectedQuestion.allowPartialCredit === 1" size="small" type="success">
-                    {{ t('course.question.allowPartialCredit') }}
-                  </n-tag>
-                  <template v-if="selectedQuestion.tags && selectedQuestion.tags.length">
-                    <n-tag
-                        v-for="tag in selectedQuestion.tags"
-                        :key="tag"
-                        size="small"
-                        type="info"
-                    >
-                      {{ tag }}
-                    </n-tag>
-                  </template>
+              <div class="detail-meta">
+                <div class="meta-item">
+                  <div class="meta-label">{{ t('course.question.questionType') }}</div>
+                  <div class="meta-value">{{ getQuestionTypeText(selectedQuestion.questionType) }}</div>
+                </div>
+                <div class="meta-item">
+                  <div class="meta-label">{{ t('course.question.difficulty') }}</div>
+                  <div class="meta-value">{{ getDifficultyText(selectedQuestion.difficulty) }}</div>
+                </div>
+                <div class="meta-item">
+                  <div class="meta-label">{{ t('course.question.score') }}</div>
+                  <div class="meta-value">{{ formatScore(selectedQuestion.score) }}</div>
+                </div>
+                <div class="meta-item">
+                  <div class="meta-label">{{ t('course.question.estimatedTime') }}</div>
+                  <div class="meta-value">{{ formatEstimatedTime(selectedQuestion.estimatedTime) }}</div>
+                </div>
+                <div v-if="selectedQuestion.createTime" class="meta-item">
+                  <div class="meta-label">{{ t('common.createTime') }}</div>
+                  <div class="meta-value">{{ selectedQuestion.createTime }}</div>
+                </div>
+                <div class="meta-item">
+                  <div class="meta-label">{{ t('course.question.status') }}</div>
+                  <div class="meta-value">{{ getQuestionStatusText(selectedQuestion.status) }}</div>
                 </div>
               </div>
-            </div>
-
-            <div class="detail-meta">
-              <div class="meta-item">
-                <div class="meta-label">{{ t('course.question.score') }}</div>
-                <div class="meta-value">{{ selectedQuestion.score }} {{ t('common.points') }}</div>
-              </div>
-              <div class="meta-item">
-                <div class="meta-label">{{ t('course.question.estimatedTime') }}</div>
-                <div class="meta-value">{{ formatEstimatedTime(selectedQuestion.estimatedTime) }}</div>
-              </div>
-              <div class="meta-item">
-                <div class="meta-label">{{ t('course.question.viewCount') }}</div>
-                <div class="meta-value">{{ selectedQuestion.viewCount || 0 }}</div>
-              </div>
-              <div v-if="selectedQuestion.createTime" class="meta-item">
-                <div class="meta-label">{{ t('common.createTime') }}</div>
-                <div class="meta-value">{{ selectedQuestion.createTime }}</div>
-              </div>
-              <div class="meta-item">
-                <div class="meta-label">{{ t('course.question.status') }}</div>
-                <div class="meta-value">{{ getQuestionStatusText(selectedQuestion.status) }}</div>
+              <div v-if="selectedQuestion.tags && selectedQuestion.tags.length" class="detail-tags">
+                <n-tag
+                    v-for="tag in selectedQuestion.tags"
+                    :key="tag"
+                    size="small"
+                    type="info"
+                >
+                  {{ tag }}
+                </n-tag>
               </div>
             </div>
-
-            <n-divider/>
 
             <div class="detail-section">
-              <div class="detail-content" v-html="selectedQuestion.questionContent"></div>
-            </div>
+              <div class="section-block">
+                <div class="section-body">
+                  <div v-if="selectedQuestion.questionTitle" class="detail-title">
+                    <h2>{{ selectedQuestion.questionTitle }}</h2>
+                  </div>
+                  <div class="detail-content" v-html="selectedQuestion.questionContent"></div>
+                </div>
+              </div>
 
-            <div
-                v-if="selectedQuestion.options && selectedQuestion.options.length > 0"
-                class="detail-section"
-            >
-              <div class="detail-options">
-                <div
-                    v-for="option in selectedQuestion.options"
-                    :key="option.id"
-                    :class="['detail-option-item', {correct: showAnswers && option.isCorrect === 1}]"
-                >
-                  <div class="option-main">
-                    <div class="option-header">
-                      <n-tag size="small" type="info">
-                        {{ option.optionLabel }}
-                      </n-tag>
+              <div
+                  v-if="selectedQuestion.options && selectedQuestion.options.length > 0"
+                  class="section-block"
+              >
+                <div class="detail-options">
+                  <div
+                      v-for="(option, optionIndex) in selectedQuestion.options"
+                      :key="option.id ?? `option-${optionIndex}`"
+                      :class="['option-item', {correct: showAnswers && option.isCorrect === 1}]"
+                  >
+                    <div class="option-main">
+                      <div class="option-content">
+                        <span class="option-label">
+                          {{ option.optionLabel || String.fromCharCode(65 + optionIndex) }}
+                        </span>
+                        <div v-html="option.optionContent"></div>
+                      </div>
+                      <div
+                          v-if="showAnswers && option.score !== null && option.score !== undefined"
+                          class="option-score"
+                      >
+                        {{ option.score }} 分
+                      </div>
                     </div>
-                    <div class="option-content">
-                      <div v-html="option.optionContent"></div>
+                    <div
+                        v-if="showAnswers && option.explanation"
+                        class="option-explanation"
+                    >
+                      {{ option.explanation }}
                     </div>
-                  </div>
-                  <div v-if="showAnswers && option.score !== undefined && option.score !== null" class="option-score">
-                    {{ t('course.question.score') }}: {{ option.score }}
-                  </div>
-                  <div v-if="showAnswers && option.explanation" class="option-explanation">
-                    {{ option.explanation }}
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div
-                v-if="shouldDisplayAnswersSection"
-                class="detail-section"
-            >
               <div
-                  v-for="(answer, index) in selectedQuestion.answers"
-                  :key="answer.id || index"
-                  class="detail-answer"
+                  v-if="shouldDisplayAnswersSection"
+                  class="section-block"
               >
-                <div class="answer-header">
-                  <n-tag size="small" type="info">
-                    #{{ answer.sortOrder ?? index + 1 }}
-                  </n-tag>
-                  <n-tag
-                      v-if="answer.score !== undefined && answer.score !== null"
-                      size="small"
-                      type="success"
+                <div class="detail-answers">
+                  <div
+                      v-for="(answer, answerIndex) in selectedQuestion.answers"
+                      :key="answer.id ?? `answer-${answerIndex}`"
+                      class="answer-item"
                   >
-                    {{ t('course.question.score') }}: {{ answer.score }}
-                  </n-tag>
-                </div>
-                <div
-                    v-if="showAnswers && answer.answerContent"
-                    class="answer-content"
-                    v-html="answer.answerContent"
-                ></div>
-                <div v-if="showAnswers && answer.explanation" class="answer-explanation">
-                  {{ answer.explanation }}
+                    <div class="answer-main">
+                      <div class="answer-index">
+                        #{{ answer.sortOrder ?? answerIndex + 1 }}
+                      </div>
+                      <div class="answer-content">
+                        <div v-if="showAnswers && answer.answerContent" v-html="answer.answerContent"></div>
+                      </div>
+                      <div v-if="answer.score !== null && answer.score !== undefined" class="answer-score">
+                        {{ answer.score }} 分
+                      </div>
+                    </div>
+                    <div v-if="answer.explanation" class="answer-explanation">
+                      {{ answer.explanation }}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -299,7 +296,7 @@
 <script lang="ts" setup>
 import {computed, onMounted, reactive, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {useRoute} from 'vue-router'
+import {useRoute, useRouter} from 'vue-router'
 import {PlusOutlined, ReloadOutlined, SearchOutlined} from '@vicons/antd'
 import {useDialog, useMessage} from 'naive-ui'
 import {getDefaultQuestionQuery, listQuestion} from '@/api/course'
@@ -320,16 +317,20 @@ import {
 } from '@/enum/course'
 import {QuestionStatusEnum} from '@/enum/course/questionStatusEnum'
 import CourseBreadcrumb from '@/views/course/components/CourseBreadcrumb/CourseBreadcrumb.vue'
-import {useCourseStore, useUserStore} from '@/store'
+import {useCourseStore, useTransitionStore, useUserStore} from '@/store'
+import {useQuestionAnswerToggle} from '@/composables/useQuestionAnswerToggle'
+import {runViewTransition} from '@/utils/themeAnimation'
 import QuestionDialog from './QuestionDialog.vue'
 import QuestionSidebar from './QuestionSidebar.vue'
 
-const {t} = useI18n()
+const {t, locale} = useI18n()
 const route = useRoute()
+const router = useRouter()
 const message = useMessage()
 const dialog = useDialog()
 const courseStore = useCourseStore()
 const userStore = useUserStore()
+const transitionStore = useTransitionStore()
 
 // 获取路由参数
 const courseId = ref<string>(route.params.courseId as string)
@@ -341,7 +342,9 @@ const selectedQuestionId = computed(() => selectedQuestion.value?.id ?? null)
 const loading = ref(false)
 const isLoadingMore = ref(false)
 const hasMore = ref(false)
-const showAnswers = ref(false)
+
+const {showAnswers} = useQuestionAnswerToggle()
+
 const showDraft = ref(false)
 
 // 分页相关数据
@@ -515,14 +518,36 @@ const handleReset = () => {
   refreshQuestionList()
 }
 
+// 天枢出题
+const handleTianshuQuestion = (e?: MouseEvent) => {
+  transitionStore.show()
+  const action = () => {
+    router.push({
+      path: '/ai',
+      query: {
+        openSmartQuestion: 'true'
+      }
+    })
+  }
+  runViewTransition(action, e)
+}
+
 // 获取题目类型文本
-const getQuestionTypeText = (type: number) => {
-  return getQuestionTypeLabel(type)
+const getQuestionTypeText = (type?: number | null) => {
+  if (type === null || type === undefined) {
+    return t('common.unknown')
+  }
+  const isEnLocale = locale.value === 'en-US'
+  return getQuestionTypeLabel(type, isEnLocale)
 }
 
 // 获取难度文本
-const getDifficultyText = (difficulty: number) => {
-  return getQuestionBankDifficultyLabel(difficulty)
+const getDifficultyText = (difficulty?: number | null) => {
+  if (difficulty === null || difficulty === undefined || difficulty === 0) {
+    return t('common.unknown')
+  }
+  const isEnLocale = locale.value === 'en-US'
+  return getQuestionBankDifficultyLabel(difficulty, isEnLocale)
 }
 
 const getQuestionStatusText = (status?: number | null) => {
@@ -536,6 +561,13 @@ const getQuestionStatusText = (status?: number | null) => {
     return t('course.question.disabled')
   }
   return t('common.unknown')
+}
+
+const formatScore = (score?: number | null) => {
+  if (score === null || score === undefined) {
+    return t('course.question.score') + t('common.colon')
+  }
+  return `${score} ${t('common.points')}`
 }
 
 const formatEstimatedTime = (time?: number | null) => {
@@ -726,6 +758,7 @@ const handlePublish = async (question: QuestionVO) => {
   try {
     const questionDTO: QuestionDTO = {
       id: question.id,
+      courseId: courseId.value,
       questionBankId: question.questionBankId,
       questionTitle: question.questionTitle,
       questionContent: question.questionContent,
@@ -763,6 +796,7 @@ watch(showEditDialog, async (newVal) => {
         // 更新编辑表单
         editForm.value = {
           id: questionDetail.id,
+          courseId: courseId.value,
           questionBankId: questionDetail.questionBankId,
           questionTitle: questionDetail.questionTitle,
           questionContent: questionDetail.questionContent,
@@ -904,18 +938,28 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/index.scss' as *;
+@use '@/assets/styles' as *;
 
 .question-list {
   background-color: var(--background-color);
   max-height: 100vh;
 
   .search-section {
-    margin-bottom: 24px;
+    margin-bottom: 16px;
 
-    .n-form {
-      .n-form-item {
-        margin-bottom: 16px;
+    .search-section-content {
+      padding-right: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+
+      .n-form {
+        flex: 1;
+      }
+
+      .n-button {
+        flex-shrink: 0;
       }
     }
   }
@@ -924,7 +968,6 @@ onMounted(async () => {
     display: flex;
     gap: 24px;
     align-items: flex-start;
-    margin-top: 24px;
   }
 
   .question-sidebar-container {
@@ -933,6 +976,7 @@ onMounted(async () => {
     max-width: 480px;
     display: flex;
     flex-direction: column;
+    padding-top: 12px;
   }
 
   .question-sidebar-scroll {
@@ -965,7 +1009,8 @@ onMounted(async () => {
     padding: 12px 12px 12px 0;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: calc(100vh - 220px);
+    max-height: calc(100vh - 220px);
 
     .no-selection-card {
       background-color: var(--background-color);
@@ -984,24 +1029,33 @@ onMounted(async () => {
       border: none;
       box-shadow: none;
       background: var(--background-color);
+      height: 100%;
+      max-height: 100%;
+      overflow: hidden;
 
       :deep(.n-card__content) {
         flex: 1;
         display: flex;
         flex-direction: column;
-        padding: 0 0 16px 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
       }
 
       :deep(.n-spin) {
         flex: 1;
         display: flex;
         flex-direction: column;
+        height: 100%;
+        overflow: hidden;
       }
 
       :deep(.n-spin-container) {
         flex: 1;
         display: flex;
         flex-direction: column;
+        height: 100%;
+        overflow: hidden;
       }
 
       :deep(.n-spin-content) {
@@ -1009,72 +1063,121 @@ onMounted(async () => {
         display: flex;
         flex-direction: column;
         overflow-y: auto;
-        padding: 16px;
+        padding: 0 16px 16px 16px;
         gap: 16px;
+        height: 100%;
+
+        &::-webkit-scrollbar {
+          width: 4px;
+        }
+
+        &::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: var(--border-color);
+          border-radius: 2px;
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+          background: var(--text-secondary-color);
+        }
       }
     }
 
     .detail-header {
       display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
+      flex-direction: column;
       gap: 16px;
-
-      .detail-title {
-        flex: 1;
-
-        h2 {
-          margin: 0 0 8px 0;
-          font-size: 24px;
-          font-weight: 700;
-          color: var(--text-color);
-        }
-
-        .detail-tags {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-      }
+      padding: 20px;
+      border-radius: 16px;
+      background: var(--background-color);
+      border: 1px solid var(--border-color);
     }
 
     .detail-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
+    }
+
+    .meta-item {
       display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+      text-align: center;
+      padding: 12px;
+      border-radius: 8px;
+      background: var(--background-secondary-color);
+      transition: background-color 0.2s ease;
+      user-select: none;
 
-      .meta-item {
-        flex: 0 0 180px;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        padding: 12px;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        background-color: var(--background-secondary-color);
+      &:hover {
+        background: color-mix(in srgb, var(--color-primary) 5%, var(--background-secondary-color));
+      }
 
-        .meta-label {
-          font-size: 12px;
-          color: var(--text-secondary-color);
-        }
+      .meta-label {
+        font-size: 12px;
+        color: var(--text-secondary-color);
+        font-weight: 500;
+        letter-spacing: 0.3px;
+      }
 
-        .meta-value {
-          font-size: 14px;
-          font-weight: 600;
-          color: var(--text-color);
-        }
+      .meta-value {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-color);
+        line-height: 1.4;
       }
     }
 
+    .detail-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding-top: 4px;
+    }
+
     .detail-section {
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      background: var(--background-color);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .section-block {
       display: flex;
       flex-direction: column;
       gap: 12px;
 
-      .detail-content {
-        line-height: 1.7;
+      & + .section-block {
+        padding-top: 12px;
+        border-top: 1px dashed var(--border-color);
+      }
+    }
+
+    .section-body {
+      line-height: 1.7;
+      color: var(--text-color);
+    }
+
+    .detail-title {
+      h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
         color: var(--text-color);
       }
+    }
+
+    .detail-content {
+      line-height: 1.7;
+      color: var(--text-color);
     }
 
     .detail-options {
@@ -1083,72 +1186,111 @@ onMounted(async () => {
       gap: 12px;
     }
 
-    .detail-option-item {
+    .option-item {
       border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-radius: 12px;
       padding: 12px;
-      background: var(--background-secondary-color);
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
 
       &.correct {
         border-color: var(--success-color);
-        box-shadow: 0 4px 12px var(--shadow-secondary-color);
-      }
+        background: color-mix(in srgb, var(--success-color) 8%, var(--background-color));
 
-      .option-main {
-        display: flex;
-        gap: 12px;
-        align-items: flex-start;
-      }
-
-      .option-header {
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-      }
-
-      .option-content {
-        flex: 1;
-        line-height: 1.6;
-        color: var(--text-color);
-      }
-
-      .option-score,
-      .option-explanation {
-        margin-top: 8px;
-        font-size: 12px;
-        color: var(--text-secondary-color);
+        .option-label {
+          color: var(--success-color);
+        }
       }
     }
 
-    .detail-answer {
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      background: var(--background-secondary-color);
+    .option-main {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .option-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      flex: 1;
+
+      :deep(p) {
+        margin: 0;
+      }
+    }
+
+    .option-label {
+      font-size: var(--markdown-font-size);
+      font-weight: 600;
+      color: var(--color-primary);
+      min-width: 8px;
+    }
+
+    .option-score {
+      font-size: 13px;
+      color: var(--text-secondary-color);
+      white-space: nowrap;
+      margin-left: 8px;
+    }
+
+    .option-explanation {
+      font-size: 13px;
+      color: var(--text-secondary-color);
+      line-height: 1.5;
+    }
+
+    .detail-answers {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .answer-item {
+      border: 1px dashed var(--border-color);
+      border-radius: 12px;
       padding: 12px;
-      line-height: 1.6;
-      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
 
-      & + .detail-answer {
-        margin-top: 12px;
-      }
+    .answer-main {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
 
-      .answer-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 8px;
-      }
+    .answer-index {
+      font-size: var(--markdown-font-size);
+      font-weight: 600;
+      color: var(--color-primary);
+      white-space: nowrap;
+      margin-right: 8px;
+    }
 
-      .answer-content {
-        line-height: 1.6;
-      }
+    .answer-content {
+      flex: 1;
 
-      .answer-explanation {
-        margin-top: 8px;
-        font-size: 12px;
-        color: var(--text-secondary-color);
+      :deep(p) {
+        margin: 0;
       }
+    }
+
+    .answer-score {
+      font-size: 13px;
+      color: var(--text-secondary-color);
+      white-space: nowrap;
+      margin-left: 8px;
+    }
+
+    .answer-explanation {
+      font-size: 13px;
+      color: var(--text-secondary-color);
+      line-height: 1.5;
     }
   }
 }
@@ -1175,10 +1317,14 @@ onMounted(async () => {
     }
 
     .search-section {
+      .search-section-content {
+        flex-direction: column;
+        gap: 16px;
+      }
+
       .n-form {
         .n-form-item {
           width: 100%;
-          margin-bottom: 12px;
         }
       }
     }
@@ -1316,4 +1462,8 @@ onMounted(async () => {
     }
   }
 }
+</style>
+
+<style lang="scss">
+@use './CelestialHubQuestionButton.scss';
 </style>

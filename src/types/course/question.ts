@@ -6,6 +6,8 @@ import {QuestionOptionDTO} from "./questionOption"
  * 用于题目的新增操作
  */
 export interface QuestionAddDTO {
+    /** 所属课程ID */
+    courseId?: string | null
     /** 所属题库ID */
     questionBankId: string | null
     /** 创建用户ID */
@@ -30,6 +32,8 @@ export interface QuestionAddDTO {
     allowPartialCredit?: number | null
     /** 题目状态 (0=草稿, 1=发布, 2=停用) */
     status?: number | null
+    /** 天枢题目ID */
+    celestialQuestionId?: string | null
     /** 选项列表 (选择题、判断题使用) */
     options?: QuestionOptionDTO[] | null
     /** 填空简答答案列表 */
@@ -43,6 +47,8 @@ export interface QuestionAddDTO {
 export interface QuestionDTO {
     /** 题目ID */
     id?: string | null
+    /** 所属课程ID */
+    courseId?: string | null
     /** 所属题库ID */
     questionBankId: string | null
     /** 创建用户ID */

@@ -68,6 +68,7 @@ export default {
         descriptionPlaceholder: '请输入课程描述',
         teacherId: '主讲教师',
         teacherIdPlaceholder: '请选择主讲教师',
+        teacherName: '主讲教师',
         assistantTeachers: '辅助教师',
         assistantTeachersPlaceholder: '请选择辅助教师',
         semester: '学期',
@@ -1023,6 +1024,7 @@ export default {
         createFirst: '创建第一个题目',
         deleteConfirm: '确认删除题目',
         deleteConfirmContent: '确定要删除题目"{questionTitle}"吗？此操作不可撤销。',
+        confirmDelete: '确认删除',
         deleteSuccess: '题目删除成功',
         deleteFailed: '题目删除失败',
         viewCount: '浏览次数',
@@ -1048,7 +1050,14 @@ export default {
         optionsMinRequired: '单选题、多选题和判断题至少需要 {min} 个选项',
         optionsMaxRequired: '判断题最多只能有 {max} 个选项',
         atLeastOneCorrectRequired: '选项中必须至少有一个正确答案',
-        answersMinRequired: '填空题和简答题至少需要 {min} 个答案'
+        answersMinRequired: '填空题和简答题至少需要 {min} 个答案',
+        addToQuestionBank: '加入题库',
+        addToQuestionBankTitle: '加入题库',
+        addToQuestionBankContent: '确定要将该题目加入题库吗？',
+        addToQuestionBankSuccess: '题目已成功加入题库',
+        selectCourse: '选择课程',
+        selectQuestionBank: '选择题库',
+        tianshuQuestion: '天枢出题'
     },
 
     // 题目状态

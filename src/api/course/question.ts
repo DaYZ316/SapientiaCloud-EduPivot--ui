@@ -26,6 +26,7 @@ export function getDefaultQuestionQuery(): QuestionQueryParams {
 // 获取默认题目添加DTO
 export function getDefaultQuestionAddDTO(): QuestionAddDTO {
     return {
+        courseId: null,
         questionBankId: null,
         sysUserId: null,
         questionTitle: null,
@@ -38,6 +39,7 @@ export function getDefaultQuestionAddDTO(): QuestionAddDTO {
         imageUrls: null,
         allowPartialCredit: null,
         status: null,
+        celestialQuestionId: null,
         options: null,
         answers: null
     }
@@ -47,6 +49,7 @@ export function getDefaultQuestionAddDTO(): QuestionAddDTO {
 export function getDefaultQuestionDTO(): QuestionDTO {
     return {
         id: null,
+        courseId: null,
         questionBankId: null,
         sysUserId: null,
         questionTitle: null,

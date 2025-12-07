@@ -20,9 +20,6 @@
                         <n-text class="question-stat" depth="3">
                           {{ t('course.question.estimatedTime') }}: {{ formatEstimatedTime(question.estimatedTime) }}
                         </n-text>
-                        <n-text class="question-stat" depth="3">
-                          {{ t('course.question.viewCount') }}: {{ question.viewCount || 0 }}
-                        </n-text>
                       </div>
                     </div>
                   </div>

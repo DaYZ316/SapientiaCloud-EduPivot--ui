@@ -94,7 +94,7 @@ const {t} = useI18n()
 const router = useRouter()
 
 // 响应式数据
-const marqueeDuration = ref(20) // 跑马灯动画持续时间（秒）
+const marqueeDuration = ref(10) // 跑马灯动画持续时间（秒）
 
 // 计算属性
 const assistantTeachers = computed(() => {
@@ -115,7 +115,7 @@ const handleTeacherClick = (teacher: TeacherVO) => {
 watch(() => assistantTeachers.value.length, (count) => {
   if (count > 0) {
     // 根据教师数量调整动画速度，教师越多速度越快
-    marqueeDuration.value = Math.max(15, 30 - count * 2)
+    marqueeDuration.value = Math.max(8, 18 - count * 1.5)
   }
 }, {immediate: true})
 
@@ -147,7 +147,7 @@ watch(() => assistantTeachers.value.length, (count) => {
   white-space: nowrap;
 
   &.marquee-animate {
-    animation: marquee var(--marquee-duration, 20s) linear infinite;
+    animation: marquee var(--marquee-duration, 10s) linear infinite;
   }
 }
 

@@ -1,18 +1,31 @@
 <template>
-  <n-modal
-      v-model:show="innerShow"
-      :auto-focus="false"
-      :close-on-esc="false"
-      :mask-closable="false"
-      :show-icon="false"
-      :style="{ width: '80vw', maxWidth: '80vw', height: '80vh', maxHeight: '80vh' }"
-      class="smart-question-modal"
-      preset="dialog"
+  <div
+      v-show="innerShow"
+      class="smart-question-panel"
   >
-    <template #header>
-      {{ t('chat.toolsMenu.smartQuestion') }}
-    </template>
-    <div class="smart-question-placeholder">
+    <div class="smart-question-panel-header">
+      <div class="smart-question-panel-title">
+        <span class="smart-question-panel-text">
+          {{ t('chat.toolsMenu.smartQuestion') }}
+        </span>
+      </div>
+      <div class="smart-question-panel-actions">
+        <n-button
+            :title="t('common.cancel')"
+            aria-label="close"
+            circle
+            class="smart-question-panel-close"
+            size="small"
+            tertiary
+            @click="handleClose"
+        >
+          <template #icon>
+            <n-icon :component="CloseOutline" size="16"/>
+          </template>
+        </n-button>
+      </div>
+    </div>
+    <div class="smart-question-panel-body">
       <n-form
           ref="questionFormRef"
           :model="questionForm"
@@ -62,22 +75,24 @@
               type="textarea"
           />
         </n-form-item>
+        <div class="smart-question-panel-footer">
+          <n-button quaternary @click="handleClose">
+            {{ t('common.cancel') }}
+          </n-button>
+          <n-button type="primary" @click="handleGenerateQuestions">
+            {{ t('common.confirm') }}
+          </n-button>
+        </div>
       </n-form>
     </div>
-    <template #action>
-      <n-button quaternary @click="handleClose">
-        {{ t('common.cancel') }}
-      </n-button>
-      <n-button type="primary" @click="handleGenerateQuestions">
-        {{ t('common.confirm') }}
-      </n-button>
-    </template>
-  </n-modal>
+  </div>
 </template>
 
 <script lang="ts" setup>
 import {computed, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
+import {NButton, NIcon} from 'naive-ui'
+import {CloseOutline} from '@vicons/ionicons5'
 import {getDefaultQuestionGenerateRequestDTO} from '@/api/celestialHub/question'
 import type {QuestionGenerateRequestDTO} from '@/types/celestialHub/question'
 import type {FormInst, FormRules} from 'naive-ui'
@@ -99,14 +114,34 @@ const emit = defineEmits<{
 
 const {t} = useI18n()
 
-const innerShow = computed({
-  get() {
-    return props.show
-  },
-  set(value: boolean) {
-    emit('update:show', value)
+const innerShow = ref(props.show)
+const skipCloseAnimation = ref(false)
+
+watch(() => props.show, (newValue) => {
+  if (newValue) {
+    innerShow.value = true
+    skipCloseAnimation.value = false
+  } else {
+    if (skipCloseAnimation.value) {
+      // 通过确定按钮关闭，立即隐藏，不使用退出动画
+      innerShow.value = false
+      skipCloseAnimation.value = false
+    } else {
+      // 延迟隐藏，确保关闭动画完成
+      setTimeout(() => {
+        innerShow.value = false
+      }, 400)
+    }
   }
-})
+}, { immediate: true })
+
+const handleUpdateShow = (value: boolean, skipAnimation = false) => {
+  if (skipAnimation) {
+    skipCloseAnimation.value = true
+  }
+  // 立即更新状态，触发动画
+  emit('update:show', value)
+}
 
 const questionFormRef = ref<FormInst | null>(null)
 const questionForm = ref<QuestionGenerateRequestDTO>(getDefaultQuestionGenerateRequestDTO())
@@ -218,67 +253,97 @@ const handleGenerateQuestions = () => {
       ...questionForm.value
     }
     emit('question-request-success', requestPayload)
-    innerShow.value = false
+    // 通过确定按钮关闭，跳过退出动画
+    handleUpdateShow(false, true)
   })
 }
 
 const handleClose = () => {
-  innerShow.value = false
+  handleUpdateShow(false)
 }
 </script>
 
 <style lang="scss" scoped>
 @use '@/assets/styles' as *;
 
-.smart-question-modal {
-  :deep(.n-card) {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    border-radius: 18px;
-  }
+.smart-question-panel {
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 48px);
+  height: calc(100% - 48px);
+  overflow: hidden;
+  background: var(--background-color);
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  margin: 24px;
+  border: 1px solid var(--border-color);
 
-  :deep(.n-card-header) {
+  .smart-question-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: 16px 24px;
     border-bottom: 1px solid var(--border-color);
 
-    .n-card-header__main {
+    .smart-question-panel-title {
       font-size: 18px;
       font-weight: 600;
+      color: var(--color-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+
+      .smart-question-panel-text {
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+        min-width: 0;
+      }
+    }
+
+    .smart-question-panel-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .smart-question-panel-close {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+      }
     }
   }
 
-  :deep(.n-card__content) {
+  .smart-question-panel-body {
     flex: 1;
-    overflow: auto;
-    padding: 16px 24px 0 24px;
-  }
+    min-height: 0;
+    padding: 24px;
+    overflow-y: auto;
+    background: var(--background-color);
 
-  :deep(.n-card__footer) {
-    padding: 12px 24px 16px 24px;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-  }
-}
+    .smart-question-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px 24px;
+      margin-bottom: 16px;
 
-.smart-question-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
+      @media (max-width: 960px) {
+        grid-template-columns: 1fr;
+      }
+    }
 
-.smart-question-form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px 24px;
-  margin-bottom: 16px;
-
-  @media (max-width: 960px) {
-    grid-template-columns: 1fr;
+    .smart-question-panel-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-color);
+    }
   }
 }
 

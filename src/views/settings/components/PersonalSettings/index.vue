@@ -96,8 +96,7 @@ const handleAvatarUploadSuccess = async (url: string) => {
     basicInfoRef.value.updateAvatar(url)
   }
 
-  // 立即刷新用户信息到store，确保头像实时更新（强制刷新）
-  await userStore.refreshUserInfo(true)
+  // 不立即刷新用户信息，等待用户手动保存
 }
 </script>
 

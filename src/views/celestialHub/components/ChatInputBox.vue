@@ -34,7 +34,7 @@
                 :class="['tool-item', { disabled: isUploadingFiles }]"
                 @click.stop="handleTriggerFileSelect"
             >
-              <n-icon :component="Add" size="18"/>
+              <n-icon :component="AttachOutline" size="18"/>
             </div>
             <n-dropdown
                 :options="toolsOptions"
@@ -87,7 +87,7 @@
 <script lang="ts" setup>
 import {computed, ref, watch, onUnmounted} from 'vue'
 import {NButton, NDropdown, NIcon, NInput, NSwitch, useMessage} from 'naive-ui'
-import {Add, MicOutline, Send, Stop} from '@vicons/ionicons5'
+import {AttachOutline, MicOutline, Send, Stop} from '@vicons/ionicons5'
 import {useI18n} from 'vue-i18n'
 import {useUserStore} from '@/store'
 import {useSpeechRecognition} from '@/composables/useSpeechRecognition'

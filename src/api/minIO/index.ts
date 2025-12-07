@@ -119,7 +119,7 @@ export function listFiles(params?: MinioListFilesParams) {
     })
 }
 
-// 上传文件
+// 上传文件（新接口）
 export function uploadFile(file: File, options?: MinioUploadFileOptions | string) {
     const formData = new FormData()
     formData.append('file', file)
@@ -137,12 +137,14 @@ export function uploadFile(file: File, options?: MinioUploadFileOptions | string
     if (directory) {
         formData.append('directory', directory)
     }
+    if (bucketCode) {
+        formData.append('bucketCode', bucketCode)
+    }
 
     return http.post('/minIO/file/upload', formData, {
         headers: {
             'Content-Type': 'multipart/form-data'
-        },
-        params: buildBucketParams(bucketCode)
+        }
     })
 }
 

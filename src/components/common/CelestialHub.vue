@@ -6,11 +6,19 @@
 </template>
 
 <script setup>
-import {onMounted, onBeforeUnmount, ref, onUnmounted} from 'vue';
+import {onMounted, onBeforeUnmount, ref, watch} from 'vue';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import mainTextureImage from '@/assets/3Dmodel/celestail_hub/棱角球.002_Bake1_CyclesBake_COMBINED.png';
+
+// Props
+const props = defineProps({
+  isActive: {
+    type: Boolean,
+    default: false
+  }
+});
 
 // 组件状态
 const canvasRef = ref(null);
@@ -33,6 +41,16 @@ let sizes = {
   width: 0,
   height: 0
 };
+let whiteLight = null; // 主色光源
+
+// 获取CSS变量中的primary-color
+const getPrimaryColor = () => {
+  const primaryColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--primary-color')
+    .trim() || '#1890ff';
+  // 将CSS颜色值转换为Three.js颜色
+  return new THREE.Color(primaryColor);
+};
 
 // 鼠标追踪相关变量
 let mouse = {
@@ -52,9 +70,9 @@ const rotationSpeed = 0.05; // 旋转平滑速度
 // 自动旋转相关变量
 let autoRotateEnabled = true; // 是否启用自动旋转
 let autoRotationSpeed = {
-  x: 0.002,
-  y: 0.003,
-  z: 0.001
+  x: 0.00025,
+  y: 0.000375,
+  z: 0.000125
 }; // 自动旋转速度
 let autoRotationTarget = {
   x: Math.random() * Math.PI * 2,
@@ -156,6 +174,19 @@ const initThree = () => {
     pointLight3.distance = 5; // 限制光照范围
     pointLight3.decay = 2; // 光照衰减
     scene.add(pointLight3);
+
+    // 主色光源 - 用于AI页面时的发光效果（位置将在模型加载后设置）
+    const primaryColor = getPrimaryColor();
+    whiteLight = new THREE.PointLight(primaryColor, 0);
+    whiteLight.position.set(0, 0, 0); // 临时位置，模型加载后会更新
+    whiteLight.distance = 20; // 增加距离以扩大散射范围
+    whiteLight.decay = 0.5; // 减小衰减以增加散射角度
+    scene.add(whiteLight);
+
+    // 如果当前在AI页面，启用主色光效果
+    if (props.isActive) {
+      enableWhiteLight();
+    }
 
     /**
      * 加载器设置
@@ -335,6 +366,16 @@ const loadBookModel = () => {
           // 添加到场景
           scene.add(bookModel);
 
+          // 根据模型尺寸设置主色光源位置（放在模型后面）
+          if (whiteLight) {
+            const scaledSize = new THREE.Vector3();
+            box.getSize(scaledSize);
+            scaledSize.multiplyScalar(scale);
+            // 将光源放在模型后方（Z轴负方向），距离模型边缘约0.3单位
+            const lightDistance = Math.max(scaledSize.x, scaledSize.y, scaledSize.z) * 0.5 + 0.3;
+            whiteLight.position.set(0, 0, -lightDistance);
+          }
+
           // 加载纹理
           loadingText.value = '正在加载纹理...';
           // 确保纹理路径是字符串（处理 Vite/webpack 导入的情况）
@@ -442,6 +483,11 @@ const applyTexturesToModel = () => {
         createSimpleUVs(child.geometry);
       }
 
+      // 如果当前在AI页面，添加自发光效果
+      if (props.isActive) {
+        applyEmissiveEffect(child);
+      }
+
       // 更新材质
       if (child.material) {
         if (Array.isArray(child.material)) {
@@ -458,6 +504,97 @@ const applyTexturesToModel = () => {
   });
 
 };
+
+// 应用自发光效果
+const applyEmissiveEffect = (mesh) => {
+  if (!mesh || !mesh.isMesh) return;
+
+  const primaryColor = getPrimaryColor();
+  if (Array.isArray(mesh.material)) {
+    mesh.material.forEach(mat => {
+      if (mat && mat.isMaterial) {
+        mat.emissive = primaryColor.clone();
+        mat.emissiveIntensity = 0.3;
+      }
+    });
+  } else if (mesh.material && mesh.material.isMaterial) {
+    mesh.material.emissive = primaryColor.clone();
+    mesh.material.emissiveIntensity = 0.3;
+  }
+};
+
+// 移除自发光效果
+const removeEmissiveEffect = (mesh) => {
+  if (!mesh || !mesh.isMesh) return;
+
+  if (Array.isArray(mesh.material)) {
+    mesh.material.forEach(mat => {
+      if (mat && mat.isMaterial) {
+        mat.emissive = new THREE.Color(0x000000);
+        mat.emissiveIntensity = 0;
+      }
+    });
+  } else if (mesh.material && mesh.material.isMaterial) {
+    mesh.material.emissive = new THREE.Color(0x000000);
+    mesh.material.emissiveIntensity = 0;
+  }
+};
+
+// 启用主色光效果
+const enableWhiteLight = () => {
+  if (whiteLight) {
+    const primaryColor = getPrimaryColor();
+    whiteLight.color = primaryColor;
+    whiteLight.intensity = 50;
+    
+    // 如果模型已加载，更新光源位置到模型后面
+    if (bookModel) {
+      const box = new THREE.Box3().setFromObject(bookModel);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      // 计算缩放后的尺寸
+      const scale = bookModel.scale.x;
+      const scaledSize = new THREE.Vector3(
+        size.x * scale,
+        size.y * scale,
+        size.z * scale
+      );
+      // 将光源放在模型后方（Z轴负方向），距离模型边缘约0.3单位
+      const lightDistance = Math.max(scaledSize.x, scaledSize.y, scaledSize.z) * 0.5 + 0.3;
+      whiteLight.position.set(0, 0, -lightDistance);
+    }
+  }
+  if (bookModel) {
+    bookModel.traverse((child) => {
+      if (child.isMesh) {
+        applyEmissiveEffect(child);
+      }
+    });
+  }
+};
+
+// 禁用主色光效果
+const disableWhiteLight = () => {
+  if (whiteLight) {
+    whiteLight.intensity = 0;
+  }
+  if (bookModel) {
+    bookModel.traverse((child) => {
+      if (child.isMesh) {
+        removeEmissiveEffect(child);
+      }
+    });
+  }
+};
+
+// 监听isActive变化
+watch(() => props.isActive, (newValue) => {
+  if (newValue) {
+    enableWhiteLight();
+  } else {
+    disableWhiteLight();
+  }
+});
 
 // 为缺少UV的几何体创建简单的UV映射
 const createSimpleUVs = (geometry) => {
@@ -534,9 +671,9 @@ const handleMouseLeave = () => {
   autoRotationTarget.z = Math.random() * Math.PI * 2;
 
   // 随机改变旋转速度，增加无规律性
-  autoRotationSpeed.x = (0.001 + Math.random() * 0.003) * (Math.random() > 0.5 ? 1 : -1);
-  autoRotationSpeed.y = (0.001 + Math.random() * 0.003) * (Math.random() > 0.5 ? 1 : -1);
-  autoRotationSpeed.z = (0.0005 + Math.random() * 0.002) * (Math.random() > 0.5 ? 1 : -1);
+  autoRotationSpeed.x = (0.000125 + Math.random() * 0.000375) * (Math.random() > 0.5 ? 1 : -1);
+  autoRotationSpeed.y = (0.000125 + Math.random() * 0.000375) * (Math.random() > 0.5 ? 1 : -1);
+  autoRotationSpeed.z = (0.0000625 + Math.random() * 0.00025) * (Math.random() > 0.5 ? 1 : -1);
 };
 
 // 动画循环
@@ -565,14 +702,14 @@ const animate = () => {
         autoRotationTarget.z = Math.random() * Math.PI * 2;
 
         // 随机改变旋转速度和方向
-        autoRotationSpeed.x = (0.001 + Math.random() * 0.003) * (Math.random() > 0.5 ? 1 : -1);
-        autoRotationSpeed.y = (0.001 + Math.random() * 0.003) * (Math.random() > 0.5 ? 1 : -1);
-        autoRotationSpeed.z = (0.0005 + Math.random() * 0.002) * (Math.random() > 0.5 ? 1 : -1);
+        autoRotationSpeed.x = (0.000125 + Math.random() * 0.000375) * (Math.random() > 0.5 ? 1 : -1);
+        autoRotationSpeed.y = (0.000125 + Math.random() * 0.000375) * (Math.random() > 0.5 ? 1 : -1);
+        autoRotationSpeed.z = (0.0000625 + Math.random() * 0.00025) * (Math.random() > 0.5 ? 1 : -1);
       }
 
       // 平滑过渡到目标旋转
-      currentRotation.x += (autoRotationTarget.x - currentRotation.x) * 0.01;
-      currentRotation.y += (autoRotationTarget.y - currentRotation.y) * 0.01;
+      currentRotation.x += (autoRotationTarget.x - currentRotation.x) * 0.005;
+      currentRotation.y += (autoRotationTarget.y - currentRotation.y) * 0.005;
 
       // 应用自动旋转
       bookModel.rotation.x += autoRotationSpeed.x;
@@ -653,6 +790,16 @@ const cleanup = () => {
         renderer.dispose();
       } catch (err) {
         console.warn('清理渲染器时出错:', err);
+      }
+    }
+
+    // 清理主色光源
+    if (whiteLight && scene) {
+      try {
+        scene.remove(whiteLight);
+        whiteLight = null;
+      } catch (err) {
+        console.warn('清理主色光源时出错:', err);
       }
     }
 
@@ -752,6 +899,7 @@ const cleanup = () => {
   bookModel = null;
   loader = null;
   animationId = null;
+  whiteLight = null;
 };
 
 // 组件挂载时初始化

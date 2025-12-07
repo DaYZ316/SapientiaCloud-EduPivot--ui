@@ -77,7 +77,7 @@ export class TitleUtil {
             'system/permission': 'system.permission',
             'info/teacher': 'infoManagement.teacher',
             'info/student': 'infoManagement.student',
-            'course': 'course',
+            'course': 'course.course',
             'course/my-courses': 'course.myCourses',
             'course/detail': 'course.courseDetail'
         }
@@ -167,7 +167,7 @@ export function useTitle() {
             'system/permission': 'system.permission',
             'info/teacher': 'infoManagement.teacher',
             'info/student': 'infoManagement.student',
-            'course': 'course',
+            'course': 'course.course',
             'course/my-courses': 'course.myCourses',
             'course/detail': 'course.courseDetail'
         }

@@ -124,6 +124,8 @@ export default {
     actions: 'Actions',
     points: 'Points',
     minutes: 'Minutes',
+    previous: 'Previous',
+    next: 'Next',
 
     // Time related
     createTime: 'Create Time',

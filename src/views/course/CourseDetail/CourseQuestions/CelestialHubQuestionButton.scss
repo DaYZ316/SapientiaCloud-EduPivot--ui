@@ -1,0 +1,148 @@
+.tianshu-question-button {
+  position: relative;
+  padding: 8px 20px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #ffffff;
+  background: linear-gradient(
+    135deg,
+    #8b5cf6 0%,
+    #a855f7 25%,
+    #ec4899 50%,
+    #f43f5e 75%,
+    #8b5cf6 100%
+  );
+  background-size: 300% 300%;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 2px 12px rgba(139, 92, 246, 0.4),
+    0 0 20px rgba(168, 85, 247, 0.25),
+    inset 0 0 15px rgba(255, 255, 255, 0.08);
+  text-transform: none;
+  letter-spacing: 0.5px;
+  animation: gradientShift 4s ease infinite, glowPulse 3s ease-in-out infinite;
+
+  // 光流动画层
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.5),
+      rgba(255, 255, 255, 0.8),
+      rgba(255, 255, 255, 0.5),
+      transparent
+    );
+    transition: left 0.6s;
+    z-index: 1;
+  }
+
+  // 边框高光层
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    padding: 2px;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.6),
+      rgba(255, 255, 255, 0.2),
+      rgba(255, 255, 255, 0.6)
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s;
+    z-index: 2;
+    animation: borderScan 3s linear infinite;
+  }
+
+  // 粒子效果（使用伪元素创建）
+  &:hover {
+    background-position: 100% 50%;
+    box-shadow: 
+      0 4px 18px rgba(139, 92, 246, 0.6),
+      0 0 30px rgba(168, 85, 247, 0.4),
+      inset 0 0 20px rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px) scale(1.01);
+    animation: gradientShift 2s ease infinite, glowPulse 1.5s ease-in-out infinite;
+
+    &::before {
+      left: 100%;
+      transition: left 0.8s;
+    }
+
+    &::after {
+      opacity: 1;
+      animation: borderScan 1.5s linear infinite;
+    }
+  }
+
+  &:active {
+    transform: translateY(-1px) scale(0.98);
+    box-shadow: 
+      0 2px 10px rgba(139, 92, 246, 0.5),
+      0 0 20px rgba(168, 85, 247, 0.35);
+    animation: none;
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 
+      0 2px 12px rgba(139, 92, 246, 0.4),
+      0 0 20px rgba(168, 85, 247, 0.25),
+      0 0 0 3px rgba(139, 92, 246, 0.25);
+  }
+
+  // 背景渐变流动动画
+  @keyframes gradientShift {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  // 发光脉冲动画
+  @keyframes glowPulse {
+    0%, 100% {
+      box-shadow: 
+        0 2px 12px rgba(139, 92, 246, 0.4),
+        0 0 20px rgba(168, 85, 247, 0.25),
+        inset 0 0 15px rgba(255, 255, 255, 0.08);
+    }
+    50% {
+      box-shadow: 
+        0 3px 18px rgba(139, 92, 246, 0.6),
+        0 0 30px rgba(168, 85, 247, 0.4),
+        inset 0 0 20px rgba(255, 255, 255, 0.12);
+    }
+  }
+
+  // 边框扫描动画
+  @keyframes borderScan {
+    0% {
+      background-position: 0% 0%;
+    }
+    100% {
+      background-position: 200% 200%;
+    }
+  }
+}
+

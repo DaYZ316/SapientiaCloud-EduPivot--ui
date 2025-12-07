@@ -6,8 +6,8 @@
     <!-- Logo区域 -->
     <div class="sidebar-header">
       <div class="logo" @click="handleLogoClick">
-        <CelestailHub class="logo-image"/>
-        <span v-if="!collapsed" :lang="locale" class="logo-text" v-html="displayAppName"></span>
+        <CelestailHub :is-active="isAIPage" class="logo-image"/>
+        <span v-if="!collapsed" :class="{ 'logo-text-highlight': isAIPage }" :lang="locale" class="logo-text" v-html="displayAppName"></span>
       </div>
     </div>
 
@@ -21,6 +21,20 @@
           :options="menuOptions"
           :value="currentRoute"
           @update:value="handleMenuSelect"
+      />
+    </div>
+
+    <!-- 分割线 (仅在AI页面且侧边栏展开时显示) -->
+    <div v-if="isAIPage && !collapsed" class="ai-sessions-divider"></div>
+
+    <!-- AI会话列表区域 (仅在AI页面且侧边栏展开时显示) -->
+    <div v-if="isAIPage && !collapsed" class="sidebar-ai-sessions">
+      <ChatSidebar
+          :active-session-id="activeSessionId ?? undefined"
+          :embedded-mode="true"
+          @my-favorites="handleAIMyFavorites"
+          @new-chat="handleAINewChat"
+          @select-session="handleAISelectSession"
       />
     </div>
 
@@ -59,7 +73,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed} from 'vue'
+import {computed, onMounted, onUnmounted, ref} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {ChevronDownOutline} from '@vicons/ionicons5'
@@ -68,7 +82,10 @@ import {useMenuStore, useThemeStore, useUserStore} from '@/store'
 import {getMenuOptions, getUserMenuOptions, menuExpandMap, menuRouteMap} from '@/config/menu'
 import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
 import {createCourseMenuHandler} from '@/utils/courseMenu'
-import CelestailHub from '@/components/common/CelestailHub.vue'
+import CelestailHub from '@/components/common/CelestialHub.vue'
+import ChatSidebar from '@/views/celestialHub/components/ChatSidebar.vue'
+import eventBus from '@/utils/eventBus'
+import type {ChatSessionVO} from '@/types/celestialHub/chatSession'
 
 // 路由和国际化
 const route = useRoute()
@@ -120,6 +137,7 @@ const getCurrentMenuKey = (routeName: string): string => {
 
 const currentRoute = computed(() => getCurrentMenuKey(route.name as string))
 const dynamicMenuOptions = computed(() => menuStore.getDynamicMenuItems)
+const isAIPage = computed(() => route.name === 'AI' || route.path === '/ai')
 
 const menuOptions = computed(() => {
   const lastCourse = menuStore.getLastAccessedCourse
@@ -172,6 +190,35 @@ const handleMenuSelect = (key: string) => {
 const handleLogoClick = () => {
   router.push('/ai')
 }
+
+// AI会话相关
+const activeSessionId = ref<string | number | null>(null)
+
+// 处理AI会话选择
+const handleAISelectSession = (session: ChatSessionVO) => {
+  eventBus.emit('aiSelectSession', session)
+}
+
+// 处理AI新建对话
+const handleAINewChat = () => {
+  eventBus.emit('aiNewChat')
+}
+
+// 处理AI我的收藏
+const handleAIMyFavorites = () => {
+  eventBus.emit('aiMyFavorites')
+}
+
+// 监听activeSessionId变化
+onMounted(() => {
+  eventBus.on('aiActiveSessionIdChanged', (id) => {
+    activeSessionId.value = id
+  })
+})
+
+onUnmounted(() => {
+  eventBus.off('aiActiveSessionIdChanged')
+})
 </script>
 
 <style lang="scss" scoped>
@@ -227,9 +274,13 @@ const handleLogoClick = () => {
 
 .logo-text {
   white-space: nowrap;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease, color 0.3s ease;
   text-align: center;
   line-height: 1.2;
+
+  &.logo-text-highlight {
+    color: var(--color-primary-light);
+  }
 }
 
 .sidebar-collapsed .logo-text {
@@ -247,6 +298,7 @@ const handleLogoClick = () => {
   flex: 1;
   padding: 8px 0;
   overflow-y: auto;
+  min-height: 0;
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -265,6 +317,22 @@ const handleLogoClick = () => {
   &::-webkit-scrollbar-thumb:hover {
     background: var(--text-secondary-color);
   }
+}
+
+.ai-sessions-divider {
+  height: 1px;
+  background-color: var(--border-secondary-color);
+  margin: 8px 16px;
+  flex-shrink: 0;
+}
+
+.sidebar-ai-sessions {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 50vh;
 }
 
 .sidebar-footer {

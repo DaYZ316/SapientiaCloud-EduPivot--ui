@@ -1,13 +1,14 @@
 <template>
   <div class="celestial-hub-page">
     <div class="celestial-hub-container">
-      <!-- 聊天侧边栏 -->
+      <!-- 聊天侧边栏 (全局侧边栏展开时隐藏) -->
       <ChatSidebar
+          v-if="shouldHideChatSidebar === false"
           ref="chatSidebarRef"
           :active-session-id="activeSessionId"
           @my-favorites="handleMyFavorites"
           @new-chat="newChat"
-          @select-session="selectSession"
+          @select-session="selectSessionWithAnimation"
       />
 
       <input
@@ -19,7 +20,7 @@
       />
 
       <!-- 主内容区域 -->
-      <div :class="['main-content', { 'with-question-panel': isQuestionPanelActive }]">
+      <div :class="['main-content', { 'with-question-panel': isQuestionPanelActive || isQuestionToolsVisible }]">
         <!-- 聊天头部 -->
         <div v-if="currentSession" class="chat-header">
           <div class="chat-title">
@@ -65,7 +66,15 @@
         </div>
 
         <!-- 聊天内容 -->
-        <div v-if="currentSession" class="chat-content-wrapper">
+        <transition
+            name="chat-switch"
+            mode="out-in"
+        >
+          <div
+              v-if="currentSession"
+              :key="activeSessionId ?? 'session'"
+              class="chat-content-wrapper"
+          >
           <div class="chat-main-column">
             <div ref="chatContentRef" class="chat-content">
               <!-- 消息列表容器 - Gemini风格 -->
@@ -108,7 +117,7 @@
             </div>
           </div>
           <div
-              :class="{ 'is-visible': isQuestionPanelActive }"
+              :class="{ 'is-visible': isQuestionPanelActive || isQuestionToolsVisible }"
               class="question-panel-wrapper"
           >
             <PreviewPanel
@@ -120,43 +129,67 @@
                 :title="questionPanelTitle"
                 @close="handleCloseQuestionPanel"
             />
-          </div>
-        </div>
-
-        <!-- 空状态 - Gemini 风格 -->
-        <div v-else class="gemini-empty-state">
-          <!-- AI名称 -->
-          <div class="ai-name-container">
-            <div class="ai-name-text">{{ t('chat.aiName') }}</div>
-          </div>
-
-          <!-- 内容区域 - 限制宽度 -->
-          <div class="greeting-wrapper">
-            <!-- 问候语 -->
-            <div class="greeting-text">{{ t('chat.greeting', {name: userDisplayName || 'Guest'}) }}</div>
-          </div>
-        </div>
-
-        <!-- 输入区域 - 空状态下居中展示 -->
-        <div
-            v-if="!currentSession"
-            :class="['input-container', { 'empty-state-input': !currentSession }]"
-        >
-          <div class="input-wrapper">
-            <ChatInputBox
-                v-model="input"
-                v-model:use-rag="useRagSwitch"
-                :is-sending="isSending"
-                :is-uploading-files="isUploadingFiles"
-                :placeholder="t('chat.placeholder')"
-                @enter="sendMessage"
-                @send="sendMessage"
-                @stop="interruptStreaming"
-                @trigger-file-select="handleTriggerFileSelect"
-                @open-tools="handleToolsSelect"
+            <SmartQuestionModal
+                v-show="isQuestionToolsVisible && !isQuestionPanelActive"
+                v-model:show="isQuestionToolsVisible"
+                :session-id="currentSession?.id ?? null"
+                @question-request-success="handleQuestionRequestSuccess"
             />
           </div>
-        </div>
+          </div>
+          <!-- 空状态 - Gemini 风格 -->
+          <div
+              v-else
+              :key="'empty'"
+              class="empty-state-wrapper"
+          >
+            <div class="gemini-empty-state">
+              <!-- AI名称 -->
+              <div class="ai-name-container">
+                <div class="ai-name-text">{{ t('chat.aiName') }}</div>
+              </div>
+
+              <!-- 内容区域 - 限制宽度 -->
+              <div
+                  :class="['greeting-wrapper', { 'slide-out-left': isQuestionToolsVisible, 'slide-in-left': !isQuestionToolsVisible && wasQuestionToolsVisible }]"
+              >
+                <!-- 问候语 -->
+                <div class="greeting-text">{{ t('chat.greeting', {name: userDisplayName || 'Guest'}) }}</div>
+              </div>
+            </div>
+
+            <!-- 输入区域 - 空状态下居中展示 -->
+            <div
+                :class="['input-container', { 'empty-state-input': true, 'slide-out-left': isQuestionToolsVisible, 'slide-in-left': !isQuestionToolsVisible && wasQuestionToolsVisible }]"
+            >
+              <div class="input-wrapper">
+                <ChatInputBox
+                    v-model="input"
+                    v-model:use-rag="useRagSwitch"
+                    :is-sending="isSending"
+                    :is-uploading-files="isUploadingFiles"
+                    :placeholder="t('chat.placeholder')"
+                    @enter="sendMessage"
+                    @send="sendMessage"
+                    @stop="interruptStreaming"
+                    @trigger-file-select="handleTriggerFileSelect"
+                    @open-tools="handleToolsSelect"
+                />
+              </div>
+            </div>
+
+            <!-- SmartQuestionModal - 空状态下显示 -->
+            <div
+                :class="['smart-question-modal-container', { 'slide-in-right': isQuestionToolsVisible, 'slide-out-right': !isQuestionToolsVisible && wasQuestionToolsVisible }]"
+            >
+              <SmartQuestionModal
+                  v-model:show="isQuestionToolsVisible"
+                  :session-id="null"
+                  @question-request-success="handleQuestionRequestSuccess"
+              />
+            </div>
+          </div>
+        </transition>
       </div>
     </div>
     <n-drawer
@@ -180,23 +213,19 @@
         </div>
       </n-drawer-content>
     </n-drawer>
-    <SmartQuestionModal
-        v-model:show="isQuestionToolsVisible"
-        :session-id="currentSession?.id ?? null"
-        @question-request-success="handleQuestionRequestSuccess"
-    />
   </div>
 </template>
 
 <script lang="ts" setup>
-import {computed, nextTick, ref, watch} from 'vue'
+import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
+import {useRoute, useRouter} from 'vue-router'
 import {NDrawer, NDrawerContent, NEmpty, NIcon, NSpin, NTooltip, useMessage} from 'naive-ui'
 import {DocumentsOutline, Pin, Star} from '@vicons/ionicons5'
 import ChatSidebar from './components/ChatSidebar.vue'
 import ChatMessage from './components/ChatMessage.vue'
 import ChatInputBox from './components/ChatInputBox.vue'
-import {useUserStore} from '@/store'
+import {useThemeStore, useUserStore} from '@/store'
 import {useCelestialChat} from '@/views/celestialHub/composables/useCelestialChat'
 import {useQuestionGeneration} from '@/views/celestialHub/composables/useQuestionGeneration'
 import {useFileManagement} from '@/views/celestialHub/composables/useFileManagement'
@@ -207,9 +236,24 @@ import type {ChatMessage as ChatMessageEntity} from '@/types/celestialHub/chatMe
 import type {FileReference} from '@/types/celestialHub/knowledge'
 import type {FileInfoDTO} from '@/types/minIO/file'
 import PreviewPanel from '@/views/celestialHub/components/QuestionPreviewPanel.vue'
+import eventBus from '@/utils/eventBus'
+import type {ChatSessionVO} from '@/types/celestialHub/chatSession'
+
+// 路由
+const route = useRoute()
+const router = useRouter()
+
+// 状态管理
+const themeStore = useThemeStore()
 
 // 状态
 const chatSidebarRef = ref<InstanceType<typeof ChatSidebar> | null>(null)
+const wasQuestionToolsVisible = ref(false)
+
+// 计算属性：是否在全局侧边栏展开时隐藏ChatSidebar
+const shouldHideChatSidebar = computed(() => {
+  return !themeStore.sidebarCollapsed
+})
 
 // 使用聊天 composable
 const {
@@ -413,11 +457,118 @@ watch(messages, () => {
 }, {deep: true})
 
 
+// 包装 selectSession 以添加动画效果
+const selectSessionWithAnimation = async (session: ChatSessionVO) => {
+  // 如果点击的是当前已选中的会话，则不执行任何操作
+  if (activeSessionId.value === session.id) {
+    return
+  }
+  
+  // 直接切换会话，transition 组件会自动处理动画
+  await selectSession(session)
+}
+
 // 监听会话ID变化，创建新会话时刷新侧边栏
 watch(activeSessionId, (newId, oldId) => {
+  // 通知全局侧边栏activeSessionId变化
+  eventBus.emit('aiActiveSessionIdChanged', newId)
+  
   // 当从null变为有值时，说明创建了新会话，需要刷新侧边栏
   if (!oldId && newId) {
     chatSidebarRef.value?.loadSessions()
+  }
+  // 切换对话时关闭 SmartQuestionModal（包括切换到新会话和新建会话）
+  if (oldId !== newId && isQuestionToolsVisible.value) {
+    isQuestionToolsVisible.value = false
+  }
+})
+
+// 监听来自全局侧边栏的事件
+onMounted(() => {
+  eventBus.on('aiSelectSession', async (session: ChatSessionVO) => {
+    await selectSessionWithAnimation(session)
+  })
+  
+  eventBus.on('aiNewChat', () => {
+    newChat()
+  })
+  
+  eventBus.on('aiMyFavorites', () => {
+    handleMyFavorites()
+  })
+})
+
+onUnmounted(() => {
+  eventBus.off('aiSelectSession')
+  eventBus.off('aiNewChat')
+  eventBus.off('aiMyFavorites')
+})
+
+// 监听 isQuestionToolsVisible 变化，用于控制动画
+watch(isQuestionToolsVisible, (newValue) => {
+  if (newValue) {
+    wasQuestionToolsVisible.value = true
+  } else {
+    // 延迟重置，确保动画完成
+    setTimeout(() => {
+      wasQuestionToolsVisible.value = false
+    }, 400)
+  }
+})
+
+// 标记是否需要打开出题模态框
+const shouldOpenSmartQuestion = ref(false)
+
+// 监听路由 query 参数，如果存在 openSmartQuestion 参数，则标记需要打开
+watch(
+  () => route.query.openSmartQuestion,
+  (value) => {
+    if (value === 'true') {
+      shouldOpenSmartQuestion.value = true
+      // 清除 query 参数
+      router.replace({
+        path: route.path,
+        query: {
+          ...route.query,
+          openSmartQuestion: undefined
+        }
+      })
+    }
+  },
+  { immediate: true }
+)
+
+// 监听 currentSession，确保在空状态时打开模态框
+watch(
+  () => [currentSession.value, shouldOpenSmartQuestion.value],
+  ([session, shouldOpen]) => {
+    if (shouldOpen && !session) {
+      // 延迟打开，确保组件完全渲染
+      nextTick(() => {
+        nextTick(() => {
+          setTimeout(() => {
+            isQuestionToolsVisible.value = true
+            shouldOpenSmartQuestion.value = false
+          }, 600)
+        })
+      })
+    }
+  },
+  { immediate: true }
+)
+
+// 组件挂载时检查 query 参数
+onMounted(() => {
+  if (route.query.openSmartQuestion === 'true') {
+    shouldOpenSmartQuestion.value = true
+    // 清除 query 参数
+    router.replace({
+      path: route.path,
+      query: {
+        ...route.query,
+        openSmartQuestion: undefined
+      }
+    })
   }
 })
 

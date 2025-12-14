@@ -50,13 +50,11 @@
                   <template #icon>
                     <Icon :component="SearchOutline"/>
                   </template>
-                  {{ t('classroom.searchForm.search') }}
                 </n-button>
                 <n-button class="ml-2" @click="resetSearch">
                   <template #icon>
                     <Icon :component="RefreshOutline"/>
                   </template>
-                  {{ t('classroom.searchForm.reset') }}
                 </n-button>
               </n-form-item>
             </n-form>
@@ -82,7 +80,7 @@
 import {computed, onMounted, reactive, ref} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
-import {SearchOutline, RefreshOutline} from '@vicons/ionicons5'
+import {RefreshOutline, SearchOutline} from '@vicons/ionicons5'
 import ClassroomDetail from './components/ClassroomDetail.vue'
 import ClassroomHistory from './components/ClassroomHistory.vue'
 import CourseBreadcrumb from '@/views/course/components/CourseBreadcrumb/CourseBreadcrumb.vue'

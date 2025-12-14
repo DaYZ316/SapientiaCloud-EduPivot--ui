@@ -1,8 +1,8 @@
 <template>
   <n-modal
       v-model:show="showDialog"
-      :title="t('course.question.addToQuestionBankTitle')"
       :style="{ width: '90vw', maxWidth: '1200px' }"
+      :title="t('course.question.addToQuestionBankTitle')"
       preset="card"
       size="huge"
   >
@@ -196,6 +196,7 @@ const props = withDefaults(defineProps<Props>(), {
 // Emits
 interface Emits {
   (e: 'update:show', value: boolean): void
+
   (e: 'success'): void
 }
 

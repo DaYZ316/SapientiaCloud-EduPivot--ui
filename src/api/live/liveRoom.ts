@@ -12,14 +12,13 @@ import type {TableDataResult} from '@/types/common/baseEntity'
 
 /**
  * 获取默认直播房间创建 DTO
+ * 注意：roomName 和 classroomId 为必填字段，需要在使用时设置
  */
-export function getDefaultLiveRoomCreateDTO(): LiveRoomCreateDTO {
+export function getDefaultLiveRoomCreateDTO(): Partial<LiveRoomCreateDTO> {
     return {
-        roomName: null,
         courseId: null,
-        classroomId: null,
         maxParticipants: null,
-        recordingEnabled: null
+        recordingEnabled: 0
     }
 }
 
@@ -34,11 +33,11 @@ export function getDefaultLiveRoomTokenRequestDTO(): LiveRoomTokenRequestDTO {
 
 /**
  * 获取默认直播房间消息 DTO
+ * 注意：content 为必填字段，需要在使用时设置
  */
-export function getDefaultLiveRoomMessageDTO(): LiveRoomMessageDTO {
+export function getDefaultLiveRoomMessageDTO(): Partial<LiveRoomMessageDTO> {
     return {
-        content: null,
-        messageType: null,
+        messageType: 'text',
         senderRole: null
     }
 }
@@ -46,12 +45,12 @@ export function getDefaultLiveRoomMessageDTO(): LiveRoomMessageDTO {
 /**
  * 获取默认直播房间分页查询 DTO
  */
-export function getDefaultLiveRoomPageQueryDTO(): LiveRoomPageQueryDTO {
+export function getDefaultLiveRoomPageQueryDTO(): Partial<LiveRoomPageQueryDTO> {
     return {
+        pageNum: 1,
+        pageSize: 10,
         startTime: null,
         endTime: null,
-        pageNum: null,
-        pageSize: null,
         orderByColumn: null,
         isAsc: null,
         reasonable: null,
@@ -94,14 +93,14 @@ export function listLiveRoomMessages(id: string, limit?: number) {
  * 手动开启直播录制（startRecording）
  */
 export function startRecording(id: string) {
-    return http.post<boolean>(`/live/live-room/${id}/record/start`)
+    return http.post<LiveRoomVO>(`/live/live-room/${id}/record/start`)
 }
 
 /**
  * 手动停止直播录制（stopRecording）
  */
 export function stopRecording(id: string) {
-    return http.post<boolean>(`/live/live-room/${id}/record/stop`)
+    return http.post<LiveRoomVO>(`/live/live-room/${id}/record/stop`)
 }
 
 /**
@@ -109,6 +108,14 @@ export function stopRecording(id: string) {
  */
 export function addLiveRoom(data: LiveRoomCreateDTO) {
     return http.post<LiveRoomVO>('/live/live-room/add', data)
+}
+
+/**
+ * 兼容方法：创建直播房间并返回房间信息
+ * 与 addLiveRoom 等价
+ */
+export function createLiveRoom(data: LiveRoomCreateDTO) {
+    return addLiveRoom(data)
 }
 
 /**
@@ -139,6 +146,4 @@ export function issueRoomToken(id: string, data: LiveRoomTokenRequestDTO) {
 export function issueLiveRoomToken(id: string, data: LiveRoomTokenRequestDTO) {
     return issueRoomToken(id, data)
 }
-
-
 

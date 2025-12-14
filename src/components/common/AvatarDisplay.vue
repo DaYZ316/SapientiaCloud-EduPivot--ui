@@ -1,9 +1,10 @@
 <template>
   <n-avatar
-      :class="props.avatarClass"
+      :class="[props.avatarClass, { 'avatar-large': isLargeSize }]"
       :round="props.round"
       :size="avatarSize"
       :src="displayAvatarSrc"
+      :style="largeSizeStyle"
       @error="handleImageError"
       @load="handleImageLoad"
   />
@@ -39,6 +40,22 @@ const dicebearAvatarUrl = ref<string | null>(null)
 const userName = computed(() => resolveUserName(props))
 const avatarSize = computed(() => normalizeAvatarSize(props.size))
 
+// 判断是否为大尺寸（>= 80px）
+const isLargeSize = computed(() => avatarSize.value >= 80)
+
+// 大尺寸时的边框样式
+const largeSizeStyle = computed(() => {
+  if (!isLargeSize.value) return {}
+
+  // 根据尺寸动态计算边框宽度，最小2px，最大6px
+  const borderWidth = Math.min(6, Math.max(2, Math.round(avatarSize.value / 40)))
+
+  return {
+    border: `${borderWidth}px solid #ffffff`,
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+  }
+})
+
 // 生成DiceBear头像URL（缓存）
 const generateDicebearAvatar = () => {
   if (!userName.value) {
@@ -49,15 +66,15 @@ const generateDicebearAvatar = () => {
     // 根据用户名生成稳定的渐变颜色组合
     const [color1, color2, color3] = getGradientColors(userName.value)
     const gradientId = `gradient-${userName.value.replace(/[^a-zA-Z0-9]/g, '')}-${avatarSize.value}`
-    
+
     const avatar = createAvatar(avatarCollection.bottts, {
       seed: userName.value,
       size: avatarSize.value
     })
-    
+
     // 获取 SVG 字符串并添加渐变背景和动画
     const svgString = avatar.toString()
-    
+
     // 创建渐变定义和动画
     const gradientDef = `
       <defs>
@@ -75,13 +92,13 @@ const generateDicebearAvatar = () => {
       </defs>
       <rect width="100%" height="100%" fill="url(#${gradientId})"/>
     `
-    
+
     // 在 SVG 开头添加渐变背景
     const svgWithBackground = svgString.replace(
-      /<svg([^>]*)>/,
-      `<svg$1>${gradientDef}`
+        /<svg([^>]*)>/,
+        `<svg$1>${gradientDef}`
     )
-    
+
     // 转换为 data URI（使用 URL 编码）
     dicebearAvatarUrl.value = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgWithBackground)}`
   } catch {
@@ -101,13 +118,16 @@ const displayAvatarSrc = computed<string | undefined>(() => {
 })
 
 const handleImageError = () => {
-  if (props.avatarSrc) {
+  // 只有当原始头像源存在且尚未标记为错误时才处理
+  // 避免生成头像加载时也触发错误处理导致循环
+  if (props.avatarSrc && !imageError.value) {
     imageError.value = true
   }
 }
 
 const handleImageLoad = () => {
-  if (props.avatarSrc) {
+  // 只有当原始头像源存在且当前显示的是原始头像源时才重置错误状态
+  if (props.avatarSrc && displayAvatarSrc.value === props.avatarSrc) {
     imageError.value = false
   }
 }
@@ -134,5 +154,9 @@ watch(
 
 <style lang="scss" scoped>
 @use '@/assets/styles/index.scss' as *;
+
+.avatar-large {
+  box-sizing: border-box;
+}
 </style>
 

@@ -228,7 +228,7 @@ import {NEllipsis} from 'naive-ui'
 import {AddOutline, CreateOutline, RefreshOutline, SearchOutline, TrashOutline} from '@vicons/ionicons5'
 import * as studentApi from '@/api/student'
 import type * as studentType from '@/types/student'
-import {AcademicStatus} from '@/types/student'
+import {AcademicStatusEnum} from '@/enum/student'
 import {useI18n} from 'vue-i18n'
 import Icon from '@/components/common/Icon.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
@@ -244,10 +244,10 @@ const {t} = useI18n()
 
 // 学籍状态选项
 const academicStatusOptions = computed(() => [
-  {label: t('student.status.ACTIVE'), value: AcademicStatus.ENROLLED},
-  {label: t('student.status.SUSPENDED'), value: AcademicStatus.SUSPENDED},
-  {label: t('student.status.DROPPED'), value: AcademicStatus.DROPPED},
-  {label: t('student.status.GRADUATED'), value: AcademicStatus.GRADUATED}
+  {label: t('student.status.ACTIVE'), value: AcademicStatusEnum.ENROLLED},
+  {label: t('student.status.SUSPENDED'), value: AcademicStatusEnum.SUSPENDED},
+  {label: t('student.status.DROPPED'), value: AcademicStatusEnum.DROPPED},
+  {label: t('student.status.GRADUATED'), value: AcademicStatusEnum.GRADUATED}
 ])
 
 // 搜索表单

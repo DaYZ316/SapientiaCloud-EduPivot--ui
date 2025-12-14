@@ -37,15 +37,16 @@
           <p>{{ courseInfo.description }}</p>
         </div>
 
-        <!-- 颜色声明 -->
+        <!-- 课程类型标签 -->
         <div class="color-declaration">
-          <div class="color-item required-color">
+          <div
+              :class="[
+                'color-item',
+                courseInfo.courseType === CourseTypeEnum.REQUIRED ? 'required-color' : 'elective-color'
+              ]"
+          >
             <div class="color-dot"></div>
-            <span>{{ t('course.colorDeclaration.required') }}</span>
-          </div>
-          <div class="color-item elective-color">
-            <div class="color-dot"></div>
-            <span>{{ t('course.colorDeclaration.elective') }}</span>
+            <span>{{ courseTypeLabel }}</span>
           </div>
         </div>
       </div>
@@ -101,6 +102,7 @@ import DecorativeLines from '../DecorativeLines.vue'
 import Module3Decorations from '../Module3Decorations.vue'
 import defaultCourseImage from '@/assets/image/default-course.png'
 import {useCourseBorderColor} from '../../composables/useCourseBorderColor'
+import {CourseTypeEnum} from '@/enum/course'
 
 // 定义组件属性
 interface Props {
@@ -115,6 +117,16 @@ const {t} = useI18n()
 
 // 使用课程边框颜色composable
 const {borderColor} = useCourseBorderColor(props.courseInfo.courseType)
+
+// 计算课程类型标签（使用国际化）
+const courseTypeLabel = computed(() => {
+  if (props.courseInfo.courseType === null || props.courseInfo.courseType === undefined) {
+    return t('course.courseType.REQUIRED')
+  }
+  return props.courseInfo.courseType === CourseTypeEnum.REQUIRED
+      ? t('course.courseType.REQUIRED')
+      : t('course.courseType.ELECTIVE')
+})
 
 // 图片加载错误处理
 const handleImageError = (event: Event) => {

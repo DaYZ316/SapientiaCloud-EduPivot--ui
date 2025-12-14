@@ -16,8 +16,8 @@
         </div>
         <div class="user-info-brief">
           <h3>{{
-            userStore.studentInfo?.realName || userStore.teacherInfo?.realName || userInfo?.nickName ||
-            userInfo?.username
+              userStore.studentInfo?.realName || userStore.teacherInfo?.realName || userInfo?.nickName ||
+              userInfo?.username
             }}</h3>
           <n-tag v-for="role in userRoles" :key="role.id" class="role-tag" size="small">
             {{ role.roleName }}

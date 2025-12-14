@@ -85,7 +85,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, ref, watch, onUnmounted} from 'vue'
+import {computed, onUnmounted, ref, watch} from 'vue'
 import {NButton, NDropdown, NIcon, NInput, NSwitch, useMessage} from 'naive-ui'
 import {AttachOutline, MicOutline, Send, Stop} from '@vicons/ionicons5'
 import {useI18n} from 'vue-i18n'

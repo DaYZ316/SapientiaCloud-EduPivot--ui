@@ -1,4 +1,5 @@
 export default {
+    operateSuccess: '操作成功',
     confirm: '确认',
     cancel: '取消',
     submit: '提交',

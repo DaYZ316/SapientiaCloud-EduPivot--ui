@@ -11,7 +11,7 @@
               :key="fileInfo.objectName"
               class="file-info-item"
               draggable="true"
-              @click="emitPreview(fileInfo)"
+              @click="emitPreview(fileInfo, $event)"
               @dragstart="handleDragStart($event, fileInfo)"
           >
             <template #prefix>
@@ -70,7 +70,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  preview: [fileInfo: FileInfoDTO]
+  preview: [fileInfo: FileInfoDTO, event?: MouseEvent]
   dragstart: [fileInfo: FileInfoDTO]
 }>()
 
@@ -89,8 +89,8 @@ const handleDragStart = (event: DragEvent, fileInfo: FileInfoDTO) => {
 const fileInfoList = ref<FileInfoDTO[]>([])
 const loading = ref(false)
 
-const emitPreview = (fileInfo: FileInfoDTO) => {
-  emit('preview', fileInfo)
+const emitPreview = (fileInfo: FileInfoDTO, event?: MouseEvent) => {
+  emit('preview', fileInfo, event)
 }
 
 const normalizeFileInfo = (info: FileInfoDTO | FileInfo): FileInfoDTO => {

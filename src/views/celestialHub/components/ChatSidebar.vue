@@ -379,7 +379,7 @@ defineExpose({
     height: 100%;
     border-right: none;
     border-top: none;
-    
+
     .sidebar-content {
       padding: 8px 12px;
       flex: 1;

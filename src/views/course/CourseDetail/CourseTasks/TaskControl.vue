@@ -221,7 +221,7 @@
                 <n-spin :show="loadingFileInfo">
                   <n-list>
                     <n-list-item v-for="fileInfo in fileInfoList" :key="fileInfo.objectName" class="file-info-item"
-                                 @click="handleFilePreview(fileInfo)">
+                                 @click="handleFilePreview(fileInfo, $event)">
                       <template #prefix>
                         <Icon :component="getFileTypeIcon(fileInfo)" color="var(--color-primary)" size="20"/>
                       </template>
@@ -327,6 +327,8 @@ import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {useTitle} from '@/utils/titleUtil'
 import {useUserStore} from '@/store/modules/user'
+import {useTransitionStore} from '@/store/modules/transition'
+import {runViewTransition} from '@/utils/themeAnimation'
 import * as CourseTaskApi from '@/api/course/courseTask'
 import {getDefaultCourseTaskDTO} from '@/api/course/courseTask'
 import * as MinIOApi from '@/api/minIO'
@@ -350,6 +352,7 @@ const router = useRouter()
 const {setTitle} = useTitle()
 const userStore = useUserStore()
 const courseStore = useCourseStore()
+const transitionStore = useTransitionStore()
 
 // 响应式数据
 const courseInfo = computed(() => courseStore.currentCourseInfo)
@@ -803,9 +806,19 @@ const formatUploadTime = (timeString: string): string => {
 }
 
 // 文件预览
-const handleFilePreview = (fileInfo: FileInfoDTO) => {
-  // 打开文件预览
-  window.open(fileInfo.url, '_blank')
+const handleFilePreview = (fileInfo: FileInfoDTO, event?: MouseEvent) => {
+  transitionStore.show()
+  runViewTransition(() => {
+    router.push({
+      name: 'FilePreview',
+      query: {
+        fileInfo: JSON.stringify(fileInfo),
+        from: 'TaskControl',
+        courseId: route.params.courseId,
+        taskId: route.query.taskId || ''
+      }
+    })
+  }, event)
 }
 
 // 删除附件

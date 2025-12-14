@@ -214,7 +214,7 @@
                       </div>
                     </div>
                   </div>
-                  <p class="preview-info">{{ t('classroom.detail.totalSeats', { count: rows * cols }) }}</p>
+                  <p class="preview-info">{{ t('classroom.detail.totalSeats', {count: rows * cols}) }}</p>
                 </div>
               </div>
             </div>
@@ -226,32 +226,32 @@
 </template>
 
 <script lang="ts" setup>
-import {ref, reactive, computed, onMounted, onBeforeUnmount} from 'vue'
-import {useMessage, useDialog} from 'naive-ui'
+import {computed, onBeforeUnmount, onMounted, reactive, ref} from 'vue'
+import {useDialog, useMessage} from 'naive-ui'
 import {useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {
   Book,
-  Grid,
-  TrashOutline,
-  CheckmarkOutline,
-  CreateOutline,
-  CloseOutline,
-  LogInOutline,
-  HomeOutline,
   BusinessOutline,
+  CheckmarkOutline,
+  CloseOutline,
+  CreateOutline,
+  Grid,
+  HomeOutline,
+  LibraryOutline,
+  LogInOutline,
   SchoolOutline,
-  LibraryOutline
+  TrashOutline
 } from '@vicons/ionicons5'
 import eventBus from '@/utils/eventBus'
 import {
   addCourseRecord,
-  updateCourseRecord,
   getCourseRecordById,
   getDefaultCourseRecordDTO,
-  removeCourseRecordById
+  removeCourseRecordById,
+  updateCourseRecord
 } from '@/api/classroom/courseRecord'
-import {useUserStore, useCourseStore} from '@/store'
+import {useCourseStore, useUserStore} from '@/store'
 import {useTransitionStore} from '@/store/modules/transition'
 import type {CourseRecordDTO, CourseRecordVO} from '@/types/classroom'
 import {getClassroomTypeFromString, getClassroomTypeString} from '@/enum/classroom/classroomTypeEnum'

@@ -14,6 +14,52 @@ export default {
         loadingMore: '加载更多...',
         noMore: '没有更多了'
     },
+    practicePanel: {
+        title: '课堂练习',
+        empty: '暂无课堂练习',
+        defaultQuestionTitle: '题目',
+        required: '必答',
+        optional: '选答',
+        submitted: '已提交',
+        unsubmitted: '未作答',
+        noContent: '暂无题干',
+        blankLabel: '填空 {index}',
+        answerPlaceholder: '请输入答案',
+        unsupported: '暂不支持的题型',
+        statusCorrect: '回答正确',
+        statusWrong: '回答错误',
+        statusPending: '等待批阅',
+        scorePrefix: '得分：',
+        submit: '提交作答',
+        noMore: '没有更多了',
+        questionType: {
+            single: '单选题',
+            multiple: '多选题',
+            judge: '判断题',
+            blank: '填空题',
+            short: '简答题',
+            default: '题目'
+        }
+    },
+    questionPanel: {
+        modalTitle: '发布练习',
+        startTime: '开始作答时间',
+        endTime: '结束作答时间',
+        unnamedQuestion: '未命名题目',
+        selectRequiredPlaceholder: '是否必答',
+        confirmSync: '确认同步',
+        cancel: '取消',
+        clearContent: '未选择题目，是否清空已发布的练习？',
+        clearConfirm: '确认清空'
+    },
+    chapterPanel: {
+        title: '章节',
+        empty: '暂无章节',
+        selectHint: '请选择章节查看详情',
+        noContent: '暂无内容',
+        attachments: '附件列表',
+        noAttachments: '暂无附件'
+    },
     detail: {
         basicInfo: '课程基本信息',
         courseName: '课程名称',
@@ -101,11 +147,14 @@ export default {
         signed: '已签到',
         absent: '缺席'
     },
+    chapters: '章节',
+    publishPractice: '发布练习',
+    classPractice: '课堂练习',
     exit: '退出教室',
     enterClassroom: '进入教室',
     live: '智慧课堂黑白',
     formatSeatLabel: '{row}排{column}列',
-    pointerLockHint: '点击鼠标左键进入视角控制模式，长按 Alt 键可显示鼠标',
+    pointerLockHint: '双击进入视角控制模式，点击鼠标左键切换视角，按 Esc 键退出',
     pointerLockHintTitle: '操作提示',
     searchForm: {
         courseName: '课程名称',

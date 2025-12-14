@@ -84,31 +84,27 @@
     <div class="teacher-brand-section">
       <!-- 教师头像边框 -->
       <div class="brand-circle">
-        <img
-            v-if="teacherInfo?.avatar && !avatarError"
-            :alt="teacherInfo.realName || 'Teacher Avatar'"
-            :src="teacherInfo.avatar"
-            class="teacher-avatar"
-            @error="handleAvatarError"
+        <AvatarDisplay
+            :avatar-src="teacherInfo?.avatar"
+            :nick-name="teacherInfo?.nickName"
+            :round="true"
+            :size="160"
+            :teacher-real-name="teacherInfo?.realName"
+            :username="teacherInfo?.username"
+            avatar-class="teacher-avatar"
         />
-        <div
-            v-else
-            class="avatar-placeholder"
-        >
-          <span class="avatar-text">{{ getInitials() }}</span>
-        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import {ref} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useRouter} from 'vue-router'
 import type {TeacherVO} from '@/types/teacher'
 import {getEducationLabel} from '@/enum/teacher/educationEnum'
 import Icon from '@/components/common/Icon.vue'
+import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
 import {ArrowForwardOutline, CallOutline, IdCardOutline, MailOutline, TimeOutline} from '@vicons/ionicons5'
 
 interface Props {
@@ -126,37 +122,11 @@ const props = withDefaults(defineProps<Props>(), {
 const {t} = useI18n()
 const router = useRouter()
 
-// 头像加载错误状态
-const avatarError = ref(false)
-
 // 处理了解教师按钮点击
 const handleLearnMore = () => {
   if (props.teacherInfo?.sysUserId) {
     router.push(`/user/${props.teacherInfo.sysUserId}`)
   }
-}
-
-// 处理头像加载错误
-const handleAvatarError = () => {
-  avatarError.value = true
-}
-
-
-// 获取教师姓名首字母
-const getInitials = () => {
-  const name = props.teacherInfo?.realName?.trim()
-  if (!name) return 'T'
-
-  // 中文名取第一个字符
-  if (/[\u4e00-\u9fa5]/.test(name)) {
-    return name.charAt(0)
-  }
-
-  // 英文名取首字母
-  const words = name.split(' ')
-  return words.length > 1
-      ? (words[0].charAt(0) + words[1].charAt(0)).toUpperCase()
-      : name.charAt(0).toUpperCase()
 }
 
 // 获取职位文本

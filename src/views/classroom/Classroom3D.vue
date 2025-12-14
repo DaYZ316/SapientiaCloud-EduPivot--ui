@@ -1,24 +1,16 @@
 <template>
   <div class="classroom-3d-container">
     <canvas ref="canvasRef" class="webgl_7"></canvas>
-    <!-- 退出教室按钮 -->
-    <n-button
-        class="exit-button"
-        size="medium"
-        type="default"
-        @click="handleExit($event)"
-    >
-      {{ t('classroom.exit') }}
-    </n-button>
-    <!-- 智慧课堂黑白按钮 -->
-    <n-button
-        class="live-button"
-        size="medium"
-        type="default"
-        @click="handleLive($event)"
-    >
-      {{ t('classroom.live') }}
-    </n-button>
+    <ClassroomToolbox :items="toolboxItems"/>
+    <ChapterPanel :course-id="route.params.courseId as string || null" :show="showChapterPanel ?? false"
+                  @close="closeChapterPanel"/>
+    <QuestionPanel :classroom-id="route.params.courseRecordId as string || null" :course-id="route.params.courseId as string || null"
+                   :show="showQuestionPanel ?? false" @close="closeQuestionPanel"/>
+    <PracticePanel
+        :classroom-id="route.params.courseRecordId as string || null"
+        :show="showPracticePanel ?? false"
+        @close="closePracticePanel"
+    />
     <!-- 学生信息框 -->
     <StudentInfoPopup
         :position="popupPosition"
@@ -41,36 +33,48 @@
 </template>
 
 <script lang="ts" setup>
-import {onMounted, onBeforeUnmount, ref, computed} from 'vue';
+import {computed, onBeforeUnmount, onMounted, ref} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {useI18n} from 'vue-i18n';
+import type {InstancedMesh, PerspectiveCamera, Scene, Texture, WebGLRenderer} from 'three';
 import * as THREE from 'three';
+import type {GLTF} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {PointerLockControls} from 'three/examples/jsm/controls/PointerLockControls.js';
 import {ModelClickHandler} from '@/utils/threeModelClickHandler';
 import {Sky} from 'three/examples/jsm/objects/Sky.js';
 import {getCourseRecordById} from '@/api/classroom/courseRecord';
 import {
-  listStudentsByRecordId,
   addStudentSeat,
   getDefaultCourseRecordStudentDTO,
-  updateStudentSeat,
-  removeStudentSeat
+  listStudentsByRecordId,
+  removeStudentSeat,
+  updateStudentSeat
 } from '@/api/classroom/courseRecordStudent';
 import StudentInfoPopup from './StudentInfoPopup.vue';
+import ClassroomToolbox from './components/ClassroomToolbox.vue';
+import QuestionPanel from './components/QuestionPanel.vue';
+import ChapterPanel from './components/ChapterPanel.vue';
+import PracticePanel from './components/PracticePanel.vue';
 import {useUserStore} from '@/store/modules/user';
 import {getGlobalApis} from '@/utils/naiveUIHelper';
 import {SpriteManager} from '@/views/classroom/composables/spriteManager';
 import {getAvatarColor, getAvatarInitial, resolveUserName} from '@/utils/avatarUtil';
 import type {AvatarIdentityProps} from '@/types/components/avatar';
-import type {CourseRecordVO, CourseRecordStudentVO, CourseRecordStudentDTO} from '@/types/classroom';
+import type {CourseRecordStudentDTO, CourseRecordStudentVO, CourseRecordVO} from '@/types/classroom';
+import type {ClassroomToolboxItem} from '@/views/classroom/composables/toolbox';
 import {SeatStatusEnum} from '@/enum/classroom/seatStatusEnum';
 import type {SeatAssignmentContext} from '@/types/components/seatConfirmModal';
-import type {Texture, PerspectiveCamera, Scene, WebGLRenderer} from 'three';
-import type {InstancedMesh} from 'three';
-import type {GLTF} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {useTransitionStore} from '@/store/modules/transition';
 import {runViewTransition} from '@/utils/themeAnimation';
+import {
+  BookOutline,
+  CreateOutline,
+  HelpCircleOutline,
+  LogOutOutline,
+  SchoolOutline,
+  VideocamOutline
+} from '@vicons/ionicons5';
 
 const {t} = useI18n();
 const modelClickHandler = new ModelClickHandler();
@@ -102,8 +106,82 @@ const pendingSeatContext = ref<SeatAssignmentContext | null>(null);
 const fallbackTextureRef = ref<Texture | null>(null);
 const showPointerLockHint = ref(false);
 let pointerHintTimeout: number | null = null;
-
+const showChapterPanel = ref<boolean | null>(null);
+const showQuestionPanel = ref<boolean | null>(null);
+const showPracticePanel = ref<boolean | null>(null);
+const canShowPracticeActions = computed(() => {
+  const roles = userStore.roles || [];
+  const hasAdminRole = Array.isArray(roles) && roles.some(role => role.roleKey === 'ADMIN');
+  const isTeacher = Boolean(userStore.teacherInfo?.id);
+  return hasAdminRole || isTeacher;
+});
+type PointerLockHandler = {
+  onPointerLockError?: () => void;
+  canvasDoubleClick?: () => void;
+  escapeKeyDown?: (event: KeyboardEvent) => void;
+  canvas?: HTMLCanvasElement;
+  altKeyDown?: (event: KeyboardEvent) => void;
+  altKeyUp?: (event: KeyboardEvent) => void;
+  canvasClick?: (event: MouseEvent) => void;
+  mouseMove?: (event: MouseEvent) => void;
+  contextMenu?: (event: MouseEvent) => void;
+};
+const showPointerHintTemporarily = () => {
+  if (pointerHintTimeout) {
+    clearTimeout(pointerHintTimeout);
+  }
+  showPointerLockHint.value = true;
+  pointerHintTimeout = window.setTimeout(() => {
+    showPointerLockHint.value = false;
+    pointerHintTimeout = null;
+  }, 5000);
+};
 const spriteManager = new SpriteManager();
+
+const handleChapterButton = async (event: MouseEvent) => {
+  event.stopPropagation();
+  const willShow = !(showChapterPanel.value ?? false);
+  if (willShow) {
+    showQuestionPanel.value = false;
+    showPracticePanel.value = false;
+  }
+  showChapterPanel.value = willShow;
+};
+
+const closeChapterPanel = () => {
+  showChapterPanel.value = false;
+};
+
+const handleQuestionButton = (event: MouseEvent) => {
+  if (!canShowPracticeActions.value) {
+    return;
+  }
+  event.stopPropagation();
+  const willShow = !(showQuestionPanel.value ?? false);
+  if (willShow) {
+    showChapterPanel.value = false;
+    showPracticePanel.value = false;
+  }
+  showQuestionPanel.value = willShow;
+};
+
+const closeQuestionPanel = () => {
+  showQuestionPanel.value = false;
+};
+
+const handlePracticeButton = (event: MouseEvent) => {
+  event.stopPropagation();
+  const willShow = !(showPracticePanel.value ?? false);
+  if (willShow) {
+    showChapterPanel.value = false;
+    showQuestionPanel.value = false;
+  }
+  showPracticePanel.value = willShow;
+};
+
+const closePracticePanel = () => {
+  showPracticePanel.value = false;
+};
 
 const getIdentityName = (info: Record<string, any> | null | undefined): string => {
   if (!info) {
@@ -447,6 +525,64 @@ const handleLive = (e: MouseEvent) => {
   }, e);
 };
 
+const toolboxItems = computed<ClassroomToolboxItem[]>(() => {
+  const items: ClassroomToolboxItem[] = [
+    {
+      key: 'chapters',
+      label: '章节',
+      labelKey: 'classroom.chapters',
+      icon: BookOutline,
+      handler: handleChapterButton
+    }
+  ];
+
+  items.push({
+    key: 'class-practice',
+    label: '课堂练习',
+    labelKey: 'classroom.classPractice',
+    icon: SchoolOutline,
+    handler: handlePracticeButton
+  });
+
+  if (canShowPracticeActions.value) {
+    items.push(
+        {
+          key: 'publish-practice',
+          label: '发布练习',
+          labelKey: 'classroom.publishPractice',
+          icon: CreateOutline,
+          handler: handleQuestionButton
+        }
+    );
+  }
+
+  items.push(
+      {
+        key: 'exit',
+        label: t('classroom.exit'),
+        icon: LogOutOutline,
+        handler: handleExit
+      },
+      {
+        key: 'live',
+        label: t('classroom.live'),
+        icon: VideocamOutline,
+        handler: handleLive
+      },
+      {
+        key: 'pointer-hint',
+        label: t('classroom.pointerLockHintTitle'),
+        icon: HelpCircleOutline,
+        handler: (event: MouseEvent) => {
+          event.stopPropagation();
+          showPointerHintTemporarily();
+        }
+      }
+  );
+
+  return items;
+});
+
 let canvas: HTMLCanvasElement | null = null;
 let renderer: WebGLRenderer | null = null;
 let scene: Scene | null = null;
@@ -457,7 +593,6 @@ let loader: GLTFLoader | null = null;
 let classroomXLenght = 1;
 let classroomZLenght = 1;
 let spritePositions: THREE.Vector3[] = [];
-let isAltPressed = false; // Alt键状态跟踪
 
 
 const initThree = () => {
@@ -583,102 +718,40 @@ const initThree = () => {
       }
     });
 
-    // Alt键按下时解锁指针显示鼠标
-    const handleAltKeyDown = (event: KeyboardEvent) => {
-      // 检查是否是Alt键（包括左右Alt键）
-      if (event.key === 'Alt' || event.altKey) {
-        // 防止Alt键触发浏览器菜单
-        event.preventDefault();
-        isAltPressed = true;
-
-        // 隐藏提示（用户已经知道如何操作）
-        showPointerLockHint.value = false;
-
-        // 如果指针已锁定，解锁以显示鼠标
-        if (canvas && document.pointerLockElement === canvas) {
-          document.exitPointerLock();
-        }
-      }
-    };
-
-    // Alt键释放时立即尝试重新锁定指针
-    const handleAltKeyUp = (event: KeyboardEvent) => {
-      // 检查是否是Alt键
-      if (event.key === 'Alt' || (!event.altKey && isAltPressed)) {
-        isAltPressed = false;
-        // 在键盘抬起事件（用户手势）中直接调用 lock()，满足浏览器要求
-        if (canvas && controls && document.pointerLockElement !== canvas) {
-          controls.lock();
-        }
-      }
-    };
-
-    // 鼠标移动时检查Alt键状态（作为备用检测方法）
-    const handleMouseMove = (event: MouseEvent) => {
-      const altCurrentlyPressed = event.altKey;
-
-      // 如果Alt键状态发生变化
-      if (altCurrentlyPressed !== isAltPressed) {
-        isAltPressed = altCurrentlyPressed;
-
-        if (altCurrentlyPressed) {
-          // Alt键刚被按下：解锁指针显示鼠标
-          if (canvas && document.pointerLockElement === canvas) {
-            document.exitPointerLock();
-          }
-        }
-        // 鼠标移动事件中不做自动锁定，锁定逻辑在 Alt 抬起或点击画布时处理
-      }
-    };
-
-    // 点击画布时自动锁定指针（如果未锁定且Alt键未按下）
-    const handleCanvasClick = (event: MouseEvent) => {
-      // 如果Alt键未按下，才自动锁定
-      if (!event.altKey && !isAltPressed && canvas && controls && document.pointerLockElement !== canvas) {
-        // 首次点击时显示提示
+    // 双击画布时锁定指针
+    const handleCanvasDoubleClick = () => {
+      if (canvas && controls && document.pointerLockElement !== canvas) {
         if (!localStorage.getItem('pointerLockHintShown')) {
           showPointerLockHint.value = true;
           localStorage.setItem('pointerLockHintShown', 'true');
         }
-        // 在用户点击事件中直接调用 lock()，这是有效的用户手势
         controls.lock();
       }
     };
 
-    // 防止Alt键触发浏览器菜单
-    const handleContextMenu = (event: MouseEvent) => {
-      if (event.altKey) {
-        event.preventDefault();
+    // 按下 Esc 时退出指针锁定
+    const handleEscapeKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && canvas && document.pointerLockElement === canvas) {
+        document.exitPointerLock();
       }
     };
 
-    // 添加Alt键事件监听器
-    document.addEventListener('keydown', handleAltKeyDown, true);
-    document.addEventListener('keyup', handleAltKeyUp, true);
+    document.addEventListener('keydown', handleEscapeKeyDown, true);
 
-    // 添加鼠标移动事件监听器作为备用检测
     if (canvas) {
-      canvas.addEventListener('mousemove', handleMouseMove);
-      // 防止Alt键触发浏览器菜单
-      canvas.addEventListener('contextmenu', handleContextMenu);
-    }
-
-    // 添加点击画布事件监听器（用于自动锁定指针）
-    if (canvas) {
-      canvas.addEventListener('click', handleCanvasClick);
+      canvas.addEventListener('dblclick', handleCanvasDoubleClick);
     }
 
     // 存储事件处理函数以便后续清理
     if (!window.pointerLockHandlers) {
       window.pointerLockHandlers = [];
     }
-    window.pointerLockHandlers.push({
-      altKeyDown: handleAltKeyDown,
-      altKeyUp: handleAltKeyUp,
+    const pointerLockHandlers = ((window as any).pointerLockHandlers as PointerLockHandler[]) || [];
+    (window as any).pointerLockHandlers = pointerLockHandlers;
+    pointerLockHandlers.push({
       onPointerLockError: onPointerLockError,
-      canvasClick: handleCanvasClick,
-      mouseMove: handleMouseMove,
-      contextMenu: handleContextMenu,
+      canvasDoubleClick: handleCanvasDoubleClick,
+      escapeKeyDown: handleEscapeKeyDown,
       canvas: canvas
     });
   }
@@ -1200,8 +1273,6 @@ const initThree = () => {
                   // 设置射线投射器的射线
                   raycaster.setFromCamera(mouse, camera);
 
-                  let clickedDesk = false;
-
                   // 检测与所有实例化网格的交点
                   for (const instancedMesh of instancedMeshGroups) {
                     const intersects = raycaster.intersectObject(instancedMesh);
@@ -1217,7 +1288,6 @@ const initThree = () => {
                           if (message) {
                             message.info(t('classroom.seatConfirm.ownerForbiddenMessage'));
                           }
-                          clickedDesk = true;
                           break;
                         }
 
@@ -1237,7 +1307,6 @@ const initThree = () => {
                           } else if (message) {
                             message.info(t('classroom.seatConfirm.occupiedMessage'));
                           }
-                          clickedDesk = true;
                           break;
                         }
 
@@ -1255,7 +1324,6 @@ const initThree = () => {
                           displayName
                         });
 
-                        clickedDesk = true;
                         // 只处理第一个交点
                         break;
                       }
@@ -1442,21 +1510,9 @@ const initThree = () => {
     }
   };
 
-  // 启动模型加载
-  const showPointerHintOnce = () => {
-    if (pointerHintTimeout) {
-      clearTimeout(pointerHintTimeout);
-    }
-    showPointerLockHint.value = true;
-    pointerHintTimeout = window.setTimeout(() => {
-      showPointerLockHint.value = false;
-      pointerHintTimeout = null;
-    }, 5000);
-  };
-
   loadModelsSequentially().then(async () => {
     // 模型加载完成后，显示提示信息
-    showPointerHintOnce();
+    showPointerHintTemporarily();
 
     // 如果已有学生列表且精灵管理器已初始化，渲染学生精灵
     if (studentsList.value.length > 0 && spriteManager && spriteManager.isInitialized) {
@@ -1517,6 +1573,8 @@ const initThree = () => {
 };
 
 onMounted(async () => {
+  showChapterPanel.value = false;
+  showQuestionPanel.value = false;
   await fetchCourseRecord();
   initThree();
   transitionStore.hide(1250);
@@ -1535,37 +1593,26 @@ onBeforeUnmount(() => {
 
   // 滚轮事件已移除，无需清理
 
-  // 清理Alt键事件监听器和点击事件监听器
-  if (window.pointerLockHandlers && Array.isArray(window.pointerLockHandlers)) {
-    window.pointerLockHandlers.forEach(({
-                                          altKeyDown,
-                                          altKeyUp,
-                                          onPointerLockError,
-                                          canvasClick,
-                                          mouseMove,
-                                          contextMenu,
-                                          canvas: handlerCanvas
-                                        }) => {
-      if (altKeyDown) {
-        document.removeEventListener('keydown', altKeyDown, true);
-      }
-      if (altKeyUp) {
-        document.removeEventListener('keyup', altKeyUp, true);
-      }
+  // 清理指针锁定相关监听器
+  if ((window as any).pointerLockHandlers && Array.isArray((window as any).pointerLockHandlers)) {
+    const pointerLockHandlers = ((window as any).pointerLockHandlers as PointerLockHandler[]) || [];
+    pointerLockHandlers.forEach(({
+                                   onPointerLockError,
+                                   canvasDoubleClick,
+                                   escapeKeyDown,
+                                   canvas: handlerCanvas
+                                 }) => {
       if (onPointerLockError) {
         document.removeEventListener('pointerlockerror', onPointerLockError);
       }
-      if (canvasClick && handlerCanvas) {
-        handlerCanvas.removeEventListener('click', canvasClick);
+      if (escapeKeyDown) {
+        document.removeEventListener('keydown', escapeKeyDown, true);
       }
-      if (mouseMove && handlerCanvas) {
-        handlerCanvas.removeEventListener('mousemove', mouseMove);
-      }
-      if (contextMenu && handlerCanvas) {
-        handlerCanvas.removeEventListener('contextmenu', contextMenu);
+      if (canvasDoubleClick && handlerCanvas) {
+        handlerCanvas.removeEventListener('dblclick', canvasDoubleClick);
       }
     });
-    window.pointerLockHandlers = [];
+    (window as any).pointerLockHandlers = [];
   }
 
   // 清理课桌悬浮和点击事件监听器
@@ -1685,20 +1732,6 @@ onBeforeUnmount(() => {
   display: block;
 }
 
-.exit-button {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1001;
-}
-
-.live-button {
-  position: fixed;
-  top: 20px;
-  right: 140px;
-  z-index: 1001;
-}
-
 .pointer-lock-hint {
   position: fixed;
   top: 80px;
@@ -1708,6 +1741,7 @@ onBeforeUnmount(() => {
   max-width: 400px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
+
 
 @media (max-width: 768px) {
   .classroom-3d-container {
@@ -1719,27 +1753,8 @@ onBeforeUnmount(() => {
     width: 100vw;
     height: 100vh;
   }
-
-  .exit-button {
-    top: 1rem;
-    right: 1rem;
-  }
-
-  .live-button {
-    top: 1rem;
-    right: 7rem;
-  }
 }
 
 @media (max-width: 480px) {
-  .exit-button {
-    top: 0.75rem;
-    right: 0.75rem;
-  }
-
-  .live-button {
-    top: 0.75rem;
-    right: 6rem;
-  }
 }
 </style>

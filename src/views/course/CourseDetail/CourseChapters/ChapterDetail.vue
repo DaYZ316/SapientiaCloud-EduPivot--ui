@@ -71,10 +71,13 @@ import type {FileInfoDTO} from '@/types/minIO/file'
 import Icon from '@/components/common/Icon.vue'
 import {useUserStore} from '@/store/modules/user'
 import FileInfoList from '@/components/common/FileInfoList.vue'
+import {useTransitionStore} from '@/store/modules/transition'
+import {runViewTransition} from '@/utils/themeAnimation'
 
 const {t} = useI18n()
 const router = useRouter()
 const userStore = useUserStore()
+const transitionStore = useTransitionStore()
 
 // 权限检查
 const canEditChapter = computed(() => {
@@ -110,17 +113,19 @@ const handleDelete = () => {
   }
 }
 
-const handleFilePreview = (fileInfo: FileInfoDTO) => {
-  // 跳转到文件预览页面，传递文件信息作为查询参数
-  router.push({
-    name: 'FilePreview',
-    query: {
-      fileInfo: JSON.stringify(fileInfo),
-      from: 'ChapterDetail',
-      courseId: props.courseId,
-      chapterId: props.chapter?.id || ''
-    }
-  })
+const handleFilePreview = (fileInfo: FileInfoDTO, event?: MouseEvent) => {
+  transitionStore.show()
+  runViewTransition(() => {
+    router.push({
+      name: 'FilePreview',
+      query: {
+        fileInfo: JSON.stringify(fileInfo),
+        from: 'ChapterDetail',
+        courseId: props.courseId,
+        chapterId: props.chapter?.id || ''
+      }
+    })
+  }, event)
 }
 
 

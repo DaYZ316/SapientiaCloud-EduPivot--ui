@@ -283,7 +283,7 @@ export function useCelestialChat() {
     }
 
     // 重新发送消息（根据消息内容）
-    const resendMessage = async (messageContent: string) => {
+    const resendMessage = async (messageContent: string, externalFileReferences: FileReference[] | null = null) => {
         if (!messageContent.trim() || isLoading.value) {
             return
         }
@@ -307,8 +307,8 @@ export function useCelestialChat() {
             }
         }
 
-        // 保存当前文件引用（发送前保存，发送后会清空）
-        const currentFileReferences = fileReferences.value
+        // 保存当前文件引用（优先使用外部传入的引用）
+        const currentFileReferences = externalFileReferences ?? fileReferences.value
 
         // 添加用户消息
         const userMessage: ChatMessage = {
@@ -339,13 +339,15 @@ export function useCelestialChat() {
         chatRequest.sessionType = 0
         chatRequest.useRag = useRag.value === true
         chatRequest.stream = true
-        chatRequest.fileReferences = fileReferences.value
+        chatRequest.fileReferences = currentFileReferences
         const requestId = createRequestId()
         chatRequest.requestId = requestId
         currentRequestId.value = requestId
 
-        // 清空文件引用（发送后清空）
-        fileReferences.value = null
+        // 清空文件引用（仅当使用当前选择的文件时清空；外部传入的则不影响当前状态）
+        if (!externalFileReferences) {
+            fileReferences.value = null
+        }
 
         // 累积的AI回复内容
         let accumulatedContent = ''

@@ -30,7 +30,7 @@
           <span>{{ t('settings.personal.accountStatus') }}</span>
           <n-tag :type="userInfo?.status === 0 ? 'success' : 'error'">
             {{
-            userInfo?.status === 0 ? t('settings.personal.statusNormal') : t('settings.personal.statusDisabled')
+              userInfo?.status === 0 ? t('settings.personal.statusNormal') : t('settings.personal.statusDisabled')
             }}
           </n-tag>
         </div>
@@ -114,9 +114,9 @@
                 @click="sendVerificationCode"
             >
               {{
-              countdown > 0
-              ? `${countdown}${t('auth.verificationCodeCountdown')}`
-              : t('auth.sendVerificationCode')
+                countdown > 0
+                    ? `${countdown}${t('auth.verificationCodeCountdown')}`
+                    : t('auth.sendVerificationCode')
               }}
             </n-button>
           </div>

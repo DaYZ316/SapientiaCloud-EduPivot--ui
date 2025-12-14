@@ -68,7 +68,7 @@
           <n-spin :show="loadingFileInfo">
             <n-list>
               <n-list-item v-for="fileInfo in fileInfoList" :key="fileInfo.objectName" class="file-info-item"
-                           @click="handleFilePreview(fileInfo)">
+                           @click="handleFilePreview(fileInfo, $event)">
                 <template #prefix>
                   <Icon :component="getFileTypeIcon(fileInfo)" color="var(--color-primary)" size="20"/>
                 </template>
@@ -148,6 +148,8 @@ import Icon from '@/components/common/Icon.vue'
 import {formatDate} from '@/utils/dateUtil'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {useUserStore} from '@/store/modules/user'
+import {useTransitionStore} from '@/store/modules/transition'
+import {runViewTransition} from '@/utils/themeAnimation'
 
 interface Props {
   task: CourseTaskVO | null
@@ -168,6 +170,7 @@ const {t, locale} = useI18n()
 const {dialog, message} = getDiscreteApi()
 const router = useRouter()
 const userStore = useUserStore()
+const transitionStore = useTransitionStore()
 
 // 响应式数据
 const fileInfoList = ref<FileInfoDTO[]>([]) // 文件详细信息列表
@@ -246,17 +249,19 @@ const handleDelete = () => {
 }
 
 // 处理文件预览
-const handleFilePreview = (fileInfo: FileInfoDTO) => {
-  // 跳转到文件预览页面，传递文件信息作为查询参数
-  router.push({
-    name: 'FilePreview',
-    query: {
-      fileInfo: JSON.stringify(fileInfo),
-      from: 'TaskDetail',
-      courseId: props.courseId,
-      taskId: props.task?.id || ''
-    }
-  })
+const handleFilePreview = (fileInfo: FileInfoDTO, event?: MouseEvent) => {
+  transitionStore.show()
+  runViewTransition(() => {
+    router.push({
+      name: 'FilePreview',
+      query: {
+        fileInfo: JSON.stringify(fileInfo),
+        from: 'TaskDetail',
+        courseId: props.courseId,
+        taskId: props.task?.id || ''
+      }
+    })
+  }, event)
 }
 
 // 加载文件详细信息

@@ -17,7 +17,7 @@ export interface LiveRoomCreateDTO {
     classroomId: string | null
     /** 最大并发人数 */
     maxParticipants?: number | null
-    /** 是否开启录制(0/1) */
+    /** 是否开启录制(0/1) - 用于更新房间时启用录制功能 */
     recordingEnabled?: number | null
 }
 
@@ -57,12 +57,22 @@ export interface LiveRoomVO {
     maxParticipants?: number
     /** 是否开启录制(0/1) */
     recordingEnabled?: number
+    /** 录制任务ID */
+    egressTaskId?: string | null
+    /** 录制状态(0=未录制,1=录制中,2=停止中,3=已停止,4=录制失败) */
+    egressStatus?: number | null
+    /** 录制文件访问URL */
+    recordingAssetUrl?: string | null
     /** 房间状态 */
     status?: LiveRoomStatusEnum
     /** 房间创建时间 */
     createTime?: string
     /** 房间更新时间 */
     updateTime?: string
+    /** 直播开始时间 */
+    startTime?: string
+    /** 预计结束时间 */
+    expectedEndTime?: string
 }
 
 /**
@@ -107,6 +117,34 @@ export interface LiveRoomPageQueryDTO extends PageEntity {
     courseId?: string | null
     /** 课堂记录ID（mg_course_record.id） */
     classroomId?: string | null
+}
+
+/**
+ * 直播房间聊天消息
+ */
+export interface ChatMessage {
+    /** 消息ID */
+    id: string
+    /** 发送者 */
+    sender: string
+    /** 消息内容 */
+    content: string
+    /** 时间戳 */
+    timestamp: string
+    /** 是否是本人发送的消息 */
+    isOwn?: boolean
+}
+
+/**
+ * 远程参与者媒体信息
+ */
+export interface RemoteParticipantMedia {
+    /** 参与者ID */
+    participantId: string
+    /** 视频轨道 */
+    videoTrack: any | null
+    /** 音频轨道 */
+    audioTrack: any | null
 }
 
 

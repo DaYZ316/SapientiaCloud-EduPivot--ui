@@ -523,6 +523,8 @@ import {computed, nextTick, onBeforeUnmount, onMounted, ref} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {useUserStore} from '@/store/modules/user'
+import {useTransitionStore} from '@/store/modules/transition'
+import {runViewTransition} from '@/utils/themeAnimation'
 import anonymousUserImg from '@/assets/image/anonymous-user.png'
 import {
   NAlert,
@@ -596,6 +598,7 @@ const message = useMessage()
 const dialog = useDialog()
 const userStore = useUserStore()
 const courseStore = useCourseStore()
+const transitionStore = useTransitionStore()
 
 
 // 响应式数据
@@ -868,18 +871,20 @@ const handleAvatarClick = () => {
 }
 
 // 处理文件预览
-const handleFilePreview = (fileInfo: FileInfoDTO) => {
-  // 跳转到文件预览页面，传递文件信息作为查询参数
-  router.push({
-    name: 'FilePreview',
-    query: {
-      fileInfo: JSON.stringify(fileInfo),
-      from: 'PostDetail',
-      courseId: route.params.courseId,
-      forumId: route.params.forumId,
-      postId: route.params.postId
-    }
-  })
+const handleFilePreview = (fileInfo: FileInfoDTO, event?: MouseEvent) => {
+  transitionStore.show()
+  runViewTransition(() => {
+    router.push({
+      name: 'FilePreview',
+      query: {
+        fileInfo: JSON.stringify(fileInfo),
+        from: 'PostDetail',
+        courseId: route.params.courseId,
+        forumId: route.params.forumId,
+        postId: route.params.postId
+      }
+    })
+  }, event)
 }
 
 // 处理图片加载错误

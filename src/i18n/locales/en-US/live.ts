@@ -16,13 +16,14 @@ export default {
         contextMissing: 'Class context is missing, unable to create live room'
     },
     form: {
+        title: 'Live Room Configuration',
         roomName: 'Room Name',
         roomNamePlaceholder: 'Please enter the live room name',
         maxParticipants: 'Max Participants',
-        maxParticipantsPlaceholder: 'Please enter max participants (optional)',
+        maxParticipantsPlaceholder: 'Max participants (optional)',
         recordingEnabled: 'Recording',
-        recordingEnabledOn: 'Recording Enabled',
-        recordingEnabledOff: 'Recording Disabled',
+        recordingEnabledOn: 'Enabled',
+        recordingEnabledOff: 'Disabled',
         courseRecordMissing: 'Course record missing',
         courseRecordMissingDesc: 'Please enter the class from course detail or classroom list before creating a live room'
     },
@@ -31,38 +32,51 @@ export default {
         roomNameLength: 'Room name cannot exceed 128 characters'
     },
     actions: {
-        create: 'Create / Update Live Room',
-        issueToken: 'Issue Access Token'
-    },
-    token: {
-        modalTitle: 'Issue Live Access Token',
-        roleLabel: 'Access Role',
-        issueButton: 'Generate Token',
-        issuedToken: 'Issued Token',
-        copyToken: 'Copy Token',
-        shareLink: 'Share Link',
-        copyLink: 'Copy Link'
+        create: 'Create / Update Live Room'
     },
     room: {
         title: 'Live Room',
         statusUnknown: 'Unknown Status',
         onlineCount: 'Online',
         currentRole: 'Current Role: {role}',
-        sharedToken: 'Joined with shared token',
         connectionState: 'Connection',
         join: 'Join',
         leave: 'Leave',
         localVideo: 'Local Video',
         chatTitle: 'Live Chat',
-        chatDescription: 'Interact with teachers and classmates in real time',
+        chatDescription: 'Type to communicate with room members',
+        chatPlaceholder: 'Type to communicate with room members',
         members: 'members',
         connecting: 'Connecting',
         connected: 'Connected',
         disconnected: 'Disconnected',
         reconnecting: 'Reconnecting',
         connectFailed: 'Connection Failed',
+        tokenError: 'Failed to get live token, please check network connection or contact administrator',
+        tokenEmpty: 'Unable to get live token, please try again',
+        connectError: 'Failed to connect to live server, please check network or server configuration',
+        rtcConnectionError: 'WebRTC connection failed, please check network settings or firewall configuration',
+        connectionTimeout: 'Connection timeout, please check network connection or try again',
+        networkError: 'Network error, please check network connection',
         system: 'System',
         welcomeMessage: 'Welcome to the live room. You can chat with teachers and classmates here.',
-        unknown: 'Unknown'
+        unknown: 'Unknown',
+        cameraOn: 'Camera On',
+        cameraOff: 'Camera Off',
+        microphoneOn: 'Microphone On',
+        microphoneOff: 'Microphone Off',
+        me: 'Me',
+        startRecording: 'Start Recording',
+        stopRecording: 'Stop Recording',
+        recordingIdle: 'Not Recording',
+        recordingRunning: 'Recording',
+        recordingStopping: 'Stopping',
+        recordingStopped: 'Stopped',
+        recordingFailed: 'Recording Failed',
+        startRecordingFailed: 'Failed to start recording',
+        stopRecordingFailed: 'Failed to stop recording',
+        recordingNotEnabled: 'Recording is not enabled for this room. Please enable recording when creating the room',
+        noPermissionToRecord: 'You do not have permission to control recording',
+        notLiveForStudent: 'Live not started'
     }
 }

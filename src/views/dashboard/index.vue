@@ -11,7 +11,6 @@
 <script lang="ts" setup>
 // 主页逻辑已清空
 import Book3D from './Book3D.vue';
-import CelestailHub from '@/components/common/CelestialHub.vue'
 </script>
 
 <style lang="scss" scoped>

@@ -169,7 +169,7 @@ class HttpClient {
             (response): any => {
                 // 检查响应是否为TableDataResult格式
                 const data = response.data
-                if (data && 'total' in data && 'data' in data && 'code' in data && 'msg' in data && data.code === 200) {
+                if (data && 'total' in data && 'data' in data && 'code' in data && data.code === 200 && (('msg' in data) || ('message' in data))) {
                     // 是TableDataResult格式，直接返回
                     // 完成加载条（如果请求没有隐藏加载条）
                     if (!response.config.meta?.hideLoading) {

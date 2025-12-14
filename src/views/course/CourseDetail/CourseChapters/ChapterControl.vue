@@ -212,7 +212,7 @@
                     <n-spin :show="loadingFileInfo">
                       <n-list>
                         <n-list-item v-for="fileInfo in fileInfoList" :key="fileInfo.objectName" class="file-info-item"
-                                     @click="handleFilePreview(fileInfo)">
+                                     @click="handleFilePreview(fileInfo, $event)">
                           <template #prefix>
                             <Icon :component="getFileTypeIcon(fileInfo)" color="var(--color-primary)" size="20"/>
                           </template>
@@ -318,6 +318,8 @@ import FileUpload from '@/components/common/FileUpload.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {useUserStore} from '@/store/modules/user'
 import {useCourseStore} from '@/store'
+import {useTransitionStore} from '@/store/modules/transition'
+import {runViewTransition} from '@/utils/themeAnimation'
 
 const {message} = getDiscreteApi()
 const {t} = useI18n()
@@ -326,6 +328,7 @@ const router = useRouter()
 const {setTitle} = useTitle()
 const userStore = useUserStore()
 const courseStore = useCourseStore()
+const transitionStore = useTransitionStore()
 
 // 响应式数据
 const courseInfo = computed(() => courseStore.currentCourseInfo)
@@ -657,17 +660,19 @@ const handleUrlsUpdated = (urls: string[]) => {
 }
 
 // 处理文件预览
-const handleFilePreview = (fileInfo: FileInfoDTO) => {
-  // 跳转到文件预览页面，传递文件信息作为查询参数
-  router.push({
-    name: 'FilePreview',
-    query: {
-      fileInfo: JSON.stringify(fileInfo),
-      from: 'ChapterControl',
-      courseId: courseId.value,
-      chapterId: currentEditingChapter.value?.id || ''
-    }
-  })
+const handleFilePreview = (fileInfo: FileInfoDTO, event?: MouseEvent) => {
+  transitionStore.show()
+  runViewTransition(() => {
+    router.push({
+      name: 'FilePreview',
+      query: {
+        fileInfo: JSON.stringify(fileInfo),
+        from: 'ChapterControl',
+        courseId: courseId.value,
+        chapterId: currentEditingChapter.value?.id || ''
+      }
+    })
+  }, event)
 }
 
 // 处理删除附件

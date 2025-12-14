@@ -324,12 +324,10 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
 
   // 教师头像样式
   .teacher-avatar {
-    width: 160px;
-    height: 160px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid $primary-color;
-    box-shadow: 0 4px 16px $accent-shadow;
+    width: 160px !important;
+    height: 160px !important;
+    border: 3px solid $primary-color !important;
+    box-shadow: 0 4px 16px $accent-shadow !important;
     pointer-events: none;
     user-select: none;
     -webkit-user-drag: none;
@@ -337,34 +335,6 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
     -moz-user-drag: none;
     -o-user-drag: none;
     user-drag: none;
-  }
-
-  // 头像占位符样式
-  .avatar-placeholder {
-    width: 160px;
-    height: 160px;
-    border-radius: 50%;
-    background: $gradient-accent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 3px solid $primary-color;
-    box-shadow: 0 4px 16px $accent-shadow;
-    pointer-events: none;
-    user-select: none;
-    -webkit-user-drag: none;
-    -khtml-user-drag: none;
-    -moz-user-drag: none;
-    -o-user-drag: none;
-    user-drag: none;
-
-    .avatar-text {
-      font-size: 48px;
-      font-weight: 700;
-      color: $text-color;
-      text-shadow: 0 2px 4px $shadow-color;
-      user-select: none;
-    }
   }
 }
 
@@ -421,14 +391,9 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
     width: 200px;
     height: 200px;
 
-    .teacher-avatar,
-    .avatar-placeholder {
-      width: 160px;
-      height: 160px;
-    }
-
-    .avatar-text {
-      font-size: 48px;
+    .teacher-avatar {
+      width: 160px !important;
+      height: 160px !important;
     }
   }
 
@@ -480,14 +445,9 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
     width: 220px;
     height: 220px;
 
-    .teacher-avatar,
-    .avatar-placeholder {
-      width: 150px;
-      height: 150px;
-    }
-
-    .avatar-text {
-      font-size: 44px;
+    .teacher-avatar {
+      width: 150px !important;
+      height: 150px !important;
     }
   }
 
@@ -547,14 +507,9 @@ $gradient-background: linear-gradient(135deg, $background-secondary 0%, $backgro
     width: 180px;
     height: 180px;
 
-    .teacher-avatar,
-    .avatar-placeholder {
-      width: 140px;
-      height: 140px;
-    }
-
-    .avatar-text {
-      font-size: 40px;
+    .teacher-avatar {
+      width: 140px !important;
+      height: 140px !important;
     }
   }
 

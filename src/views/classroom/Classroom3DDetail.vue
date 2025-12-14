@@ -12,7 +12,7 @@
 
 <script setup>
 import Classroom3D from './Classroom3D.vue';
-import {useRouter, useRoute} from 'vue-router';
+import {useRoute, useRouter} from 'vue-router';
 import {useI18n} from 'vue-i18n';
 
 const {t} = useI18n();

@@ -3,6 +3,7 @@
  */
 import type {PageEntity} from '../common/baseEntity'
 import type {IsRequiredEnum} from '@/enum/classroom/isRequiredEnum'
+import type {QuestionVO} from '@/types/course/question'
 
 /**
  * 课堂练习发布与更新DTO
@@ -14,10 +15,10 @@ export interface ClassroomQuestionDTO {
     classroomId: string | null
     /** 题目ID */
     questionId: string | null
+    /** 题目标题 */
+    questionTitle: string | null
     /** 发布顺序 */
     publishOrder: number | null
-    /** 题目分值 */
-    score: number | null
     /** 是否必答 (0=选答,1=必答) */
     isRequired: IsRequiredEnum | null
     /** 题目可作答开始时间 */
@@ -36,20 +37,18 @@ export interface ClassroomQuestionVO {
     classroomId: string
     /** 题目ID */
     questionId: string
+    /** 题目标题 */
+    questionTitle: string
+    /** 题目详情 */
+    questionVO?: QuestionVO | null
     /** 发布顺序 */
     publishOrder: number
-    /** 题目分值 */
-    score: number
     /** 是否必答 (0=选答,1=必答) */
     isRequired: IsRequiredEnum
     /** 题目可作答开始时间 */
     startTime: string
     /** 题目作答截止时间 */
     endTime: string
-    /** 创建时间 */
-    createTime: string
-    /** 更新时间 */
-    updateTime: string
 }
 
 /**

@@ -233,6 +233,8 @@ import {FileInfoDTO} from '@/types/minIO/file'
 import {BusinessBucketCodeEnum} from '@/enum/minIO'
 import {acceptReply, getAllRepliesByParentId, likeReply, unacceptReply, unlikeReply} from '@/api/course/forumReply'
 import {formatToBeijingTime} from '@/utils/dateUtil'
+import {useTransitionStore} from '@/store/modules/transition'
+import {runViewTransition} from '@/utils/themeAnimation'
 
 interface Props {
   reply: ForumReplyVO
@@ -258,6 +260,7 @@ const emit = defineEmits<Emits>()
 const router = useRouter()
 const {t} = useI18n()
 const message = useMessage()
+const transitionStore = useTransitionStore()
 
 // 响应式数据
 const isLiked = ref(false)
@@ -360,19 +363,22 @@ const handleAvatarClick = () => {
 }
 
 // 处理文件预览
-const handleFilePreview = (fileInfo: FileInfoDTO) => {
+const handleFilePreview = (fileInfo: FileInfoDTO, event?: MouseEvent) => {
   if (!props.reply.id) return
-  router.push({
-    name: 'FilePreview',
-    query: {
-      fileInfo: JSON.stringify(fileInfo),
-      from: 'ReplyCard',
-      courseId: props.courseId,
-      forumId: props.forumId,
-      postId: props.postId,
-      replyId: props.reply.id
-    }
-  })
+  transitionStore.show()
+  runViewTransition(() => {
+    router.push({
+      name: 'FilePreview',
+      query: {
+        fileInfo: JSON.stringify(fileInfo),
+        from: 'ReplyCard',
+        courseId: props.courseId,
+        forumId: props.forumId,
+        postId: props.postId,
+        replyId: props.reply.id
+      }
+    })
+  }, event)
 }
 
 // 处理图片加载错误

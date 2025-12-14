@@ -68,7 +68,9 @@
           </span>
           <span class="info-item">
             <n-icon class="info-icon"><GridOutline/></n-icon>
-            {{ item.classroomType !== undefined && item.classroomType !== null ? getClassroomTypeLabel(item.classroomType, locale === 'en-US') : t('classroom.history.noModelType') }}
+            {{
+              item.classroomType !== undefined && item.classroomType !== null ? getClassroomTypeLabel(item.classroomType, locale === 'en-US') : t('classroom.history.noModelType')
+            }}
           </span>
         </div>
       </div>
@@ -86,15 +88,15 @@
 </template>
 
 <script lang="ts" setup>
-import {ref, onMounted, onBeforeUnmount, watch} from 'vue'
+import {onBeforeUnmount, onMounted, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {
   AddOutline,
   DocumentTextOutline,
-  WarningOutline,
+  GridOutline,
   PersonOutline,
   TimeOutline,
-  GridOutline
+  WarningOutline
 } from '@vicons/ionicons5'
 import {NIcon, NSpin} from 'naive-ui'
 import {listCourseRecord} from '@/api/classroom/courseRecord'
@@ -103,7 +105,7 @@ import {getClassroomTypeLabel} from '@/enum/classroom/classroomTypeEnum'
 import {getCourseRecordStatusLabel} from '@/enum/classroom/courseRecordStatusEnum'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import Icon from '@/components/common/Icon.vue'
-import type {CourseRecordVO, CourseRecordPageQueryDTO} from '@/types/classroom'
+import type {CourseRecordPageQueryDTO, CourseRecordVO} from '@/types/classroom'
 import {useCourseStore} from '@/store/modules/course'
 import {formatDate} from '@/utils/dateUtil'
 

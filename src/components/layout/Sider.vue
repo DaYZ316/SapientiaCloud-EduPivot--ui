@@ -7,7 +7,8 @@
     <div class="sidebar-header">
       <div class="logo" @click="handleLogoClick">
         <CelestailHub :is-active="isAIPage" class="logo-image"/>
-        <span v-if="!collapsed" :class="{ 'logo-text-highlight': isAIPage }" :lang="locale" class="logo-text" v-html="displayAppName"></span>
+        <span v-if="!collapsed" :class="{ 'logo-text-highlight': isAIPage }" :lang="locale" class="logo-text"
+              v-html="displayAppName"></span>
       </div>
     </div>
 

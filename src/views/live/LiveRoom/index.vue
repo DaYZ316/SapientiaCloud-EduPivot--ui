@@ -10,11 +10,14 @@
             {{ t('live.room.onlineCount') }}: {{ onlineCount }}
           </span>
           <span class="role-chip">{{ t('live.room.currentRole', {role: currentUserRoleLabel}) }}</span>
-          <span v-if="usingSharedToken" class="token-chip">
-            {{ t('live.room.sharedToken') }}
+          <span v-if="recordingStatusLabel" :class="{'recording-active': isRecording}" class="recording-chip">
+            {{ recordingStatusLabel }}
           </span>
           <n-text v-if="connectionStateLabel" :depth="3">
             {{ t('live.room.connectionState') }}: {{ connectionStateLabel }}
+          </n-text>
+          <n-text v-if="connectionError" :depth="3" style="color: var(--error-color);">
+            {{ connectionError }}
           </n-text>
         </div>
         <n-space>
@@ -40,7 +43,8 @@
                   :key="participant.participantId"
                   class="video-item"
               >
-                <video :ref="el => setRemoteVideoRef(el as HTMLVideoElement | null, participant.participantId)" autoplay
+                <video :ref="(el) => setRemoteVideoRef(el as HTMLVideoElement | null, participant.participantId)"
+                       autoplay
                        playsinline/>
                 <div class="video-label">{{ participant.participantId }}</div>
               </div>
@@ -60,17 +64,31 @@
                   </template>
                   {{ microphoneEnabled ? t('live.room.microphoneOn') : t('live.room.microphoneOff') }}
                 </n-button>
+                <n-button
+                    v-if="isConnected && (currentUserRole === LiveRoomRoleEnum.TEACHER || currentUserRole === LiveRoomRoleEnum.ASSISTANT)"
+                    :disabled="roomInfo?.recordingEnabled !== 1"
+                    :loading="recordingLoading"
+                    :type="isRecording ? 'error' : 'default'"
+                    @click="toggleRecording"
+                >
+                  <template #icon>
+                    <Icon :component="isRecording ? StopCircleOutline : RadioButtonOnOutline"/>
+                  </template>
+                  {{ isRecording ? t('live.room.stopRecording') : t('live.room.startRecording') }}
+                </n-button>
               </n-space>
             </div>
           </template>
         </section>
 
-        <section class="chat-panel">
+        <section :class="['chat-panel', {'chat-panel-connected': isConnected}]">
           <ChatPanel
               :can-send="true"
               :extra="`${chatOnlineCount} ${t('live.room.members')}`"
+              :fixed-footer="!!isConnected"
               :loading="false"
-              :messages="chatMessages"
+              :messages="chatMessages || []"
+              :placeholder="t('live.room.chatPlaceholder')"
               :show-header="true"
               :sub-title="t('live.room.chatDescription')"
               :title="t('live.room.chatTitle')"
@@ -85,29 +103,23 @@
 <script lang="ts" setup>
 import {computed, onBeforeUnmount, onMounted, ref} from 'vue'
 import {useRoute} from 'vue-router'
-import {RemoteParticipant, RemoteTrackPublication, Room, RoomEvent, Track} from 'livekit-client'
-import {MicOffOutline, MicOutline, VideocamOffOutline, VideocamOutline} from '@vicons/ionicons5'
+import {ConnectionState, RemoteParticipant, RemoteTrackPublication, Room, RoomEvent, Track} from 'livekit-client'
+import {
+  MicOffOutline,
+  MicOutline,
+  RadioButtonOnOutline,
+  StopCircleOutline,
+  VideocamOffOutline,
+  VideocamOutline
+} from '@vicons/ionicons5'
 import {useI18n} from 'vue-i18n'
 import Icon from '@/components/common/Icon.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import ChatPanel from '@/components/common/ChatPanel.vue'
 import * as liveApi from '@/api/live'
 import {getLiveRoomRoleLabel, getLiveRoomStatusLabel, LiveRoomRoleEnum, LiveRoomStatusEnum} from '@/enum/live'
-import type {LiveRoomVO} from '@/types/live'
+import type {ChatMessage, LiveRoomVO, RemoteParticipantMedia} from '@/types/live'
 import {useUserStore} from '@/store'
-
-interface ChatMessage {
-  id: string
-  sender: string
-  content: string
-  timestamp: string
-}
-
-interface RemoteParticipantMedia {
-  participantId: string
-  videoTrack: Track | null
-  audioTrack: Track | null
-}
 
 const {t} = useI18n()
 const route = useRoute()
@@ -116,18 +128,23 @@ const userStore = useUserStore()
 const roomId = route.params.roomId as string
 const roomInfo = ref<LiveRoomVO | null>(null)
 const room = ref<Room | null>(null)
-const isConnected = ref(false)
-const connecting = ref(false)
-const connectionState = ref('')
-const cameraEnabled = ref(false)
-const microphoneEnabled = ref(false)
-const onlineCount = ref(0)
+const isConnected = ref<boolean | null>(null)
+const connecting = ref<boolean | null>(null)
+const connectionState = ref<string | null>(null)
+const connectionError = ref<string | null>(null)
+const cameraEnabled = ref<boolean | null>(null)
+const microphoneEnabled = ref<boolean | null>(null)
+const onlineCount = ref<number | null>(null)
+const recordingLoading = ref<boolean | null>(null)
 
-const chatMessages = ref<ChatMessage[]>([])
+const chatMessages = ref<ChatMessage[] | null>(null)
 
 const localVideoRef = ref<HTMLVideoElement | null>(null)
 const remoteParticipants = ref<RemoteParticipantMedia[]>([])
 const remoteVideoRefs = ref<Map<string, HTMLVideoElement>>(new Map())
+
+const messagePollingTimer = ref<ReturnType<typeof setInterval> | null>(null)
+const lastMessageTime = ref<string | null>(null)
 
 const roomStatusLabel = computed(() => {
   if (!roomInfo.value?.status && roomInfo.value?.status !== 0) {
@@ -137,13 +154,22 @@ const roomStatusLabel = computed(() => {
 })
 
 const chatOnlineCount = computed(() => {
-  const liveCount = onlineCount.value || 0
+  const liveCount = onlineCount.value ?? 0
   return liveCount > 0 ? liveCount : 1
 })
 
-const livekitServerUrl = computed(() => 'ws://192.168.240.211:7880')
+const livekitServerUrl = computed(() => {
+  // 优先使用环境变量，否则使用默认值
+  const host = import.meta.env.VITE_LIVEKIT_HOST || 'ws://localhost:7880'
+  return host
+})
+
+// RTC 配置，包括 STUN/TURN 服务器
+// 注意：livekit-client 会自动使用浏览器的默认 RTC 配置
+// 如果需要自定义，可以通过环境变量配置 TURN 服务器
 
 const connectionStateLabel = computed(() => {
+  if (!connectionState.value) return ''
   const labels: Record<string, string> = {
     connecting: t('live.room.connecting'),
     connected: t('live.room.connected'),
@@ -153,8 +179,6 @@ const connectionStateLabel = computed(() => {
   }
   return labels[connectionState.value] ?? ''
 })
-const issuedTokenFromRoute = computed(() => typeof route.query.token === 'string' ? route.query.token : '')
-const usingSharedToken = computed(() => Boolean(issuedTokenFromRoute.value))
 const currentUserRole = computed<LiveRoomRoleEnum>(() => {
   if (userStore.teacherInfo) {
     return LiveRoomRoleEnum.TEACHER
@@ -166,15 +190,40 @@ const currentUserRole = computed<LiveRoomRoleEnum>(() => {
 })
 const currentUserRoleLabel = computed(() => getLiveRoomRoleLabel(currentUserRole.value))
 
+// 录制相关状态
+const isRecording = computed(() => {
+  return roomInfo.value?.egressStatus === 1 // RUNNING
+})
+
+const recordingStatusLabel = computed(() => {
+  if (!roomInfo.value) return null
+  const status = roomInfo.value.egressStatus
+  if (status === null || status === undefined) return null
+  const labels: Record<number, string> = {
+    0: t('live.room.recordingIdle') || '未录制',
+    1: t('live.room.recordingRunning') || '录制中',
+    2: t('live.room.recordingStopping') || '停止中',
+    3: t('live.room.recordingStopped') || '已停止',
+    4: t('live.room.recordingFailed') || '录制失败'
+  }
+  return labels[status] || null
+})
+
 onMounted(async () => {
   await loadRoomInfo()
   await loadHistoryMessages()
+  // 如果未连接，启动消息轮询
+  if (!isConnected.value) {
+    startMessagePolling()
+  }
 })
 
 onBeforeUnmount(() => {
   if (room.value) {
     handleLeave()
   }
+  // 清除轮询定时器
+  stopMessagePolling()
 })
 
 async function loadRoomInfo() {
@@ -187,27 +236,120 @@ async function loadRoomInfo() {
 async function loadHistoryMessages() {
   const response = await liveApi.listLiveRoomMessages(roomId, 50).then((res) => res, () => null)
   const history = response?.data ?? []
+  const currentUserId = userStore.userInfo?.id
+  const currentUserNickName = userStore.userInfo?.nickName
   const mapped = history
       .slice()
       .reverse()
-      .map((item) => ({
-        id: item.id,
-        sender: item.senderName || t('live.room.unknown'),
-        content: item.content,
-        timestamp: item.sendTime ? new Date(item.sendTime).toLocaleTimeString() : ''
-      }))
+      .map((item) => {
+        const senderName = (item as any).senderName || t('live.room.unknown')
+        const isOwn = senderName === currentUserNickName || (item as any).senderId === currentUserId
+        return {
+          id: item.id || `${Date.now()}-${Math.random()}`,
+          sender: senderName,
+          content: item.content,
+          timestamp: item.sendTime ? new Date(item.sendTime).toLocaleTimeString() : '',
+          isOwn
+        }
+      })
+
+  // 记录最后一条消息的时间
+  if (mapped.length > 0 && history.length > 0) {
+    const lastMessage = history[history.length - 1]
+    lastMessageTime.value = lastMessage.sendTime || null
+  }
+
   if (mapped.length === 0) {
     chatMessages.value = [
       {
         id: 'welcome',
         sender: t('live.room.system'),
         content: t('live.room.welcomeMessage'),
-        timestamp: new Date().toLocaleTimeString()
+        timestamp: new Date().toLocaleTimeString(),
+        isOwn: false
       }
     ]
     return
   }
   chatMessages.value = mapped
+}
+
+// 轮询获取新消息
+async function pollNewMessages() {
+  // 如果已连接，不需要轮询（通过 WebRTC 接收）
+  if (isConnected.value) {
+    return
+  }
+
+  const response = await liveApi.listLiveRoomMessages(roomId, 50).then((res) => res, () => null)
+  if (!response?.data || response.data.length === 0) {
+    return
+  }
+
+  const history = response.data
+  const currentUserId = userStore.userInfo?.id
+  const currentUserNickName = userStore.userInfo?.nickName
+
+  // 如果有最后一条消息的时间，只获取新消息
+  if (lastMessageTime.value) {
+    const newMessages = history.filter((item: any) => {
+      if (!item.sendTime) return false
+      return new Date(item.sendTime) > new Date(lastMessageTime.value!)
+    })
+
+    if (newMessages.length === 0) {
+      return
+    }
+
+    // 将新消息添加到列表
+    const mapped = newMessages.map((item: any) => {
+      const senderName = (item as any).senderName || t('live.room.unknown')
+      const isOwn = senderName === currentUserNickName || (item as any).senderId === currentUserId
+      return {
+        id: item.id || `${Date.now()}-${Math.random()}`,
+        sender: senderName,
+        content: item.content,
+        timestamp: item.sendTime ? new Date(item.sendTime).toLocaleTimeString() : '',
+        isOwn
+      }
+    })
+
+    if (!chatMessages.value) {
+      chatMessages.value = []
+    }
+
+    // 避免重复添加
+    const existingIds = new Set(chatMessages.value.map(msg => msg.id))
+    const uniqueNewMessages = mapped.filter(msg => !existingIds.has(msg.id))
+
+    if (uniqueNewMessages.length > 0) {
+      chatMessages.value.push(...uniqueNewMessages)
+      // 更新最后一条消息的时间
+      const lastNewMessage = newMessages[newMessages.length - 1]
+      lastMessageTime.value = lastNewMessage.sendTime || null
+    }
+  } else {
+    // 如果没有记录，重新加载所有消息
+    await loadHistoryMessages()
+  }
+}
+
+// 启动消息轮询
+function startMessagePolling() {
+  // 清除之前的定时器
+  stopMessagePolling()
+  // 每2秒轮询一次新消息
+  messagePollingTimer.value = setInterval(() => {
+    pollNewMessages()
+  }, 2000)
+}
+
+// 停止消息轮询
+function stopMessagePolling() {
+  if (messagePollingTimer.value) {
+    clearInterval(messagePollingTimer.value)
+    messagePollingTimer.value = null
+  }
 }
 
 function setRemoteVideoRef(el: HTMLVideoElement | null, participantId: string) {
@@ -224,10 +366,10 @@ function setRemoteVideoRef(el: HTMLVideoElement | null, participantId: string) {
 
 function updateOnlineCount(targetRoom: Room | null) {
   if (!targetRoom) {
-    onlineCount.value = 0
+    onlineCount.value = null
     return
   }
-  const participantTotal = targetRoom.participants ? targetRoom.participants.size : 0
+  const participantTotal = targetRoom.remoteParticipants ? targetRoom.remoteParticipants.size : 0
   onlineCount.value = participantTotal + (isConnected.value ? 1 : 0)
 }
 
@@ -236,72 +378,375 @@ async function handleJoin() {
 
   connecting.value = true
   connectionState.value = 'connecting'
+  connectionError.value = null
 
-  let token = issuedTokenFromRoute.value
+  // 连接前刷新房间信息，确保获取最新状态
+  await loadRoomInfo().then(() => {
+    // 检查房间状态，如果房间已结束，不允许加入
+    if (roomInfo.value?.status === LiveRoomStatusEnum.ENDED || roomInfo.value?.status === LiveRoomStatusEnum.CLOSED) {
+      connecting.value = false
+      connectionState.value = 'failed'
+      connectionError.value = t('live.room.roomEnded')
+      return
+    }
 
-  if (!token) {
-    const tokenDTO = liveApi.getDefaultLiveRoomTokenRequestDTO()
-    tokenDTO.role = currentUserRole.value
-    const tokenResponse = await liveApi.issueLiveRoomToken(roomId, tokenDTO).then((res) => res, () => null)
-    token = tokenResponse?.data ?? ''
+    // 学生角色检查 - 学生只能加入正在直播的房间
+    const isStudent = currentUserRole.value === LiveRoomRoleEnum.STUDENT
+    if (isStudent && roomInfo.value?.status !== LiveRoomStatusEnum.LIVE) {
+      connecting.value = false
+      connectionState.value = 'failed'
+      connectionError.value = t('live.room.notLiveForStudent')
+      return
+    }
+  }, () => {
+    // 继续尝试连接，不阻止
+  })
+
+  // 如果房间已结束或学生无法加入，直接返回
+  if (roomInfo.value?.status === LiveRoomStatusEnum.ENDED ||
+      roomInfo.value?.status === LiveRoomStatusEnum.CLOSED ||
+      (currentUserRole.value === LiveRoomRoleEnum.STUDENT && roomInfo.value?.status !== LiveRoomStatusEnum.LIVE)) {
+    // 确保重置连接状态
+    if (connecting.value) {
+      connecting.value = false
+    }
+    return
+  }
+
+  // 统一通过后端接口获取 token
+  const tokenDTO = liveApi.getDefaultLiveRoomTokenRequestDTO()
+  tokenDTO.role = currentUserRole.value
+  const tokenResponse = await liveApi.issueLiveRoomToken(roomId, tokenDTO).then((res) => res, () => null)
+
+  // token 可能是 LiveRoomTokenVO 对象，需要提取 token 字段
+  let token: string | null = null
+  if (tokenResponse?.data) {
+    token = typeof tokenResponse.data === 'string' ? tokenResponse.data : (tokenResponse.data.token || '')
   }
 
   if (!token) {
     connecting.value = false
     connectionState.value = 'failed'
+    connectionError.value = t('live.room.tokenError')
     return
   }
 
-  const newRoom = new Room()
+  const newRoom = new Room({
+    // 启用自适应流和动态广播
+    adaptiveStream: true,
+    dynacast: true
+  })
   bindRoomEvents(newRoom)
 
-  const connected = await newRoom.connect(livekitServerUrl.value, token).then(
-      () => true,
-      () => false
-  )
+  // 创建一个 Promise 来等待 Connected 事件
+  let connectedResolver: (() => void) | null = null
+  let connectedRejector: ((error: Error) => void) | null = null
+  const connectedPromise = new Promise<void>((resolve, reject) => {
+    connectedResolver = resolve
+    connectedRejector = reject
+  })
 
-  if (!connected) {
+  // 在事件绑定中设置连接成功回调
+  // 注意：这些是临时监听器，在连接完成后会被移除
+  const onConnected = () => {
+    if (connectedResolver) {
+      connectedResolver()
+    }
+  }
+  const onDisconnected = (reason?: any) => {
+    // 只在连接建立过程中才拒绝 Promise
+    if (connectedRejector && connecting.value) {
+      const reasonStr = reason?.toString() || 'unknown reason'
+      connectedRejector(new Error(`Connection lost: ${reasonStr}`))
+    }
+  }
+  newRoom.on(RoomEvent.Connected, onConnected)
+  newRoom.on(RoomEvent.Disconnected, onDisconnected)
+
+  // 使用 Promise.race 添加超时控制
+  const connectPromise = newRoom.connect(livekitServerUrl.value, token)
+  let timeoutId: ReturnType<typeof setTimeout> | null = null
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error('Connection timeout after 60 seconds'))
+    }, 60000)
+  })
+
+  // 等待 WebSocket 连接
+  await Promise.race([connectPromise, timeoutPromise]).then(() => {
+    // 再等待 Connected 事件（表示 RTC 连接也建立完成）
+    return Promise.race([
+      connectedPromise,
+      new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('RTC connection timeout after 60 seconds'))
+        }, 60000)
+      })
+    ])
+  }, (error) => {
+    return Promise.reject(error)
+  }).then(() => {
+    // 清理超时定时器
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
+    // 移除临时事件监听器
+    newRoom.off(RoomEvent.Connected, onConnected)
+    newRoom.off(RoomEvent.Disconnected, onDisconnected)
+
+    // 检查连接状态
+    if (newRoom.state !== ConnectionState.Connected) {
+      throw new Error('Room is not in connected state')
+    }
+
+    room.value = newRoom
+    isConnected.value = true
+    connectionState.value = 'connected'
+    connecting.value = false
+    connectionError.value = null
+    updateOnlineCount(newRoom)
+    // 连接成功后停止轮询（通过 WebRTC 接收消息）
+    stopMessagePolling()
+
+    // 在完全连接后再设置媒体，短暂等待确保连接稳定
+    return new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
+      // 再次检查连接状态
+      if (newRoom.state === ConnectionState.Connected) {
+        return setupLocalMedia(newRoom).then(() => null, () => null)
+      }
+      return null
+    })
+  }, (error: any) => {
+    // 清理超时定时器
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
+    // 移除临时事件监听器
+    newRoom.off(RoomEvent.Connected, onConnected)
+    newRoom.off(RoomEvent.Disconnected, onDisconnected)
+
     connecting.value = false
     connectionState.value = 'failed'
-    return
-  }
+    // 提供更详细的错误信息
+    let errorMessage = error?.message || t('live.room.connectError')
+    if (error?.message?.includes('pc connection') || error?.message?.includes('could not establish pc connection')) {
+      errorMessage = t('live.room.rtcConnectionError') + ' ' + t('live.room.rtcConnectionErrorHint')
+    } else if (error?.message?.includes('timeout') || error?.message?.includes('Connection timeout') || error?.message?.includes('RTC connection timeout')) {
+      errorMessage = t('live.room.connectionTimeout') + ' ' + t('live.room.connectionTimeoutHint') + ' (可能是网络问题或防火墙阻止了 WebRTC 连接)'
+    } else if (error?.message?.includes('network') || error?.message?.includes('Network')) {
+      errorMessage = t('live.room.networkError')
+    } else if (error?.message?.includes('401') || error?.message?.includes('Unauthorized')) {
+      errorMessage = t('live.room.tokenInvalid')
+    } else if (error?.message?.includes('404') || error?.message?.includes('Not Found')) {
+      errorMessage = t('live.room.serverNotFound')
+    }
+    connectionError.value = errorMessage
 
-  room.value = newRoom
-  isConnected.value = true
-  connectionState.value = 'connected'
-  connecting.value = false
-  updateOnlineCount(newRoom)
-  await setupLocalMedia(newRoom)
+    // 清理资源 - 检查连接状态
+    if (newRoom.state !== ConnectionState.Disconnected) {
+      newRoom.disconnect().then(() => null, () => null)
+    }
+
+    return Promise.reject(error)
+  })
 }
 
 async function handleLeave() {
   if (!room.value) return
-  await room.value.disconnect()
+  await room.value.disconnect().then(() => null, () => null)
   room.value = null
-  isConnected.value = false
+  isConnected.value = null
   connectionState.value = 'disconnected'
-  cameraEnabled.value = false
-  microphoneEnabled.value = false
+  cameraEnabled.value = null
+  microphoneEnabled.value = null
   updateOnlineCount(null)
   cleanupRemoteParticipants()
   if (localVideoRef.value) {
     localVideoRef.value.srcObject = null
   }
-}
-
-async function toggleCamera() {
-  if (room.value) {
-    const enabled = !cameraEnabled.value
-    await room.value.localParticipant.setCameraEnabled(enabled)
-    cameraEnabled.value = enabled
+  // 断开连接后，如果还在房间页面，重新启动轮询
+  if (roomId) {
+    startMessagePolling()
   }
 }
 
+async function toggleCamera() {
+  if (!room.value) {
+    connectionError.value = t('live.room.notConnected') || '未连接到房间'
+    return
+  }
+
+  if (room.value.state !== ConnectionState.Connected) {
+    let stateText = t('live.room.connectFailed') || '连接失败'
+    if (room.value.state === ConnectionState.Connecting) {
+      stateText = t('live.room.connecting') || '连接中'
+    } else if (room.value.state === ConnectionState.Reconnecting) {
+      stateText = t('live.room.reconnecting') || '重连中'
+    } else if (room.value.state === ConnectionState.Disconnected) {
+      stateText = t('live.room.disconnected') || '已断开'
+    }
+    connectionError.value = t('live.room.cannotToggleCamera') || `无法切换摄像头：${stateText}`
+    return
+  }
+
+  const enabled = !cameraEnabled.value
+
+  // 如果禁用，直接调用 setCameraEnabled(false)
+  if (!enabled) {
+    await room.value.localParticipant.setCameraEnabled(false).then(() => {
+      cameraEnabled.value = false
+      if (localVideoRef.value) {
+        localVideoRef.value.srcObject = null
+      }
+    }, () => null)
+    return
+  }
+
+  // 启用摄像头：如果已经有轨道，先禁用再启用以避免克隆问题
+  const existingPublications = Array.from(room.value.localParticipant.videoTrackPublications.values())
+  if (existingPublications.length > 0) {
+    // 先禁用
+    await room.value.localParticipant.setCameraEnabled(false).then(() => {
+      return new Promise(resolve => setTimeout(resolve, 200))
+    }, () => null)
+  }
+
+  // 重新启用摄像头
+  await room.value.localParticipant.setCameraEnabled(true).then(() => {
+    cameraEnabled.value = true
+
+    // 等待轨道发布并附加到视频元素
+    return new Promise(resolve => setTimeout(resolve, 500))
+  }, (error: any) => {
+    const errorMsg = error?.message || '未知错误'
+    if (error?.name === 'DataCloneError' || errorMsg.includes('could not be cloned')) {
+      connectionError.value = t('live.room.cameraToggleFailed') || '切换摄像头失败：内部错误，请尝试刷新页面后重试'
+    } else {
+      connectionError.value = t('live.room.cameraToggleFailed') || `切换摄像头失败：${errorMsg}`
+    }
+    return null
+  }).then(() => {
+    const videoPublications = Array.from(room.value!.localParticipant.videoTrackPublications.values())
+    for (const publication of videoPublications) {
+      if (publication.track && localVideoRef.value) {
+        publication.track.attach(localVideoRef.value)
+      }
+    }
+
+    // 如果还没有视频轨道，监听发布事件
+    if (videoPublications.length === 0 && localVideoRef.value) {
+      const handleTrackPublished = (publication: any) => {
+        if (publication.track && publication.track.kind === Track.Kind.Video && localVideoRef.value) {
+          publication.track.attach(localVideoRef.value)
+          room.value!.localParticipant.off('trackPublished', handleTrackPublished)
+        }
+      }
+      room.value!.localParticipant.on('trackPublished', handleTrackPublished)
+
+      // 设置超时清理监听器
+      setTimeout(() => {
+        room.value?.localParticipant.off('trackPublished', handleTrackPublished)
+      }, 5000)
+    }
+  })
+}
+
 async function toggleMicrophone() {
-  if (room.value) {
-    const enabled = !microphoneEnabled.value
-    await room.value.localParticipant.setMicrophoneEnabled(enabled)
-    microphoneEnabled.value = enabled
+  if (!room.value) {
+    connectionError.value = t('live.room.notConnected') || '未连接到房间'
+    return
+  }
+
+  if (room.value.state !== ConnectionState.Connected) {
+    let stateText = t('live.room.connectFailed') || '连接失败'
+    if (room.value.state === ConnectionState.Connecting) {
+      stateText = t('live.room.connecting') || '连接中'
+    } else if (room.value.state === ConnectionState.Reconnecting) {
+      stateText = t('live.room.reconnecting') || '重连中'
+    } else if (room.value.state === ConnectionState.Disconnected) {
+      stateText = t('live.room.disconnected') || '已断开'
+    }
+    connectionError.value = t('live.room.cannotToggleMicrophone') || `无法切换麦克风：${stateText}`
+    return
+  }
+
+  const enabled = !microphoneEnabled.value
+
+  // 如果禁用，直接调用 setMicrophoneEnabled(false)
+  if (!enabled) {
+    await room.value.localParticipant.setMicrophoneEnabled(false).then(() => {
+      microphoneEnabled.value = false
+    }, () => null)
+    return
+  }
+
+  // 启用麦克风：如果已经有轨道，先禁用再启用以避免克隆问题
+  const existingPublications = Array.from(room.value.localParticipant.audioTrackPublications.values())
+  if (existingPublications.length > 0) {
+    // 先禁用
+    await room.value.localParticipant.setMicrophoneEnabled(false).then(() => {
+      return new Promise(resolve => setTimeout(resolve, 200))
+    }, () => null)
+  }
+
+  // 重新启用麦克风
+  await room.value.localParticipant.setMicrophoneEnabled(true).then(() => {
+    microphoneEnabled.value = true
+  }, (error: any) => {
+    const errorMsg = error?.message || '未知错误'
+    if (error?.name === 'DataCloneError' || errorMsg.includes('could not be cloned')) {
+      connectionError.value = t('live.room.microphoneToggleFailed') || '切换麦克风失败：内部错误，请尝试刷新页面后重试'
+    } else {
+      connectionError.value = t('live.room.microphoneToggleFailed') || `切换麦克风失败：${errorMsg}`
+    }
+  })
+}
+
+async function toggleRecording() {
+  if (!roomInfo.value) {
+    return
+  }
+
+  // 检查权限
+  if (!isConnected.value || (currentUserRole.value !== LiveRoomRoleEnum.TEACHER && currentUserRole.value !== LiveRoomRoleEnum.ASSISTANT)) {
+    connectionError.value = t('live.room.noPermissionToRecord') || '您没有权限控制录制'
+    return
+  }
+
+  // 检查房间是否启用了录制功能
+  if (roomInfo.value.recordingEnabled !== 1) {
+    connectionError.value = t('live.room.recordingNotEnabled') || '该房间未开启录制功能，请在创建房间时启用录制'
+    return
+  }
+
+  if (recordingLoading.value) {
+    return
+  }
+
+  recordingLoading.value = true
+
+  if (isRecording.value) {
+    // 停止录制
+    await liveApi.stopRecording(roomId).then((response) => {
+      if (response?.data) {
+        roomInfo.value = response.data
+      }
+      recordingLoading.value = null
+    }, () => {
+      connectionError.value = t('live.room.stopRecordingFailed') || '停止录制失败'
+      recordingLoading.value = null
+    })
+  } else {
+    // 开始录制
+    await liveApi.startRecording(roomId).then((response) => {
+      if (response?.data) {
+        roomInfo.value = response.data
+      }
+      recordingLoading.value = null
+    }, () => {
+      connectionError.value = t('live.room.startRecordingFailed') || '开始录制失败'
+      recordingLoading.value = null
+    })
   }
 }
 
@@ -310,7 +755,8 @@ function buildLocalMessage(content: string): ChatMessage {
     id: `${Date.now()}`,
     sender: userStore.userInfo?.nickName || t('live.room.me'),
     content,
-    timestamp: new Date().toLocaleTimeString()
+    timestamp: new Date().toLocaleTimeString(),
+    isOwn: true
   }
 }
 
@@ -319,6 +765,9 @@ async function handleSendMessage(content: string) {
   if (!trimmed) return
 
   const localMessage = buildLocalMessage(trimmed)
+  if (!chatMessages.value) {
+    chatMessages.value = []
+  }
   chatMessages.value.push(localMessage)
 
   if (room.value) {
@@ -331,7 +780,7 @@ async function handleSendMessage(content: string) {
 
     await room.value.localParticipant.publishData(
         new TextEncoder().encode(JSON.stringify(payload)),
-        0
+        {reliable: true}
     ).then(() => null, () => null)
   }
 
@@ -347,47 +796,53 @@ async function handleSendMessage(content: string) {
 function bindRoomEvents(targetRoom: Room) {
   targetRoom.on(RoomEvent.Connected, () => {
     isConnected.value = true
-    connecting.value = false
+    connecting.value = null
     connectionState.value = 'connected'
     updateOnlineCount(targetRoom)
+    // 连接成功后停止轮询（通过 WebRTC 接收消息）
+    stopMessagePolling()
   })
 
   targetRoom.on(RoomEvent.DataReceived, (data: Uint8Array) => {
-    try {
-      const text = new TextDecoder().decode(data)
-      const payload = JSON.parse(text)
+    const text = new TextDecoder().decode(data)
+    Promise.resolve(text).then((decodedText) => {
+      return new Promise((resolve) => {
+        const payload = JSON.parse(decodedText)
+        resolve(payload)
+      })
+    }).then((payload: any) => {
       if (!payload || payload.type !== 'chat' || !payload.content) {
         return
       }
+      if (!chatMessages.value) {
+        chatMessages.value = []
+      }
+      const senderName = payload.sender || t('live.room.unknown')
+      const currentUserNickName = userStore.userInfo?.nickName
+      const isOwn = senderName === currentUserNickName
       chatMessages.value.push({
         id: `${Date.now()}`,
-        sender: payload.sender || t('live.room.unknown'),
+        sender: senderName,
         content: payload.content,
-        timestamp: payload.sendTime ? new Date(payload.sendTime).toLocaleTimeString() : new Date().toLocaleTimeString()
+        timestamp: payload.sendTime ? new Date(payload.sendTime).toLocaleTimeString() : new Date().toLocaleTimeString(),
+        isOwn
       })
-    } catch {
-      // ignore invalid payload
-    }
+    }, () => null)
   })
 
   targetRoom.on(RoomEvent.Disconnected, () => {
     connectionState.value = 'disconnected'
-    isConnected.value = false
+    isConnected.value = null
     cleanupRemoteParticipants()
     updateOnlineCount(null)
+    // 断开连接后，重新启动轮询
+    if (roomId) {
+      startMessagePolling()
+    }
   })
 
-  targetRoom.on(RoomEvent.StateChanged, (state: string) => {
-    connectionState.value = state
-    if (state === 'connected') {
-      isConnected.value = true
-      connecting.value = false
-    }
-    if (state === 'disconnected') {
-      isConnected.value = false
-      connecting.value = false
-    }
-  })
+  // RoomEvent.StateChanged 不存在，使用其他事件代替
+  // 连接状态通过 Connected 和 Disconnected 事件处理
 
   targetRoom.on(RoomEvent.Reconnecting, () => {
     connectionState.value = 'reconnecting'
@@ -395,6 +850,36 @@ function bindRoomEvents(targetRoom: Room) {
 
   targetRoom.on(RoomEvent.Reconnected, () => {
     connectionState.value = 'connected'
+    isConnected.value = true
+    // 重连成功后停止轮询（通过 WebRTC 接收消息）
+    stopMessagePolling()
+    // 重连成功后，如果之前启用了摄像头或麦克风，尝试恢复它们
+    if (targetRoom.state === ConnectionState.Connected) {
+      setTimeout(() => {
+        // 恢复麦克风状态
+        if (microphoneEnabled.value === true) {
+          targetRoom.localParticipant.setMicrophoneEnabled(true).then(() => null, () => {
+            microphoneEnabled.value = null
+          })
+        }
+        // 恢复摄像头状态
+        if (cameraEnabled.value === true) {
+          targetRoom.localParticipant.setCameraEnabled(true).then(() => {
+            // 等待轨道发布并附加到视频元素
+            setTimeout(() => {
+              const videoPublications = Array.from(targetRoom.localParticipant.videoTrackPublications.values())
+              for (const publication of videoPublications) {
+                if (publication.track && localVideoRef.value) {
+                  publication.track.attach(localVideoRef.value)
+                }
+              }
+            }, 300)
+          }, () => {
+            cameraEnabled.value = null
+          })
+        }
+      }, 1000) // 等待1秒确保连接稳定
+    }
   })
 
   targetRoom.on(RoomEvent.ParticipantConnected, () => {
@@ -413,19 +898,95 @@ function bindRoomEvents(targetRoom: Room) {
   targetRoom.on(RoomEvent.TrackUnsubscribed, (track: Track, _publication: RemoteTrackPublication, participant: RemoteParticipant) => {
     detachRemoteTrack(participant.identity, track)
   })
-}
 
-async function setupLocalMedia(targetRoom: Room) {
-  await targetRoom.localParticipant.setCameraEnabled(true)
-  await targetRoom.localParticipant.setMicrophoneEnabled(true)
-  cameraEnabled.value = true
-  microphoneEnabled.value = true
-
-  const tracks = targetRoom.localParticipant.getTracks()
-  for (const publication of tracks) {
+  // 监听本地轨道发布事件
+  targetRoom.localParticipant.on('trackPublished', (publication: any) => {
     if (publication.track && publication.track.kind === Track.Kind.Video && localVideoRef.value) {
       publication.track.attach(localVideoRef.value)
     }
+  })
+}
+
+async function setupLocalMedia(targetRoom: Room) {
+  // 检查连接状态
+  if (targetRoom.state !== ConnectionState.Connected) {
+    return
+  }
+
+  // 先启用麦克风（通常更稳定）
+  await targetRoom.localParticipant.setMicrophoneEnabled(true).then(() => {
+    microphoneEnabled.value = true
+  }, () => {
+    microphoneEnabled.value = null
+    connectionError.value = t('live.room.microphoneEnableFailed') || '启用麦克风失败，请检查权限设置'
+  })
+
+  // 等待一小段时间再启用摄像头
+  await new Promise(resolve => setTimeout(resolve, 300))
+
+  // 启用摄像头，添加重试机制
+  let cameraRetries = 3
+  let cameraSuccess = false
+
+  while (cameraRetries > 0 && !cameraSuccess) {
+    // 再次检查连接状态
+    if (targetRoom.state !== ConnectionState.Connected) {
+      break
+    }
+
+    await targetRoom.localParticipant.setCameraEnabled(true).then(() => {
+      cameraEnabled.value = true
+      cameraSuccess = true
+    }, () => {
+      cameraRetries--
+      if (cameraRetries > 0) {
+        return new Promise(resolve => setTimeout(resolve, 1000))
+      }
+      return null
+    })
+
+    if (cameraSuccess) {
+      break
+    }
+  }
+
+  if (!cameraSuccess) {
+    cameraEnabled.value = null
+    connectionError.value = t('live.room.cameraEnableFailed') || '启用摄像头失败，请检查权限设置或设备是否可用'
+  }
+
+  // 等待轨道发布
+  await new Promise(resolve => setTimeout(resolve, 500))
+
+  // 使用 videoTrackPublications 获取已发布的视频轨道
+  const videoPublications = Array.from(targetRoom.localParticipant.videoTrackPublications.values())
+  for (const publication of videoPublications) {
+    if (publication.track && localVideoRef.value) {
+      publication.track.attach(localVideoRef.value)
+    }
+  }
+
+  // 如果还没有视频轨道，等待轨道发布
+  if (videoPublications.length === 0 && localVideoRef.value && cameraSuccess) {
+    // 监听本地视频轨道发布
+    const handleLocalTrackPublished = (publication: any) => {
+      if (publication.track && publication.track.kind === Track.Kind.Video && localVideoRef.value) {
+        publication.track.attach(localVideoRef.value)
+        targetRoom.localParticipant.off('trackPublished', handleLocalTrackPublished)
+      }
+    }
+    targetRoom.localParticipant.on('trackPublished', handleLocalTrackPublished)
+
+    // 设置超时，如果5秒内没有轨道发布，给出提示并清理监听器
+    setTimeout(() => {
+      targetRoom.localParticipant.off('trackPublished', handleLocalTrackPublished)
+      const currentPublications = Array.from(targetRoom.localParticipant.videoTrackPublications.values())
+      if (currentPublications.length === 0 && cameraEnabled.value === true) {
+        connectionError.value = t('live.room.cameraTrackNotPublished') || '摄像头已启用，但视频轨道未发布，请检查设备权限'
+      }
+    }, 5000)
+
+    // 注意：如果连接断开，handleLeave 会清理所有资源，包括事件监听器
   }
 }
 
@@ -555,7 +1116,8 @@ function cleanupRemoteParticipants() {
   .status-chip,
   .online-chip,
   .role-chip,
-  .token-chip {
+  .token-chip,
+  .recording-chip {
     padding: 4px 12px;
     border-radius: 999px;
     background-color: var(--background-tertiary-color);
@@ -565,7 +1127,24 @@ function cleanupRemoteParticipants() {
   .token-chip {
     border: 1px dashed var(--primary-color);
     color: var(--primary-color);
-    background-color: rgba(0, 0, 0, 0);
+    background-color: transparent;
+  }
+
+  .recording-chip {
+    &.recording-active {
+      background-color: var(--error-color);
+      color: var(--text-color);
+      animation: recordingPulse 2s ease-in-out infinite;
+    }
+  }
+
+  @keyframes recordingPulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
   }
 
   .room-layout {
@@ -573,10 +1152,14 @@ function cleanupRemoteParticipants() {
     flex-direction: column;
     gap: 16px;
     transition: all 0.4s ease;
+    min-height: 0;
+    height: calc(100vh - 200px);
 
     &.is-connected {
       flex-direction: row;
-      align-items: flex-start;
+      align-items: stretch;
+      height: calc(100vh - 200px);
+      min-height: 600px;
     }
   }
 
@@ -589,7 +1172,11 @@ function cleanupRemoteParticipants() {
     transform: translateY(20px);
     transition: flex 0.4s ease, opacity 0.3s ease, transform 0.3s ease;
     order: 1;
-    min-height: 420px;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 100%;
 
     .video-placeholder {
       display: flex;
@@ -608,29 +1195,216 @@ function cleanupRemoteParticipants() {
   }
 
   .room-layout.is-connected .video-panel {
-    flex: 1 1 auto;
+    flex: 2 1 60%;
     opacity: 1;
     transform: translateY(0);
+    min-height: 0;
   }
 
   .chat-panel {
     flex: 1;
     background: var(--background-tertiary-color);
     border-radius: 12px;
-    padding: 16px;
+    padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    transition: flex 0.4s ease, max-width 0.4s ease;
+    gap: 0;
+    transition: flex 0.4s ease, width 0.4s ease;
     order: 2;
-    height: 360px;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
     box-sizing: border-box;
     overflow: hidden;
+    position: relative;
+
+    :deep(.chat-panel) {
+      height: 100% !important;
+      min-height: 0;
+      max-height: 100%;
+      overflow: hidden;
+      display: flex !important;
+      flex-direction: column !important;
+      position: relative !important;
+      box-sizing: border-box;
+    }
+
+    :deep(.chat-panel__header) {
+      flex-shrink: 0;
+      padding: 12px 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    :deep(.chat-panel__body) {
+      flex: 1 1 auto !important;
+      min-height: 0;
+      max-height: 100%;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      padding-bottom: 0;
+      margin-bottom: 0;
+    }
+
+    :deep(.chat-panel__messages) {
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-bottom: 100px; // 预留输入框高度，增加一些余量
+      -webkit-overflow-scrolling: touch;
+      box-sizing: border-box;
+    }
+
+    :deep(.chat-panel__loading) {
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-bottom: 100px; // 预留输入框高度，增加一些余量
+      -webkit-overflow-scrolling: touch;
+      box-sizing: border-box;
+    }
+
+    :deep(.chat-panel__footer) {
+      position: absolute !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      width: 100% !important;
+      border-bottom-left-radius: 12px !important;
+      border-bottom-right-radius: 12px !important;
+      z-index: 100 !important;
+      background-color: var(--background-tertiary-color);
+      margin: 0 !important;
+      padding: 0 !important;
+      flex-shrink: 0;
+      box-sizing: border-box;
+    }
+
+    :deep(.chat-panel__footer-actions) {
+      flex-shrink: 0;
+    }
   }
 
-  .room-layout.is-connected .chat-panel {
-    flex: 0 0 380px;
-    max-width: 380px;
+  .room-layout.is-connected .chat-panel,
+  .chat-panel.chat-panel-connected {
+    flex: 0 0 400px;
+    width: 400px;
+    min-width: 400px;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+    align-self: stretch;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    :deep(.chat-panel) {
+      height: 100% !important;
+      min-height: 0 !important;
+      max-height: 100% !important;
+      overflow: hidden !important;
+      display: flex !important;
+      flex-direction: column !important;
+      position: relative !important;
+      box-sizing: border-box !important;
+    }
+
+    :deep(.chat-panel__header) {
+      flex-shrink: 0 !important;
+      padding: 12px 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    :deep(.chat-panel__body) {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      max-height: 100% !important;
+      overflow: hidden !important;
+      display: flex !important;
+      flex-direction: column !important;
+      position: relative !important;
+      padding-bottom: 0 !important;
+      margin-bottom: 0 !important;
+    }
+
+    :deep(.chat-panel__messages) {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      max-height: 100% !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      padding-bottom: 100px !important; // 预留输入框高度，增加一些余量
+      -webkit-overflow-scrolling: touch;
+      box-sizing: border-box !important;
+    }
+
+    :deep(.chat-panel__loading) {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      max-height: 100% !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      padding-bottom: 100px !important; // 预留输入框高度，增加一些余量
+      -webkit-overflow-scrolling: touch;
+      box-sizing: border-box !important;
+    }
+
+    :deep(.chat-panel) {
+      position: relative !important;
+    }
+
+    :deep(.chat-panel__footer) {
+      position: absolute !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      width: 100% !important;
+      border-bottom-left-radius: 12px !important;
+      border-bottom-right-radius: 12px !important;
+      z-index: 1000 !important;
+      background-color: var(--background-tertiary-color) !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      flex-shrink: 0 !important;
+      box-sizing: border-box !important;
+    }
+
+    :deep(.chat-panel__footer--fixed) {
+      position: absolute !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      width: 100% !important;
+      z-index: 1000 !important;
+    }
+
+    :deep(.chat-panel__footer-input-wrapper) {
+      position: relative !important;
+      flex-shrink: 0 !important;
+      padding: 12px 16px !important;
+      padding-bottom: 12px !important;
+      margin: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+    }
+
+    :deep(.chat-panel__footer-actions) {
+      flex-shrink: 0 !important;
+      position: absolute !important;
+      right: 24px !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
+      z-index: 1 !important;
+    }
   }
 
   .chat-header {
@@ -650,8 +1424,17 @@ function cleanupRemoteParticipants() {
 
   .video-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 16px;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    align-content: start;
+  }
+
+  .video-grid .local-video {
+    grid-column: 1 / -1;
+    min-height: 400px;
   }
 
   .video-item {
@@ -660,6 +1443,7 @@ function cleanupRemoteParticipants() {
     border-radius: 8px;
     overflow: hidden;
     aspect-ratio: 16 / 9;
+    min-height: 200px;
 
     video {
       width: 100%;
@@ -672,18 +1456,97 @@ function cleanupRemoteParticipants() {
       bottom: 8px;
       left: 8px;
       padding: 4px 8px;
-      background: rgba(0, 0, 0, 0.6);
+      background: var(--shadow-color);
       color: var(--text-color);
       border-radius: 4px;
       font-size: 12px;
     }
   }
 
+  .video-item.local-video {
+    aspect-ratio: auto;
+    min-height: 400px;
+  }
+
   .media-controls {
     margin-top: 16px;
     padding-top: 16px;
     border-top: 1px solid var(--border-color);
+    flex-shrink: 0;
   }
+}
+</style>
+
+<style lang="scss">
+// 全局样式，用于强制覆盖 ChatPanel 的 scoped 样式
+.chat-panel-connected .chat-panel {
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+}
+
+.chat-panel-connected .chat-panel__body {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  position: relative !important;
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.chat-panel-connected .chat-panel__messages,
+.chat-panel-connected .chat-panel__loading {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding-bottom: 100px !important;
+  box-sizing: border-box !important;
+}
+
+.chat-panel-connected .chat-panel__footer {
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  border-bottom-left-radius: 12px !important;
+  border-bottom-right-radius: 12px !important;
+  z-index: 1000 !important;
+  background-color: var(--background-tertiary-color) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.chat-panel-connected .chat-panel__footer-input-wrapper {
+  position: relative !important;
+  flex-shrink: 0 !important;
+  padding: 12px 16px !important;
+  padding-bottom: 12px !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.chat-panel-connected .chat-panel__footer-actions {
+  flex-shrink: 0 !important;
+  position: absolute !important;
+  right: 24px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 1 !important;
 }
 </style>
 

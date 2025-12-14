@@ -67,75 +67,75 @@
 
         <!-- 聊天内容 -->
         <transition
-            name="chat-switch"
             mode="out-in"
+            name="chat-switch"
         >
           <div
               v-if="currentSession"
               :key="activeSessionId ?? 'session'"
               class="chat-content-wrapper"
           >
-          <div class="chat-main-column">
-            <div ref="chatContentRef" class="chat-content">
-              <!-- 消息列表容器 - Gemini风格 -->
-              <div class="messages-wrapper">
-                <div class="messages-container">
-                  <ChatMessage
-                      v-for="(message, index) in displayMessages"
-                      :key="message.id ?? `msg-${index}`"
-                      :active-question-index="activeQuestionIndex"
-                      :active-question-message-id="activeQuestionMessageId"
-                      :is-streaming="getIsAssistantStreaming(message)"
-                      :message="message"
-                      @copy="handleCopy"
-                      @feedback="handleFeedback"
-                      @resend="handleResend(index)"
-                      @view-questions="handleViewQuestions"
+            <div class="chat-main-column">
+              <div ref="chatContentRef" class="chat-content">
+                <!-- 消息列表容器 - Gemini风格 -->
+                <div class="messages-wrapper">
+                  <div class="messages-container">
+                    <ChatMessage
+                        v-for="(message, index) in displayMessages"
+                        :key="message.id ?? `msg-${index}`"
+                        :active-question-index="activeQuestionIndex"
+                        :active-question-message-id="activeQuestionMessageId"
+                        :is-streaming="getIsAssistantStreaming(message)"
+                        :message="message"
+                        @copy="handleCopy"
+                        @feedback="handleFeedback"
+                        @resend="handleResend(index)"
+                        @view-questions="handleViewQuestions"
+                    />
+                  </div>
+                </div>
+              </div>
+              <!-- 输入区域（对话态） -->
+              <div class="input-container">
+                <div class="input-wrapper">
+                  <ChatInputBox
+                      v-model="input"
+                      v-model:file-references="fileReferences"
+                      v-model:use-rag="useRagSwitch"
+                      :is-sending="isSending"
+                      :is-uploading-files="isUploadingFiles"
+                      :placeholder="t('chat.placeholder')"
+                      :session-id="currentSession?.id ?? null"
+                      @enter="sendMessage"
+                      @send="sendMessage"
+                      @stop="interruptStreaming"
+                      @trigger-file-select="handleTriggerFileSelect"
+                      @open-tools="handleToolsSelect"
+                      @file-drop="handleFileDrop"
                   />
                 </div>
               </div>
             </div>
-            <!-- 输入区域（对话态） -->
-            <div class="input-container">
-              <div class="input-wrapper">
-                <ChatInputBox
-                    v-model="input"
-                    v-model:file-references="fileReferences"
-                    v-model:use-rag="useRagSwitch"
-                    :is-sending="isSending"
-                    :is-uploading-files="isUploadingFiles"
-                    :placeholder="t('chat.placeholder')"
-                    :session-id="currentSession?.id ?? null"
-                    @enter="sendMessage"
-                    @send="sendMessage"
-                    @stop="interruptStreaming"
-                    @trigger-file-select="handleTriggerFileSelect"
-                    @open-tools="handleToolsSelect"
-                    @file-drop="handleFileDrop"
-                />
-              </div>
+            <div
+                :class="{ 'is-visible': isQuestionPanelActive || isQuestionToolsVisible }"
+                class="question-panel-wrapper"
+            >
+              <PreviewPanel
+                  v-show="isQuestionPanelActive"
+                  :key="`${activeQuestionMessageId || 'question'}-${activeQuestionIndex ?? 0}`"
+                  v-model:active-index="activeQuestionIndex"
+                  :close-label="t('common.cancel')"
+                  :questions="questionPanelData"
+                  :title="questionPanelTitle"
+                  @close="handleCloseQuestionPanel"
+              />
+              <SmartQuestionModal
+                  v-show="isQuestionToolsVisible && !isQuestionPanelActive"
+                  v-model:show="isQuestionToolsVisible"
+                  :session-id="currentSession?.id ?? null"
+                  @question-request-success="handleQuestionRequestSuccess"
+              />
             </div>
-          </div>
-          <div
-              :class="{ 'is-visible': isQuestionPanelActive || isQuestionToolsVisible }"
-              class="question-panel-wrapper"
-          >
-            <PreviewPanel
-                v-show="isQuestionPanelActive"
-                :key="`${activeQuestionMessageId || 'question'}-${activeQuestionIndex ?? 0}`"
-                v-model:active-index="activeQuestionIndex"
-                :close-label="t('common.cancel')"
-                :questions="questionPanelData"
-                :title="questionPanelTitle"
-                @close="handleCloseQuestionPanel"
-            />
-            <SmartQuestionModal
-                v-show="isQuestionToolsVisible && !isQuestionPanelActive"
-                v-model:show="isQuestionToolsVisible"
-                :session-id="currentSession?.id ?? null"
-                @question-request-success="handleQuestionRequestSuccess"
-            />
-          </div>
           </div>
           <!-- 空状态 - Gemini 风格 -->
           <div
@@ -463,7 +463,7 @@ const selectSessionWithAnimation = async (session: ChatSessionVO) => {
   if (activeSessionId.value === session.id) {
     return
   }
-  
+
   // 直接切换会话，transition 组件会自动处理动画
   await selectSession(session)
 }
@@ -472,7 +472,7 @@ const selectSessionWithAnimation = async (session: ChatSessionVO) => {
 watch(activeSessionId, (newId, oldId) => {
   // 通知全局侧边栏activeSessionId变化
   eventBus.emit('aiActiveSessionIdChanged', newId)
-  
+
   // 当从null变为有值时，说明创建了新会话，需要刷新侧边栏
   if (!oldId && newId) {
     chatSidebarRef.value?.loadSessions()
@@ -488,11 +488,11 @@ onMounted(() => {
   eventBus.on('aiSelectSession', async (session: ChatSessionVO) => {
     await selectSessionWithAnimation(session)
   })
-  
+
   eventBus.on('aiNewChat', () => {
     newChat()
   })
-  
+
   eventBus.on('aiMyFavorites', () => {
     handleMyFavorites()
   })
@@ -521,40 +521,40 @@ const shouldOpenSmartQuestion = ref(false)
 
 // 监听路由 query 参数，如果存在 openSmartQuestion 参数，则标记需要打开
 watch(
-  () => route.query.openSmartQuestion,
-  (value) => {
-    if (value === 'true') {
-      shouldOpenSmartQuestion.value = true
-      // 清除 query 参数
-      router.replace({
-        path: route.path,
-        query: {
-          ...route.query,
-          openSmartQuestion: undefined
-        }
-      })
-    }
-  },
-  { immediate: true }
+    () => route.query.openSmartQuestion,
+    (value) => {
+      if (value === 'true') {
+        shouldOpenSmartQuestion.value = true
+        // 清除 query 参数
+        router.replace({
+          path: route.path,
+          query: {
+            ...route.query,
+            openSmartQuestion: undefined
+          }
+        })
+      }
+    },
+    {immediate: true}
 )
 
 // 监听 currentSession，确保在空状态时打开模态框
 watch(
-  () => [currentSession.value, shouldOpenSmartQuestion.value],
-  ([session, shouldOpen]) => {
-    if (shouldOpen && !session) {
-      // 延迟打开，确保组件完全渲染
-      nextTick(() => {
+    () => [currentSession.value, shouldOpenSmartQuestion.value],
+    ([session, shouldOpen]) => {
+      if (shouldOpen && !session) {
+        // 延迟打开，确保组件完全渲染
         nextTick(() => {
-          setTimeout(() => {
-            isQuestionToolsVisible.value = true
-            shouldOpenSmartQuestion.value = false
-          }, 600)
+          nextTick(() => {
+            setTimeout(() => {
+              isQuestionToolsVisible.value = true
+              shouldOpenSmartQuestion.value = false
+            }, 600)
+          })
         })
-      })
-    }
-  },
-  { immediate: true }
+      }
+    },
+    {immediate: true}
 )
 
 // 组件挂载时检查 query 参数
@@ -632,6 +632,19 @@ const handleResend = (messageIndex: number) => {
 
   const userMessage = messages.value[userIndex]
   const userMessageContent = userMessage.content
+  const userFileReferences = (() => {
+    const metadataRefs = (userMessage.metadata as any)?.fileReferences as FileReference[] | null | undefined
+    const messageRefs = userMessage.fileReferences as FileReference[] | null | undefined
+    const merged = [...(metadataRefs || []), ...(messageRefs || [])]
+    if (!merged.length) return null
+    const seen = new Set<string>()
+    return merged.filter((item) => {
+      const key = item.id ?? `${item.fileName ?? ''}-${item.storagePath ?? ''}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+  })()
 
   if (!userMessageContent) {
     return
@@ -644,7 +657,7 @@ const handleResend = (messageIndex: number) => {
   }
 
   // 使用原始用户内容重新请求
-  resendMessage(userMessageContent)
+  resendMessage(userMessageContent, userFileReferences)
 }
 
 

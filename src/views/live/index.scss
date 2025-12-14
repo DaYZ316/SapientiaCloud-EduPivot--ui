@@ -1,4 +1,61 @@
 .live-management-container {
-  // 样式定义
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+
+  .context-alert {
+    margin-bottom: 0;
+  }
+
+  // 上侧：基本信息展示区域
+  .info-section {
+    flex-shrink: 0;
+
+    .course-info-card {
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-weight: 500;
+      }
+    }
+  }
+
+  // 下侧：左右分栏内容区域
+  .content-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    flex: 1;
+    min-height: 0;
+    align-items: stretch;
+
+    // 左侧：房间创建与更新
+    .left-panel {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    // 右侧：房间信息展示
+    .right-panel {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
+  // 响应式设计
+  @media (max-width: 1200px) {
+    .content-section {
+      grid-template-columns: 1fr;
+
+      .left-panel,
+      .right-panel {
+        min-height: 400px;
+      }
+    }
+  }
 }
 

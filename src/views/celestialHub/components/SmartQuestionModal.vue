@@ -91,11 +91,11 @@
 <script lang="ts" setup>
 import {computed, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
+import type {FormInst, FormRules} from 'naive-ui'
 import {NButton, NIcon} from 'naive-ui'
 import {CloseOutline} from '@vicons/ionicons5'
 import {getDefaultQuestionGenerateRequestDTO} from '@/api/celestialHub/question'
 import type {QuestionGenerateRequestDTO} from '@/types/celestialHub/question'
-import type {FormInst, FormRules} from 'naive-ui'
 
 interface Props {
   show: boolean
@@ -133,7 +133,7 @@ watch(() => props.show, (newValue) => {
       }, 400)
     }
   }
-}, { immediate: true })
+}, {immediate: true})
 
 const handleUpdateShow = (value: boolean, skipAnimation = false) => {
   if (skipAnimation) {

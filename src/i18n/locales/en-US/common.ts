@@ -1,4 +1,5 @@
 export default {
+    operateSuccess: 'Operation succeeded',
     confirm: 'Confirm',
     cancel: 'Cancel',
     submit: 'Submit',

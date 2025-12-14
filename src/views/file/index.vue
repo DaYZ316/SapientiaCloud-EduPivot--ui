@@ -8,7 +8,7 @@
             <n-button
                 quaternary
                 size="small"
-                @click="handleBack"
+                @click="handleBack($event)"
             >
               <template #icon>
                 <Icon :component="ArrowBackOutline"/>
@@ -283,6 +283,8 @@ import {useI18n} from 'vue-i18n'
 import {useRoute, useRouter} from 'vue-router'
 import {useMenuStore} from '@/store'
 import {createFilePreviewMenuOption} from '@/config/menu'
+import {useTransitionStore} from '@/store/modules/transition'
+import {runViewTransition} from '@/utils/themeAnimation'
 import {
   AddOutline,
   ArrowBackOutline,
@@ -312,6 +314,7 @@ const {t} = useI18n()
 const router = useRouter()
 const route = useRoute()
 const menuStore = useMenuStore()
+const transitionStore = useTransitionStore()
 
 // 响应式数据
 const loading = ref(true)
@@ -415,7 +418,8 @@ const textStyle = computed(() => ({
 }))
 
 // 事件处理函数
-const handleBack = () => {
+const handleBack = (event?: MouseEvent) => {
+  transitionStore.show()
   // 检查是否有来源页面信息
   const fromPage = route.query.from as string
   const chapterId = route.query.chapterId as string
@@ -425,25 +429,33 @@ const handleBack = () => {
     // 如果有来源页面信息，直接跳转到指定页面
     if (fromPage === 'ChapterControl' && chapterId) {
       // 返回到章节控制页面并保持选中的章节
-      router.push({
-        name: 'ChapterControl',
-        params: {courseId},
-        query: {chapterId}
-      })
+      runViewTransition(() => {
+        router.push({
+          name: 'ChapterControl',
+          params: {courseId},
+          query: {chapterId}
+        })
+      }, event)
     } else if (fromPage === 'ChapterDetail' && chapterId) {
       // 返回到章节详情页面
-      router.push({
-        name: 'CourseChapters',
-        params: {courseId},
-        query: {chapterId}
-      })
+      runViewTransition(() => {
+        router.push({
+          name: 'CourseChapters',
+          params: {courseId},
+          query: {chapterId}
+        })
+      }, event)
     } else {
       // 其他情况使用默认返回
-      router.back()
+      runViewTransition(() => {
+        router.back()
+      }, event)
     }
   } else {
     // 没有来源信息时使用默认返回
-    router.back()
+    runViewTransition(() => {
+      router.back()
+    }, event)
   }
 }
 

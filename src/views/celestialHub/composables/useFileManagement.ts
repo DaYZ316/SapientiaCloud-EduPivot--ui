@@ -3,6 +3,8 @@ import {ref, watch} from 'vue'
 import {useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {useMessage} from 'naive-ui'
+import {useTransitionStore} from '@/store/modules/transition'
+import {runViewTransition} from '@/utils/themeAnimation'
 import {addChatSession} from '@/api/celestialHub/chatSession'
 import {getFilesBySessionId, uploadFiles} from '@/api/celestialHub/fileDocument'
 import type {FileDocumentUploadOptions, FileDocumentVO} from '@/types/celestialHub/fileDocument'
@@ -20,6 +22,7 @@ export function useFileManagement(
     const {t} = useI18n()
     const router = useRouter()
     const message = useMessage()
+    const transitionStore = useTransitionStore()
 
     // 文件选择器引用
     const filePickerRef = ref<HTMLInputElement | null>(null)
@@ -163,15 +166,18 @@ export function useFileManagement(
     }
 
     // 处理文件预览
-    const handleFilePreview = (fileInfo: FileInfoDTO) => {
-        router.push({
-            name: 'FilePreview',
-            query: {
-                fileInfo: JSON.stringify(fileInfo),
-                from: 'CelestialHub',
-                sessionId: currentSession.value?.id ?? ''
-            }
-        })
+    const handleFilePreview = (fileInfo: FileInfoDTO, event?: MouseEvent) => {
+        transitionStore.show()
+        runViewTransition(() => {
+            router.push({
+                name: 'FilePreview',
+                query: {
+                    fileInfo: JSON.stringify(fileInfo),
+                    from: 'CelestialHub',
+                    sessionId: currentSession.value?.id ?? ''
+                }
+            })
+        }, event)
     }
 
     // 监听会话ID变化，当文件抽屉打开且会话ID变化时重新加载文件

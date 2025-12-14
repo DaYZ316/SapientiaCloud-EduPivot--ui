@@ -14,6 +14,52 @@ export default {
         loadingMore: 'Loading more...',
         noMore: 'No more data'
     },
+    practicePanel: {
+        title: 'Class Practice',
+        empty: 'No practice yet',
+        defaultQuestionTitle: 'Question',
+        required: 'Required',
+        optional: 'Optional',
+        submitted: 'Submitted',
+        unsubmitted: 'Not answered',
+        noContent: 'No content',
+        blankLabel: 'Blank {index}',
+        answerPlaceholder: 'Please enter your answer',
+        unsupported: 'Unsupported question type',
+        statusCorrect: 'Correct',
+        statusWrong: 'Incorrect',
+        statusPending: 'Pending review',
+        scorePrefix: 'Score: ',
+        submit: 'Submit',
+        noMore: 'No more data',
+        questionType: {
+            single: 'Single Choice',
+            multiple: 'Multiple Choice',
+            judge: 'True/False',
+            blank: 'Fill in the Blanks',
+            short: 'Short Answer',
+            default: 'Question'
+        }
+    },
+    questionPanel: {
+        modalTitle: 'Publish Practice',
+        startTime: 'Start Time',
+        endTime: 'End Time',
+        unnamedQuestion: 'Untitled Question',
+        selectRequiredPlaceholder: 'Required?',
+        confirmSync: 'Confirm',
+        cancel: 'Cancel',
+        clearContent: 'No questions selected. Clear all published practices?',
+        clearConfirm: 'Clear All'
+    },
+    chapterPanel: {
+        title: 'Chapters',
+        empty: 'No chapters',
+        selectHint: 'Please select a chapter to view details',
+        noContent: 'No content',
+        attachments: 'Attachments',
+        noAttachments: 'No attachments'
+    },
     detail: {
         basicInfo: 'Course Basic Information',
         courseName: 'Course Name',
@@ -99,11 +145,14 @@ export default {
         signed: 'Signed',
         absent: 'Absent'
     },
+    chapters: 'Chapters',
+    publishPractice: 'Publish Practice',
+    classPractice: 'Class Practice',
     exit: 'Exit Classroom',
     enterClassroom: 'Enter Classroom',
     live: 'Smart Classroom Live',
     formatSeatLabel: 'Row {row} Column {column}',
-    pointerLockHint: 'Click left mouse button to enter view mode, hold Alt to show cursor',
+    pointerLockHint: 'Double-click to enter view control, left click to switch view, press Esc to exit',
     pointerLockHintTitle: 'Operation Hint',
     searchForm: {
         courseName: 'Course Name',

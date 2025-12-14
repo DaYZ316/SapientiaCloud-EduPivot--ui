@@ -46,8 +46,8 @@ let whiteLight = null; // 主色光源
 // 获取CSS变量中的primary-color
 const getPrimaryColor = () => {
   const primaryColor = getComputedStyle(document.documentElement)
-    .getPropertyValue('--primary-color')
-    .trim() || '#1890ff';
+      .getPropertyValue('--primary-color')
+      .trim() || '#1890ff';
   // 将CSS颜色值转换为Three.js颜色
   return new THREE.Color(primaryColor);
 };
@@ -546,7 +546,7 @@ const enableWhiteLight = () => {
     const primaryColor = getPrimaryColor();
     whiteLight.color = primaryColor;
     whiteLight.intensity = 50;
-    
+
     // 如果模型已加载，更新光源位置到模型后面
     if (bookModel) {
       const box = new THREE.Box3().setFromObject(bookModel);
@@ -555,9 +555,9 @@ const enableWhiteLight = () => {
       // 计算缩放后的尺寸
       const scale = bookModel.scale.x;
       const scaledSize = new THREE.Vector3(
-        size.x * scale,
-        size.y * scale,
-        size.z * scale
+          size.x * scale,
+          size.y * scale,
+          size.z * scale
       );
       // 将光源放在模型后方（Z轴负方向），距离模型边缘约0.3单位
       const lightDistance = Math.max(scaledSize.x, scaledSize.y, scaledSize.z) * 0.5 + 0.3;

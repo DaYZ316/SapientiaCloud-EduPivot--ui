@@ -26,7 +26,9 @@
         <div class="student-details">
           <div class="detail-item">
             <span class="detail-label">{{ t('classroom.studentInfo.seatNumber') }}</span>
-            <span class="detail-value">{{ student.seatIndex !== null ? student.seatIndex + 1 : t('classroom.studentInfo.unassigned') }}</span>
+            <span class="detail-value">{{
+                student.seatIndex !== null ? student.seatIndex + 1 : t('classroom.studentInfo.unassigned')
+              }}</span>
           </div>
           <div class="detail-item">
             <span class="detail-label">{{ t('classroom.studentInfo.attendanceStatus') }}</span>
@@ -53,7 +55,9 @@
           <div class="detail-item">
             <span class="detail-label">{{ t('classroom.studentInfo.seatNumber') }}</span>
             <span
-                class="detail-value">{{ seatIndex !== null ? seatIndex + 1 : t('classroom.studentInfo.unknown') }}</span>
+                class="detail-value">{{
+                seatIndex !== null ? seatIndex + 1 : t('classroom.studentInfo.unknown')
+              }}</span>
           </div>
           <div class="detail-item">
             <span class="detail-label">{{ t('classroom.studentInfo.status') }}</span>
@@ -67,8 +71,7 @@
 
 <script lang="ts" setup>
 import {useI18n} from 'vue-i18n';
-import {AttendanceStatusEnum} from '@/enum/classroom/attendanceStatusEnum';
-import {getAttendanceStatusLabel} from '@/enum/classroom/attendanceStatusEnum';
+import {AttendanceStatusEnum, getAttendanceStatusLabel} from '@/enum/classroom/attendanceStatusEnum';
 import type {CourseRecordStudentVO} from '@/types/classroom';
 import AvatarDisplay from '@/components/common/AvatarDisplay.vue';
 

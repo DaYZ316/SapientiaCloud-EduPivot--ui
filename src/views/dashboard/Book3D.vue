@@ -5,28 +5,31 @@
   </div>
 </template>
 
-<script setup>
+<script lang="ts" setup>
 import {onBeforeUnmount, onMounted, ref} from 'vue';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 // 组件状态
-const canvasRef = ref(null);
+const canvasRef = ref<HTMLCanvasElement | null>(null);
 const loading = ref(true);
 const loadingText = ref('正在加载3D模型...');
-const error = ref(null);
-const modelUrl = new URL('@/assets/3Dmodel/book/ancient_books.gltf', import.meta.url).href;
+const error = ref<string | null>(null);
+// 使用静态路径，因为 3D 模型文件是通过插件直接复制到 dist/assets/3Dmodel/ 的
+const modelUrl = import.meta.env.DEV
+    ? new URL('@/assets/3Dmodel/book/ancient_books.gltf', import.meta.url).href
+    : '/assets/3Dmodel/book/ancient_books.gltf';
 
 // Three.js相关对象
-let canvas = null;
-let renderer = null;
-let scene = null;
-let camera = null;
-let controls = null;
-let bookModel = null;
-let loader = null;
-let animationId = null;
+let canvas: HTMLCanvasElement | null = null;
+let renderer: THREE.WebGLRenderer | null = null;
+let scene: THREE.Scene | null = null;
+let camera: THREE.PerspectiveCamera | null = null;
+let controls: OrbitControls | null = null;
+let bookModel: THREE.Group | null = null;
+let loader: GLTFLoader | null = null;
+let animationId: number | null = null;
 let sizes = {
   width: 0,
   height: 0
@@ -102,6 +105,9 @@ const initThree = () => {
      * 加载器设置
      */
     loader = new GLTFLoader();
+    // 设置 GLTFLoader 的基础路径，用于解析相对资源路径
+    const modelDir = modelUrl.substring(0, modelUrl.lastIndexOf('/') + 1);
+    loader.setPath(modelDir);
 
     /**
      * 加载3D模型
@@ -136,12 +142,39 @@ const calculateCanvasSize = () => {
 const loadBookModel = () => {
   loadingText.value = '正在加载书本模型...';
 
+  if (!loader) return;
+  // 如果设置了 setPath，load 方法只需要文件名
+  const modelFileName = modelUrl.substring(modelUrl.lastIndexOf('/') + 1);
   loader.load(
-      modelUrl,
-      (gltf) => {
+      modelFileName,
+      (gltf: { scene: THREE.Group }) => {
         try {
           // 成功加载模型
           bookModel = gltf.scene;
+
+          // 处理缺失的纹理：为所有材质设置默认纹理或颜色
+          bookModel.traverse((child: THREE.Object3D) => {
+            const mesh = child as THREE.Mesh;
+            if (mesh.isMesh && mesh.material) {
+              const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+              materials.forEach((material: THREE.Material) => {
+                if (material instanceof THREE.MeshStandardMaterial) {
+                  // 如果纹理加载失败，使用默认颜色
+                  if (!material.map || material.map.image && material.map.image.complete === false) {
+                    // 根据材质名称设置不同的默认颜色
+                    if (material.name === '书名' || material.name.includes('书名')) {
+                      material.color.setHex(0x8B4513); // 棕色，适合书名
+                    } else if (material.name === '书页' || material.name.includes('书页')) {
+                      material.color.setHex(0xFFF8DC); // 米白色，适合书页
+                    } else {
+                      material.color.setHex(0xD2B48C); // 默认棕色
+                    }
+                    material.map = null; // 移除失败的纹理
+                  }
+                }
+              });
+            }
+          });
 
           // 计算模型尺寸并调整
           const box = new THREE.Box3().setFromObject(bookModel);
@@ -161,7 +194,9 @@ const loadBookModel = () => {
           bookModel.scale.set(scale, scale, scale);
 
           // 添加到场景
-          scene.add(bookModel);
+          if (scene) {
+            scene.add(bookModel);
+          }
 
           loadingText.value = '书本模型加载完成';
           loading.value = false;
@@ -171,12 +206,14 @@ const loadBookModel = () => {
           loading.value = false;
         }
       },
-      (xhr) => {
+      (xhr: ProgressEvent<EventTarget>) => {
         // 加载进度
-        const percent = (xhr.loaded / xhr.total * 100).toFixed(0);
-        loadingText.value = `正在加载书本模型... ${percent}%`;
+        if (xhr.lengthComputable) {
+          const percent = ((xhr.loaded / xhr.total) * 100).toFixed(0);
+          loadingText.value = `正在加载书本模型... ${percent}%`;
+        }
       },
-      (err) => {
+      (err: unknown) => {
         // 加载错误
         console.error('模型加载失败:', err);
         error.value = '书本模型加载失败';
@@ -254,21 +291,22 @@ const cleanup = () => {
     if (scene) {
       try {
         // 递归清理函数
-        const disposeObject = (object) => {
+        const disposeObject = (object: THREE.Object3D) => {
+          const mesh = object as THREE.Mesh;
           // 清理几何体
-          if (object.geometry) {
+          if (mesh.geometry) {
             try {
-              object.geometry.dispose();
+              mesh.geometry.dispose();
             } catch (err) {
               console.warn('清理几何体时出错:', err);
             }
           }
 
           // 清理材质
-          if (object.material) {
+          if (mesh.material) {
             try {
-              if (Array.isArray(object.material)) {
-                object.material.forEach(material => {
+              if (Array.isArray(mesh.material)) {
+                mesh.material.forEach((material: THREE.Material) => {
                   if (material && typeof material.dispose === 'function') {
                     try {
                       material.dispose();
@@ -277,8 +315,8 @@ const cleanup = () => {
                     }
                   }
                 });
-              } else if (typeof object.material.dispose === 'function') {
-                object.material.dispose();
+              } else if (typeof mesh.material.dispose === 'function') {
+                mesh.material.dispose();
               }
             } catch (err) {
               console.warn('处理材质时出错:', err);
@@ -295,11 +333,15 @@ const cleanup = () => {
         };
 
         // 清理场景中的所有对象
-        const sceneChildren = [...scene.children]; // 创建副本以避免循环问题
-        sceneChildren.forEach(child => {
-          scene.remove(child);
-          disposeObject(child);
-        });
+        if (scene) {
+          const sceneChildren = [...scene.children]; // 创建副本以避免循环问题
+          sceneChildren.forEach(child => {
+            if (scene) {
+              scene.remove(child);
+            }
+            disposeObject(child);
+          });
+        }
 
         console.log('场景对象已清理');
       } catch (err) {

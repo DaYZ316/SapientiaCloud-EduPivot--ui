@@ -57,21 +57,6 @@ export interface SysUserDTO {
 }
 
 /**
- * 用户注册参数（兼容旧版API�? */
-export interface SysUserRegisterDTO {
-    /** 用户�?*/
-    username: string | null
-    /** 密码 */
-    password: string | null
-    /** 确认密码 */
-    confirmPassword: string | null
-    /** 用户头像URL */
-    avatar?: string | null
-    /** 用户昵称 */
-    nickName: string | null
-}
-
-/**
  * 用户查询参数接口
  */
 export interface UserPageQueryDTO extends PageEntity {
@@ -123,14 +108,4 @@ export interface SysUserProfileDTO {
     mobile: string | null;
     gender?: number | null;
     avatar?: string | null;
-}
-
-/**
- * 手机验证码登录DTO
- */
-export interface SysUserMobileLoginDTO {
-    /** 手机号码 */
-    mobile: string | null
-    /** 手机验证码 */
-    verificationCode: string | null
 }

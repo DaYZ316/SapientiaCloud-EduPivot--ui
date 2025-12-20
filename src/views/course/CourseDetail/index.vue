@@ -466,7 +466,7 @@ const handleEditCourse = async () => {
     teacherId: courseInfo.value.teacherId,
     assistantTeacherIds: courseInfo.value.assistantTeacherIds || [],
     description: courseInfo.value.description,
-    coverImageUrl: courseInfo.value.coverImageUrl || '/src/assets/image/default-course.png',
+    coverImageUrl: courseInfo.value.coverImageUrl || '/assets/image/default-course.png',
     semester: courseInfo.value.semester,
     location: courseInfo.value.location,
     courseType: courseInfo.value.courseType,

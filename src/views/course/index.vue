@@ -35,7 +35,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, reactive, ref} from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import {AddOutline} from '@vicons/ionicons5'
 import type * as courseType from '@/types/course'
 import {useI18n} from 'vue-i18n'
@@ -53,7 +53,7 @@ const userStore = useUserStore()
 const isAdmin = computed(() => userStore.hasRole('ADMIN'))
 
 // 搜索表单
-const searchForm = reactive<courseType.CourseQueryParams>(courseApi.getDefaultCourseQuery())
+const searchForm = ref<courseType.CourseQueryParams>(courseApi.getDefaultCourseQuery())
 
 // 课程API函数
 const courseApiFunction = computed(() => courseApi.listCourse)
@@ -64,11 +64,11 @@ const courseManageRef = ref()
 // 初始化搜索表单
 function initializeSearchForm() {
   const defaultQuery = courseApi.getDefaultCourseQuery()
-  Object.assign(searchForm, defaultQuery)
+  Object.assign(searchForm.value, defaultQuery)
 
   // 非管理员根据用户角色设置查询条件
   if (!isAdmin.value && userStore.teacherInfo?.id) {
-    searchForm.teacherId = userStore.teacherInfo.id
+    searchForm.value.teacherId = userStore.teacherInfo.id
   }
 }
 

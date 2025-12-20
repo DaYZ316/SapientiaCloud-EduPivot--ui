@@ -1,11 +1,65 @@
 import {defineConfig} from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
+import {fileURLToPath} from 'url'
+import {copyFileSync, mkdirSync, existsSync, readdirSync} from 'fs'
 import {defaultServerConfig, getProxyTarget} from './src/config/server'
+
+// 获取当前文件的目录路径（ESM 兼容）
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+// 复制 3D 模型文件的插件
+function copy3DModelsPlugin() {
+    return {
+        name: 'copy-3d-models',
+        writeBundle() {
+            const srcDir = path.resolve(__dirname, 'src/assets/3Dmodel')
+            const destDir = path.resolve(__dirname, 'dist/assets/3Dmodel')
+            
+            if (!existsSync(srcDir)) {
+                console.warn('3D模型源目录不存在:', srcDir)
+                return
+            }
+            
+            function copyRecursive(src: string, dest: string) {
+                if (!existsSync(dest)) {
+                    mkdirSync(dest, {recursive: true})
+                }
+                
+                const entries = readdirSync(src, {withFileTypes: true, encoding: 'utf8'})
+                
+                for (const entry of entries) {
+                    const srcPath = path.join(src, entry.name)
+                    const destPath = path.join(dest, entry.name)
+                    
+                    if (entry.isDirectory()) {
+                        copyRecursive(srcPath, destPath)
+                    } else {
+                        try {
+                            copyFileSync(srcPath, destPath)
+                            console.log('已复制 3D 模型文件:', entry.name)
+                        } catch (copyError) {
+                            console.error('复制文件失败:', entry.name, copyError)
+                        }
+                    }
+                }
+            }
+            
+            try {
+                console.log('开始复制 3D 模型文件...')
+                copyRecursive(srcDir, destDir)
+                console.log('3D 模型文件复制完成')
+            } catch (error) {
+                console.error('复制 3D 模型文件失败:', error)
+            }
+        }
+    }
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
-    plugins: [vue()],
+    plugins: [vue(), copy3DModelsPlugin()],
     define: {
         global: 'globalThis',
     },
@@ -61,9 +115,10 @@ export default defineConfig({
             }
         }
     },
+    assetsInclude: ['**/*.gltf', '**/*.bin'],
     server: {
         host: '0.0.0.0', // 允许外部访问
-        port: 5173,
+        port: 80,
         strictPort: true, // 端口被占用时不会自动尝试下一个可用端口
         cors: true, // 启用CORS
         proxy: {
@@ -88,13 +143,13 @@ export default defineConfig({
                     }
                 },
                 configure: (proxy) => {
-                    proxy.on('error', (err) => {
+                    proxy.on('error', () => {
                         // Proxy error handling
                     });
-                    proxy.on('proxyReq', (_proxyReq, req) => {
+                    proxy.on('proxyReq', () => {
                         // Request logging
                     });
-                    proxy.on('proxyRes', (proxyRes, req) => {
+                    proxy.on('proxyRes', () => {
                         // Response logging
                     });
                 }

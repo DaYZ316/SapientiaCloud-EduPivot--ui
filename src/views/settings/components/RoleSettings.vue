@@ -230,10 +230,7 @@ import {handleDateRangeChange} from '@/utils/dateUtil'
 
 
 const {message, dialog} = getDiscreteApi()
-const {t, locale} = useI18n()
-
-// 是否为英文环境
-const isEnglish = computed(() => locale.value === 'en-US')
+const {t} = useI18n()
 
 // 状态选项
 const statusOptions = [

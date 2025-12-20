@@ -118,7 +118,7 @@ import PageHeader from '@/components/common/PageHeader.vue'
 import ChatPanel from '@/components/common/ChatPanel.vue'
 import * as liveApi from '@/api/live'
 import {getLiveRoomRoleLabel, getLiveRoomStatusLabel, LiveRoomRoleEnum, LiveRoomStatusEnum} from '@/enum/live'
-import type {ChatMessage, LiveRoomVO, RemoteParticipantMedia} from '@/types/live'
+import type {LiveRoomChatMessage, LiveRoomVO, RemoteParticipantMedia} from '@/types/live'
 import {useUserStore} from '@/store'
 
 const {t} = useI18n()
@@ -137,7 +137,7 @@ const microphoneEnabled = ref<boolean | null>(null)
 const onlineCount = ref<number | null>(null)
 const recordingLoading = ref<boolean | null>(null)
 
-const chatMessages = ref<ChatMessage[] | null>(null)
+const chatMessages = ref<LiveRoomChatMessage[] | null>(null)
 
 const localVideoRef = ref<HTMLVideoElement | null>(null)
 const remoteParticipants = ref<RemoteParticipantMedia[]>([])
@@ -160,7 +160,7 @@ const chatOnlineCount = computed(() => {
 
 const livekitServerUrl = computed(() => {
   // 优先使用环境变量，否则使用默认值
-  const host = import.meta.env.VITE_LIVEKIT_HOST || 'ws://localhost:7880'
+  const host = import.meta.env.VITE_LIVEKIT_HOST || 'ws://117.72.194.197:7880'
   return host
 })
 
@@ -750,7 +750,7 @@ async function toggleRecording() {
   }
 }
 
-function buildLocalMessage(content: string): ChatMessage {
+function buildLocalMessage(content: string): LiveRoomChatMessage {
   return {
     id: `${Date.now()}`,
     sender: userStore.userInfo?.nickName || t('live.room.me'),

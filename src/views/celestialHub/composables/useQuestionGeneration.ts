@@ -372,9 +372,9 @@ export function useQuestionGeneration(
         })
     }, {deep: true})
 
-    // 监听题目面板激活状态，自动滚动
+    // 监听题目面板激活状态和当前题目索引变化，自动滚动到对应题目
     watch(
-        () => [activeQuestionMessageId.value, activeQuestionIndex.value, isQuestionPanelActive.value],
+        [activeQuestionMessageId, activeQuestionIndex, isQuestionPanelActive],
         () => {
             if (!isQuestionPanelActive.value) {
                 return

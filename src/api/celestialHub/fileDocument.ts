@@ -36,10 +36,10 @@ export function getFileById(id: string) {
 }
 
 /**
- * 根据文件ID删除文件
+ * 根据文件ID删除文件文档
  * @param id 文件ID
  */
-export function deleteFile(id: string) {
+export function deleteFileDocument(id: string) {
     return http.delete<boolean>(`/celestial-hub/file-document/${id}`)
 }
 
@@ -52,21 +52,21 @@ export function vectorizeFile(id: string) {
 }
 
 /**
- * 分页查询文件列表
+ * 分页查询文件文档列表
  * @param params 查询参数
  */
-export function listFiles(params: FileDocumentQueryDTO) {
+export function listFileDocuments(params: FileDocumentQueryDTO) {
     return http.get<PageFileDocumentVO>('/celestial-hub/file-document/list', {
         params
     })
 }
 
 /**
- * 上传单个文件
+ * 上传单个文件文档
  * @param file 待上传文件
  * @param options 可选参数
  */
-export function uploadFile(file: File, options?: FileDocumentUploadOptions) {
+export function uploadFileDocument(file: File, options?: FileDocumentUploadOptions) {
     const formData = new FormData()
     formData.append('file', file)
 

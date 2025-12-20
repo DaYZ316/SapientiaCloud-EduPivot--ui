@@ -122,7 +122,7 @@ export interface LiveRoomPageQueryDTO extends PageEntity {
 /**
  * 直播房间聊天消息
  */
-export interface ChatMessage {
+export interface LiveRoomChatMessage {
     /** 消息ID */
     id: string
     /** 发送者 */

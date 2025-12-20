@@ -593,6 +593,13 @@ let loader: GLTFLoader | null = null;
 let classroomXLenght = 1;
 let classroomZLenght = 1;
 let spritePositions: THREE.Vector3[] = [];
+// 使用静态路径，因为 3D 模型文件是通过插件直接复制到 dist/assets/3Dmodel/ 的
+const classroomModelUrl = import.meta.env.DEV
+    ? new URL('@/assets/3Dmodel/classroom/classroomPro.gltf', import.meta.url).href
+    : '/assets/3Dmodel/classroom/classroomPro.gltf';
+const deskChairModelUrl = import.meta.env.DEV
+    ? new URL('@/assets/3Dmodel/desk_Chair/deskAndChair.gltf', import.meta.url).href
+    : '/assets/3Dmodel/desk_Chair/deskAndChair.gltf';
 
 
 const initThree = () => {
@@ -818,6 +825,9 @@ const initThree = () => {
     modelClickHandler.init(scene, camera, renderer.domElement);
   }
   loader = new GLTFLoader();
+  // 设置 GLTFLoader 的基础路径，用于解析相对资源路径
+  const classroomModelDir = classroomModelUrl.substring(0, classroomModelUrl.lastIndexOf('/') + 1);
+  loader.setPath(classroomModelDir);
 
   // 加载模型 - 顺序加载实现
   const loadModelsSequentially = async () => {
@@ -828,8 +838,10 @@ const initThree = () => {
           reject(new Error('Loader not initialized'));
           return;
         }
+        // 如果设置了 setPath，load 方法只需要文件名
+        const classroomModelFileName = classroomModelUrl.substring(classroomModelUrl.lastIndexOf('/') + 1);
         loader.load(
-            `/src/assets/3Dmodel/classroom/classroomPro.gltf`,
+            classroomModelFileName,
             (gltf: GLTF) => {
               classroomModel = gltf.scene;
               // 调整模型大小和位置
@@ -888,13 +900,20 @@ const initThree = () => {
       });
 
       // 第一个模型加载完成后，加载第二个模型（桌椅）
+      // 更新 GLTFLoader 的基础路径为桌椅模型目录
+      const deskChairModelDir = deskChairModelUrl.substring(0, deskChairModelUrl.lastIndexOf('/') + 1);
+      const deskChairModelFileName = deskChairModelUrl.substring(deskChairModelUrl.lastIndexOf('/') + 1);
+      if (loader) {
+        loader.setPath(deskChairModelDir);
+      }
       await new Promise<void>((resolve, reject) => {
         if (!loader) {
           reject(new Error('Loader not initialized'));
           return;
         }
+        // 如果设置了 setPath，load 方法只需要文件名
         loader.load(
-            '/src/assets/3Dmodel/desk_Chair/deskAndChair.gltf',
+            deskChairModelFileName,
             (gltf: GLTF) => {
               try {
                 // 整体模型处理管理器 - 增强版

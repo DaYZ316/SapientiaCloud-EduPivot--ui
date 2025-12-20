@@ -201,7 +201,7 @@ const stepStatus = ref<'process' | 'finish' | 'error'>('process')
 const sendingCode = ref(false)
 const countdown = ref(0)
 const stepDirection = ref<'next' | 'prev'>('next')
-let countdownTimer: NodeJS.Timeout | null = null
+let countdownTimer: ReturnType<typeof setTimeout> | null = null
 
 const stepTransitionName = computed(() => {
   return stepDirection.value === 'next' ? 'step-slide-next' : 'step-slide-prev'

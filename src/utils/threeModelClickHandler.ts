@@ -1,14 +1,22 @@
 import * as THREE from 'three';
 
 /**
+ * 悬浮事件回调对象类型
+ */
+interface HoverCallbackObj {
+    enter: (element: THREE.Object3D, event: MouseEvent, intersection: THREE.Intersection) => void;
+    leave?: (element: THREE.Object3D, event: MouseEvent) => void;
+}
+
+/**
  * Three.js模型子元素点击事件监听模块
  * 此模块可以独立引入，无需修改现有Three.js代码
  */
 export class ModelClickHandler {
     private raycaster: THREE.Raycaster;
     private mouse: THREE.Vector2;
-    private clickListeners: Map<string, Function[]>;
-    private hoverListeners: Map<string, Function[]>;
+    private clickListeners: Map<string, Array<(element: THREE.Object3D, event: MouseEvent, intersection: THREE.Intersection) => void>>;
+    private hoverListeners: Map<string, HoverCallbackObj[]>;
     private targetElements: Map<string, THREE.Object3D>;
     private scene: THREE.Scene | null;
     private camera: THREE.Camera | null;
@@ -97,7 +105,10 @@ export class ModelClickHandler {
             if (!this.clickListeners.has(elementId)) {
                 this.clickListeners.set(elementId, []);
             }
-            this.clickListeners.get(elementId).push(callback);
+            const listeners = this.clickListeners.get(elementId);
+            if (listeners) {
+                listeners.push(callback);
+            }
 
             console.log(`已为元素 ${element.name || '未命名'} 添加点击监听`);
         });
@@ -144,10 +155,13 @@ export class ModelClickHandler {
                 this.hoverListeners.set(elementId, []);
             }
             // 存储回调函数和离开回调函数为一个对象
-            this.hoverListeners.get(elementId).push({
-                enter: callback,
-                leave: leaveCallback
-            });
+            const hoverListeners = this.hoverListeners.get(elementId);
+            if (hoverListeners) {
+                hoverListeners.push({
+                    enter: callback,
+                    leave: leaveCallback
+                });
+            }
 
             console.log(`已为元素 ${element.name || '未命名'} 添加悬浮监听`);
         });
@@ -174,19 +188,21 @@ export class ModelClickHandler {
             if (callback || leaveCallback) {
                 // 移除特定回调
                 const listeners = this.hoverListeners.get(elementId);
-                const filteredListeners = listeners.filter(callbackObj => {
-                    return !(callbackObj.enter === callback || callbackObj.leave === leaveCallback);
-                });
+                if (listeners) {
+                    const filteredListeners = listeners.filter(callbackObj => {
+                        return !(callbackObj.enter === callback || callbackObj.leave === leaveCallback);
+                    });
 
-                if (filteredListeners.length < listeners.length) {
-                    this.hoverListeners.set(elementId, filteredListeners);
-                    console.log(`已移除元素 ${element.name || '未命名'} 的特定悬浮监听`);
-                }
+                    if (filteredListeners.length < listeners.length) {
+                        this.hoverListeners.set(elementId, filteredListeners);
+                        console.log(`已移除元素 ${element.name || '未命名'} 的特定悬浮监听`);
+                    }
 
-                // 如果没有回调了，清理引用
-                if (filteredListeners.length === 0) {
-                    this.hoverListeners.delete(elementId);
-                    // 不要删除targetElements，因为可能还有其他类型的监听
+                    // 如果没有回调了，清理引用
+                    if (filteredListeners.length === 0) {
+                        this.hoverListeners.delete(elementId);
+                        // 不要删除targetElements，因为可能还有其他类型的监听
+                    }
                 }
             } else {
                 // 移除所有回调
@@ -213,16 +229,18 @@ export class ModelClickHandler {
             if (callback) {
                 // 移除特定回调
                 const listeners = this.clickListeners.get(elementId);
-                const index = listeners.indexOf(callback);
-                if (index !== -1) {
-                    listeners.splice(index, 1);
-                    console.log(`已移除元素 ${element.name || '未命名'} 的特定点击监听`);
-                }
+                if (listeners) {
+                    const index = listeners.indexOf(callback);
+                    if (index !== -1) {
+                        listeners.splice(index, 1);
+                        console.log(`已移除元素 ${element.name || '未命名'} 的特定点击监听`);
+                    }
 
-                // 如果没有回调了，清理引用
-                if (listeners.length === 0) {
-                    this.clickListeners.delete(elementId);
-                    this.targetElements.delete(elementId);
+                    // 如果没有回调了，清理引用
+                    if (listeners.length === 0) {
+                        this.clickListeners.delete(elementId);
+                        this.targetElements.delete(elementId);
+                    }
                 }
             } else {
                 // 移除所有回调
@@ -266,7 +284,7 @@ export class ModelClickHandler {
         parent: THREE.Object3D,
         selector: string | ((child: THREE.Object3D) => boolean)
     ): THREE.Object3D[] {
-        const results = [];
+        const results: THREE.Object3D[] = [];
 
         parent.traverse(child => {
             if (typeof selector === 'function') {
@@ -322,7 +340,12 @@ export class ModelClickHandler {
                 }
 
                 // 向上查找父元素
-                currentElement = currentElement.parent;
+                const parent = currentElement.parent;
+                if (parent) {
+                    currentElement = parent;
+                } else {
+                    break;
+                }
             }
 
             if (hoveredElement) break;
@@ -335,16 +358,18 @@ export class ModelClickHandler {
                 const elementId = this.getElementId(this.currentlyHoveredElement);
                 if (this.hoverListeners.has(elementId)) {
                     const callbacks = this.hoverListeners.get(elementId);
-                    callbacks.forEach(callbackObj => {
-                        try {
-                            // 调用离开回调函数
-                            if (callbackObj.leave && typeof callbackObj.leave === 'function') {
-                                callbackObj.leave(this.currentlyHoveredElement!, event);
+                    if (callbacks) {
+                        callbacks.forEach(callbackObj => {
+                            try {
+                                // 调用离开回调函数
+                                if (callbackObj.leave) {
+                                    callbackObj.leave(this.currentlyHoveredElement!, event);
+                                }
+                            } catch (error) {
+                                console.error('执行悬浮离开回调时出错:', error);
                             }
-                        } catch (error) {
-                            console.error('执行悬浮离开回调时出错:', error);
-                        }
-                    });
+                        });
+                    }
                 }
             }
 
@@ -356,16 +381,16 @@ export class ModelClickHandler {
                 const elementId = this.getElementId(hoveredElement);
                 if (this.hoverListeners.has(elementId)) {
                     const callbacks = this.hoverListeners.get(elementId);
-                    callbacks.forEach(callbackObj => {
-                        try {
-                            // 调用进入回调函数
-                            if (callbackObj.enter && typeof callbackObj.enter === 'function') {
+                    if (callbacks) {
+                        callbacks.forEach(callbackObj => {
+                            try {
+                                // 调用进入回调函数
                                 callbackObj.enter(hoveredElement!, event, hoverIntersection!);
+                            } catch (error) {
+                                console.error('执行悬浮回调时出错:', error);
                             }
-                        } catch (error) {
-                            console.error('执行悬浮回调时出错:', error);
-                        }
-                    });
+                        });
+                    }
                 }
             }
         }
@@ -381,16 +406,18 @@ export class ModelClickHandler {
             const elementId = this.getElementId(this.currentlyHoveredElement);
             if (this.hoverListeners.has(elementId)) {
                 const callbacks = this.hoverListeners.get(elementId);
-                callbacks.forEach(callbackObj => {
-                    try {
-                        // 调用离开回调函数
-                        if (callbackObj.leave && typeof callbackObj.leave === 'function') {
-                            callbackObj.leave(this.currentlyHoveredElement!, event);
+                if (callbacks) {
+                    callbacks.forEach(callbackObj => {
+                        try {
+                            // 调用离开回调函数
+                            if (callbackObj.leave) {
+                                callbackObj.leave(this.currentlyHoveredElement!, event);
+                            }
+                        } catch (error) {
+                            console.error('执行悬浮离开回调时出错:', error);
                         }
-                    } catch (error) {
-                        console.error('执行悬浮离开回调时出错:', error);
-                    }
-                });
+                    });
+                }
             }
         }
         // 清除当前悬浮元素引用
@@ -430,19 +457,26 @@ export class ModelClickHandler {
                 if (this.clickListeners.has(elementId) && !triggeredElements.has(elementId)) {
                     // 触发所有注册的回调
                     const callbacks = this.clickListeners.get(elementId);
-                    callbacks.forEach(callback => {
-                        try {
-                            callback(clickedElement, event, intersects[i]);
-                        } catch (error) {
-                            console.error('执行点击回调时出错:', error);
-                        }
-                    });
+                    if (callbacks) {
+                        callbacks.forEach(callback => {
+                            try {
+                                callback(clickedElement, event, intersects[i]);
+                            } catch (error) {
+                                console.error('执行点击回调时出错:', error);
+                            }
+                        });
+                    }
                     // 标记为已触发，避免重复触发
                     triggeredElements.add(elementId);
                     hasListener = true;
                 } else {
                     // 向上查找父元素
-                    clickedElement = clickedElement.parent;
+                    const parent = clickedElement.parent;
+                    if (parent) {
+                        clickedElement = parent;
+                    } else {
+                        break;
+                    }
                 }
             }
 

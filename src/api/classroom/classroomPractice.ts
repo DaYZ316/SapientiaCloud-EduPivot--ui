@@ -12,8 +12,7 @@ export function getDefaultClassroomQuestionDTO(): ClassroomQuestionDTO {
         publishOrder: null,
         isRequired: null,
         startTime: null,
-        endTime: null,
-        status: null
+        endTime: null
     }
 }
 

@@ -11,7 +11,7 @@
           :class="props.avatarClass"
           :round="props.round"
           :size="avatarSize"
-          :src="props.modelValue"
+          :src="props.modelValue || undefined"
       />
 
       <!-- 上传遮罩层 -->

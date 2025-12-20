@@ -558,7 +558,7 @@ watch(() => currentCourseData.value, (newData) => {
       teacherId: newData.teacherId,
       assistantTeacherIds: newData.assistantTeacherIds || [],
       description: newData.description,
-      coverImageUrl: newData.coverImageUrl || '/src/assets/image/default-course.png',
+      coverImageUrl: newData.coverImageUrl || '/assets/image/default-course.png',
       semester: newData.semester,
       location: newData.location,
       courseType: newData.courseType,

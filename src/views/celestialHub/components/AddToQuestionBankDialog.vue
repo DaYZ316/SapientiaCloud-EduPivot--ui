@@ -212,7 +212,7 @@ const showDialog = computed({
 const currentStep = ref(0)
 
 // 课程搜索表单
-const courseSearchForm = reactive(courseApi.getDefaultCourseQuery())
+const courseSearchForm = ref(courseApi.getDefaultCourseQuery())
 
 // 课程列表
 const courseList = ref<CourseVO[]>([])
@@ -256,11 +256,11 @@ const resetDialog = () => {
   selectedCourse.value = null
   selectedQuestionBank.value = null
   questionBankList.value = []
-  courseSearchForm.courseName = null
-  courseSearchForm.courseType = null
-  courseSearchForm.status = null
-  courseSearchForm.startTime = null
-  courseSearchForm.endTime = null
+  courseSearchForm.value.courseName = null
+  courseSearchForm.value.courseType = null
+  courseSearchForm.value.status = null
+  courseSearchForm.value.startTime = null
+  courseSearchForm.value.endTime = null
   coursePagination.pageNum = 1
   coursePagination.pageSize = 9
   coursePagination.total = 0
@@ -271,7 +271,7 @@ const resetDialog = () => {
 const loadCourseData = async () => {
   courseLoading.value = true
   const queryParams = {
-    ...courseSearchForm,
+    ...courseSearchForm.value,
     pageNum: coursePagination.pageNum,
     pageSize: coursePagination.pageSize
   }
@@ -297,7 +297,7 @@ const handleCourseSearch = () => {
 // 重置课程搜索
 const handleResetCourseSearch = () => {
   const defaultQuery = courseApi.getDefaultCourseQuery()
-  Object.assign(courseSearchForm, defaultQuery)
+  Object.assign(courseSearchForm.value, defaultQuery)
   coursePagination.pageNum = 1
   loadCourseData()
 }

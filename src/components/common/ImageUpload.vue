@@ -130,7 +130,7 @@ const props = withDefaults(defineProps<ImageUploadProps>(), {
   maxFileSize: 5 * 1024 * 1024, // 5MB
   accept: '.jpg,.jpeg,.png,.gif,.webp',
   disabled: false,
-  placeholder: '/src/assets/image/default-course.png',
+  placeholder: '/assets/image/default-course.png',
   uploadDir: 'images',
   showCrop: true,
   aspectRatio: 1,

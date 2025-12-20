@@ -1,11 +1,9 @@
 import {computed} from 'vue'
-import {useI18n} from 'vue-i18n'
 import {useUserStore} from '@/store'
 import type {SysPermissionVO} from '@/types/system'
 
 export function useProfileUtils() {
     const userStore = useUserStore()
-    const {t} = useI18n()
 
     const userInfo = computed(() => userStore.userInfo)
     const userRoles = computed(() => userStore.userInfo?.roles || [])
@@ -47,7 +45,7 @@ export function useProfileUtils() {
         // 否则从用户信息中提取权限
         const allPermissions: SysPermissionVO[] = [];
 
-        // 合并用户直接拥有的权�?
+        // 合并用户直接拥有的权�?
         if (userInfo.value && userInfo.value.permissions) {
             allPermissions.push(...userInfo.value.permissions);
         }

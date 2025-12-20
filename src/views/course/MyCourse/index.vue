@@ -114,7 +114,7 @@ const isAdmin = computed(() => userStore.hasRole('ADMIN'))
 const isStudent = computed(() => userStore.studentInfo?.id !== null && userStore.studentInfo?.id !== undefined)
 
 // 搜索表单
-const searchForm = reactive<courseType.CourseQueryParams>(courseApi.getDefaultCourseQuery())
+const searchForm = ref<courseType.CourseQueryParams>(courseApi.getDefaultCourseQuery())
 
 // 加载状态
 const loading = ref(false)
@@ -157,11 +157,11 @@ const courseApiFunction = computed(() => courseApi.listCourse)
 // 初始化搜索表单
 const initializeSearchForm = () => {
   const defaultQuery = courseApi.getDefaultCourseQuery()
-  Object.assign(searchForm, defaultQuery)
+  Object.assign(searchForm.value, defaultQuery)
 
   // 非管理员根据用户角色设置查询条件
   if (!isAdmin.value && userStore.teacherInfo?.id) {
-    searchForm.teacherId = userStore.teacherInfo.id
+    searchForm.value.teacherId = userStore.teacherInfo.id
   }
 }
 
@@ -169,7 +169,7 @@ const initializeSearchForm = () => {
 const loadCourseData = async () => {
   loading.value = true
   const queryParams = {
-    ...searchForm,
+    ...searchForm.value,
     pageNum: pagination.pageNum,
     pageSize: pagination.pageSize
   }

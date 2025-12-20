@@ -6,7 +6,7 @@ import router from '@/router'
 import {useLoadingBarStore, useUserStore} from '@/store'
 import i18n from '@/i18n'
 import {getDiscreteApi, isApiInitialized} from '@/utils/naiveUIHelper'
-import {defaultServerConfig, getApiBaseUrl, type ServerConfig} from '@/config/server'
+import {defaultServerConfig, type ServerConfig} from '@/config/server'
 
 // 扩展AxiosRequestConfig类型，添加meta属性
 declare module 'axios' {
@@ -34,16 +34,8 @@ class ApiConfig {
      * 获取完整的基础URL
      */
     public getBaseUrl(): string {
-        // 判断是否为开发环境
-        const isDev = import.meta.env.DEV
-
-        if (isDev) {
-            // 开发环境使用相对路径，由Vite代理处理
-            return this.serverConfig.prefix
-        } else {
-            // 生产环境使用完整URL
-            return getApiBaseUrl(this.serverConfig)
-        }
+        // 开发环境和生产环境统一使用相对路径，由Vite或Nginx代理处理
+        return this.serverConfig.prefix
     }
 
     /**

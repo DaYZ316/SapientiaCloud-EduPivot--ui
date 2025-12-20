@@ -81,6 +81,7 @@ import {CourseStatusEnum} from '@/enum/course'
 import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
 import {getTeacherById} from '@/api/teacher'
 import {computed} from 'vue'
+import defaultCourseImage from '@/assets/image/default-course.png'
 
 const {t} = useI18n()
 const router = useRouter()
@@ -97,10 +98,10 @@ interface Emits {
   (e: 'continue-course', course: courseType.CourseVO): void
 }
 
-const emit = defineEmits<Emits>()
+defineEmits<Emits>()
 
 // 默认图片
-const defaultImage = '/src/assets/image/default-course.png'
+const defaultImage = defaultCourseImage
 
 // 教师头像URL（从course对象中获取）
 const teacherAvatar = computed(() => {

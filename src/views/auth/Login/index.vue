@@ -210,7 +210,7 @@ const loading = ref(false)
 const sendingCode = ref(false)
 const rememberMe = ref(false)
 const countdown = ref(0)
-let countdownTimer: NodeJS.Timeout | null = null
+let countdownTimer: ReturnType<typeof setTimeout> | null = null
 
 // 密码登录表单数据
 const passwordForm = reactive<SysUserLoginDTO>(getDefaultSysUserLoginDTO())

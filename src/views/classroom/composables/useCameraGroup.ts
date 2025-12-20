@@ -50,28 +50,29 @@ export const computeCameraPositionsBySize = (
 
   const halfX = safeX / 2;
   const halfZ = safeZ / 2;
-  const wallOffset = 2;
-  const lateralOffset = Math.max(4, safeX / 4);
+  const wallOffsetX = safeX * 0.1;
+  const wallOffsetZ = safeZ * 0.08;
+  // const lateralOffset = Math.max(4, safeX / 4);
   // 相机高度主要由教室高度决定，避免过低或过高
-  const baseHeight = Math.max(4.5, safeY * 0.7);
+  const baseHeight = Math.max(1.5, safeY * 0.8);
   const targetY = safeY / 2;
 
   const frontPos: CameraVector = {
     x: 0,
     y: baseHeight,
-    z: halfZ - wallOffset
+    z: halfZ - wallOffsetZ
   };
 
   const rightRearPos: CameraVector = {
-    x: halfX - wallOffset,
+    x: halfX - wallOffsetX,
     y: baseHeight,
-    z: -(halfZ - wallOffset)
+    z: -(halfZ - wallOffsetZ)
   };
 
   const leftRearPos: CameraVector = {
-    x: -(halfX - wallOffset),
+    x: -(halfX - wallOffsetX),
     y: baseHeight,
-    z: -(halfZ - wallOffset)
+    z: -(halfZ - wallOffsetZ)
   };
 
   return {

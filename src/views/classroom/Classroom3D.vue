@@ -71,7 +71,8 @@ import {
   classroomXLenghtRef,
   classroomYLenghtRef,
   classroomZLenghtRef,
-  computeCameraPositionsBySize
+  computeCameraPositionsBySize,
+  type ClassroomCameraPositions
 } from '@/views/classroom/composables/useCameraGroup';
 import {
   getClassroomModelPathByRecord,
@@ -1140,6 +1141,63 @@ const initThree = () => {
     // 更新控制器
     if (controls) {
       (controls as any).update();
+    }
+
+    // 基于当前相机预设视角，限制旋转角度在 ±60°
+    const maxDelta = Math.PI / 3; // 60度
+    
+    // 计算角度差值，考虑 -π 到 π 的循环，选择最短路径
+    const getAngleDelta = (current: number, initial: number): number => {
+      let delta = current - initial;
+      // 归一化到 [-π, π] 范围，选择最短路径
+      while (delta > Math.PI) delta -= 2 * Math.PI;
+      while (delta < -Math.PI) delta += 2 * Math.PI;
+      return delta;
+    };
+    
+    // 限制角度差值在 ±60° 范围内
+    const clampDelta = (delta: number): number => {
+      if (delta > maxDelta) {
+        return maxDelta;
+      }
+      if (delta < -maxDelta) {
+        return -maxDelta;
+      }
+      return delta;
+    };
+
+    if ((window as any).cameraPositions && (window as any).currentCameraPosition && camera.rotation) {
+      const cameraPositions = (window as any).cameraPositions as ClassroomCameraPositions;
+      const currentKey = (window as any).currentCameraPosition as keyof ClassroomCameraPositions;
+      const config = cameraPositions[currentKey];
+
+      if (config && config.initialRotation) {
+        const initial = config.initialRotation;
+        const current = camera.rotation;
+
+        // 计算每个轴的差值（考虑角度循环）
+        let dx = getAngleDelta(current.x, initial.x);
+        let dy = getAngleDelta(current.y, initial.y);
+
+        // 只允许绕 X/Y 轴旋转，完全禁止 Z 轴滚转（避免画面倾斜）
+        const needsClampX = Math.abs(dx) > maxDelta;
+        const needsClampY = Math.abs(dy) > maxDelta;
+
+        // 只在超出限制时才修正
+        if (needsClampX || needsClampY) {
+          dx = clampDelta(dx);
+          dy = clampDelta(dy);
+
+          // 设置限制后的旋转，保持 YXZ 顺序，Z 轴始终为初始值
+          camera.rotation.order = initial.order;
+          camera.rotation.x = initial.x + dx;
+          camera.rotation.y = initial.y + dy;
+          camera.rotation.z = initial.z;
+        } else {
+          // 在限制范围内，也强制保持 Z 轴不滚转
+          camera.rotation.z = initial.z;
+        }
+      }
     }
 
     // 渲染

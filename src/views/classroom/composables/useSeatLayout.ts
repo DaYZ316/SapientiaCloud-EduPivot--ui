@@ -65,8 +65,63 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
       return 0;
     }
     const count = rowCount.value * columnCount.value;
-    return Math.min(count, 50);
+    const type = classroomType.value;
+    // 根据教室类型设置最大座位数量限制
+    let maxSeats: number;
+    if (type === ClassroomTypeEnum.SMALL) {
+      maxSeats = 12; // 小型教室最多12张桌椅
+    } else if (type === ClassroomTypeEnum.MIDDLE) {
+      maxSeats = 54; // 中型教室最多54张
+    } else if (type === ClassroomTypeEnum.LARGE) {
+      maxSeats = 40; // 大型教室最多40张（桌椅更大所以数量少了）
+    } else {
+      maxSeats = 50; // 默认值
+    }
+    return Math.min(count, maxSeats);
   });
+
+  // 小型教室座位计算
+  const calculateSmallSeatPosition = (
+      instanceId: number,
+      position: THREE.Vector3,
+      _classroomXLength: number | null,
+      classroomZLength: number | null
+  ): THREE.Vector3 => {
+    // 教室尺寸：左右宽6米，前后长10米
+    const width = 6;
+    const depth = classroomZLength && classroomZLength > 0 ? classroomZLength : 10;
+    const columns = columnCount.value || 1;
+    const maxColumns = 3; // 一排最多3张座位
+    const actualColumns = Math.min(columns, maxColumns);
+
+    // 当前坐标系：x 右、y 上、z 前
+    // 以教室中心为原点，x 正向为右，z 正向为前
+    const halfWidth = width / 2; // 3米
+    const halfDepth = depth / 2; // 5米（深度10米时）
+
+    // 左右方向：教室宽6米，右边1米用于摆放架子，剩余5米均匀分布座位
+    const shelfWidth = 0.6; // 右边架子宽度0.6米
+    const availableWidth = width - shelfWidth; // 5米
+    const leftBound = -halfWidth; // -3米（左边界）
+
+    // 计算列索引（0-based）
+    const columnIndex = instanceId % actualColumns;
+    // 3张座位均匀分布在5米内，间距 = 5 / (3+1) = 1.25米
+    const spacing = availableWidth / (actualColumns + 1);
+    position.x = leftBound + spacing * (columnIndex + 1) - 1;
+
+    // 前后方向：第一排距离前墙3米，每排间隔2米
+    const frontWallZ = halfDepth; // 前墙z坐标（5米）
+    const firstRowOffset = 5; // 第一排距离前墙4.6米
+    const rowSpacing = 1.8; // 每排间隔1.8米
+    const rowIndex = Math.floor(instanceId / actualColumns);
+    position.z = frontWallZ - firstRowOffset - rowIndex * rowSpacing;
+
+    // 上下方向：座位高度0.5米
+    position.y = 0.5;
+
+    return position;
+  };
 
   // 中型教室座位计算
   const calculateMiddleSeatPosition = (
@@ -81,7 +136,7 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
 
     // 当前坐标系：x 右、y 上、z 前
     // 中型教室：沿 x 方向分列，沿 z 方向分排
-    position.x = safeX / 2 - safeX / columns * (0.25 + (instanceId % columns));
+    position.x = safeX / 2 - safeX / columns * (0.5 + (instanceId % columns));
     position.y = 0.0;
     position.z = 2 * Math.floor(instanceId / columns) - safeZ / 2 + 5;
 
@@ -92,7 +147,7 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
   const calculateLargeSeatPosition = (
       instanceId: number,
       position: THREE.Vector3,
-      classroomXLength: number | null,
+      _classroomXLength: number | null,
       classroomZLength: number | null
   ): THREE.Vector3 => {
     // 左右方向：大型教室 20 米宽，分为 10 份，四张课桌椅各占两份，第 3、8 份为走廊
@@ -139,7 +194,10 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
     if (classroomType.value === ClassroomTypeEnum.LARGE) {
       return calculateLargeSeatPosition(instanceId, position, classroomXLength, classroomZLength);
     }
-    // 默认中型教室逻辑（小型 / 中型）
+    if (classroomType.value === ClassroomTypeEnum.SMALL) {
+      return calculateSmallSeatPosition(instanceId, position, classroomXLength, classroomZLength);
+    }
+    // 默认中型教室逻辑
     return calculateMiddleSeatPosition(instanceId, position, classroomXLength, classroomZLength);
   };
 

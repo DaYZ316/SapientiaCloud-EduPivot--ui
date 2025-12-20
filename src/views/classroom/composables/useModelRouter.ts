@@ -5,14 +5,14 @@ const CLASSROOM_MODEL_BASE_PATH = '/src/assets/3Dmodel/classroom';
 const DESK_MODEL_BASE_PATH = '/src/assets/3Dmodel/desk_chair';
 
 const classroomTypeModelPathMap: Record<ClassroomTypeEnum, string> = {
-  [ClassroomTypeEnum.SMALL]: `${CLASSROOM_MODEL_BASE_PATH}/classroomMiddle.gltf`,
+  [ClassroomTypeEnum.SMALL]: `${CLASSROOM_MODEL_BASE_PATH}/classroomMini.gltf`,
   [ClassroomTypeEnum.MIDDLE]: `${CLASSROOM_MODEL_BASE_PATH}/classroomMiddle.gltf`,
   [ClassroomTypeEnum.LARGE]: `${CLASSROOM_MODEL_BASE_PATH}/classroomPro.gltf`,
   [ClassroomTypeEnum.EXTRA_LARGE]: `${CLASSROOM_MODEL_BASE_PATH}/classroomPro.gltf`
 };
 
 const deskTypeModelPathMap: Record<ClassroomTypeEnum, string> = {
-  [ClassroomTypeEnum.SMALL]: `${DESK_MODEL_BASE_PATH}/deskChairMiddle.gltf`,
+  [ClassroomTypeEnum.SMALL]: `${DESK_MODEL_BASE_PATH}/deskChairMini.gltf`,
   [ClassroomTypeEnum.MIDDLE]: `${DESK_MODEL_BASE_PATH}/deskChairMiddle.gltf`,
   [ClassroomTypeEnum.LARGE]: `${DESK_MODEL_BASE_PATH}/deskChairPro.gltf`,
   [ClassroomTypeEnum.EXTRA_LARGE]: `${DESK_MODEL_BASE_PATH}/deskChairPro.gltf`
@@ -27,5 +27,5 @@ export const getClassroomModelPathByRecord = (courseRecord: CourseRecordVO | nul
 // 课桌椅模型路径（根据教室类型响应式切换）
 export const getDeskModelPathByRecord = (courseRecord: CourseRecordVO | null): string => {
   const type = courseRecord?.classroomType ?? ClassroomTypeEnum.LARGE;
-  return deskTypeModelPathMap[type] || `${DESK_MODEL_BASE_PATH}/deskChairMiddle.gltf`;
+  return deskTypeModelPathMap[type] || `${DESK_MODEL_BASE_PATH}/deskChairPro.gltf`;
 };

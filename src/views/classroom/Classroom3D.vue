@@ -149,6 +149,7 @@ type PointerLockHandler = {
   canvasClick?: (event: MouseEvent) => void;
   mouseMove?: (event: MouseEvent) => void;
   contextMenu?: (event: MouseEvent) => void;
+  wheelHandler?: (event: WheelEvent) => void;
 };
 const showPointerHintTemporarily = () => {
   if (pointerHintTimeout) {
@@ -615,6 +616,8 @@ const initThree = () => {
   );
 
   camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 1000);
+  // 保存初始FOV值，用于限制缩放范围（只能放大，不能缩小）
+  const initialFov = camera.fov;
   // 将相机固定在教室内部前部位置
   // 基于教室模型尺寸计算前部位置，使相机处于教室内部靠前的位置
   const initialCameraConfig = window.cameraPositions.front;
@@ -673,6 +676,10 @@ const initThree = () => {
 
     // 应用初始旋转
     window.camera.setRotationFromEuler(positionConfig.initialRotation);
+
+    // 重置FOV到初始值
+    window.camera.fov = initialFov;
+    window.camera.updateProjectionMatrix();
 
     // 保持指针锁定状态（如果之前已锁定）
     // PointerLockControls 会自动处理相机旋转，切换位置后继续使用即可
@@ -739,9 +746,39 @@ const initThree = () => {
 
     document.addEventListener('keydown', handleEscapeKeyDown, true);
 
+    // 滚轮缩放功能
+    const handleWheel = (event: WheelEvent) => {
+      if (!camera || !canvas) return;
+      
+      // 只在指针锁定状态下才能缩放视角
+      if (document.pointerLockElement !== canvas) {
+        return;
+      }
+      
+      // 阻止默认滚动行为
+      event.preventDefault();
+      
+      // 缩放速度系数
+      const zoomSpeed = 0.1;
+      // FOV范围限制：最小值为初始FOV（只能放大，不能缩小），最大值为30度（放大后的最小FOV）
+      const minFov = 30;
+      const maxFov = initialFov;
+      
+      // 反转滚轮方向：滚轮向上（deltaY < 0）时放大视角（减小FOV），滚轮向下（deltaY > 0）时缩小视角（增大FOV）
+      const deltaFov = event.deltaY * zoomSpeed;
+      const newFov = camera.fov + deltaFov;
+      
+      // 限制FOV：最小值为30度（最大放大），最大值为初始FOV（原始大小，不能缩小）
+      camera.fov = Math.max(minFov, Math.min(maxFov, newFov));
+      
+      // 更新相机投影矩阵
+      camera.updateProjectionMatrix();
+    };
+
     if (canvas) {
       canvas.addEventListener('dblclick', handleCanvasDoubleClick);
       canvas.addEventListener('click', handleCanvasClick);
+      canvas.addEventListener('wheel', handleWheel, { passive: false });
     }
 
     // 存储事件处理函数以便后续清理
@@ -749,6 +786,12 @@ const initThree = () => {
       window.pointerLockHandlers = [];
     }
     const pointerLockHandlers = ((window as any).pointerLockHandlers as PointerLockHandler[]) || [];
+    
+    // 将滚轮事件处理器添加到清理列表
+    pointerLockHandlers.push({
+      wheelHandler: handleWheel,
+      canvas: canvas
+    });
     (window as any).pointerLockHandlers = pointerLockHandlers;
     pointerLockHandlers.push({
       onPointerLockError: onPointerLockError,
@@ -1239,6 +1282,7 @@ onBeforeUnmount(() => {
                                    canvasDoubleClick,
                                    canvasClick,
                                    escapeKeyDown,
+                                   wheelHandler,
                                    canvas: handlerCanvas
                                  }) => {
       if (onPointerLockError) {
@@ -1252,6 +1296,9 @@ onBeforeUnmount(() => {
       }
       if (canvasClick && handlerCanvas) {
         handlerCanvas.removeEventListener('click', canvasClick);
+      }
+      if (wheelHandler && handlerCanvas) {
+        handlerCanvas.removeEventListener('wheel', wheelHandler);
       }
     });
     (window as any).pointerLockHandlers = [];

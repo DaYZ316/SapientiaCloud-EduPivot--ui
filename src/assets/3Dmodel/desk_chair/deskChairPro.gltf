@@ -15,12 +15,12 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"\u684c\u6905.044"
+			"name":"\u684c\u6905.045"
 		}
 	],
 	"meshes":[
 		{
-			"name":"\u7acb\u65b9\u4f53.009",
+			"name":"\u7acb\u65b9\u4f53.010",
 			"primitives":[
 				{
 					"attributes":{
@@ -37,67 +37,67 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":47160,
+			"count":81240,
 			"max":[
-				-4.37999963760376,
-				2.369999885559082,
-				15.65000057220459
+				0.5,
+				0.06000000238418579,
+				1.7999999523162842
 			],
 			"min":[
-				-6.497213840484619,
-				0.33999931812286377,
-				12.050000190734863
+				-1.5218565464019775,
+				-2.100001811981201,
+				-1.7999999523162842
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":47160,
+			"count":81240,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":47160,
+			"count":81240,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
-			"componentType":5123,
-			"count":71028,
+			"componentType":5125,
+			"count":122268,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":565920,
+			"byteLength":974880,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":565920,
-			"byteOffset":565920,
+			"byteLength":974880,
+			"byteOffset":974880,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":377280,
-			"byteOffset":1131840,
+			"byteLength":649920,
+			"byteOffset":1949760,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":142056,
-			"byteOffset":1509120,
+			"byteLength":489072,
+			"byteOffset":2599680,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":1651176,
+			"byteLength":3088752,
 			"uri":"deskChairPro.bin"
 		}
 	]

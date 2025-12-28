@@ -1,5 +1,5 @@
 <template>
-  <div class="book-3d-container">
+  <div class="book-3d-container" :style="{ width: props.size + 'px', height: props.size + 'px' }">
     <!-- 3D画布 - 始终渲染以确保初始化时可获取 -->
     <canvas ref="canvasRef" class="webgl-canvas"></canvas>
   </div>
@@ -12,14 +12,19 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 // 在生产环境使用静态路径，避免 Vite 处理导致路径问题
 const mainTextureImage = import.meta.env.DEV
-    ? new URL('@/assets/3Dmodel/celestail_hub/棱角球.002_Bake1_CyclesBake_COMBINED.png', import.meta.url).href
-    : '/assets/3Dmodel/celestail_hub/棱角球.002_Bake1_CyclesBake_COMBINED.png';
+    ? new URL('@/assets/3Dmodel/celestail_hub/Bake1_CyclesBake_COMBINED.png', import.meta.url).href
+    : '/assets/3Dmodel/celestail_hub/Bake1_CyclesBake_COMBINED.png';
 
 // Props
 const props = defineProps({
   isActive: {
     type: Boolean,
     default: false
+  },
+  // 支持外部传入尺寸（像素）
+  size: {
+    type: Number,
+    default: 64
   }
 });
 
@@ -237,9 +242,10 @@ const initThree = () => {
 
 // 计算画布尺寸
 const calculateCanvasSize = () => {
-  // logo尺寸：48x48像素
-  sizes.width = 60;
-  sizes.height = 60;
+  // 使用传入的尺寸，保证 Three 渲染器与 canvas 大小一致
+  const targetSize = props.size || 48;
+  sizes.width = targetSize;
+  sizes.height = targetSize;
 };
 
 // 加载纹理
@@ -934,8 +940,6 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .book-3d-container {
-  width: 48px;
-  height: 48px;
   position: relative;
   display: flex;
   justify-content: center;
@@ -943,8 +947,8 @@ onBeforeUnmount(() => {
 }
 
 .webgl-canvas {
-  width: 48px;
-  height: 48px;
+  width: 100%;
+  height: 100%;
   display: block;
 }
 

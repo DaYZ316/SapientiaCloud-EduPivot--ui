@@ -253,7 +253,6 @@ async function handleTaskDelete(task: CourseTaskVO) {
       selectedTaskId.value = null
     }
   } catch (error) {
-    message.error(t('course.tasks.deleteFailed'))
   }
 }
 

@@ -167,7 +167,7 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 const {t, locale} = useI18n()
-const {dialog, message} = getDiscreteApi()
+const {dialog} = getDiscreteApi()
 const router = useRouter()
 const userStore = useUserStore()
 const transitionStore = useTransitionStore()
@@ -282,7 +282,6 @@ const loadFileInfo = async () => {
       fileInfoList.value = res.data.filter(file => !file.error)
     }
   } catch (error) {
-    message.error(t('course.tasks.getFileInfoFailed'))
   } finally {
     loadingFileInfo.value = false
   }

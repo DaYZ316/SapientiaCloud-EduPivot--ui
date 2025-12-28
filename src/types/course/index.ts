@@ -4,6 +4,9 @@ export type {
     CourseVO,
     PublicCourseVO,
     CourseQueryParams
+    ,CourseTeacherAssignDTO
+    ,CourseTeacherDTO
+    ,CourseTeacherQueryDTO
 } from './course'
 
 // 课程学生类型
@@ -11,6 +14,8 @@ export type {
     CourseStudentDTO,
     CourseStudentVO,
     CourseStudentQueryParams
+    ,MyCourseVO,
+    MyCourseQueryParams
 } from './courseStudent'
 
 // 课程论坛类型

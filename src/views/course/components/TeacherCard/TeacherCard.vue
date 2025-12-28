@@ -1,5 +1,5 @@
 <template>
-  <div :class="{ 'horizontal': horizontal }" class="teacher-card">
+  <div :class="{ 'horizontal': props.horizontal }" class="teacher-card">
     <!-- 右上角了解教师按钮 -->
     <n-button
         class="learn-more-button"
@@ -99,6 +99,7 @@
 </template>
 
 <script lang="ts" setup>
+import {computed} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useRouter} from 'vue-router'
 import type {TeacherVO} from '@/types/teacher'
@@ -106,35 +107,47 @@ import {getEducationLabel} from '@/enum/teacher/educationEnum'
 import Icon from '@/components/common/Icon.vue'
 import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
 import {ArrowForwardOutline, CallOutline, IdCardOutline, MailOutline, TimeOutline} from '@vicons/ionicons5'
+import {useCourseStore} from '@/store/modules/course'
 
 interface Props {
-  /** 教师信息 */
-  teacherInfo?: TeacherVO | null
   /** 是否水平布局 */
   horizontal?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  teacherInfo: null,
   horizontal: false
 })
 
 const {t} = useI18n()
 const router = useRouter()
+const courseStore = useCourseStore()
+
+// 计算教师信息：优先从 assistantTeachers 中找到主讲教师，否则使用第一个助教
+const teacherInfo = computed<TeacherVO | null>(() => {
+  const courseInfo = courseStore.currentCourseInfo
+  if (!courseInfo) return null
+  const assistants = courseInfo.assistantTeachers || []
+  const mainTeacherId = courseInfo.teacherId || null
+  if (mainTeacherId) {
+    const found = (assistants as TeacherVO[]).find((t: TeacherVO) => t.id === mainTeacherId)
+    if (found) return found
+  }
+  return (assistants as TeacherVO[])[0] || null
+})
 
 // 处理了解教师按钮点击
 const handleLearnMore = () => {
-  if (props.teacherInfo?.sysUserId) {
-    router.push(`/user/${props.teacherInfo.sysUserId}`)
+  if (teacherInfo.value?.sysUserId) {
+    router.push(`/user/${teacherInfo.value.sysUserId}`)
   }
 }
 
 // 获取职位文本
 const getPositionText = () => {
-  if (!props.teacherInfo) return t('common.unknown')
+  if (!teacherInfo.value) return t('common.unknown')
 
-  const {department, education, specialization} = props.teacherInfo
-  const parts = []
+  const {department, education, specialization} = teacherInfo.value
+  const parts: string[] = []
 
   if (department) parts.push(department)
   if (education !== null && education !== undefined) parts.push(getEducationLabel(education))

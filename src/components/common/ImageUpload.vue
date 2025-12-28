@@ -301,7 +301,6 @@ const confirmCrop = async () => {
     }, 'image/jpeg', 0.8)
   } catch (error) {
     emit('upload-error', error as Error)
-    message.error(t('common.imageUploadFail'))
   } finally {
     uploading.value = false
   }

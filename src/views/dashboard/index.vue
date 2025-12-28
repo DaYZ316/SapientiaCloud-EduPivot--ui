@@ -4,13 +4,13 @@
 
     </div>
     <!-- <CelestailHub /> -->
-    <Book3D/>
+    <Book/>
   </div>
 </template>
 
 <script lang="ts" setup>
 // 主页逻辑已清空
-import Book3D from './Book3D.vue';
+import Book from './Book3D.vue';
 </script>
 
 <style lang="scss" scoped>

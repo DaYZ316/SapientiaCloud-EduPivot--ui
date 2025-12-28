@@ -323,7 +323,7 @@
                 @action="handleReplyAction"
                 @like="handleReplyLike"
                 @reply="handleReply"
-                @expand-change="(replyId, isExpanded) => handleReplyExpandChange(replyId, isExpanded)"
+                @expand-change="handleReplyExpandChange"
             />
           </div>
 
@@ -753,10 +753,8 @@ const loadPost = async () => {
       // 加载回复
       await loadReplies()
     } else {
-      message.error(response.message || t('course.forum.loadPostFailed'))
     }
   } catch (error) {
-    message.error(t('course.forum.loadPostFailed'))
   } finally {
     loading.value = false
   }
@@ -798,10 +796,8 @@ const loadReplies = async () => {
         restoreScrollPosition()
       })
     } else {
-      message.error(response.msg || t('course.forum.loadRepliesFailed'))
     }
   } catch (error) {
-    message.error(t('course.forum.loadRepliesFailed'))
   } finally {
     repliesLoading.value = false
   }
@@ -826,7 +822,6 @@ const handleLike = async () => {
       message.success(t('course.forum.likeSuccess'))
     }
   } catch (error) {
-    message.error(t('course.forum.likeFailed'))
   } finally {
     likeLoading.value = false
   }
@@ -845,7 +840,6 @@ const handleShare = async () => {
     await navigator.clipboard.writeText(shareUrl)
     message.success(t('course.forum.shareSuccess'))
   } catch (error) {
-    message.error(t('course.forum.shareFailed'))
   }
 }
 
@@ -938,8 +932,7 @@ const togglePostLock = async () => {
         await setPostLock(post.value!.id, newLockStatus)
         post.value!.isLocked = newLockStatus
         message.success(isCurrentlyLocked ? t('course.forum.unlockPostSuccess') : t('course.forum.lockPostSuccess'))
-      } catch (error) {
-        message.error(t('course.forum.toggleLockFailed'))
+        } catch (error) {
       } finally {
         lockLoading.value = false
       }
@@ -964,10 +957,8 @@ const saveEditPost = async () => {
       // 重新加载帖子详情
       await loadPost()
     } else {
-      message.error(response.message || t('course.forum.editPostFailed'))
     }
   } catch (error) {
-    message.error(t('course.forum.editPostFailed'))
   } finally {
     isEditing.value = false
   }
@@ -1037,7 +1028,6 @@ const handleReplyAction = async (action: string, reply: ForumReplyVO) => {
             // 重新加载回复列表
             await loadReplies()
           } catch (error) {
-            message.error(t('course.forum.deleteReplyFailed'))
           }
         }
       })
@@ -1084,10 +1074,8 @@ const saveReply = async () => {
       // 重新加载回复列表
       await loadReplies()
     } else {
-      message.error(response.message || t('course.forum.replyFailed'))
     }
   } catch (error) {
-    message.error(t('course.forum.replyFailed'))
   } finally {
     isReplying.value = false
   }

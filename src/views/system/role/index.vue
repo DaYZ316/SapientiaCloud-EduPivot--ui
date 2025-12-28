@@ -312,7 +312,7 @@ const columns = computed(() => [
         h(
             'button',
             {
-              class: 'n-button n-button--text',
+              class: 'n-button n-button--text action-btn',
               style: {marginRight: '8px'},
               disabled: row.admin || row.roleKey === 'TEACHER' || row.roleKey === 'STUDENT',
               onClick: () => handleEdit(row),
@@ -331,7 +331,7 @@ const columns = computed(() => [
         h(
             'button',
             {
-              class: 'n-button n-button--text',
+              class: 'n-button n-button--text action-btn',
               style: {marginRight: '8px'},
               disabled: row.admin,
               onClick: () => handleAssign(row),
@@ -350,7 +350,7 @@ const columns = computed(() => [
         h(
             'button',
             {
-              class: 'n-button n-button--text',
+              class: 'n-button n-button--text action-btn',
               disabled: row.admin || row.roleKey === 'TEACHER' || row.roleKey === 'STUDENT',
               onClick: () => handleDelete(row),
               directive: [

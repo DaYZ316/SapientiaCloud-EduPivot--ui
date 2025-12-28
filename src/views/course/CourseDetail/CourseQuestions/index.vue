@@ -331,7 +331,6 @@ const loadQuestionBankList = async () => {
     questionBankList.value = response.data || []
     pagination.total = response.total || 0
   } catch (error) {
-    message.error(t('common.loadError'))
   } finally {
     loading.value = false
   }
@@ -425,7 +424,6 @@ const handleDelete = async (bankData: CourseQuestionBankVO) => {
           await loadQuestionBankList()
         }
       } catch (error) {
-        message.error(t('course.questionBank.deleteFailed'))
       }
     }
   })
@@ -452,7 +450,6 @@ const handleSubmit = async () => {
     // 重新加载题库列表
     loadQuestionBankList()
   } catch (error) {
-    message.error(t('common.submitError'))
   }
 }
 

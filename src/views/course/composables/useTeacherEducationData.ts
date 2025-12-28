@@ -1,7 +1,7 @@
-import {computed, readonly, ref, watch} from 'vue'
+import {computed, readonly, ref, watch, type Ref} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {EducationEnum, getEducationLabel} from '@/enum/teacher/educationEnum'
-import {listAllTeacherByCourseId} from '@/api/course/courseTeacher'
+import {useCourseStore} from '@/store/modules/course'
 import type {TeacherVO} from '@/types/teacher'
 
 // 定义饼图数据项类型
@@ -22,7 +22,7 @@ export interface PieChartDataItem {
  * @param externalData 外部数据源（可选）
  * @returns 教师学历分布相关数据和方法
  */
-export function useTeacherEducationData(courseId?: string, externalData?: PieChartDataItem[]) {
+export function useTeacherEducationData(_courseId?: string | Ref<string | null>, externalData?: PieChartDataItem[]) {
     // 响应式数据
     const teachers = ref<TeacherVO[]>([])
     const isLoading = ref(false)
@@ -107,14 +107,14 @@ export function useTeacherEducationData(courseId?: string, externalData?: PieCha
         return stats
     })
 
-    // 加载教师数据
-    const loadTeachers = async (targetCourseId?: string) => {
-        const id = targetCourseId || courseId
-        if (!id) return
+    // store
+    const courseStore = useCourseStore()
 
+    // 加载教师数据：直接使用 store.currentCourseInfo.assistantTeachers（不再请求后端接口）
+    const loadTeachers = async () => {
         isLoading.value = true
-        const response = await listAllTeacherByCourseId(id)
-        teachers.value = response.data || []
+        const courseInfo = courseStore.currentCourseInfo
+        teachers.value = courseInfo?.assistantTeachers || []
         isLoading.value = false
     }
 
@@ -128,14 +128,11 @@ export function useTeacherEducationData(courseId?: string, externalData?: PieCha
         teachers.value = []
     }
 
-    // 监听课程ID变化
-    if (courseId) {
-        watch(() => courseId, (newCourseId) => {
-            if (newCourseId) {
-                loadTeachers(newCourseId)
-            }
-        }, {immediate: true})
-    }
+    // 监听课程ID变化（支持传入 string 或 Ref<string|null>）
+    // 监听 store 的 currentCourseInfo 变化以刷新教师列表
+    watch(() => courseStore.currentCourseInfo, () => {
+        loadTeachers()
+    }, {immediate: true})
 
     return {
         // 数据

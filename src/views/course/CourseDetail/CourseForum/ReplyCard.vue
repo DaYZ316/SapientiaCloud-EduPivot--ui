@@ -432,10 +432,8 @@ const loadChildReplies = async () => {
       childReplies.value = response.data || []
       childRepliesLoaded.value = true
     } else {
-      message.error(response.message || t('course.forum.loadChildRepliesFailed'))
     }
   } catch (error) {
-    message.error(t('course.forum.loadChildRepliesFailed'))
   } finally {
     childRepliesLoading.value = false
   }

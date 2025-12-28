@@ -1,4 +1,5 @@
 import {onUnmounted, ref} from 'vue'
+import type {ChatMessage} from '@/types/celestialHub/chatMessage'
 
 export function useChatScroll() {
     const chatContentRef = ref<HTMLElement | null>(null)
@@ -108,6 +109,47 @@ export function useChatScroll() {
         })
     }
 
+    // 滚动到最后一条用户消息
+    const scrollToLastUserMessage = (messages: ChatMessage[]) => {
+        ensureScrollListener()
+        if (!messagesWrapperEl) {
+            return
+        }
+
+        if (!messages.length) {
+            scrollToBottom()
+            return
+        }
+
+        // 查找最后一条用户消息（包括出题请求者消息 role=3）
+        const lastUserLikeMessage = [...messages]
+            .reverse()
+            .find((msg) => msg.role === 0 || msg.role === 3)
+
+        if (lastUserLikeMessage?.id) {
+            // 确保DOM元素存在后再滚动
+            const selector = `.chat-message[data-message-id="${lastUserLikeMessage.id}"]`
+            const targetElement = messagesWrapperEl.querySelector(selector) as HTMLElement | null
+            if (targetElement) {
+                scrollIntoViewInMessages(selector, 'start')
+            } else {
+                // 如果找不到元素，尝试滚动到底部
+                scrollToBottom()
+            }
+        } else {
+            scrollToBottom()
+        }
+    }
+
+    // 重置滚动状态，用于切换对话时清理旧的DOM引用
+    const resetScrollState = () => {
+        if (messagesWrapperEl) {
+            messagesWrapperEl.removeEventListener('scroll', handleWrapperScroll)
+            messagesWrapperEl = null
+        }
+        isAutoScroll.value = true
+    }
+
     onUnmounted(() => {
         if (messagesWrapperEl) {
             messagesWrapperEl.removeEventListener('scroll', handleWrapperScroll)
@@ -119,7 +161,9 @@ export function useChatScroll() {
         chatContentRef,
         scrollToBottom,
         scrollToBottomForce,
-        scrollIntoViewInMessages
+        scrollIntoViewInMessages,
+        scrollToLastUserMessage,
+        resetScrollState
     }
 }
 

@@ -1,5 +1,5 @@
 import http from '@/utils/http'
-import type {CourseStudentDTO, CourseStudentQueryParams, CourseStudentVO} from '@/types/course'
+import type {CourseStudentDTO, CourseStudentQueryParams, CourseStudentVO, MyCourseQueryParams, MyCourseVO} from '@/types/course'
 
 // 获取默认课程学生DTO
 export function getDefaultCourseStudentDTO(): CourseStudentDTO {
@@ -16,6 +16,24 @@ export function getDefaultCourseStudentQuery(): CourseStudentQueryParams {
     return {
         studentId: null,
         courseId: null,
+        startTime: null,
+        endTime: null,
+        pageNum: 1,
+        pageSize: 10,
+        orderByColumn: 'create_time',
+        isAsc: 'asc',
+        reasonable: null
+    }
+}
+
+// 获取默认我的课程查询对象
+export function getDefaultMyCourseQuery(): MyCourseQueryParams {
+    return {
+        courseName: null,
+        courseType: null,
+        status: null,
+        studentId: null,
+        isPublic: null,
         startTime: null,
         endTime: null,
         pageNum: 1,
@@ -106,4 +124,14 @@ export function listCourseStudent(params: CourseStudentQueryParams) {
  */
 export function listAllCourseStudentByStudentId(studentId: string) {
     return http.get<CourseStudentVO[]>(`/course/course-student/student/${studentId}/all`)
+}
+
+/**
+ * 分页查询我的课程（学生视图）
+ * 对应后端：GET /course/course-student/my-course
+ * @param params 查询参数
+ * @returns 我的课程分页列表
+ */
+export function listMyCourseForStudent(params: MyCourseQueryParams) {
+    return http.getTableData<MyCourseVO>('/course/course-student/my-course', params)
 }

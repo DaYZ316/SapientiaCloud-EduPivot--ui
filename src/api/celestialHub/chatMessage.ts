@@ -160,9 +160,36 @@ function createChatStreamRequest(
             }
         },
         onmessage(event) {
-            if (callbacks.onMessage) {
-                callbacks.onMessage(event.data)
+            if (!callbacks.onMessage) return
+
+            // 有两种常见后端流格式：
+            // 1) 纯文本：event.data 就是要追加的字符串片段
+            // 2) JSON 格式：event.data 是 JSON 字符串，例如 {"type":"CHUNK","content":"..."}
+            // 为了兼容两种格式并保证 LaTeX 中的反斜杠不会丢失，我们优先尝试解析 JSON 并提取 content 字段。
+            let payload = event.data
+            try {
+                const parsed = JSON.parse(payload)
+                // 如果是对象并且包含 content 字段，则根据 type 处理
+                if (parsed && typeof parsed === 'object') {
+                    // 完成标识：如果后端发送 type === 'COMPLETE'，将其转换为 '[DONE]' 以兼容现有前端逻辑
+                    if (parsed.type === 'COMPLETE') {
+                        payload = '[DONE]'
+                    } else if (parsed.content != null) {
+                        // 常规 chunk，使用 content 字段
+                        payload = parsed.content
+                    } else {
+                        // 如果只是一个字符串类型的 JSON，恢复为原始字符串
+                        payload = typeof parsed === 'string' ? parsed : event.data
+                    }
+                } else {
+                    payload = event.data
+                }
+            } catch (e) {
+                // 解析失败，说明不是 JSON，直接使用原始数据
+                payload = event.data
             }
+
+            callbacks.onMessage(payload)
         },
         onclose() {
             if (callbacks.onClose) {

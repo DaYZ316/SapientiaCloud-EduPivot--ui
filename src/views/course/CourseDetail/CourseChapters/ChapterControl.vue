@@ -441,7 +441,6 @@ const loadAllChapters = async () => {
       filterPublishedChapters()
     }
   } catch (error) {
-    message.error(t('course.chapters.loadChaptersFailed'))
   } finally {
     loading.value = false
   }
@@ -628,7 +627,6 @@ const loadFileInfo = async () => {
       fileInfoList.value = res.data.filter(file => !file.error)
     }
   } catch (error) {
-    message.error(t('course.chapters.getFileInfoFailed'))
   } finally {
     loadingFileInfo.value = false
   }
@@ -641,7 +639,6 @@ const handleAttachmentUploadSuccess = () => {
 
 // 处理附件上传失败
 const handleAttachmentUploadError = () => {
-  message.error(t('course.chapters.attachmentUploadError'))
 }
 
 // 处理URL更新
@@ -704,7 +701,6 @@ const handleDeleteAttachment = (fileInfo: FileInfoDTO) => {
 
           const updateRes = await CourseChapterApi.updateCourseChapter(updateData)
           if (!updateRes || !updateRes.success) {
-            message.error(t('course.chapters.updateFailed'))
             return
           }
         }
@@ -725,8 +721,7 @@ const handleDeleteAttachment = (fileInfo: FileInfoDTO) => {
         attachmentFiles.value = attachmentFiles.value.filter(file => !file.url.includes(fileInfo.objectName))
 
         message.success(t('course.chapters.deleteAttachmentSuccess'))
-      } catch (error) {
-        message.error(t('course.chapters.deleteAttachmentError'))
+        } catch (error) {
       }
     }
   })
@@ -857,13 +852,8 @@ const saveChapter = async (isDraft: boolean = false) => {
 
       // 保持当前页面状态不变，不进行标签页跳转
     } else {
-      const errorMessage = isEditMode.value
-          ? t('course.chapters.updateFailed')
-          : (isDraft ? t('course.chapters.saveDraftFailed') : t('course.chapters.addFailed'))
-      message.error(errorMessage)
     }
-  } catch (error) {
-    message.error(t('course.chapters.saveFailed'))
+    } catch (error) {
   } finally {
     saving.value = false
   }
@@ -878,7 +868,6 @@ const handleSaveDraft = () => saveChapter(true)
 // 删除章节
 const handleDeleteChapter = async () => {
   if (!currentEditingChapter.value?.id) {
-    message.error(t('course.chapters.cannotGetChapterInfo'))
     return
   }
 
@@ -900,7 +889,6 @@ const handleDeleteChapter = async () => {
         // 重新加载章节列表
         await loadChapters()
       } catch (error) {
-        message.error(t('course.chapters.deleteFailed'))
       }
     }
   })

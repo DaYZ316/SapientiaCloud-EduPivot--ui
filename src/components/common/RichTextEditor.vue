@@ -476,14 +476,12 @@ const handleFileSelect = async (event: Event) => {
 
   // 验证文件类型
   if (!file.type.startsWith('image/')) {
-    message.error(t('common.richTextEditor.upload.imageTypeError'))
     return
   }
 
   // 验证文件大小 (限制为10MB)
   const maxSize = 10 * 1024 * 1024
   if (file.size > maxSize) {
-    message.error(t('common.richTextEditor.upload.imageSizeError'))
     return
   }
 
@@ -509,7 +507,6 @@ const handleFileSelect = async (event: Event) => {
   } catch (error) {
     console.error('图片上传失败:', error)
     message.destroyAll()
-    message.error(t('common.richTextEditor.upload.imageUploadFail'))
   } finally {
     isUploading.value = false
     // 清空文件输入
@@ -534,14 +531,12 @@ const handleVideoSelect = async (event: Event) => {
 
   // 验证文件类型
   if (!file.type.startsWith('video/')) {
-    message.error(t('common.richTextEditor.upload.videoTypeError'))
     return
   }
 
   // 验证文件大小 (限制为100MB)
   const maxSize = 100 * 1024 * 1024
   if (file.size > maxSize) {
-    message.error(t('common.richTextEditor.upload.videoSizeError'))
     return
   }
 
@@ -567,7 +562,6 @@ const handleVideoSelect = async (event: Event) => {
   } catch (error) {
     console.error('视频上传失败:', error)
     message.destroyAll()
-    message.error(t('common.richTextEditor.upload.videoUploadFail'))
   } finally {
     isVideoUploading.value = false
     // 清空文件输入

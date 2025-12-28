@@ -464,7 +464,6 @@ const loadQuestionList = async (options?: { append?: boolean; showLoading?: bool
     const currentCount = questionList.value.length
     hasMore.value = currentCount < pagination.total
   } catch (error) {
-    message.error(t('common.loadError'))
   } finally {
     if (showLoading) {
       loading.value = false
@@ -748,7 +747,6 @@ const handleDelete = (question: QuestionVO) => {
         message.success(t('course.question.deleteSuccess'))
         await refreshQuestionList()
       } catch (error) {
-        message.error(t('course.question.deleteFailed'))
       }
     }
   })
@@ -781,7 +779,6 @@ const handlePublish = async (question: QuestionVO) => {
       }
     }
   } catch (error) {
-    message.error(t('course.question.publishFailed'))
   }
 }
 
@@ -877,9 +874,7 @@ const handleCreateSuccess = async () => {
 }
 
 // 创建失败
-const handleCreateError = (error: any) => {
-  const errorMessage = error instanceof Error ? error.message : error
-  message.error(errorMessage || t('course.question.createFailed'))
+const handleCreateError = () => {
   createLoading.value = null
 }
 
@@ -899,7 +894,6 @@ const saveEditQuestion = async () => {
     // 重新加载题目列表
     await refreshQuestionList()
   } catch (error) {
-    message.error(t('course.question.editFailed'))
   } finally {
     editLoading.value = false
   }

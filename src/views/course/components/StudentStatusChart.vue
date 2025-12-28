@@ -27,6 +27,7 @@ import type {EChartsOption} from 'echarts'
 import * as echarts from 'echarts'
 import {NIcon} from 'naive-ui'
 import {useThemeStore} from '@/store/modules/theme'
+import {useCourseStore} from '@/store/modules/course'
 import {EnrollmentStatusEnum, getEnrollmentStatusLabel} from '@/enum/course/enrollmentStatusEnum'
 import {useColorAlgorithm} from '@/composables/useColorAlgorithm'
 import {useCourseBorderColor} from '../composables/useCourseBorderColor'
@@ -68,8 +69,9 @@ const props = withDefaults(defineProps<Props>(), {
 const chartRef = ref<HTMLElement>()
 let chartInstance: echarts.ECharts | null = null
 
-// 使用课程学生数据composable
-const {students} = useCourseStudentData(props.courseId)
+// 使用课程学生数据composable（优先使用 props.courseId，否则使用 course store 的当前课程ID）
+const courseStore = useCourseStore()
+const {students} = useCourseStudentData((props.courseId || courseStore.currentCourseId) as any)
 
 // 国际化
 const {t, locale} = useI18n()

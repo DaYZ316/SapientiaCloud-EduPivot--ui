@@ -1,5 +1,5 @@
 <template>
-  <div :style="{ '--dynamic-border-color': borderColor }" class="course-card">
+  <div v-if="courseInfo" :style="{ '--dynamic-border-color': borderColor }" class="course-card">
     <!-- 信息模块 (40% 宽度，最左边) -->
     <div class="info-module">
       <!-- 背景装饰元素 -->
@@ -103,27 +103,24 @@ import Module3Decorations from '../Module3Decorations.vue'
 import defaultCourseImage from '@/assets/image/default-course.png'
 import {useCourseBorderColor} from '../../composables/useCourseBorderColor'
 import {CourseTypeEnum} from '@/enum/course'
-
-// 定义组件属性
-interface Props {
-  courseInfo: CourseVO
-}
-
-// 接收属性
-const props = defineProps<Props>()
+import {useCourseStore} from '@/store/modules/course'
 
 // 国际化
 const {t} = useI18n()
 
-// 使用课程边框颜色composable
-const {borderColor} = useCourseBorderColor(props.courseInfo.courseType)
+// store
+const courseStore = useCourseStore()
+const courseInfo = courseStore.currentCourseInfo
+
+// 使用课程边框颜色composable（兼容空值）
+const {borderColor} = useCourseBorderColor((courseInfo && (courseInfo as CourseVO).courseType) as any)
 
 // 计算课程类型标签（使用国际化）
 const courseTypeLabel = computed(() => {
-  if (props.courseInfo.courseType === null || props.courseInfo.courseType === undefined) {
+  if (!courseInfo || (courseInfo as CourseVO).courseType === null || (courseInfo as CourseVO).courseType === undefined) {
     return t('course.courseType.REQUIRED')
   }
-  return props.courseInfo.courseType === CourseTypeEnum.REQUIRED
+  return (courseInfo as CourseVO).courseType === CourseTypeEnum.REQUIRED
       ? t('course.courseType.REQUIRED')
       : t('course.courseType.ELECTIVE')
 })

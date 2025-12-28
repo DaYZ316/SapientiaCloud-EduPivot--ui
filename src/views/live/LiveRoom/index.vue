@@ -159,9 +159,9 @@ const chatOnlineCount = computed(() => {
 })
 
 const livekitServerUrl = computed(() => {
-  // 优先使用环境变量，否则使用默认值
-  const host = import.meta.env.VITE_LIVEKIT_HOST || 'ws://117.72.194.197:7880'
-  return host
+  const isHttps = window.location.protocol === 'https:'
+  const wsProtocol = isHttps ? 'wss:' : 'ws:'
+  return `${wsProtocol}//${window.location.host}`
 })
 
 // RTC 配置，包括 STUN/TURN 服务器

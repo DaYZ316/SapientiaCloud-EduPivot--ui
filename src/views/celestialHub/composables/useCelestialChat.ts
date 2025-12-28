@@ -10,7 +10,7 @@ import {
     listMessagesBySessionId,
     type SSEController
 } from '@/api/celestialHub/chatMessage'
-import {addChatSession} from '@/api/celestialHub/chatSession'
+import {addChatSession, getUserSessions} from '@/api/celestialHub/chatSession'
 import {useChatScroll} from '@/views/celestialHub/composables/useChatScroll'
 import {useUserStore} from '@/store'
 
@@ -37,7 +37,9 @@ export function useCelestialChat() {
         chatContentRef,
         scrollToBottom,
         scrollToBottomForce,
-        scrollIntoViewInMessages
+        scrollIntoViewInMessages,
+        scrollToLastUserMessage,
+        resetScrollState
     } = useChatScroll()
     const currentSSEController = ref<SSEController | null>(null)
     const currentRequestId = ref<string | null>(null)
@@ -126,21 +128,10 @@ export function useCelestialChat() {
             messages.value = response.data
             // 加载完消息后，滚动到最后一次用户发起的对话（包括出题请求）
             await nextTick()
-            setTimeout(() => {
-                const currentMessages = messages.value
-                if (!currentMessages.length) {
-                    scrollToBottom()
-                    return
-                }
-                const lastUserLikeMessage = [...currentMessages]
-                    .reverse()
-                    .find((msg) => msg.role === 0 || msg.role === 3)
-                if (lastUserLikeMessage?.id) {
-                    scrollIntoViewInMessages(`.chat-message[data-message-id="${lastUserLikeMessage.id}"]`, 'start')
-                } else {
-                    scrollToBottom()
-                }
-            }, 200)
+            // 多次尝试滚动，确保DOM完全渲染
+            setTimeout(() => scrollToLastUserMessage(messages.value), 100)
+            setTimeout(() => scrollToLastUserMessage(messages.value), 300)
+            setTimeout(() => scrollToLastUserMessage(messages.value), 500)
         }
         isLoading.value = false
     }
@@ -413,6 +404,9 @@ export function useCelestialChat() {
         // 关闭当前的连接但不触发取消接口
         closeEventSource()
 
+        // 重置滚动状态
+        resetScrollState()
+
         activeSessionId.value = session.id || null
         currentSession.value = session
         if (activeSessionId.value) {
@@ -420,10 +414,36 @@ export function useCelestialChat() {
         }
     }
 
+    // 自动选择最后一个会话（用于页面初次加载）
+    const autoSelectLastSession = async () => {
+        try {
+            const response = await getUserSessions()
+
+            if (response.data && response.data.length > 0) {
+                // 按更新时间排序，选择最新的会话
+                const sessions = response.data.sort((a, b) => {
+                    const timeA = a.updateTime ? new Date(a.updateTime).getTime() : 0
+                    const timeB = b.updateTime ? new Date(b.updateTime).getTime() : 0
+                    return timeB - timeA
+                })
+                const lastSession = sessions[0]
+                await selectSession(lastSession)
+                return lastSession
+            }
+        } catch (error) {
+            // 如果获取会话失败，静默处理
+            console.warn('Failed to auto-select last session:', error)
+        }
+        return null
+    }
+
     // 新建会话
     const newChat = () => {
         // 关闭当前的连接但不触发取消接口
         closeEventSource()
+
+        // 重置滚动状态
+        resetScrollState()
 
         activeSessionId.value = null
         currentSession.value = null
@@ -450,6 +470,8 @@ export function useCelestialChat() {
         loadMessages,
         scrollToBottom,
         scrollIntoViewInMessages,
+        scrollToLastUserMessage,
+        autoSelectLastSession,
         useRag,
         fileReferences
     }

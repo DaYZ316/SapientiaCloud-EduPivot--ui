@@ -1,4 +1,5 @@
 import type {CoursePublicEnum, CourseStatusEnum, CourseTypeEnum} from '@/enum/course'
+import type {TeacherVO} from '@/types/teacher'
 
 /**
  * 课程数据传输对象
@@ -54,10 +55,8 @@ export interface CourseVO {
     teacherName?: string
     /** 主讲教师头像 */
     teacherAvatar?: string
-    /** 辅助教学教师ID列表 */
-    assistantTeacherIds?: string[]
-    /** 辅助教学教师姓名列表 */
-    assistantTeacherNames?: string[]
+    /** 辅助教学教师信息列表 */
+    assistantTeachers?: TeacherVO[]
     /** 课程封面图片URL */
     coverImageUrl?: string
     /** 课程状态 (0=正常, 1=停课) */
@@ -146,4 +145,42 @@ export interface CourseQueryParams {
     isAsc?: 'asc' | 'desc' | null
     /** 分页参数合理化 */
     reasonable?: boolean | null
+}
+
+/**
+ * 课程教师查询 DTO（用于教师相关课程的分页查询）
+ */
+export interface CourseTeacherQueryDTO {
+    /** 教师ID */
+    teacherId?: string | null
+    /** 起始时间 */
+    startTime?: string | null
+    /** 结束时间 */
+    endTime?: string | null
+    /** 当前记录起始索引 */
+    pageNum?: number | null
+    /** 每页显示记录数 */
+    pageSize?: number | null
+    /** 排序字段 */
+    orderByColumn?: string | null
+    /** 排序方向，可用值：asc,desc */
+    isAsc?: 'asc' | 'desc' | null
+    /** 分页参数合理化 */
+    reasonable?: boolean | null
+}
+
+/**
+ * 批量给课程分配教师 DTO
+ */
+export interface CourseTeacherAssignDTO {
+    courseId?: string | null
+    teacherIds?: string[] | null
+}
+
+/**
+ * 单个课程与教师关系 DTO（用于单个分配/解绑）
+ */
+export interface CourseTeacherDTO {
+    courseId?: string | null
+    teacherId?: string | null
 }

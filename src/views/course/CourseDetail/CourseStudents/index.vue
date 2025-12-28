@@ -398,7 +398,6 @@ const handleEditConfirm = async () => {
     // 这里可以通过事件通知AdvancedTable组件刷新数据
     window.location.reload() // 临时方案，后续可以优化为事件通知
   } else {
-    message.error(t('course.student.editDialog.editFail'))
   }
   editLoading.value = false
 }
@@ -422,7 +421,6 @@ const handleRemoveStudent = (student: CourseStudentVO) => {
         // 刷新表格数据
         window.location.reload() // 临时方案，后续可以优化为事件通知
       } else {
-        message.error(t('course.student.removeFail'))
       }
     }
   })

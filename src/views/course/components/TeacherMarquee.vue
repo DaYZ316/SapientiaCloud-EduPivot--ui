@@ -93,29 +93,16 @@ import {useI18n} from 'vue-i18n'
 import {useRouter} from 'vue-router'
 import type {TeacherVO} from '@/types/teacher'
 import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
-
-// 定义组件属性
-interface Props {
-  /** 开课教师ID（用于排除） */
-  mainTeacherId?: string | null
-  /** 教师数据 */
-  teachers: readonly TeacherVO[]
-  /** 加载状态 */
-  loading?: boolean
-}
-
-// 接收属性
-const props = withDefaults(defineProps<Props>(), {
-  mainTeacherId: null,
-  teachers: () => [],
-  loading: false
-})
+import {useCourseStore} from '@/store/modules/course'
 
 // 国际化
 const {t} = useI18n()
 
 // 路由
 const router = useRouter()
+
+// store
+const courseStore = useCourseStore()
 
 // DOM 引用
 const marqueeContentRef = ref<HTMLElement | null>(null)
@@ -128,10 +115,13 @@ const animationFrameId = ref<number | null>(null) // 动画帧ID
 const groupWidth = ref(0) // 教师组的宽度
 const lastTimestamp = ref<number | null>(null) // 上一帧的时间戳
 
-// 计算属性
-const assistantTeachers = computed(() => {
-  if (!props.teachers || props.teachers.length === 0) return []
-  return props.teachers.filter(teacher => teacher.id !== props.mainTeacherId)
+// 计算属性：从 course store 获取助教教师列表并排除主讲教师
+const assistantTeachers = computed<TeacherVO[]>(() => {
+  const courseInfo = courseStore.currentCourseInfo
+  if (!courseInfo) return []
+  const assistants = courseInfo.assistantTeachers || []
+  const mainTeacherId = courseInfo.teacherId || null
+  return (assistants as TeacherVO[]).filter((teacher: TeacherVO) => teacher.id !== mainTeacherId)
 })
 
 // 是否需要动画（当教师数量较多时启用）
@@ -299,7 +289,7 @@ onUnmounted(() => {
 .teacher-marquee-container {
   width: 100%;
   height: 100%;
-  min-height: 100px;
+  min-height: 116px;
   border-radius: 12px;
   background: var(--background-secondary-color);
   border: 1px solid var(--border-secondary-color);
@@ -317,7 +307,7 @@ onUnmounted(() => {
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 100px;
+  min-height: 116px;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -357,7 +347,7 @@ onUnmounted(() => {
   align-items: center;
   height: 100%;
   gap: 20px;
-  padding: 16px 0;
+  padding: 20px 0;
   white-space: nowrap;
   will-change: transform;
   transition: transform 0s linear;
@@ -374,7 +364,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 18px;
+  padding: 12px 20px;
   background: var(--background-color);
   border-radius: 24px;
   box-shadow: 0 2px 8px var(--shadow-secondary-color);
@@ -478,7 +468,7 @@ onUnmounted(() => {
   justify-content: center;
   width: 100%;
   height: 100%;
-  min-height: 100px;
+  min-height: 116px;
   color: var(--text-secondary-color);
 }
 
@@ -487,7 +477,7 @@ onUnmounted(() => {
 @media (max-width: 1024px) {
   .teacher-item {
     min-width: 180px;
-    padding: 8px 16px;
+    padding: 10px 18px;
     gap: 10px;
   }
 
@@ -511,7 +501,7 @@ onUnmounted(() => {
 
   .teacher-item {
     min-width: 160px;
-    padding: 8px 14px;
+    padding: 10px 16px;
     gap: 8px;
     border-radius: 20px;
   }
@@ -538,7 +528,7 @@ onUnmounted(() => {
 
   .marquee-content {
     gap: 16px;
-    padding: 12px 0;
+    padding: 14px 0;
   }
 
   .teacher-group {
@@ -549,7 +539,7 @@ onUnmounted(() => {
 @media (max-width: 480px) {
   .teacher-item {
     min-width: 140px;
-    padding: 6px 12px;
+    padding: 8px 12px;
   }
 
   .teacher-avatar {

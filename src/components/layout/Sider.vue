@@ -241,20 +241,21 @@ onUnmounted(() => {
 }
 
 .sidebar-header {
-  padding: 16px;
+  /* 缩小顶部间距以降低整体高度 */
+  padding: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 64px;
+  min-height: 24px;
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   color: var(--color-primary);
   font-weight: 600;
-  font-size: 18px;
+  font-size: 16px;
   transition: color 0.3s ease;
   cursor: pointer;
   user-select: none;
@@ -265,8 +266,8 @@ onUnmounted(() => {
 }
 
 .logo-image {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
   display: flex;
   align-items: center;

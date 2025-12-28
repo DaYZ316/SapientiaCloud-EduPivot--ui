@@ -195,7 +195,6 @@ watch(isRecording, (recording) => {
 // 监听语音识别错误
 watch(speechError, (hasError) => {
   if (hasError && speechErrorMessage.value) {
-    message.error(speechErrorMessage.value)
   }
 })
 

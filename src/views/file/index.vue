@@ -302,14 +302,13 @@ import type {FileInfoDTO} from '@/types/minIO/file'
 import {getDefaultFileInfoDTO} from '@/types/minIO/file'
 import type {FilePreviewTypeString} from '@/types/filePreview'
 import Icon from '@/components/common/Icon.vue'
-import {getDiscreteApi} from '@/utils/naiveUIHelper'
 
 const VueOfficePdf = defineAsyncComponent(() => import('@vue-office/pdf'))
 const VueOfficeDocx = defineAsyncComponent(() => import('@vue-office/docx'))
 const VueOfficeExcel = defineAsyncComponent(() => import('@vue-office/excel'))
 const VueOfficePptx = defineAsyncComponent(() => import('@vue-office/pptx'))
 
-const {message} = getDiscreteApi()
+ 
 const {t} = useI18n()
 const router = useRouter()
 const route = useRoute()
@@ -541,7 +540,6 @@ const loadFile = async () => {
   } catch (err) {
     loading.value = false
     error.value = err instanceof Error ? err.message : t('common.filePreview.loadFailed')
-    message.error(error.value)
   }
 }
 

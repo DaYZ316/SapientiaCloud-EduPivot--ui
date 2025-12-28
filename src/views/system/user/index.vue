@@ -327,7 +327,7 @@ const renderStatusControl = (row: userType.SysUserVO) => {
 const renderActions = (row: userType.SysUserVO) => {
   return [
     h('button', {
-      class: 'n-button n-button--text',
+      class: 'n-button n-button--text action-btn',
       style: {marginRight: '8px'},
       onClick: () => handleResetPassword(row)
     }, [
@@ -335,7 +335,7 @@ const renderActions = (row: userType.SysUserVO) => {
       ' ' + t('settings.user.actions.resetPassword')
     ]),
     h('button', {
-      class: 'n-button n-button--text',
+      class: 'n-button n-button--text action-btn',
       style: {marginRight: '8px'},
       onClick: () => roleAssignment.handleAssignRole(row)
     }, [
@@ -343,7 +343,7 @@ const renderActions = (row: userType.SysUserVO) => {
       ' ' + t('settings.user.actions.assignRole')
     ]),
     h('button', {
-      class: 'n-button n-button--text',
+      class: 'n-button n-button--text action-btn',
       onClick: () => handleDelete(row)
     }, [
       renderIcon(TrashOutline)(),

@@ -468,7 +468,6 @@ const loadTaskList = async () => {
         task.sysUserId === userStore.userInfo?.id
     )
   } catch (error) {
-    message.error(t('course.tasks.loadFailed'))
   } finally {
     loading.value = false
   }
@@ -583,7 +582,6 @@ const handleSaveDraft = async () => {
       }
     }
   } catch (error) {
-    message.error(t('course.tasks.saveDraftFailed'))
   } finally {
     saving.value = false
   }
@@ -627,10 +625,6 @@ const handlePublish = async () => {
       }
     }
   } catch (error) {
-    const errorMessage = isEdit.value && currentEditingTask.value?.status === TaskStatusEnum.PUBLISHED
-        ? t('course.tasks.updateFailed')
-        : t('course.tasks.publishFailed')
-    message.error(errorMessage)
   } finally {
     saving.value = false
   }
@@ -651,7 +645,6 @@ const resetForm = () => {
 // 删除任务
 const handleDeleteTask = async () => {
   if (!currentEditingTask.value?.id) {
-    message.error(t('course.tasks.cannotGetTaskInfo'))
     return
   }
 
@@ -673,7 +666,6 @@ const handleDeleteTask = async () => {
         // 重新加载任务列表
         await loadTaskList()
       } catch (error) {
-        message.error(t('course.tasks.deleteFailed'))
       } finally {
         saving.value = false
       }
@@ -698,7 +690,6 @@ const handleAttachmentUploadSuccess = (_response: any) => {
 
 const handleAttachmentUploadError = (_error: any) => {
   // 处理上传错误
-  message.error(t('course.tasks.uploadFailed'))
 }
 
 const handleUrlsUpdated = async (urls: string[]) => {
@@ -739,7 +730,6 @@ const loadFileInfo = async (urls: string[]) => {
       fileInfoList.value = res.data.filter(file => !file.error)
     }
   } catch (error) {
-    message.error(t('course.tasks.loadFileInfoFailed'))
   } finally {
     loadingFileInfo.value = false
   }
@@ -851,7 +841,6 @@ const handleDeleteAttachment = async (fileInfo: FileInfoDTO) => {
 
         message.success(t('course.tasks.deleteAttachmentSuccess'))
       } catch (error) {
-        message.error(t('course.tasks.deleteAttachmentFailed'))
       }
     }
   })

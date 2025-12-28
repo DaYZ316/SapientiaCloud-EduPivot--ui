@@ -1,5 +1,5 @@
 <template>
-  <div class="course-card">
+  <div class="course-card" @click="handleCardClick">
     <!-- 课程封面图片 -->
     <div class="course-cover">
       <img
@@ -96,9 +96,10 @@ const props = defineProps<Props>()
 // Emits
 interface Emits {
   (e: 'continue-course', course: courseType.CourseVO): void
+  (e: 'course-click', course: courseType.CourseVO): void
 }
 
-defineEmits<Emits>()
+const emit = defineEmits<Emits>()
 
 // 默认图片
 const defaultImage = defaultCourseImage
@@ -111,8 +112,10 @@ const teacherAvatar = computed(() => {
 
 const formatSemester = (semester: string) => semester || ''
 
-const truncateDescription = (description: string, maxLength: number = 60) =>
-    description.length <= maxLength ? description : description.substring(0, maxLength) + '...'
+const truncateDescription = (description: string, maxLength: number = 60) => {
+  const desc = description || ''
+  return desc.length <= maxLength ? desc : desc.substring(0, maxLength) + '...'
+}
 
 const getButtonText = (course: courseType.CourseVO) =>
     course.status === CourseStatusEnum.SUSPENDED ? t('course.card.suspended') : t('course.card.startCourse')
@@ -124,29 +127,26 @@ const handleImageError = (event: Event) => {
 }
 
 
-// 处理继续课程按钮点击
+// 处理继续课程按钮点击：改为向父组件发送事件，由父组件决定跳转
 const handleContinueCourse = () => {
-  // 跳转到课程详情页面
-  router.push({name: 'CourseDetail', params: {courseId: props.course.id}})
+  emit('continue-course', props.course)
 }
 
-// 处理教师信息点击
+// 处理整张卡片点击，发送事件给父组件
+const handleCardClick = () => {
+  emit('course-click', props.course)
+}
+
+// 处理教师信息点击：尝试通过 teacherUserId 或 teacherId 查询后跳转（不使用 try/catch 或 console）
 const handleTeacherClick = async () => {
-  // 如果有teacherUserId，直接跳转
   if (props.course.teacherUserId) {
     router.push(`/user/${props.course.teacherUserId}`)
     return
   }
-
-  // 如果没有teacherUserId但有teacherId，先查询教师信息获取sysUserId
   if (props.course.teacherId) {
-    try {
-      const response = await getTeacherById(props.course.teacherId)
-      if (response.success && response.data?.sysUserId) {
-        router.push(`/user/${response.data.sysUserId}`)
-      }
-    } catch (error) {
-      console.error('获取教师信息失败:', error)
+    const response = await getTeacherById(props.course.teacherId)
+    if (response?.success && response.data?.sysUserId) {
+      router.push(`/user/${response.data.sysUserId}`)
     }
   }
 }

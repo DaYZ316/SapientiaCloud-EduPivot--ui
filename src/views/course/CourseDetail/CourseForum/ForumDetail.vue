@@ -653,10 +653,8 @@ const loadForum = async () => {
       postQueryParams.value.forumId = forumId
       postQueryParams.value.courseId = courseId
     } else {
-      message.error(response.message || t('course.forum.loadForumFailed'))
     }
   } catch (error) {
-    message.error(t('course.forum.loadForumFailed'))
   }
 }
 
@@ -677,10 +675,8 @@ const loadPosts = async () => {
       postList.value = sortedPosts
       postTotal.value = response.total
     } else {
-      message.error(response.message || t('course.forum.loadPostsFailed'))
     }
   } catch (error) {
-    message.error(t('course.forum.loadPostsFailed'))
   }
 }
 
@@ -704,10 +700,8 @@ const createPost = async () => {
       resetCreatePostForm()
       loadPosts()
     } else {
-      message.error(response.message || t('course.forum.createPostFailed'))
     }
   } catch (error) {
-    message.error(t('course.forum.createPostFailed'))
   } finally {
     createPostLoading.value = false
   }
@@ -889,7 +883,6 @@ const deletePost = (post: ForumPostVO) => {
         // 重新加载帖子列表
         await loadPosts()
       } catch (error) {
-        message.error(t('course.forum.deletePostFailed'))
       }
     }
   })
@@ -913,7 +906,6 @@ const saveEditPost = async () => {
     // 重新加载帖子列表
     await loadPosts()
   } catch (error) {
-    message.error(t('course.forum.editPostFailed'))
   } finally {
     isEditing.value = false
   }
@@ -937,10 +929,8 @@ const togglePostTop = async (post: ForumPostVO) => {
       // 重新加载帖子列表
       await loadPosts()
     } else {
-      message.error(response.message || (isTop ? t('course.forum.cancelTopPostFailed') : t('course.forum.setTopPostFailed')))
     }
   } catch (error) {
-    message.error(post.isTop === 1 ? t('course.forum.cancelTopPostFailed') : t('course.forum.setTopPostFailed'))
   }
 }
 
@@ -954,10 +944,8 @@ const togglePostEssence = async (post: ForumPostVO) => {
       // 重新加载帖子列表
       await loadPosts()
     } else {
-      message.error(response.message || (isEssence ? t('course.forum.cancelEssencePostFailed') : t('course.forum.setEssencePostFailed')))
     }
   } catch (error) {
-    message.error(post.isEssence === 1 ? t('course.forum.cancelEssencePostFailed') : t('course.forum.setEssencePostFailed'))
   }
 }
 

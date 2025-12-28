@@ -272,6 +272,7 @@ const {
   useRag,
   loadMessages,
   scrollIntoViewInMessages,
+  autoSelectLastSession,
   fileReferences
 } = useCelestialChat()
 
@@ -557,8 +558,8 @@ watch(
     {immediate: true}
 )
 
-// 组件挂载时检查 query 参数
-onMounted(() => {
+// 组件挂载时检查 query 参数并自动选择会话
+onMounted(async () => {
   if (route.query.openSmartQuestion === 'true') {
     shouldOpenSmartQuestion.value = true
     // 清除 query 参数
@@ -569,6 +570,15 @@ onMounted(() => {
         openSmartQuestion: undefined
       }
     })
+  }
+
+  // 每次进入页面都执行滚动逻辑
+  if (activeSessionId.value) {
+    // 如果有活跃会话，重新加载消息并滚动到最后用户消息
+    await loadMessages(activeSessionId.value)
+  } else {
+    // 如果没有活跃会话，自动选择最新的会话
+    await autoSelectLastSession()
   }
 })
 

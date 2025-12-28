@@ -585,7 +585,6 @@ const handleSubmit = async () => {
       await userStore.refreshUserInfo(true)
       router.push('/dashboard')
     } else {
-      message.error(t('info.select.submitFailed'))
     }
 
     submitting.value = false

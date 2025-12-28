@@ -1,4 +1,4 @@
-import {ref, watch} from 'vue'
+import {ref, watch, isRef, type Ref} from 'vue'
 import {listAllCourseStudentByCourseId} from '@/api/course/courseStudent'
 import type {CourseStudentVO} from '@/types/course/courseStudent'
 
@@ -17,7 +17,7 @@ const globalCache = new Map<string, CourseStudentCache>()
  * 提供统一的课程学生数据获取、加载状态管理和错误处理
  * 使用全局缓存避免重复请求
  */
-export function useCourseStudentData(courseId?: string) {
+export function useCourseStudentData(courseId?: string | Ref<string | null>) {
     // 响应式数据
     const students = ref<CourseStudentVO[]>([])
     const isLoading = ref(false)
@@ -27,8 +27,13 @@ export function useCourseStudentData(courseId?: string) {
      * 加载学生数据
      * @param id 课程ID，如果不传则使用传入的courseId
      */
-    const loadStudents = async (id?: string) => {
-        const targetCourseId = id || courseId
+    const resolveCourseId = (id?: string | Ref<string | null>) => {
+        if (isRef(id)) return id.value || null
+        return id || null
+    }
+
+    const loadStudents = async (id?: string | Ref<string | null>) => {
+        const targetCourseId = resolveCourseId(id) || resolveCourseId(courseId)
         if (!targetCourseId) {
             return
         }
@@ -96,8 +101,9 @@ export function useCourseStudentData(courseId?: string) {
         isLoading.value = false
         error.value = null
         // 清除全局缓存
-        if (courseId) {
-            globalCache.delete(courseId)
+        const key = resolveCourseId(courseId)
+        if (key) {
+            globalCache.delete(key)
         }
     }
 
@@ -105,10 +111,11 @@ export function useCourseStudentData(courseId?: string) {
      * 刷新数据
      */
     const refreshData = () => {
-        if (courseId) {
+        const key = resolveCourseId(courseId)
+        if (key) {
             // 清除缓存并重新加载
-            globalCache.delete(courseId)
-            loadStudents()
+            globalCache.delete(key)
+            loadStudents(key)
         }
     }
 
@@ -116,21 +123,31 @@ export function useCourseStudentData(courseId?: string) {
      * 清除指定课程的缓存
      */
     const clearCache = (id?: string) => {
-        const targetCourseId = id || courseId
+        const targetCourseId = resolveCourseId(id) || resolveCourseId(courseId)
         if (targetCourseId) {
             globalCache.delete(targetCourseId)
         }
     }
 
-    // 监听课程ID变化
+    // 监听课程ID变化（支持传入 string 或 Ref<string|null>）
     if (courseId) {
-        watch(() => courseId, (newCourseId) => {
-            if (newCourseId) {
-                loadStudents(newCourseId)
-            } else {
-                resetData()
-            }
-        }, {immediate: true})
+        if (isRef(courseId)) {
+            watch(() => courseId.value, (newCourseId) => {
+                if (newCourseId) {
+                    loadStudents(newCourseId)
+                } else {
+                    resetData()
+                }
+            }, {immediate: true})
+        } else {
+            watch(() => courseId, (newCourseId) => {
+                if (newCourseId) {
+                    loadStudents(newCourseId)
+                } else {
+                    resetData()
+                }
+            }, {immediate: true})
+        }
     }
 
     return {

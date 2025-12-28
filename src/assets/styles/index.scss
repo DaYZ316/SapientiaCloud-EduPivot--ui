@@ -42,8 +42,6 @@
   --glow-animation-duration: 3s;
 
   // Markdown专用变量
-  --markdown-font-size: 16px;
-  --markdown-line-height: 1.6;
   --markdown-text-color: var(--text-color);
   --markdown-bg-color: var(--background-color);
   --markdown-heading-color: var(--text-color);
@@ -117,8 +115,6 @@
   --glow-animation-duration: 2.5s;
 
   // Markdown专用变量（暗色主题）
-  --markdown-font-size: 16px;
-  --markdown-line-height: 1.6;
   --markdown-text-color: var(--text-color);
   --markdown-bg-color: var(--background-color);
   --markdown-heading-color: var(--text-color);
@@ -355,6 +351,50 @@ body {
 
   .dark {
     --glow-intensity: 0.12;
+  }
+}
+
+// 全局操作按钮样式
+.action-btn {
+  color: var(--text-color);
+  background-color: transparent;
+  border: none;
+  transition: color 0.18s ease, background-color 0.18s ease;
+
+  &:focus {
+    outline: none;
+  }
+
+  // 悬停和聚焦状态
+  &:not([disabled]):hover,
+  &:not([disabled]):focus {
+    color: var(--color-primary) !important;
+    background-color: transparent !important;
+  }
+
+  // 激活状态
+  &:not([disabled]):active {
+    color: var(--color-primary-dark) !important;
+  }
+
+  // 确保图标跟随文字颜色
+  svg {
+    fill: currentColor;
+    color: inherit;
+  }
+
+  // 禁用状态样式
+  &[disabled] {
+    color: var(--text-secondary-color) !important;
+    background-color: transparent !important;
+    cursor: not-allowed !important;
+    opacity: 0.9 !important;
+  }
+
+  &[disabled] svg {
+    fill: currentColor;
+    color: inherit;
+    opacity: 0.9;
   }
 }
 

@@ -100,7 +100,8 @@ import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import * as courseApi from '@/api/course'
 import {useUserStore} from '@/store/modules/user'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
-import {addCourseStudent} from '@/api/course/courseStudent'
+import {addCourseStudent, listMyCourseForStudent, getDefaultMyCourseQuery as getDefaultMyCourseQueryStudent} from '@/api/course/courseStudent'
+import { listMyCourseForTeacher } from '@/api/course/courseTeacher'
 
 const {t} = useI18n()
 const {message} = getDiscreteApi()
@@ -113,13 +114,13 @@ const isAdmin = computed(() => userStore.hasRole('ADMIN'))
 // 检查用户是否为学生
 const isStudent = computed(() => userStore.studentInfo?.id !== null && userStore.studentInfo?.id !== undefined)
 
-// 搜索表单
-const searchForm = ref<courseType.CourseQueryParams>(courseApi.getDefaultCourseQuery())
+// 搜索表单（使用 any 以兼容 admin/学生 两种查询结构）
+const searchForm = ref<any>(courseApi.getDefaultCourseQuery())
 
 // 加载状态
 const loading = ref(false)
 
-// 课程列表数据
+// 课程列表数据（统一为 CourseVO[]，方便模板渲染）
 const courseList = ref<courseType.CourseVO[]>([])
 
 // 分页状态
@@ -151,17 +152,49 @@ const enrollRules = computed(() => ({
   ]
 }))
 
-// 课程API函数
-const courseApiFunction = computed(() => courseApi.listCourse)
+// 根据角色选择的 API：admin -> listCourse；teacher -> listMyCourseForTeacher；student -> listMyCourse
+// 优先判断管理员身份（即使该账号同时是教师）
+const courseApiFunction = computed(() => {
+  if (isAdmin.value) {
+    return courseApi.listCourse
+  }
+  // 教师（仅限非管理员的教师）使用教师专用接口
+  if (userStore.teacherInfo?.id && !isAdmin.value) {
+    return listMyCourseForTeacher
+  }
+  // 其余视为学生（仅限非管理员的学生），调用我的课程接口
+  return listMyCourseForStudent
+})
 
-// 初始化搜索表单
+// 初始化搜索表单（根据角色选择不同的默认查询并自动填充 teacherId/studentId）
 const initializeSearchForm = () => {
-  const defaultQuery = courseApi.getDefaultCourseQuery()
+  let defaultQuery: any
+  if (isAdmin.value) {
+    defaultQuery = courseApi.getDefaultCourseQuery()
+  } else if (userStore.teacherInfo?.id) {
+    // 教师使用课程查询但需要将 teacherId 写入查询
+    defaultQuery = courseApi.getDefaultCourseQuery()
+  } else {
+    // 学生使用我的课程查询
+    defaultQuery = getDefaultMyCourseQueryStudent()
+  }
+
   Object.assign(searchForm.value, defaultQuery)
 
-  // 非管理员根据用户角色设置查询条件
-  if (!isAdmin.value && userStore.teacherInfo?.id) {
-    searchForm.value.teacherId = userStore.teacherInfo.id
+  // 教师场景：确保传入 teacherId（仅当不是管理员时）
+  if (userStore.teacherInfo?.id && !isAdmin.value) {
+    ;(searchForm.value as any).teacherId = userStore.teacherInfo.id
+  }
+
+  // 学生场景：确保传入 studentId；同时如果存在 teacherId（例如从上级或筛选），也保留或设置（仅当不是管理员时设置 teacherId）
+  if (!userStore.teacherInfo?.id && userStore.studentInfo?.id) {
+    ;(searchForm.value as any).studentId = userStore.studentInfo.id
+  }
+  if (userStore.studentInfo?.id && userStore.teacherInfo?.id) {
+    ;(searchForm.value as any).studentId = userStore.studentInfo.id
+    if (!isAdmin.value) {
+      ;(searchForm.value as any).teacherId = userStore.teacherInfo.id
+    }
   }
 }
 
@@ -174,11 +207,25 @@ const loadCourseData = async () => {
     pageSize: pagination.pageSize
   }
 
-  const result = await courseApiFunction.value(queryParams)
+  const result = await courseApiFunction.value(queryParams as any)
 
   // 提取分页数据
   const {data = [], total = 0} = (result as any) || {}
-  courseList.value = data
+
+  // 如果是学生端的 listMyCourse，后端返回的是 MyCourseVO[]，每项包含 courseVO；
+  // 如果是管理员，返回的是 CourseVO[]
+  if (Array.isArray(data)) {
+    // 如果后端返回的是 MyCourseVO[]（包含 courseVO 字段），则映射取出 courseVO
+    if (data.length > 0 && Object.prototype.hasOwnProperty.call(data[0], 'courseVO')) {
+      courseList.value = (data as any[]).map(item => item?.courseVO).filter(Boolean)
+    } else {
+      // 否则直接当作 CourseVO[] 使用（兼容管理员或教师使用 listCourse 的情况）
+      courseList.value = data as courseType.CourseVO[]
+    }
+  } else {
+    courseList.value = []
+  }
+
   pagination.total = total
   loading.value = false
 }
@@ -224,7 +271,7 @@ const handleCourseClick = (_course: courseType.CourseVO) => {
 // 处理继续课程按钮点击
 const handleContinueCourse = (_course: courseType.CourseVO) => {
   // 跳转到课程学习页面
-  router.push(`/course/learn/${_course.id}`)
+  router.push(`/course/detail/${_course.id}`)
 }
 
 // 处理加课

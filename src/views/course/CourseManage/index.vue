@@ -2,7 +2,7 @@
   <div>
     <page-table
         ref="pageTableRef"
-        :api-fn="courseApiFunction"
+        :api-fn="localCourseApiFunction"
         :auto-search="false"
         :columns="columns"
         :query-params="searchForm"
@@ -167,7 +167,9 @@ import {useI18n} from 'vue-i18n'
 import {renderIcon} from '@/utils/iconUtil'
 import PageTable from '@/components/common/PageTable.vue'
 import * as courseApi from '@/api/course'
+import {useUserStore} from '@/store/modules/user'
 import * as teacherApi from '@/api/teacher'
+import { listMyCourseForStudent } from '@/api/course/courseStudent'
 import ImageUpload from '@/components/common/ImageUpload.vue'
 import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
 
@@ -184,6 +186,38 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const userStore = useUserStore()
+// 兼容父级传入的 isAdmin 与当前登录用户角色，优先判断管理员身份
+const isAdmin = computed(() => {
+  return props.isAdmin || userStore.hasRole('ADMIN')
+})
+
+// 根据角色选择使用的 API：管理员使用 listCourse（父级或默认）；教师使用 listMyCourseForTeacher；学生使用 listMyCourse 并带 studentId
+const localCourseApiFunction = computed(() => {
+  return async (params: any) => {
+    // 管理员：优先判断管理员身份（即使该账号同时是教师）
+    if (isAdmin.value) {
+      const fn = props.courseApiFunction || courseApi.listCourse
+      return fn(params)
+    }
+
+    // 教师：调用教师专用的我的课程接口（仅限非管理员的教师）
+    if (userStore.teacherInfo?.id) {
+      const fn = props.courseApiFunction || courseApi.listMyCourseForTeacher
+      return fn(params)
+    }
+
+    // 学生：调用我的课程接口，并确保传入 studentId（仅限非管理员的学生）
+    const query = { ...params, studentId: userStore.studentInfo?.id }
+    const res: any = await listMyCourseForStudent(query)
+    // 将 MyCourseVO[] 映射为 CourseVO[]，以兼容表格组件预期的数据结构
+    if (res && Array.isArray(res.data)) {
+      const mapped = (res.data as any[]).map(item => item?.courseVO).filter(Boolean)
+      return { ...res, data: mapped }
+    }
+    return res
+  }
+})
 
 // Emits
 interface Emits {
@@ -301,7 +335,7 @@ const columns = computed((): DataTableColumns => [
       )
 
       // 只有管理员才能编辑和删除课程
-      if (props.isAdmin) {
+      if (isAdmin.value) {
         actions.push(
             h(
                 'button',
@@ -463,6 +497,8 @@ function onDataUpdate(data: courseType.CourseVO[]) {
 function handleEdit(course: courseType.CourseVO) {
   modalMode.value = 'edit'
   currentCourseData.value = course
+  // 按需加载教师列表（避免页面进入时立即调用全量接口）
+  loadTeachers()
   showModal.value = true
 }
 
@@ -520,22 +556,30 @@ async function handleSubmit() {
 }
 
 async function loadTeachers() {
+  // 支持按需或按查询加载：先获取全量，再根据 query 过滤（以兼容后端接口差异）
   teacherLoading.value = true
   const response = await teacherApi.listAllTeacher()
-  if (response.data) {
-    teacherOptions.value = response.data.map((teacher: teacherType.TeacherVO) => ({
-      label: teacher.realName || teacher.teacherCode || '',
-      value: teacher.id,
-      avatar: teacher.avatar || null,
-      department: teacher.department || null,
-      teacherCode: teacher.teacherCode || null
-    }))
-  }
+    if (response.data) {
+      let data = response.data as teacherType.TeacherVO[]
+      teacherOptions.value = data.map((teacher: teacherType.TeacherVO) => ({
+        label: teacher.realName || teacher.teacherCode || '',
+        value: teacher.id as string,
+        avatar: teacher.avatar || undefined,
+        department: teacher.department || undefined,
+        teacherCode: teacher.teacherCode || undefined
+      }))
+    } else {
+      teacherOptions.value = []
+    }
   teacherLoading.value = false
 }
 
 function handleTeacherSearch(_query: string) {
-  // 已加载所有教师，无需额外处理
+  // 仅在用户搜索或打开模态框时按需加载教师，避免页面进入时调用接口
+  // 这里触发加载以保证下拉有数据（如果尚未加载）
+  if (!teacherOptions.value || teacherOptions.value.length === 0) {
+    loadTeachers()
+  }
 }
 
 function resetForm() {
@@ -546,6 +590,8 @@ function resetForm() {
 function openAddModal() {
   modalMode.value = 'add'
   currentCourseData.value = undefined
+  // 打开模态框前按需加载教师
+  loadTeachers()
   showModal.value = true
 }
 
@@ -556,7 +602,7 @@ watch(() => currentCourseData.value, (newData) => {
       id: newData.id,
       courseName: newData.courseName,
       teacherId: newData.teacherId,
-      assistantTeacherIds: newData.assistantTeacherIds || [],
+    assistantTeacherIds: newData.assistantTeachers?.map((t: teacherType.TeacherVO) => t.id).filter((id): id is string => id != null) || [],
       description: newData.description,
       coverImageUrl: newData.coverImageUrl || '/assets/image/default-course.png',
       semester: newData.semester,
@@ -583,7 +629,13 @@ watch(() => showModal.value, (show) => {
 
 // 组件挂载时加载教师列表
 onMounted(() => {
-  loadTeachers()
+  // 如果不是管理员，根据角色写入 teacherId 或 studentId 到父级 searchForm（优先判断管理员身份）
+  if (isAdmin.value) return
+  if (userStore.teacherInfo?.id) {
+    ;(props.searchForm as any).teacherId = userStore.teacherInfo.id
+  } else if (userStore.studentInfo?.id) {
+    ;(props.searchForm as any).studentId = userStore.studentInfo.id
+  }
 })
 
 // 暴露方法给父组件

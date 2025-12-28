@@ -246,7 +246,7 @@ const columns = computed(() => [
         h(
             'button',
             {
-              class: 'n-button n-button--text',
+              class: 'n-button n-button--text action-btn',
               style: {marginRight: '8px'},
               onClick: () => handleEdit(row)
             },
@@ -258,7 +258,7 @@ const columns = computed(() => [
         h(
             'button',
             {
-              class: 'n-button n-button--text',
+              class: 'n-button n-button--text action-btn',
               onClick: () => handleDelete(row)
             },
             [

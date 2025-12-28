@@ -97,7 +97,6 @@ import Icon from '@/components/common/Icon.vue'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {useCourseStore} from '@/store'
 
-const {message} = getDiscreteApi()
 const {t} = useI18n()
 const route = useRoute()
 const router = useRouter()
@@ -357,9 +356,8 @@ async function handleChapterDelete(chapter: CourseChapterVO) {
           selectedChapter.value = null
           selectedChapterId.value = null
         }
-      } catch (error) {
-        message.error(t('course.chapters.deleteFailed'))
-      }
+    } catch (error) {
+    }
     }
   })
 }

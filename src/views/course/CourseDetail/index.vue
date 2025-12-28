@@ -84,16 +84,13 @@
 
         <!-- 右侧教师信息 -->
         <div class="teacher-section">
-          <LoadingSpinner
-              v-if="teacherLoading"
+        <LoadingSpinner
+              v-if="teacherDataLoading"
               :title="t('course.messages.loadingTeacher')"
               min-height="200px"
               size="medium"
           />
-          <TeacherCard
-              v-else-if="teacherInfo"
-              :teacher-info="teacherInfo"
-          />
+          <TeacherCard v-else-if="courseInfo"/>
           <div v-else class="teacher-empty">
             <n-empty description="暂无教师信息"/>
           </div>
@@ -299,8 +296,6 @@ const courseStore = useCourseStore()
 
 // 响应式数据
 const loading = ref(false)
-const teacherLoading = ref(false)
-const teacherInfo = ref<TeacherVO | null>(null)
 const shareDialogVisible = ref(false)
 
 
@@ -433,27 +428,12 @@ const loadCourseInfo = async () => {
   updateLastAccessedCourse()
   // 设置动态标题
   setCourseDetailTitle()
-  // 加载教师信息
-  if (courseInfo.value?.teacherId) {
-    await loadTeacherInfo(courseId.value)
-  }
+  // 不再主动调用教师详情 API，这里直接使用 courseStore.currentCourseInfo 中的数据
 
   loading.value = false
 }
 
-const loadTeacherInfo = async (courseId: string) => {
-  if (!courseId) return
-
-  teacherLoading.value = true
-  // 直接使用开课教师的ID获取教师信息
-  if (courseInfo.value?.teacherId) {
-    const res = await TeacherApi.getTeacherById(courseInfo.value.teacherId)
-    if (res.success && res.data) {
-      teacherInfo.value = res.data
-    }
-  }
-  teacherLoading.value = false
-}
+// 不再通过独立 API 加载教师信息，组件直接从 courseStore 获取教师数据
 
 // 编辑课程
 const handleEditCourse = async () => {
@@ -464,7 +444,7 @@ const handleEditCourse = async () => {
     id: courseInfo.value.id,
     courseName: courseInfo.value.courseName,
     teacherId: courseInfo.value.teacherId,
-    assistantTeacherIds: courseInfo.value.assistantTeacherIds || [],
+    assistantTeacherIds: courseInfo.value.assistantTeachers?.map((t: TeacherVO) => t.id).filter((id): id is string => id != null) || [],
     description: courseInfo.value.description,
     coverImageUrl: courseInfo.value.coverImageUrl || '/assets/image/default-course.png',
     semester: courseInfo.value.semester,
@@ -523,9 +503,7 @@ const handleEditSubmit = async () => {
   updateLastAccessedCourse()
   setCourseDetailTitle()
   // 重新加载教师信息
-  if (courseInfo.value?.teacherId) {
-    await loadTeacherInfo(courseId.value)
-  }
+  // 不再主动调用教师详情 API，这里直接使用 courseStore.currentCourseInfo 中的数据
 
   editSubmitting.value = false
 }

@@ -219,7 +219,7 @@ const courseList = ref<CourseVO[]>([])
 const courseLoading = ref(false)
 const coursePagination = reactive({
   pageNum: 1,
-  pageSize: 9,
+  pageSize: 10,
   total: 0
 })
 
@@ -262,7 +262,7 @@ const resetDialog = () => {
   courseSearchForm.value.startTime = null
   courseSearchForm.value.endTime = null
   coursePagination.pageNum = 1
-  coursePagination.pageSize = 9
+  coursePagination.pageSize = 10
   coursePagination.total = 0
   loadCourseData()
 }
@@ -476,7 +476,9 @@ const getDifficultyText = (difficulty: number) => {
 
   .course-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    /* 固定为 5 列，配合分页 pageSize=10 显示两行五列 */
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-auto-rows: minmax(120px, auto);
     gap: 16px;
     margin-bottom: 16px;
   }

@@ -87,6 +87,8 @@ export interface LiveRoomTokenVO {
     role?: LiveRoomUserRoleEnum
     /** 过期时间 */
     expireAt?: string | null
+    /** LiveKit 房间名称 */
+    roomName?: string | null
 }
 
 /**

@@ -147,3 +147,38 @@ export function issueLiveRoomToken(id: string, data: LiveRoomTokenRequestDTO) {
     return issueRoomToken(id, data)
 }
 
+/**
+ * 获取当前课堂/课程的进行中房间（若存在）
+ */
+export function getActiveLiveRoom(courseId?: string | null, classroomId?: string | null) {
+    return http.get<LiveRoomVO>('/live/live-room/active', {courseId, classroomId})
+}
+
+/**
+ * 获取当前课堂/课程的最新房间（不按状态过滤）
+ */
+export function getLatestLiveRoom(courseId?: string | null, classroomId?: string | null) {
+    return http.get<LiveRoomVO>('/live/live-room/latest', {courseId, classroomId})
+}
+
+/**
+ * 开始直播（将房间状态置为 LIVE）
+ */
+export function startLiveRoom(id: string) {
+    return http.post<LiveRoomVO>(`/live/live-room/start/${id}`)
+}
+
+/**
+ * 结束直播（将房间状态置为 ENDED）
+ */
+export function endLiveRoom(id: string) {
+    return http.post<LiveRoomVO>(`/live/live-room/end/${id}`)
+}
+
+/**
+ * 获取短期 SSE token（需登录），用于 EventSource 订阅
+ */
+export function getSseToken(classroomId?: string | null) {
+    return http.post<string>('/live/live-room/sse-token', null, { params: { classroomId } })
+}
+

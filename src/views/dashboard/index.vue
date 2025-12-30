@@ -4,13 +4,11 @@
 
     </div>
     <!-- <CelestailHub /> -->
-    <Book/>
   </div>
 </template>
 
 <script lang="ts" setup>
 // 主页逻辑已清空
-import Book from './Book3D.vue';
 </script>
 
 <style lang="scss" scoped>

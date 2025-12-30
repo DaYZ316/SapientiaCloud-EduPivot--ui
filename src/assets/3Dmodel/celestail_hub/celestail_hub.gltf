@@ -84,21 +84,8 @@
 					0.9637670516967773,
 					1
 				],
-				"baseColorTexture":{
-					"index":0
-				},
 				"metallicFactor":0
 			}
-		}
-	],
-	"images":[
-		{
-			"uri":"Bake1_CyclesBake_COMBINED.png"
-		}
-	],
-	"textures":[
-		{
-			"source":0
 		}
 	],
 	"meshes":[

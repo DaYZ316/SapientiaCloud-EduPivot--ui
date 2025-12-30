@@ -10,11 +10,6 @@ import {onMounted, onBeforeUnmount, ref, watch} from 'vue';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
-// 在生产环境使用静态路径，避免 Vite 处理导致路径问题
-const mainTextureImage = import.meta.env.DEV
-    ? new URL('@/assets/3Dmodel/celestail_hub/Bake1_CyclesBake_COMBINED.png', import.meta.url).href
-    : '/assets/3Dmodel/celestail_hub/Bake1_CyclesBake_COMBINED.png';
-
 // Props
 const props = defineProps({
   isActive: {
@@ -33,7 +28,8 @@ const canvasRef = ref<HTMLCanvasElement | null>(null);
 const loading = ref(true);
 const loadingText = ref('正在加载3D模型...');
 const error = ref<string | null>(null);
-// 使用静态路径，因为 3D 模型文件是通过插件直接复制到 dist/assets/3Dmodel/ 的
+
+// 3D模型路径配置
 const modelUrl = import.meta.env.DEV
     ? new URL('@/assets/3Dmodel/celestail_hub/celestail_hub.gltf', import.meta.url).href
     : '/assets/3Dmodel/celestail_hub/celestail_hub.gltf';
@@ -47,8 +43,6 @@ let controls: OrbitControls | null = null;
 let bookModel: THREE.Group | null = null;
 let loader: GLTFLoader | null = null;
 let animationId: number | null = null;
-let textureLoader: THREE.TextureLoader | null = null;
-let loadedTextures: Record<string, THREE.Texture> = {};
 let sizes = {
   width: 0,
   height: 0
@@ -207,7 +201,6 @@ const initThree = () => {
     // 设置 GLTFLoader 的基础路径，用于解析相对资源路径
     const modelDir = modelUrl.substring(0, modelUrl.lastIndexOf('/') + 1);
     loader.setPath(modelDir);
-    textureLoader = new THREE.TextureLoader();
 
     /**
      * 加载3D模型
@@ -248,101 +241,6 @@ const calculateCanvasSize = () => {
   sizes.height = targetSize;
 };
 
-// 加载纹理
-const loadTexture = (texturePath: string | { default?: string; src?: string } | any, textureName: string) => {
-  return new Promise((resolve, reject) => {
-    try {
-      if (!textureLoader) {
-        console.error('纹理加载器未初始化');
-        reject(new Error('纹理加载器未初始化'));
-        return;
-      }
-
-      // 检查路径格式，处理可能的模块导入情况
-      let finalPath = texturePath;
-      if (typeof texturePath !== 'string') {
-        if (texturePath && typeof texturePath === 'object') {
-          finalPath = texturePath.default || texturePath.src || texturePath;
-        } else {
-          console.error('无效的纹理路径:', texturePath);
-          reject(new Error('无效的纹理路径'));
-          return;
-        }
-      }
-
-      if (!finalPath || typeof finalPath !== 'string') {
-        console.error('无法解析纹理路径:', texturePath);
-        reject(new Error('无法解析纹理路径'));
-        return;
-      }
-
-      textureLoader.load(
-          finalPath,
-          (texture: THREE.Texture) => {
-            if (!texture) {
-              console.error(`${textureName} 纹理加载成功但返回空对象`);
-              reject(new Error('纹理加载返回空对象'));
-              return;
-            }
-
-            loadedTextures[textureName] = texture;
-            resolve(texture);
-          },
-          (_xhr: ProgressEvent<EventTarget>) => {
-            // 加载进度已处理
-          },
-          (err: unknown) => {
-            console.error(`${textureName} 纹理加载失败:`, err);
-
-            // 尝试创建一个简单的占位纹理作为回退
-            try {
-              const fallbackTexture = createFallbackTexture();
-              loadedTextures[textureName] = fallbackTexture;
-              console.warn(`使用占位纹理替代 ${textureName}`);
-              resolve(fallbackTexture);
-            } catch (fallbackErr) {
-              console.error('创建占位纹理失败:', fallbackErr);
-              reject(err);
-            }
-          }
-      );
-    } catch (outerErr) {
-      console.error(`加载 ${textureName} 纹理时发生未预期错误:`, outerErr);
-      reject(outerErr);
-    }
-  });
-};
-
-// 创建简单的占位纹理作为回退
-const createFallbackTexture = () => {
-  const canvas = document.createElement('canvas');
-  canvas.width = 128;
-  canvas.height = 128;
-  const context = canvas.getContext('2d');
-
-  if (context) {
-    // 创建棋盘格图案
-    const size = 32;
-    for (let x = 0; x < canvas.width; x += size) {
-      for (let y = 0; y < canvas.height; y += size) {
-        const isEven = (x / size + y / size) % 2 === 0;
-        context.fillStyle = isEven ? '#CCCCCC' : '#888888';
-        context.fillRect(x, y, size, size);
-      }
-    }
-
-    // 在中心添加标记
-    context.fillStyle = '#FF0000';
-    context.font = '14px Arial';
-    context.textAlign = 'center';
-    context.fillText('纹理缺失', canvas.width / 2, canvas.height / 2);
-  }
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  return texture;
-};
 
 // 加载书本模型
 const loadBookModel = () => {
@@ -353,7 +251,7 @@ const loadBookModel = () => {
   const modelFileName = modelUrl.substring(modelUrl.lastIndexOf('/') + 1);
   loader.load(
       modelFileName,
-      async (gltf: { scene: THREE.Group }) => {
+      (gltf: { scene: THREE.Group }) => {
         try {
           // 成功加载模型
           bookModel = gltf.scene;
@@ -390,38 +288,22 @@ const loadBookModel = () => {
             whiteLight.position.set(0, 0, -lightDistance);
           }
 
-          // 加载纹理
-          loadingText.value = '正在加载纹理...';
-          // 使用纹理路径（已经是字符串）
-          const mainTexturePath = mainTextureImage;
-
-          try {
-            await loadTexture(mainTexturePath, 'mainTexture');
-
-            // 应用纹理到模型
-            applyTexturesToModel();
-          } catch (textureErr) {
-            console.error('纹理加载或应用失败，但继续显示模型:', textureErr);
-            loadingText.value = '纹理加载失败，但模型已加载';
-            // 仍然继续，模型会以默认材质显示
-          }
-
-          // 完成加载
+          // GLTFLoader 会自动处理资源加载
           loading.value = false;
         } catch (err) {
-          console.error('处理模型或纹理时出错:', err);
-          error.value = '模型或纹理处理失败';
+          console.error('处理模型时出错:', err);
+          error.value = '模型处理失败';
           loading.value = false;
         }
       },
-          (xhr: ProgressEvent<EventTarget>) => {
+      (xhr: ProgressEvent<EventTarget>) => {
         // 加载进度
         if (xhr.lengthComputable) {
           const percent = ((xhr.loaded / xhr.total) * 100).toFixed(0);
           loadingText.value = `正在加载书本模型... ${percent}%`;
         }
       },
-          (err: unknown) => {
+      (err: unknown) => {
         // 加载错误
         console.error('模型加载失败:', err);
         error.value = '书本模型加载失败';
@@ -430,98 +312,9 @@ const loadBookModel = () => {
   );
 };
 
-// 应用纹理到模型
-const applyTexturesToModel = () => {
-  if (!bookModel || !loadedTextures.mainTexture) {
-    console.error('无法应用纹理：模型或纹理不可用');
-    return;
-  }
-
-  // 设置纹理属性
-  const texture = loadedTextures.mainTexture;
-  texture.flipY = false; // GLTF模型通常不需要翻转Y轴
-  texture.wrapS = THREE.ClampToEdgeWrapping;
-  texture.wrapT = THREE.ClampToEdgeWrapping;
-  texture.magFilter = THREE.LinearFilter;
-  texture.minFilter = THREE.LinearMipmapLinearFilter;
-  texture.needsUpdate = true; // 确保纹理更新
-
-  // 遍历模型中的所有网格对象并应用纹理
-  bookModel.traverse((child: THREE.Object3D) => {
-    if ((child as THREE.Mesh).isMesh) {
-      const mesh = child as THREE.Mesh;
-      // 确保材质存在
-      if (!mesh.material) {
-        // 如果没有材质，创建一个新的基础材质
-        mesh.material = new THREE.MeshStandardMaterial({
-          map: texture,
-          metalness: 0.3,
-          roughness: 0.7
-        });
-      } else if (Array.isArray(mesh.material)) {
-        // 如果材质是数组，为每个材质应用纹理
-        mesh.material = mesh.material.map((mat: THREE.Material) => {
-          if (mat.isMaterial) {
-            const newMat = mat.clone() as THREE.MeshStandardMaterial;
-            newMat.map = texture;
-            // 优化材质属性
-            newMat.metalness = Math.max(newMat.metalness || 0, 0.3);
-            newMat.roughness = Math.min(newMat.roughness || 1, 0.7);
-            return newMat;
-          }
-          return mat;
-        });
-      } else {
-        // 单个材质的情况
-        try {
-          // 克隆材质以避免修改原始材质
-          const newMat = mesh.material.clone() as THREE.MeshStandardMaterial;
-          newMat.map = texture;
-          // 优化材质属性
-          newMat.metalness = Math.max(newMat.metalness || 0, 0.3);
-          newMat.roughness = Math.min(newMat.roughness || 1, 0.7);
-          mesh.material = newMat;
-        } catch (error) {
-          console.warn('无法克隆材质，创建新材质:', error);
-          // 如果克隆失败，创建一个新的材质
-          mesh.material = new THREE.MeshStandardMaterial({
-            map: texture,
-            metalness: 0.3,
-            roughness: 0.7
-          });
-        }
-      }
-
-      // 确保几何体的UV属性存在
-      if (mesh.geometry && !mesh.geometry.attributes.uv) {
-        console.warn('网格缺少UV映射，创建简单的平面UV');
-        createSimpleUVs(mesh.geometry);
-      }
-
-      // 如果当前在AI页面，添加自发光效果
-      if (props.isActive) {
-        applyEmissiveEffect(mesh);
-      }
-
-      // 更新材质
-      if (mesh.material) {
-        if (Array.isArray(mesh.material)) {
-          mesh.material.forEach((mat: THREE.Material) => {
-            if (mat.needsUpdate) {
-              mat.needsUpdate = true;
-            }
-          });
-        } else if (mesh.material.needsUpdate !== undefined) {
-          mesh.material.needsUpdate = true;
-        }
-      }
-    }
-  });
-
-};
 
 // 应用自发光效果
-const applyEmissiveEffect = (mesh: THREE.Mesh) => {
+const applyEmissiveEffect = (mesh: THREE.Mesh, emissiveIntensity: number = 0.3) => {
   if (!mesh || !mesh.isMesh) return;
 
   const primaryColor = getPrimaryColor();
@@ -530,13 +323,13 @@ const applyEmissiveEffect = (mesh: THREE.Mesh) => {
       if (mat && mat.isMaterial) {
         const stdMat = mat as THREE.MeshStandardMaterial;
         stdMat.emissive = primaryColor.clone();
-        stdMat.emissiveIntensity = 0.3;
+        stdMat.emissiveIntensity = emissiveIntensity;
       }
     });
   } else if (mesh.material && mesh.material.isMaterial) {
     const stdMat = mesh.material as THREE.MeshStandardMaterial;
     stdMat.emissive = primaryColor.clone();
-    stdMat.emissiveIntensity = 0.3;
+    stdMat.emissiveIntensity = emissiveIntensity;
   }
 };
 
@@ -560,11 +353,11 @@ const removeEmissiveEffect = (mesh: THREE.Mesh) => {
 };
 
 // 启用主色光效果
-const enableWhiteLight = () => {
+const enableWhiteLight = (intensity: number = 50, emissiveIntensity: number = 0.3) => {
   if (whiteLight) {
     const primaryColor = getPrimaryColor();
     whiteLight.color = primaryColor;
-    whiteLight.intensity = 50;
+    whiteLight.intensity = intensity;
 
     // 如果模型已加载，更新光源位置到模型后面
     if (bookModel) {
@@ -586,7 +379,7 @@ const enableWhiteLight = () => {
   if (bookModel) {
     bookModel.traverse((child: THREE.Object3D) => {
       if ((child as THREE.Mesh).isMesh) {
-        applyEmissiveEffect(child as THREE.Mesh);
+        applyEmissiveEffect(child as THREE.Mesh, emissiveIntensity);
       }
     });
   }
@@ -615,42 +408,6 @@ watch(() => props.isActive, (newValue) => {
   }
 });
 
-// 为缺少UV的几何体创建简单的UV映射
-const createSimpleUVs = (geometry: THREE.BufferGeometry) => {
-  try {
-    const positions = geometry.attributes.position.array;
-    const uvs = new Float32Array(positions.length / 3 * 2);
-
-    // 计算包围盒以归一化UV
-    const positionAttr = geometry.attributes.position as THREE.BufferAttribute;
-    const box = new THREE.Box3().setFromBufferAttribute(positionAttr);
-    const size = new THREE.Vector3();
-    box.getSize(size);
-    const center = new THREE.Vector3();
-    box.getCenter(center);
-
-    // 为每个顶点创建UV坐标（基于X和Y坐标归一化）
-    for (let i = 0; i < positions.length; i += 3) {
-      const x = positions[i];
-      const y = positions[i + 1];
-      // const _z = positions[i + 2]; // 未使用，已注释
-
-      // 归一化到0-1范围
-      const u = ((x - box.min.x) / size.x);
-      const v = ((y - box.min.y) / size.y);
-
-      // 设置UV坐标
-      const uvIndex = (i / 3) * 2;
-      uvs[uvIndex] = u;
-      uvs[uvIndex + 1] = v;
-    }
-
-    // 添加UV属性到几何体
-    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-  } catch (error) {
-    console.error('创建UV映射时出错:', error);
-  }
-};
 
 // 处理鼠标进入
 const handleMouseEnter = () => {
@@ -823,21 +580,6 @@ const cleanup = () => {
       }
     }
 
-    // 清理纹理
-    try {
-      Object.values(loadedTextures).forEach(texture => {
-        if (texture && typeof texture.dispose === 'function') {
-          try {
-            texture.dispose();
-          } catch (err) {
-            console.warn('清理纹理时出错:', err);
-          }
-        }
-      });
-      loadedTextures = {};
-    } catch (err) {
-      console.warn('清理纹理集合时出错:', err);
-    }
 
     // 清理场景中的对象
     if (scene) {
@@ -901,11 +643,6 @@ const cleanup = () => {
     }
 
     // 清理加载器
-    if (textureLoader) {
-      // TextureLoader没有dispose方法，但我们将其设为null
-      textureLoader = null;
-    }
-
     if (loader) {
       // GLTFLoader没有dispose方法，但我们将其设为null
       loader = null;
@@ -935,6 +672,12 @@ onMounted(() => {
 // 组件卸载前清理
 onBeforeUnmount(() => {
   cleanup();
+});
+
+// 暴露发光控制方法给父组件
+defineExpose({
+  enableWhiteLight,
+  disableWhiteLight
 });
 </script>
 

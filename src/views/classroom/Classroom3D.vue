@@ -11,6 +11,12 @@
         :show="showPracticePanel ?? false"
         @close="closePracticePanel"
     />
+    <LivePanel
+        :classroom-id="route.params.courseRecordId as string || null"
+        :course-id="route.params.courseId as string || null"
+        :show="showLivePanel ?? false"
+        @close="closeLivePanel"
+    />
     <!-- 学生信息框 -->
     <StudentInfoPopup
         :position="popupPosition"
@@ -45,21 +51,26 @@ import {ModelClickHandler} from '@/utils/threeModelClickHandler';
 import {Sky} from 'three/examples/jsm/objects/Sky.js';
 import {getCourseRecordById} from '@/api/classroom/courseRecord';
 import {
-  listStudentsByRecordId
+  addStudentSeat,
+  listStudentsByRecordId,
+  removeStudentSeat,
+  updateStudentSeat
 } from '@/api/classroom/courseRecordStudent';
 import StudentInfoPopup from './StudentInfoPopup.vue';
 import ClassroomToolbox from './components/ClassroomToolbox.vue';
 import QuestionPanel from './components/QuestionPanel.vue';
 import ChapterPanel from './components/ChapterPanel.vue';
 import PracticePanel from './components/PracticePanel.vue';
+import LivePanel from './components/LivePanel.vue';
 import {useUserStore} from '@/store/modules/user';
-// 全局 NaiveUI API（仅在需要时按需使用）
+import {getGlobalApis} from '@/utils/naiveUIHelper';
 import {SpriteManager} from '@/views/classroom/composables/spriteManager';
-import {getAvatarColor, getAvatarInitial} from '@/utils/avatarUtil';
-import type {CourseRecordStudentVO, CourseRecordVO} from '@/types/classroom';
+import {getAvatarColor, getAvatarInitial, resolveUserName} from '@/utils/avatarUtil';
+import type {AvatarIdentityProps} from '@/types/components/avatar';
+import type {CourseRecordStudentDTO, CourseRecordStudentVO, CourseRecordVO} from '@/types/classroom';
 import type {ClassroomToolboxItem} from '@/views/classroom/composables/toolbox';
-// SeatStatusEnum: 若后续启用座位状态相关逻辑，请按需导入
-// SeatAssignmentContext 类型在当前文件中未直接使用，按需拆分到类型目录
+import {SeatStatusEnum} from '@/enum/classroom/seatStatusEnum';
+import type {SeatAssignmentContext} from '@/types/components/seatConfirmModal';
 import {useTransitionStore} from '@/store/modules/transition';
 import {runViewTransition} from '@/utils/themeAnimation';
 import {
@@ -90,16 +101,24 @@ const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
 const transitionStore = useTransitionStore();
-// 全局消息/对话框 APIs 如需使用可在调用处按需导入
+const {dialog, message} = getGlobalApis();
 // 课程记录状态
 const courseRecord = ref<CourseRecordVO | null>(null);
 const loadingRecord = ref(false);
 const recordError = ref<string | null>(null);
-// 教室归属判断（暂不使用，保留逻辑以备后续启用）
+const isClassroomOwner = computed(() => {
+  if (!courseRecord.value) {
+    return false;
+  }
+  const teacherId = courseRecord.value.teacherId;
+  const currentTeacherId = userStore.teacherInfo?.id || null;
+  return Boolean(teacherId && currentTeacherId && teacherId === currentTeacherId);
+});
 
 // 座位排布（仅小型 / 中型教室启用），仅保留当前使用的字段
 const {
   instanceCount,
+  columnCount,
   calculateSeatPosition,
   fillSpritePositions
 } = useSeatLayout(courseRecord);
@@ -111,12 +130,14 @@ const currentStudent = ref<CourseRecordStudentVO | null>(null);
 const currentSeatIndex = ref<number | null>(null);
 const popupPosition = ref({x: 0, y: 0});
 const studentsList = ref<CourseRecordStudentVO[]>([]);
-// 座位分配上下文相关状态在当前实现中未启用
+const pendingSeatContext = ref<SeatAssignmentContext | null>(null);
+const fallbackTextureRef = ref<Texture | null>(null);
 const showPointerLockHint = ref(false);
 let pointerHintTimeout: number | null = null;
 const showChapterPanel = ref<boolean | null>(null);
 const showQuestionPanel = ref<boolean | null>(null);
 const showPracticePanel = ref<boolean | null>(null);
+const showLivePanel = ref<boolean | null>(null);
 const canShowPracticeActions = computed(() => {
   const roles = userStore.roles || [];
   const hasAdminRole = Array.isArray(roles) && roles.some(role => role.roleKey === 'ADMIN');
@@ -214,13 +235,185 @@ const createAvatarFallbackTexture = (displayName: string): THREE.CanvasTexture =
   return new THREE.CanvasTexture(canvas);
 };
 
-// fallback 纹理的创建与释放逻辑如需保留，请拆分到精灵管理模块
+const disposeFallbackTexture = () => {
+  if (fallbackTextureRef.value) {
+    fallbackTextureRef.value.dispose();
+    fallbackTextureRef.value = null;
+  }
+};
 
-// 座位确认状态重置逻辑已内联或随座位流程合并，如需保留请拆分到独立模块
+const resetSeatConfirmState = (shouldDisposeTexture = true) => {
+  pendingSeatContext.value = null;
+  if (shouldDisposeTexture) {
+    disposeFallbackTexture();
+    return;
+  }
+  fallbackTextureRef.value = null;
+};
 
-// 座位确认与提交逻辑已内联或由其他交互流程处理，独立的 confirmSeatSelection 函数在当前构建中未启用
+const confirmSeatSelection = async () => {
+  if (!pendingSeatContext.value || pendingSeatContext.value.seatIndex === null) {
+    resetSeatConfirmState();
+    return false;
+  }
+  if (!spriteManager || !spriteManager.isInitialized) {
+    resetSeatConfirmState();
+    return false;
+  }
+  const userInfo = userStore.userInfo;
+  if (!userInfo || !userInfo.id) {
+    resetSeatConfirmState();
+    return false;
+  }
+  const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
+  if (!recordId) {
+    resetSeatConfirmState();
+    return false;
+  }
+  const seatIndex = pendingSeatContext.value.seatIndex;
+  const avatarUrl = pendingSeatContext.value.avatarUrl;
+  const fallbackTexture = fallbackTextureRef.value || createAvatarFallbackTexture(pendingSeatContext.value.displayName || '');
 
-// 座位标签格式化与座位确认弹窗逻辑已合并到主流程中，相关独立函数暂不启用
+  // 获取座位3D坐标（如果不存在则使用默认值）
+  const seatPosition = spritePositions[seatIndex];
+  let locationX: number = 0;
+  let locationY: number = 0;
+  let locationZ: number | null = null;
+
+  if (seatPosition) {
+    locationX = seatPosition.x;
+    locationY = seatPosition.y;
+    locationZ = seatPosition.z;
+  }
+
+  // 构建API请求数据
+  const existingSeat = studentsList.value.find(student => student.studentId === userInfo.id) || null;
+  const seatData: CourseRecordStudentDTO = {
+    recordId: recordId,
+    studentId: userInfo.id,
+    courseId: courseRecord.value?.courseId || null,
+    seatIndex: seatIndex,
+    locationX: locationX,
+    locationY: locationY,
+    locationZ: locationZ,
+    rotationY: null,
+    seatStatus: SeatStatusEnum.NORMAL,
+    attendanceStatus: null,
+    participationScore: null
+  };
+
+  // 调用API添加学生座位
+  const apiResponse = existingSeat ? await updateStudentSeat(seatData) : await addStudentSeat(seatData);
+  const isSuccessResponse = typeof apiResponse === 'boolean'
+      ? apiResponse
+      : Boolean(apiResponse && (apiResponse.success === true || apiResponse.code === 200));
+
+  if (!isSuccessResponse) {
+    resetSeatConfirmState();
+    return false;
+  }
+
+  if (message) {
+    const successKey = existingSeat
+        ? t('classroom.seatConfirm.updateSuccess')
+        : t('classroom.seatConfirm.assignSuccess');
+    message.success(successKey);
+  }
+
+  // API调用成功后更新前端显示
+  const applyTextureToSprite = (texture: Texture, shouldDisposeFallback = true) => {
+    if (!texture) {
+      resetSeatConfirmState();
+      return;
+    }
+    spriteManager.updateSpriteInfo(userInfo.id, texture, seatIndex);
+    resetSeatConfirmState(shouldDisposeFallback);
+    // 刷新学生列表
+    if (recordId) {
+      fetchStudentsList(recordId);
+    }
+  };
+
+  if (!avatarUrl || avatarUrl.trim() === '') {
+    applyTextureToSprite(fallbackTexture, false);
+    return true;
+  }
+
+  const textureLoader = new THREE.TextureLoader();
+  textureLoader.load(
+      avatarUrl,
+      (texture) => {
+        applyTextureToSprite(texture);
+      },
+      undefined,
+      () => {
+        applyTextureToSprite(fallbackTexture, false);
+      }
+  );
+
+  return true;
+};
+
+const formatSeatLabel = (rowIndex: number, columnIndex: number): string => {
+  return t('classroom.formatSeatLabel', {row: rowIndex + 1, column: columnIndex + 1});
+};
+
+const openSeatConfirmModal = (context: SeatAssignmentContext) => {
+  pendingSeatContext.value = {
+    seatIndex: context.seatIndex,
+    seatLabel: context.seatLabel,
+    avatarUrl: context.avatarUrl,
+    displayName: context.displayName
+  };
+  disposeFallbackTexture();
+  fallbackTextureRef.value = createAvatarFallbackTexture(context.displayName || '');
+
+  const seatTitle = context.seatLabel
+      ? t('classroom.seatConfirm.titleWithSeat', {seatLabel: context.seatLabel})
+      : t('classroom.seatConfirm.title');
+  const seatSubtitle = context.displayName
+      ? t('classroom.seatConfirm.subtitleWithStudent', {studentName: context.displayName})
+      : t('classroom.seatConfirm.subtitle');
+
+  if (controls && canvas && document.pointerLockElement === canvas) {
+    controls.unlock();
+  }
+
+  if (dialog) {
+    dialog.warning({
+      title: seatTitle,
+      content: seatSubtitle,
+      positiveText: t('classroom.seatConfirm.confirm'),
+      negativeText: t('classroom.seatConfirm.cancel'),
+      onPositiveClick: async () => {
+        await confirmSeatSelection();
+      },
+      onNegativeClick: () => {
+        resetSeatConfirmState();
+      }
+    });
+  }
+};
+
+const getIdentityName = (info: Record<string, any> | null | undefined): string => {
+  if (!info) {
+    return '';
+  }
+  const identity: AvatarIdentityProps = {
+    avatarSrc: info.avatar ?? info.studentAvatar ?? null,
+    username:
+        info.studentName
+        || info.realName
+        || info.name
+        || info.username
+        || null,
+    nickName: info.nickName ?? null,
+    studentRealName: info.studentRealName ?? info.realName ?? null,
+    teacherRealName: info.teacherRealName ?? null,
+    fallbackSrc: null
+  };
+  return resolveUserName(identity);
+};
 
 
 // 获取课程记录信息
@@ -231,17 +424,24 @@ const fetchCourseRecord = async () => {
 
     // 从路由参数获取课程记录ID
     const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
+    console.log('路由参数:', route.params);
+    console.log('课程记录ID:', recordId);
     if (!recordId) {
+      console.warn('没有找到课程记录ID');
       return;
     }
 
     // 调用API获取课程记录
+    console.log('正在获取课程记录...');
     const response = await getCourseRecordById(String(recordId));
+    console.log('API响应:', response);
     courseRecord.value = response?.data || null;
+    console.log('课程记录:', courseRecord.value);
 
     // 获取学生列表
     await fetchStudentsList(String(recordId));
   } catch (error) {
+    console.error('获取课程记录失败:', error);
     recordError.value = '获取课程记录失败，使用默认配置';
     // 发生错误时不阻止组件继续加载，而是使用默认配置
   } finally {
@@ -319,24 +519,42 @@ const handleExit = (e: MouseEvent) => {
   }, e);
 };
 
+const closeLivePanel = () => {
+  showLivePanel.value = false;
+};
+
 // 跳转到直播页面，使用全局过渡动画
 const handleLive = (e: MouseEvent) => {
-  transitionStore.show();
-  const courseId = route.params.courseId as string;
-  const courseRecordId = route.params.courseRecordId as string;
-  runViewTransition(() => {
-    if (courseId && courseRecordId) {
-      router.push({
-        name: 'CourseLive',
-        params: {
-          courseId,
-          courseRecordId
-        }
-      });
-    } else {
-      router.push({name: 'Live'});
+  // 该函数改为根据身份处理：老师打开悬浮窗，学生进行一次是否在直播的校验并直接加入或提示
+  e.stopPropagation();
+  const willShow = !(showLivePanel.value ?? false);
+  if (willShow) {
+    showChapterPanel.value = false;
+    showQuestionPanel.value = false;
+    showPracticePanel.value = false;
+  }
+
+  // 判断是否为老师/管理员
+  const isTeacherOrAdmin = canShowPracticeActions.value;
+  if (!isTeacherOrAdmin) {
+    // 学生：不再跳转页面，改为打开 LivePanel 悬浮窗，由悬浮窗提供进入房间入口
+    const classroomId = route.params.courseRecordId as string || null;
+    if (!classroomId) {
+      if (message) message.info(t('classroom.liveNotAvailable'));
+      return;
     }
-  }, e);
+    // 直接显示悬浮窗，让学生在悬浮窗里点击"进入直播间"
+    showLivePanel.value = true;
+    return;
+  }
+
+  // 老师/管理员：打开 LivePanel 悬浮窗（首次创建完成后不可再配置）
+  if (willShow) {
+    showChapterPanel.value = false;
+    showQuestionPanel.value = false;
+    showPracticePanel.value = false;
+  }
+  showLivePanel.value = willShow;
 };
 
 const toolboxItems = computed<ClassroomToolboxItem[]>(() => {
@@ -684,6 +902,7 @@ const initThree = () => {
   // 加载模型 - 顺序加载实现
   const loadModelsSequentially = async () => {
     try {
+      console.log('开始加载3D模型...');
       // 加载第一个模型（教室）
       await new Promise<void>((resolve, reject) => {
         if (!loader) {
@@ -691,94 +910,92 @@ const initThree = () => {
           return;
         }
 
-        // 兼容 dev/prod 路径：使用 getClassroomModelPathByRecord 返回的路径，并设置 loader 的 base path，
-        // 这样 glTF 内部引用的纹理可以正确按相对路径加载，避免首次 404 问题
-        const classroomModelUrl = getClassroomModelPathByRecord(courseRecord.value);
-        const classroomFileName = classroomModelUrl.substring(classroomModelUrl.lastIndexOf('/') + 1);
-        const classroomDir = classroomModelUrl.substring(0, classroomModelUrl.lastIndexOf('/') + 1);
-        // 为当前 loader 设置基础路径（loader.load 只传文件名）
-        try {
-          loader.setPath(classroomDir);
-        } catch (e) {
-          // 某些环境下 setPath 可能不可用，降级为直接使用完整路径
-        }
+        // 获取教室模型URL（现在是异步的）
+        getClassroomModelPathByRecord(courseRecord.value).then((classroomModelUrl) => {
+          console.log('教室模型URL:', classroomModelUrl);
 
-        loader.load(
-            classroomFileName,
-            (gltf: GLTF) => {
-              classroomModel = gltf.scene;
-              // 调整模型大小和位置
-              classroomModel.position.set(0, 0, 0);
-              classroomModel.rotation.y = Math.PI / 2; // 根据需要调整旋转
+          console.log('正在加载教室模型...');
+          loader!.load(
+              classroomModelUrl,
+              (gltf: GLTF) => {
+                classroomModel = gltf.scene;
+                // 调整模型大小和位置
+                classroomModel.position.set(0, 0, 0);
+                classroomModel.rotation.y = Math.PI / 2; // 根据需要调整旋转
 
-              // 计算并输出模型尺寸
-              const box = new THREE.Box3().setFromObject(classroomModel);
-              const size = new THREE.Vector3();
-              box.getSize(size);
+                // 计算并输出模型尺寸
+                const box = new THREE.Box3().setFromObject(classroomModel);
+                const size = new THREE.Vector3();
+                box.getSize(size);
 
-              classroomXLenghtRef.value = size.x;
-              classroomYLenghtRef.value = size.y;
-              classroomZLenghtRef.value = size.z;
+                classroomXLenghtRef.value = size.x;
+                classroomYLenghtRef.value = size.y;
+                classroomZLenghtRef.value = size.z;
 
-              // 根据最新的教室模型尺寸重新计算相机位置
-              window.cameraPositions = computeCameraPositionsBySize(
-                  classroomXLenghtRef.value,
-                  classroomYLenghtRef.value,
-                  classroomZLenghtRef.value
-              );
-
-              // 模型加载完成后，将相机初始位置设置为相机组中的 front 视角
-              const frontConfig = window.cameraPositions?.front;
-              if (camera && frontConfig) {
-                camera.position.set(
-                    frontConfig.position.x,
-                    frontConfig.position.y,
-                    frontConfig.position.z
+                // 根据最新的教室模型尺寸重新计算相机位置
+                window.cameraPositions = computeCameraPositionsBySize(
+                    classroomXLenghtRef.value,
+                    classroomYLenghtRef.value,
+                    classroomZLenghtRef.value
                 );
-                camera.setRotationFromEuler(frontConfig.initialRotation);
-              }
 
-              // 处理Blender中添加的点光源，转换为three.js标准
-              classroomModel.traverse((child: THREE.Object3D) => {
-                // 检查是否为光源对象
-                const light = child as THREE.Light;
-                if (light.isLight) {
-                  // 点光源增强处理
-                  const pointLight = light as THREE.PointLight;
-                  if (pointLight.isPointLight) {
-                    // 设置点光源的强度为0.2
-                    pointLight.intensity = 8;
-                    // 设置合适的衰减
-                    pointLight.decay = 2;
-                    // 增加光源范围
-                    pointLight.distance = Math.max(pointLight.distance || 10, 15);
-                  }
+                // 模型加载完成后，将相机初始位置设置为相机组中的 front 视角
+                const frontConfig = window.cameraPositions?.front;
+                if (camera && frontConfig) {
+                  camera.position.set(
+                      frontConfig.position.x,
+                      frontConfig.position.y,
+                      frontConfig.position.z
+                  );
+                  camera.setRotationFromEuler(frontConfig.initialRotation);
                 }
-              });
 
-              /**
-               * 射线选择
-               */
-              modelClickHandler.addClickListener(
-                  classroomModel,
-                  '大黑板',
-                  () => {
-                    // 使用Vue Router跳转到'/html-forest'界面
+                // 处理Blender中添加的点光源，转换为three.js标准
+                classroomModel.traverse((child: THREE.Object3D) => {
+                  // 检查是否为光源对象
+                  const light = child as THREE.Light;
+                  if (light.isLight) {
+                    // 点光源增强处理
+                    const pointLight = light as THREE.PointLight;
+                    if (pointLight.isPointLight) {
+                      // 设置点光源的强度为0.2
+                      pointLight.intensity = 8;
+                      // 设置合适的衰减
+                      pointLight.decay = 2;
+                      // 增加光源范围
+                      pointLight.distance = Math.max(pointLight.distance || 10, 15);
+                    }
                   }
-              );
+                });
 
-              if (scene && classroomModel) {
-                scene.add(classroomModel);
+                /**
+                 * 射线选择
+                 */
+                modelClickHandler.addClickListener(
+                    classroomModel,
+                    '大黑板',
+                    () => {
+                      // 使用Vue Router跳转到'/html-forest'界面
+                    }
+                );
+
+                if (scene && classroomModel) {
+                  scene.add(classroomModel);
+                }
+                resolve();
+              },
+              (progress) => {
+                console.log('教室模型加载进度:', progress);
+              },
+              (error) => {
+                console.error('教室模型加载失败:', error);
+                reject(error);
               }
-              resolve();
-            },
-            () => {
-              // 加载进度处理
-            },
-            (error) => {
-              reject(error);
-            }
-        );
+          );
+        }).catch((error) => {
+          console.error('获取教室模型路径失败:', error);
+          reject(error);
+        });
       });
 
       // 第一个模型加载完成后，加载第二个模型（桌椅）
@@ -790,17 +1007,14 @@ const initThree = () => {
 
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
-        // 同上：先设置 base path 再加载文件名，确保 gltf 引用的纹理路径正确解析
-        const deskModelUrl = getDeskModelPathByRecord(courseRecord.value);
-        const deskFileName = deskModelUrl.substring(deskModelUrl.lastIndexOf('/') + 1);
-        const deskDir = deskModelUrl.substring(0, deskModelUrl.lastIndexOf('/') + 1);
-        try {
-          loader.setPath(deskDir);
-        } catch (e) {
-          // ignore
-        }
-        loader.load(
-            deskFileName,
+
+        // 获取桌椅模型URL（现在是异步的）
+        getDeskModelPathByRecord(courseRecord.value).then((deskModelUrl) => {
+          console.log('桌椅模型URL:', deskModelUrl);
+
+          console.log('正在加载桌椅模型...');
+          loader!.load(
+              deskModelUrl,
             (gltf: GLTF) => {
               try {
                 const modelInstanceManager = new ModelInstanceManager();
@@ -909,8 +1123,239 @@ const initThree = () => {
                   });
                 }
 
-                // 9. 点击 / 右键事件逻辑保持不变（沿用原来的 handleDeskClick 和 handleDeskContextMenu 代码块）
-                // 这里为了保持简洁，继续使用原有实现（已在前面存在），不再拆分为单独函数
+                // 9. 添加课桌点击事件处理（左键入座 / 右键站起）
+                const handleDeskClick = (event: MouseEvent) => {
+                  if (!canvas || !camera) return;
+
+                  // 只处理左键点击入座逻辑，右键交由上下文菜单事件处理
+                  if (event.button !== 0) return;
+
+                  // 如果指针已锁定，直接切换视角（不处理课桌点击，因为无法准确获取鼠标位置）
+                  if (document.pointerLockElement === canvas) {
+                    if (typeof window.switchCameraPosition === 'function') {
+                      window.switchCameraPosition();
+                    }
+                    return;
+                  }
+
+                  // 检查精灵管理器是否已初始化
+                  if (!spriteManager || !spriteManager.isInitialized) {
+                    // 如果没有初始化，可能是要切换视角
+                    if (typeof window.switchCameraPosition === 'function') {
+                      window.switchCameraPosition();
+                    }
+                    return;
+                  }
+
+                  // 计算鼠标在标准化设备坐标中的位置 (-1 到 1)
+                  const rect = canvas.getBoundingClientRect();
+                  const mouseX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                  const mouseY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+                  mouse.x = mouseX;
+                  mouse.y = mouseY;
+
+                  // 设置射线投射器的射线
+                  raycaster.setFromCamera(mouse, camera);
+
+                  // 检测与所有实例化网格的交点
+                  for (const instancedMesh of instancedMeshGroups) {
+                    const intersects = raycaster.intersectObject(instancedMesh);
+
+                    if (intersects.length > 0) {
+                      const intersection = intersects[0];
+
+                      // 检查是否有实例ID
+                      if (intersection.instanceId !== undefined) {
+                        const instanceId = intersection.instanceId;
+
+                        if (isClassroomOwner.value) {
+                          if (message) {
+                            message.info(t('classroom.seatConfirm.ownerForbiddenMessage'));
+                          }
+                          break;
+                        }
+
+                        // 从user store获取当前用户信息
+                        const userInfo = userStore.userInfo;
+                        if (!userInfo || !userInfo.id) {
+                          return;
+                        }
+
+                        // 检查该座位是否已有学生
+                        const existingStudent = studentsList.value.find(student => student.seatIndex === instanceId);
+                        if (existingStudent) {
+                          if (existingStudent.studentId === userInfo.id) {
+                            if (message) {
+                              message.info(t('classroom.seatConfirm.selfSeatMessage'));
+                            }
+                          } else if (message) {
+                            message.info(t('classroom.seatConfirm.occupiedMessage'));
+                          }
+                          break;
+                        }
+
+                        // 获取学生信息
+                        const studentInfo = userStore.studentInfo;
+                        const avatarUrl = (userInfo?.avatar) || (studentInfo?.avatar) || null;
+                        const displayName = getIdentityName(studentInfo) || getIdentityName(userInfo) || '您';
+                        const row = Math.floor(instanceId / columnCount.value);
+                        const column = instanceId % columnCount.value;
+
+                        openSeatConfirmModal({
+                          seatIndex: instanceId,
+                          seatLabel: formatSeatLabel(row, column),
+                          avatarUrl,
+                          displayName
+                        });
+
+                        // 只处理第一个交点
+                        break;
+                      }
+                    }
+                  }
+                };
+
+                // 右键站起事件处理
+                const handleDeskContextMenu = async (event: MouseEvent) => {
+                  if (!canvas || !camera) return;
+
+                  // 禁用默认右键菜单
+                  event.preventDefault();
+
+                  // 指针锁定状态下不处理站起逻辑
+                  if (document.pointerLockElement === canvas) {
+                    return;
+                  }
+
+                  const userInfo = userStore.userInfo;
+                  if (!userInfo || !userInfo.id) {
+                    return;
+                  }
+
+                  const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
+                  if (!recordId) {
+                    return;
+                  }
+
+                  // 计算鼠标在标准化设备坐标中的位置 (-1 到 1)
+                  const rect = canvas.getBoundingClientRect();
+                  const mouseX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                  const mouseY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+                  mouse.x = mouseX;
+                  mouse.y = mouseY;
+
+                  raycaster.setFromCamera(mouse, camera);
+
+                  for (const instancedMesh of instancedMeshGroups) {
+                    const intersects = raycaster.intersectObject(instancedMesh);
+
+                    if (intersects.length > 0) {
+                      const intersection = intersects[0];
+
+                      if (intersection.instanceId !== undefined) {
+                        const instanceId = intersection.instanceId;
+
+                        // 查找该座位是否是当前用户
+                        const existingStudent = studentsList.value.find(student => student.seatIndex === instanceId);
+                        if (!existingStudent || existingStudent.studentId !== userInfo.id) {
+                          return;
+                        }
+
+                        const doStandUp = async () => {
+                          const apiResult = await removeStudentSeat(recordId, userInfo.id);
+                          const isSuccess = typeof apiResult === 'boolean'
+                              ? apiResult
+                              : Boolean(apiResult && (apiResult.success === true || apiResult.code === 200));
+
+                          if (!isSuccess) {
+                            return false;
+                          }
+
+                          // 前端移除座位信息
+                          studentsList.value = studentsList.value.filter(student => student.studentId !== userInfo.id);
+
+                          // 从精灵管理器中移除
+                          try {
+                            spriteManager.removeUserData(userInfo.id);
+                          } catch (e) {
+                            // 静默处理
+                          }
+
+                          if (message) {
+                            message.success(t('classroom.seatConfirm.standUpSuccess'));
+                          }
+
+                          return true;
+                        };
+
+                        if (dialog) {
+                          dialog.warning({
+                            title: t('classroom.seatConfirm.standUpTitle'),
+                            content: t('classroom.seatConfirm.standUpContent'),
+                            positiveText: t('common.confirm'),
+                            negativeText: t('common.cancel'),
+                            onPositiveClick: async () => {
+                              await doStandUp();
+                            }
+                          });
+                        } else {
+                          await doStandUp();
+                        }
+
+                        return;
+                      }
+                    }
+                  }
+                };
+
+                // 添加点击事件监听器
+                // 使用 click 事件（按下并抬起一次）来触发视角切换或入座
+                if (canvas) {
+                  canvas.addEventListener('click', handleDeskClick);
+                  canvas.addEventListener('contextmenu', handleDeskContextMenu);
+
+                  if (!window.deskHoverHandlers) {
+                    window.deskHoverHandlers = [];
+                  }
+                  window.deskHoverHandlers.push({
+                    clickHandler: handleDeskClick,
+                    canvas: canvas
+                  });
+                }
+
+                // 桌椅模型加载完成后，初始化精灵管理器
+                const initializeSpriteManager = (texture: Texture) => {
+                  try {
+                    console.log('初始化精灵管理器，精灵数量:', spritePositions.length);
+                    spriteManager.initialize(spritePositions.length, texture);
+                    spriteManager.setPositions(spritePositions);
+
+                    // 设置场景引用
+                    if (scene && camera) {
+                      spriteManager.setScene(scene);
+                      spriteManager.setCamera(camera);
+                    }
+
+                    // 创建精灵实例
+                    try {
+                      spriteManager.createSpriteInstances();
+                    } catch (error) {
+                      console.error('创建精灵实例失败:', error);
+                    }
+
+                    // 如果已有学生列表，渲染学生精灵
+                    if (studentsList.value.length > 0) {
+                      renderStudentSprites(studentsList.value);
+                    }
+                  } catch (initError) {
+                    console.error('精灵管理器初始化失败:', initError);
+                  }
+                };
+
+                const defaultTexture = createAvatarFallbackTexture('');
+                initializeSpriteManager(defaultTexture);
 
                 resolve();
               } catch (error) {
@@ -925,47 +1370,18 @@ const initThree = () => {
                 reject(error);
               }
             },
-            () => {
-              // 加载进度处理
+            (progress) => {
+              console.log('桌椅模型加载进度:', progress);
             },
             (error) => {
+              console.error('桌椅模型加载失败:', error);
               reject(error);
             }
-        );
-    });
-
-      await new Promise<void>((resolve) => {
-        // 初始化精灵管理器
-        const initializeSpriteManager = (texture: Texture) => {
-          try {
-            spriteManager.initialize(spritePositions.length, texture);
-            spriteManager.setPositions(spritePositions);
-
-            // 设置场景引用
-            if (scene && camera) {
-              spriteManager.setScene(scene);
-              spriteManager.setCamera(camera);
-            }
-
-            // 创建精灵实例
-            try {
-              spriteManager.createSpriteInstances();
-            } catch (error) {
-              // 静默处理错误
-            }
-
-            // 如果已有学生列表，渲染学生精灵
-            if (studentsList.value.length > 0) {
-              renderStudentSprites(studentsList.value);
-            }
-          } catch (initError) {
-            // 静默处理错误
-          }
-        };
-
-        const defaultTexture = createAvatarFallbackTexture('');
-        initializeSpriteManager(defaultTexture);
-        resolve();
+          );
+        }).catch((error) => {
+          console.error('获取桌椅模型路径失败:', error);
+          reject(error);
+        });
       });
     } catch (error) {
       // 静默处理模型加载失败

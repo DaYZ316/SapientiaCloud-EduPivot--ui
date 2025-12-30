@@ -21,18 +21,21 @@
           </n-text>
         </div>
         <n-space>
-          <n-button v-if="!isConnected" :loading="connecting" type="primary" @click="handleJoin">
-            {{ t('live.room.join') }}
-          </n-button>
-          <n-button v-else type="error" @click="handleLeave">
+          <n-button v-if="isConnected" type="error" @click="handleLeave">
             {{ t('live.room.leave') }}
           </n-button>
         </n-space>
       </div>
 
       <div :class="{'is-connected': isConnected}" class="room-layout">
-        <section v-if="isConnected" class="video-panel">
-          <template v-if="isConnected">
+        <section class="video-panel">
+          <template v-if="connecting">
+            <div class="connecting-state">
+              <n-spin size="large" />
+              <div class="connecting-text">{{ connectionStateLabel || t('live.room.connecting') }}</div>
+            </div>
+          </template>
+          <template v-else-if="isConnected">
             <div class="video-grid">
               <div class="video-item local-video">
                 <video ref="localVideoRef" autoplay muted playsinline/>
@@ -116,16 +119,17 @@ import {useI18n} from 'vue-i18n'
 import Icon from '@/components/common/Icon.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import ChatPanel from '@/components/common/ChatPanel.vue'
-import * as liveApi from '@/api/live'
+import * as liveApi from '@/api/live/liveRoom'
 import {getLiveRoomRoleLabel, getLiveRoomStatusLabel, LiveRoomRoleEnum, LiveRoomStatusEnum} from '@/enum/live'
-import type {LiveRoomChatMessage, LiveRoomVO, RemoteParticipantMedia} from '@/types/live'
+import type {LiveRoomChatMessage, LiveRoomVO, RemoteParticipantMedia} from '@/types/live/liveRoom'
 import {useUserStore} from '@/store'
 
 const {t} = useI18n()
 const route = useRoute()
+const props = defineProps<{ roomIdProp?: string | null; tokenProp?: string | null }>();
 const userStore = useUserStore()
 
-const roomId = route.params.roomId as string
+const roomId = props.roomIdProp ?? (route.params.roomId as string)
 const roomInfo = ref<LiveRoomVO | null>(null)
 const room = ref<Room | null>(null)
 const isConnected = ref<boolean | null>(null)
@@ -145,6 +149,10 @@ const remoteVideoRefs = ref<Map<string, HTMLVideoElement>>(new Map())
 
 const messagePollingTimer = ref<ReturnType<typeof setInterval> | null>(null)
 const lastMessageTime = ref<string | null>(null)
+const connectionHealthCheckTimer = ref<ReturnType<typeof setInterval> | null>(null)
+
+// 页面刷新/卸载检测
+let pageUnloading = false
 
 const roomStatusLabel = computed(() => {
   if (!roomInfo.value?.status && roomInfo.value?.status !== 0) {
@@ -159,9 +167,17 @@ const chatOnlineCount = computed(() => {
 })
 
 const livekitServerUrl = computed(() => {
+  // 优先使用环境变量（Vite: VITE_LIVEKIT_WS），例如: VITE_LIVEKIT_WS=ws://localhost:7880
+  // 回退到默认值：同主机的 7880 端口（LiveKit 在 docker-compose 中使用 7880）
+  const envUrl = (import.meta && (import.meta as any).env && (import.meta as any).env.VITE_LIVEKIT_WS) || ''
+  if (envUrl && envUrl.trim().length > 0) {
+    return envUrl.trim()
+  }
+
   const isHttps = window.location.protocol === 'https:'
   const wsProtocol = isHttps ? 'wss:' : 'ws:'
-  return `${wsProtocol}//${window.location.host}`
+  // 不在前端硬编码 7880 端口，使用浏览器的默认端口（wss:// 使用 443），避免 SSL 证书错误
+  return `${wsProtocol}//${window.location.hostname}`
 })
 
 // RTC 配置，包括 STUN/TURN 服务器
@@ -209,21 +225,65 @@ const recordingStatusLabel = computed(() => {
   return labels[status] || null
 })
 
+// 页面卸载检测
+const handlePageUnload = () => {
+  pageUnloading = true
+  if (room.value) {
+    // 同步断开连接，避免异步操作
+    try {
+      room.value.disconnect()
+    } catch (e) {
+      // 忽略清理过程中的错误
+    }
+  }
+}
+
 onMounted(async () => {
+  // 添加页面卸载监听器
+  window.addEventListener('beforeunload', handlePageUnload)
+  window.addEventListener('unload', handlePageUnload)
+
   await loadRoomInfo()
   await loadHistoryMessages()
-  // 如果未连接，启动消息轮询
-  if (!isConnected.value) {
-    startMessagePolling()
+
+  // 检查 props 或路由参数中是否有 token，直接尝试加入
+  const queryToken = route.query.token as string
+  const providedToken = props.tokenProp ?? queryToken ?? null
+
+  if (providedToken) {
+    // 有token时直接加入直播
+    setTimeout(() => {
+      handleJoin(providedToken).catch((err: any) => {
+        connectionError.value = err?.message || t('live.room.connectError')
+      })
+    }, 150)
+  } else {
+    // 没有token时尝试自动获取并加入
+    setTimeout(() => {
+      handleJoin().catch((err: any) => {
+        connectionError.value = err?.message || t('live.room.connectError')
+        // 如果自动加入失败，启动消息轮询作为备选
+        startMessagePolling()
+      })
+    }, 150)
   }
 })
 
 onBeforeUnmount(() => {
+  // 移除页面卸载监听器
+  window.removeEventListener('beforeunload', handlePageUnload)
+  window.removeEventListener('unload', handlePageUnload)
+
   if (room.value) {
     handleLeave()
   }
   // 清除轮询定时器
   stopMessagePolling()
+  // 清除健康检查定时器
+  if (connectionHealthCheckTimer.value) {
+    clearInterval(connectionHealthCheckTimer.value)
+    connectionHealthCheckTimer.value = null
+  }
 })
 
 async function loadRoomInfo() {
@@ -373,182 +433,254 @@ function updateOnlineCount(targetRoom: Room | null) {
   onlineCount.value = participantTotal + (isConnected.value ? 1 : 0)
 }
 
-async function handleJoin() {
-  if (!roomInfo.value || connecting.value || isConnected.value) return
+async function handleJoin(tokenArg?: string | Event) {
+  try {
+    if (!roomInfo.value || connecting.value || isConnected.value || pageUnloading) return
 
-  connecting.value = true
-  connectionState.value = 'connecting'
-  connectionError.value = null
+    // 处理参数，因为可能是鼠标事件
+    const providedToken = typeof tokenArg === 'string' ? tokenArg : undefined
 
-  // 连接前刷新房间信息，确保获取最新状态
-  await loadRoomInfo().then(() => {
-    // 检查房间状态，如果房间已结束，不允许加入
-    if (roomInfo.value?.status === LiveRoomStatusEnum.ENDED || roomInfo.value?.status === LiveRoomStatusEnum.CLOSED) {
-      connecting.value = false
-      connectionState.value = 'failed'
-      connectionError.value = t('live.room.roomEnded')
-      return
-    }
-
-    // 学生角色检查 - 学生只能加入正在直播的房间
-    const isStudent = currentUserRole.value === LiveRoomRoleEnum.STUDENT
-    if (isStudent && roomInfo.value?.status !== LiveRoomStatusEnum.LIVE) {
-      connecting.value = false
-      connectionState.value = 'failed'
-      connectionError.value = t('live.room.notLiveForStudent')
-      return
-    }
-  }, () => {
-    // 继续尝试连接，不阻止
-  })
-
-  // 如果房间已结束或学生无法加入，直接返回
-  if (roomInfo.value?.status === LiveRoomStatusEnum.ENDED ||
-      roomInfo.value?.status === LiveRoomStatusEnum.CLOSED ||
-      (currentUserRole.value === LiveRoomRoleEnum.STUDENT && roomInfo.value?.status !== LiveRoomStatusEnum.LIVE)) {
-    // 确保重置连接状态
-    if (connecting.value) {
-      connecting.value = false
-    }
-    return
-  }
-
-  // 统一通过后端接口获取 token
-  const tokenDTO = liveApi.getDefaultLiveRoomTokenRequestDTO()
-  tokenDTO.role = currentUserRole.value
-  const tokenResponse = await liveApi.issueLiveRoomToken(roomId, tokenDTO).then((res) => res, () => null)
-
-  // token 可能是 LiveRoomTokenVO 对象，需要提取 token 字段
-  let token: string | null = null
-  if (tokenResponse?.data) {
-    token = typeof tokenResponse.data === 'string' ? tokenResponse.data : (tokenResponse.data.token || '')
-  }
-
-  if (!token) {
-    connecting.value = false
-    connectionState.value = 'failed'
-    connectionError.value = t('live.room.tokenError')
-    return
-  }
-
-  const newRoom = new Room({
-    // 启用自适应流和动态广播
-    adaptiveStream: true,
-    dynacast: true
-  })
-  bindRoomEvents(newRoom)
-
-  // 创建一个 Promise 来等待 Connected 事件
-  let connectedResolver: (() => void) | null = null
-  let connectedRejector: ((error: Error) => void) | null = null
-  const connectedPromise = new Promise<void>((resolve, reject) => {
-    connectedResolver = resolve
-    connectedRejector = reject
-  })
-
-  // 在事件绑定中设置连接成功回调
-  // 注意：这些是临时监听器，在连接完成后会被移除
-  const onConnected = () => {
-    if (connectedResolver) {
-      connectedResolver()
-    }
-  }
-  const onDisconnected = (reason?: any) => {
-    // 只在连接建立过程中才拒绝 Promise
-    if (connectedRejector && connecting.value) {
-      const reasonStr = reason?.toString() || 'unknown reason'
-      connectedRejector(new Error(`Connection lost: ${reasonStr}`))
-    }
-  }
-  newRoom.on(RoomEvent.Connected, onConnected)
-  newRoom.on(RoomEvent.Disconnected, onDisconnected)
-
-  // 使用 Promise.race 添加超时控制
-  const connectPromise = newRoom.connect(livekitServerUrl.value, token)
-  let timeoutId: ReturnType<typeof setTimeout> | null = null
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    timeoutId = setTimeout(() => {
-      reject(new Error('Connection timeout after 60 seconds'))
-    }, 60000)
-  })
-
-  // 等待 WebSocket 连接
-  await Promise.race([connectPromise, timeoutPromise]).then(() => {
-    // 再等待 Connected 事件（表示 RTC 连接也建立完成）
-    return Promise.race([
-      connectedPromise,
-      new Promise<never>((_, reject) => {
-        setTimeout(() => {
-          reject(new Error('RTC connection timeout after 60 seconds'))
-        }, 60000)
-      })
-    ])
-  }, (error) => {
-    return Promise.reject(error)
-  }).then(() => {
-    // 清理超时定时器
-    if (timeoutId) {
-      clearTimeout(timeoutId)
-    }
-    // 移除临时事件监听器
-    newRoom.off(RoomEvent.Connected, onConnected)
-    newRoom.off(RoomEvent.Disconnected, onDisconnected)
-
-    // 检查连接状态
-    if (newRoom.state !== ConnectionState.Connected) {
-      throw new Error('Room is not in connected state')
-    }
-
-    room.value = newRoom
-    isConnected.value = true
-    connectionState.value = 'connected'
-    connecting.value = false
+    connecting.value = true
+    connectionState.value = 'connecting'
     connectionError.value = null
-    updateOnlineCount(newRoom)
-    // 连接成功后停止轮询（通过 WebRTC 接收消息）
-    stopMessagePolling()
 
-    // 在完全连接后再设置媒体，短暂等待确保连接稳定
-    return new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
-      // 再次检查连接状态
-      if (newRoom.state === ConnectionState.Connected) {
-        return setupLocalMedia(newRoom).then(() => null, () => null)
+    // 连接前刷新房间信息，确保获取最新状态
+    await loadRoomInfo().then(() => {
+      // 检查房间状态，如果房间已结束，不允许加入
+      if (roomInfo.value?.status === LiveRoomStatusEnum.ENDED || roomInfo.value?.status === LiveRoomStatusEnum.CLOSED) {
+        connecting.value = false
+        connectionState.value = 'failed'
+        connectionError.value = t('live.room.roomEnded')
+        return
       }
-      return null
-    })
-  }, (error: any) => {
-    // 清理超时定时器
-    if (timeoutId) {
-      clearTimeout(timeoutId)
-    }
-    // 移除临时事件监听器
-    newRoom.off(RoomEvent.Connected, onConnected)
-    newRoom.off(RoomEvent.Disconnected, onDisconnected)
 
+      // 学生角色检查 - 学生只能加入正在直播的房间
+      const isStudent = currentUserRole.value === LiveRoomRoleEnum.STUDENT
+      if (isStudent && roomInfo.value?.status !== LiveRoomStatusEnum.LIVE) {
+        connecting.value = false
+        connectionState.value = 'failed'
+        connectionError.value = t('live.room.notLiveForStudent')
+        return
+      }
+    }, () => {
+      // 继续尝试连接，不阻止
+    })
+
+    // 如果房间已结束或学生无法加入，直接返回
+    if (roomInfo.value?.status === LiveRoomStatusEnum.ENDED ||
+        roomInfo.value?.status === LiveRoomStatusEnum.CLOSED ||
+        (currentUserRole.value === LiveRoomRoleEnum.STUDENT && roomInfo.value?.status !== LiveRoomStatusEnum.LIVE)) {
+      // 确保重置连接状态
+      if (connecting.value) {
+        connecting.value = false
+      }
+      return
+    }
+
+    // 统一通过后端接口获取 token（后端同时返回用于 LiveKit 的 roomName）
+    let token: string | null = providedToken || null
+    let returnedRoomName: string | null = null
+
+    if (!token) {
+      const tokenDTO = liveApi.getDefaultLiveRoomTokenRequestDTO()
+      tokenDTO.role = currentUserRole.value
+      const tokenResponse = await liveApi.issueLiveRoomToken(roomId, tokenDTO).then((res) => res, () => null)
+
+      // tokenResponse.data 可能是字符串（旧实现）或对象 { token, roomName }
+      if (tokenResponse?.data) {
+        if (typeof tokenResponse.data === 'string') {
+          token = tokenResponse.data
+        } else {
+          token = tokenResponse.data.token || null
+          returnedRoomName = tokenResponse.data.roomName || null
+        }
+      }
+    }
+
+    if (!token) {
+      connecting.value = false
+      connectionState.value = 'failed'
+      connectionError.value = t('live.room.tokenError')
+      return
+    }
+
+    const newRoom = new Room({
+      // 启用自适应流和动态广播
+      adaptiveStream: true,
+      dynacast: true
+    })
+    bindRoomEvents(newRoom)
+
+    // 创建一个 Promise 来等待 Connected 事件
+    let connectedResolver: (() => void) | null = null
+    let connectedRejector: ((error: Error) => void) | null = null
+    const connectedPromise = new Promise<void>((resolve, reject) => {
+      connectedResolver = resolve
+      connectedRejector = reject
+    })
+
+    // 在事件绑定中设置连接成功回调
+    // 注意：这些是临时监听器，在连接完成后会被移除
+    const onConnected = () => {
+      if (connectedResolver) {
+        connectedResolver()
+        // 清理引用，防止后续调用
+        connectedResolver = null
+        connectedRejector = null
+      }
+    }
+    // 断开连接原因映射
+    const getDisconnectReasonMessage = (reason: any): string => {
+      const reasonCode = typeof reason === 'number' ? reason : parseInt(reason?.toString() || '0')
+      switch (reasonCode) {
+        case 0: return '未知原因'
+        case 1: return '客户端主动断开'
+        case 2: return '重复身份'
+        case 3: return '服务器关闭'
+        case 4: return '参与者被移除'
+        case 5: return '房间已删除'
+        case 6: return '状态不匹配'
+        case 7: return '加入失败'
+        default: return `未知原因 (${reasonCode})`
+      }
+    }
+
+    const onDisconnected = (reason?: any) => {
+      // 只在连接建立过程中才拒绝 Promise
+      if (connectedRejector && connecting.value) {
+        const reasonMessage = getDisconnectReasonMessage(reason)
+        connectedRejector(new Error(`连接丢失: ${reasonMessage}`))
+        // 清理引用，防止后续调用
+        connectedResolver = null
+        connectedRejector = null
+      }
+    }
+    newRoom.on(RoomEvent.Connected, onConnected)
+    newRoom.on(RoomEvent.Disconnected, onDisconnected)
+
+    // 如果后端返回了 LiveKit 的真实 roomName，则在连接时通过查询参数传入（确保与 token 中 video.room 一致）
+    const connectUrl = returnedRoomName ? `${livekitServerUrl.value}?room=${encodeURIComponent(returnedRoomName)}` : livekitServerUrl.value
+    const connectPromise = newRoom.connect(connectUrl, token).catch((connectError) => {
+      // 如果连接直接失败，提供更具体的错误信息
+      if (connectError?.message?.includes('unauthorized') || connectError?.message?.includes('401')) {
+        throw new Error('身份验证失败：访问令牌无效或已过期')
+      } else if (connectError?.message?.includes('not found') || connectError?.message?.includes('404')) {
+        throw new Error('房间不存在或无法访问')
+      } else if (connectError?.message?.includes('forbidden') || connectError?.message?.includes('403')) {
+        throw new Error('访问被拒绝：您没有权限加入此房间')
+      } else {
+        throw new Error(`连接失败：${connectError?.message || '未知错误'}`)
+      }
+    })
+
+    let timeoutId: ReturnType<typeof setTimeout> | null = null
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error('连接超时：60秒后仍未建立连接'))
+      }, 60000)
+    })
+
+    // 等待 WebSocket 连接
+    await Promise.race([connectPromise, timeoutPromise]).then(() => {
+      // 再等待 Connected 事件（表示 RTC 连接也建立完成）
+      return Promise.race([
+        connectedPromise,
+        new Promise<never>((_, reject) => {
+          setTimeout(() => {
+            reject(new Error('RTC连接超时：60秒后仍未完成媒体连接'))
+          }, 60000)
+        })
+      ])
+    }, (error) => {
+      return Promise.reject(error)
+    }).then(() => {
+      // 清理超时定时器
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      }
+      // 移除临时事件监听器
+      newRoom.off(RoomEvent.Connected, onConnected)
+      newRoom.off(RoomEvent.Disconnected, onDisconnected)
+
+      // 确保清理 Promise 相关引用
+      connectedResolver = null
+      connectedRejector = null
+
+      // 检查连接状态
+      if (newRoom.state !== ConnectionState.Connected) {
+        throw new Error('Room is not in connected state')
+      }
+
+      room.value = newRoom
+      isConnected.value = true
+      connectionState.value = 'connected'
+      connecting.value = false
+      connectionError.value = null
+      updateOnlineCount(newRoom)
+      // 连接成功后停止轮询（通过 WebRTC 接收消息）
+      stopMessagePolling()
+
+      // 在完全连接后再设置媒体，短暂等待确保连接稳定
+      return new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
+        // 再次检查连接状态
+        if (newRoom.state === ConnectionState.Connected) {
+          return setupLocalMedia(newRoom).then(() => null, () => null)
+        }
+        return null
+      })
+    }, (error: any) => {
+      // 清理超时定时器
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      }
+      // 移除临时事件监听器
+      newRoom.off(RoomEvent.Connected, onConnected)
+      newRoom.off(RoomEvent.Disconnected, onDisconnected)
+
+      // 确保清理 Promise 相关引用
+      connectedResolver = null
+      connectedRejector = null
+
+      connecting.value = false
+      connectionState.value = 'failed'
+      // 提供更详细的错误信息
+      let errorMessage = error?.message || t('live.room.connectError')
+      if (error?.message?.includes('pc connection') || error?.message?.includes('could not establish pc connection')) {
+        errorMessage = t('live.room.rtcConnectionError') + ' ' + t('live.room.rtcConnectionErrorHint')
+      } else if (error?.message?.includes('timeout') || error?.message?.includes('Connection timeout') || error?.message?.includes('RTC connection timeout')) {
+        errorMessage = t('live.room.connectionTimeout') + ' ' + t('live.room.connectionTimeoutHint') + ' (可能是网络问题或防火墙阻止了 WebRTC 连接)'
+      } else if (error?.message?.includes('network') || error?.message?.includes('Network')) {
+        errorMessage = t('live.room.networkError')
+      } else if (error?.message?.includes('401') || error?.message?.includes('Unauthorized')) {
+        errorMessage = t('live.room.tokenInvalid')
+      } else if (error?.message?.includes('404') || error?.message?.includes('Not Found')) {
+        errorMessage = t('live.room.serverNotFound')
+      }
+      connectionError.value = errorMessage
+
+      // 清理资源 - 检查连接状态
+      if (newRoom.state !== ConnectionState.Disconnected) {
+        newRoom.disconnect().then(() => null, () => null)
+      }
+
+      // 不要抛出，让调用方继续，但返回以中止函数
+      return
+    })
+  } catch (err: any) {
+    // 捕获所有异常，设置状态并清理资源，避免未捕获的 promise 错误
     connecting.value = false
     connectionState.value = 'failed'
-    // 提供更详细的错误信息
-    let errorMessage = error?.message || t('live.room.connectError')
-    if (error?.message?.includes('pc connection') || error?.message?.includes('could not establish pc connection')) {
-      errorMessage = t('live.room.rtcConnectionError') + ' ' + t('live.room.rtcConnectionErrorHint')
-    } else if (error?.message?.includes('timeout') || error?.message?.includes('Connection timeout') || error?.message?.includes('RTC connection timeout')) {
-      errorMessage = t('live.room.connectionTimeout') + ' ' + t('live.room.connectionTimeoutHint') + ' (可能是网络问题或防火墙阻止了 WebRTC 连接)'
-    } else if (error?.message?.includes('network') || error?.message?.includes('Network')) {
-      errorMessage = t('live.room.networkError')
-    } else if (error?.message?.includes('401') || error?.message?.includes('Unauthorized')) {
-      errorMessage = t('live.room.tokenInvalid')
-    } else if (error?.message?.includes('404') || error?.message?.includes('Not Found')) {
-      errorMessage = t('live.room.serverNotFound')
-    }
-    connectionError.value = errorMessage
+    connectionError.value = err?.message || t('live.room.connectError')
 
-    // 清理资源 - 检查连接状态
-    if (newRoom.state !== ConnectionState.Disconnected) {
-      newRoom.disconnect().then(() => null, () => null)
+    try {
+      if (room.value) {
+        await room.value.disconnect().then(() => null, () => null)
+      }
+    } catch (_e) {
+      // noop
     }
-
-    return Promise.reject(error)
-  })
+    return
+  }
 }
 
 async function handleLeave() {
@@ -566,6 +698,40 @@ async function handleLeave() {
   }
   // 断开连接后，如果还在房间页面，重新启动轮询
   if (roomId) {
+    startMessagePolling()
+  }
+}
+
+// 处理服务器强制断开连接的情况
+async function handleForcedDisconnect() {
+  // Handling forced disconnect from server
+
+  // 设置连接状态
+  connectionState.value = 'disconnected'
+  isConnected.value = null
+  connecting.value = null
+
+  // 清理媒体状态
+  cameraEnabled.value = null
+  microphoneEnabled.value = null
+  updateOnlineCount(null)
+  cleanupRemoteParticipants()
+
+  // 清理本地视频
+  if (localVideoRef.value) {
+    localVideoRef.value.srcObject = null
+  }
+
+  // 清理房间引用（但不调用disconnect，因为连接已经断开）
+  room.value = null
+
+  // 如果页面正在卸载，不显示错误提示
+  if (!pageUnloading) {
+    connectionError.value = t('live.room.connectionLost') || '连接已断开，请重新加入房间'
+  }
+
+  // 重新启动消息轮询
+  if (roomId && !pageUnloading) {
     startMessagePolling()
   }
 }
@@ -841,14 +1007,59 @@ function bindRoomEvents(targetRoom: Room) {
     }
   })
 
+  // 添加连接健康检查，处理服务器强制断开的情况
+  const startConnectionHealthCheck = () => {
+    // 清除之前的定时器
+    if (connectionHealthCheckTimer.value) {
+      clearInterval(connectionHealthCheckTimer.value)
+    }
+    // 每5秒检查一次连接状态
+    connectionHealthCheckTimer.value = setInterval(() => {
+      // 如果页面正在卸载，不进行健康检查
+      if (pageUnloading) return
+
+      if (targetRoom.state === ConnectionState.Disconnected && isConnected.value) {
+        // Connection lost unexpectedly (detected by health check), cleaning up...
+        handleForcedDisconnect()
+      }
+    }, 5000)
+  }
+
+  const stopConnectionHealthCheck = () => {
+    if (connectionHealthCheckTimer.value) {
+      clearInterval(connectionHealthCheckTimer.value)
+      connectionHealthCheckTimer.value = null
+    }
+  }
+
+  // 连接建立时启动健康检查
+  targetRoom.on(RoomEvent.Connected, () => {
+    startConnectionHealthCheck()
+  })
+
+  // 断开连接时停止健康检查
+  targetRoom.on(RoomEvent.Disconnected, () => {
+    stopConnectionHealthCheck()
+  })
+
   // RoomEvent.StateChanged 不存在，使用其他事件代替
   // 连接状态通过 Connected 和 Disconnected 事件处理
 
   targetRoom.on(RoomEvent.Reconnecting, () => {
+    // 如果页面正在卸载，不进行重连
+    if (pageUnloading) {
+      // Page unloading, skipping reconnect
+      return
+    }
     connectionState.value = 'reconnecting'
   })
 
   targetRoom.on(RoomEvent.Reconnected, () => {
+    // 如果页面正在卸载，不处理重连成功
+    if (pageUnloading) {
+      // Page unloading, ignoring reconnect success
+      return
+    }
     connectionState.value = 'connected'
     isConnected.value = true
     // 重连成功后停止轮询（通过 WebRTC 接收消息）
@@ -1178,6 +1389,22 @@ function cleanupRemoteParticipants() {
     overflow: hidden;
     height: 100%;
 
+    .connecting-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      color: var(--text-color-3);
+      min-height: 260px;
+      flex: 1;
+
+      .connecting-text {
+        font-size: 14px;
+        text-align: center;
+      }
+    }
+
     .video-placeholder {
       display: flex;
       flex-direction: column;
@@ -1194,7 +1421,8 @@ function cleanupRemoteParticipants() {
     }
   }
 
-  .room-layout.is-connected .video-panel {
+  .room-layout.is-connected .video-panel,
+  .room-layout:not(.is-connected) .video-panel {
     flex: 2 1 60%;
     opacity: 1;
     transform: translateY(0);

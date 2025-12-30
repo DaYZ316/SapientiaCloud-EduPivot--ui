@@ -152,30 +152,6 @@ const loadBookModel = () => {
           // 成功加载模型
           bookModel = gltf.scene;
 
-          // 处理缺失的纹理：为所有材质设置默认纹理或颜色
-          bookModel.traverse((child: THREE.Object3D) => {
-            const mesh = child as THREE.Mesh;
-            if (mesh.isMesh && mesh.material) {
-              const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-              materials.forEach((material: THREE.Material) => {
-                if (material instanceof THREE.MeshStandardMaterial) {
-                  // 如果纹理加载失败，使用默认颜色
-                  if (!material.map || material.map.image && material.map.image.complete === false) {
-                    // 根据材质名称设置不同的默认颜色
-                    if (material.name === '书名' || material.name.includes('书名')) {
-                      material.color.setHex(0x8B4513); // 棕色，适合书名
-                    } else if (material.name === '书页' || material.name.includes('书页')) {
-                      material.color.setHex(0xFFF8DC); // 米白色，适合书页
-                    } else {
-                      material.color.setHex(0xD2B48C); // 默认棕色
-                    }
-                    material.map = null; // 移除失败的纹理
-                  }
-                }
-              });
-            }
-          });
-
           // 计算模型尺寸并调整
           const box = new THREE.Box3().setFromObject(bookModel);
           const size = new THREE.Vector3();
@@ -201,8 +177,8 @@ const loadBookModel = () => {
           loadingText.value = '书本模型加载完成';
           loading.value = false;
         } catch (err) {
-          console.error('处理模型或纹理时出错:', err);
-          error.value = '模型或纹理处理失败';
+          console.error('处理模型时出错:', err);
+          error.value = '模型处理失败';
           loading.value = false;
         }
       },

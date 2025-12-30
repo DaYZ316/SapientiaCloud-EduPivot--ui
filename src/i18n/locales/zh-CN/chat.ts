@@ -5,7 +5,6 @@ export default {
     placeholder: '输入问题询问天枢',
     askPlaceholder: '输入问题询问天枢',
     send: '发送',
-    thinking: 'AI正在思考...',
     loading: '加载中...',
     retry: '重试',
     tools: '工具',

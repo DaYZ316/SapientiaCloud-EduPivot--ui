@@ -12,6 +12,7 @@
   "dependencies": {
     "@dicebear/collection": "^9.2.4",
     "@dicebear/core": "^9.2.4",
+    "@floating-ui/dom": "^1.7.4",
     "@mdi/js": "^7.4.47",
     "@microsoft/fetch-event-source": "^2.0.1",
     "@tiptap/core": "^3.6.1",

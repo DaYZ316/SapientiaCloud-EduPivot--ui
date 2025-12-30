@@ -4,6 +4,7 @@ import type {StudentVO, SysPermissionVO, SysRoleVO, SysUserLoginVO, TeacherVO} f
 import * as AuthApi from '@/api/auth/auth'
 import * as StudentApi from '@/api/student'
 import * as TeacherApi from '@/api/teacher'
+import http from '@/utils/http'
 
 // 用于本地存储的键名
 const TOKEN_KEY = 'token'
@@ -91,9 +92,7 @@ export const useUserStore = defineStore('user', () => {
         isLogin.value = true
 
         // 重置HTTP客户端的登录失效处理状态，确保下次登录失效时能正常弹出通知
-        import('@/utils/http').then(({default: httpClient}) => {
-            httpClient.resetUnauthorizedHandling()
-        })
+        http.resetUnauthorizedHandling()
     }
 
     /**

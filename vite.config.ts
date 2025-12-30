@@ -116,6 +116,7 @@ export default defineConfig({
         }
     },
     assetsInclude: ['**/*.gltf', '**/*.bin'],
+    publicDir: 'public',
     server: {
         host: '0.0.0.0', // 允许外部访问
         port: 80,

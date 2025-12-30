@@ -272,7 +272,6 @@ const {
   useRag,
   loadMessages,
   scrollIntoViewInMessages,
-  autoSelectLastSession,
   fileReferences
 } = useCelestialChat()
 
@@ -577,8 +576,8 @@ onMounted(async () => {
     // 如果有活跃会话，重新加载消息并滚动到最后用户消息
     await loadMessages(activeSessionId.value)
   } else {
-    // 如果没有活跃会话，自动选择最新的会话
-    await autoSelectLastSession()
+    // 如果没有活跃会话，默认进入“新对话”页面而不是自动选择历史会话
+    newChat()
   }
 })
 

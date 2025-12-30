@@ -49,9 +49,7 @@ import type {ChatMessage} from '@/types/celestialHub/chatMessage'
 import type {QuestionResponseDTO} from '@/types/celestialHub/question'
 import QuestionRequesterMessage from './QuestionRequesterMessage.vue'
 import QuestionGeneratorMessage from './QuestionGeneratorMessage.vue'
-import UserMessageBubble from '@/views/celestialHub/components/bubbles/UserMessageBubble.vue'
-import AiMessageBubble from '@/views/celestialHub/components/bubbles/AiMessageBubble.vue'
-import SystemMessageBubble from '@/views/celestialHub/components/bubbles/SystemMessageBubble.vue'
+import { UserMessageBubble, AiMessageBubble, SystemMessageBubble } from '@/components/common/bubbles'
 
 // Props
 const props = defineProps<{

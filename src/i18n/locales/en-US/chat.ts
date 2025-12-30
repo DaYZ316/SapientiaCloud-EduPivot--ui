@@ -5,7 +5,6 @@ export default {
     placeholder: 'Ask Celestial Hub',
     askPlaceholder: 'Ask Celestial Hub',
     send: 'Send',
-    thinking: 'AI is thinking...',
     loading: 'Loading...',
     retry: 'Retry',
     tools: 'Tools',

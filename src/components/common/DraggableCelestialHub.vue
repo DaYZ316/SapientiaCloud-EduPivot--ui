@@ -4,8 +4,6 @@
     class="draggable-celestial-hub-container"
     :class="{ 'dragging': isDragging }"
     :style="containerStyle"
-    @mousedown="startDrag"
-    @touchstart="startDrag"
     tabindex="-1"
   >
     <!-- 拖拽手柄 -->
@@ -14,14 +12,46 @@
     </div>
 
     <!-- CelestialHub 组件 -->
-    <CelestialHub :is-active="isActive" :size="props.size" />
+    <CelestialHub
+      ref="celestialHubRef"
+      :is-active="isActive"
+      :size="props.size"
+      @click="handleModelClick"
+      @mousedown="startDrag"
+      @touchstart="startDrag"
+    />
+
+    <!-- 弹窗 -->
+    <Transition
+      name="popup"
+      :duration="{ enter: 300, leave: 200 }"
+      appear
+    >
+      <div
+        v-if="isPopupVisible && !isPopupMinimized"
+        ref="popupRef"
+        :style="popupStyles"
+        class="celestial-popup"
+      >
+        <CelestialHubPopup
+          :is-minimized="isPopupMinimized"
+          :is-history-view="isHistoryView"
+          @minimize="handlePopupMinimize"
+          @close="handlePopupClose"
+          @show-history="handleShowHistory"
+          @new-chat="handleNewChat"
+        />
+      </div>
+    </Transition>
 
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { computePosition, offset, flip, shift, autoUpdate } from '@floating-ui/dom';
 import CelestialHub from './CelestialHub.vue';
+import CelestialHubPopup from './CelestialHubPopup.vue';
 
 // Props
 const props = defineProps({
@@ -48,7 +78,82 @@ const props = defineProps({
 
 // 组件状态
 const containerRef = ref<HTMLElement | null>(null);
+const celestialHubRef = ref<InstanceType<typeof CelestialHub> | null>(null);
 const isDragging = ref(false);
+
+// 弹窗状态
+const isPopupVisible = ref(false);
+const isPopupMinimized = ref(false);
+const isHistoryView = ref(false);
+const popupRef = ref<HTMLElement | null>(null);
+const popupStyles = ref({});
+let cleanupAutoUpdate: (() => void) | null = null;
+
+// 更新弹窗显示状态和位置
+const updatePopupState = async (visible: boolean, minimized = false) => {
+  const wasVisible = isPopupVisible.value;
+  isPopupVisible.value = visible;
+  isPopupMinimized.value = minimized;
+
+  if (visible !== wasVisible || (visible && minimized !== isPopupMinimized.value)) {
+    // 只有在真正显示弹窗时才控制发光效果（非最小化状态）
+    controlModelGlow(visible && !minimized);
+
+    if (visible && !minimized) {
+      await nextTick();
+      await updatePopupPosition();
+
+      // 启动自动更新
+      if (containerRef.value && popupRef.value) {
+        cleanupAutoUpdate = autoUpdate(containerRef.value, popupRef.value, updatePopupPosition);
+      }
+    } else {
+      // 停止自动更新
+      if (cleanupAutoUpdate) {
+        cleanupAutoUpdate();
+        cleanupAutoUpdate = null;
+      }
+    }
+  }
+};
+
+// 计算弹窗最佳位置
+const calculatePopupPlacement = (rect: DOMRect): 'top' | 'bottom' | 'left' | 'right' => {
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  // 优先考虑水平方向
+  if (centerX < window.innerWidth / 2) {
+    // 模型在左半边，弹窗放在右侧
+    return centerY < POPUP_VERTICAL_THRESHOLD || centerY > window.innerHeight - POPUP_VERTICAL_THRESHOLD
+      ? (centerY < window.innerHeight / 2 ? 'bottom' : 'top')
+      : 'right';
+  } else {
+    // 模型在右半边，弹窗放在左侧
+    return centerY < POPUP_VERTICAL_THRESHOLD || centerY > window.innerHeight - POPUP_VERTICAL_THRESHOLD
+      ? (centerY < window.innerHeight / 2 ? 'bottom' : 'top')
+      : 'left';
+  }
+};
+
+// 更新弹窗位置
+const updatePopupPosition = async () => {
+  if (!containerRef.value || !popupRef.value || !isPopupVisible.value) return;
+
+  const rect = containerRef.value.getBoundingClientRect();
+  const placement = calculatePopupPlacement(rect);
+
+  const { x, y } = await computePosition(containerRef.value, popupRef.value, {
+    placement,
+    middleware: [offset(8), flip(), shift({ padding: 8 })],
+  });
+
+  popupStyles.value = {
+    left: `${x}px`,
+    top: `${y}px`,
+    position: 'fixed',
+  };
+};
 
 // 拖拽相关状态
 let startX: number | null = null;
@@ -57,6 +162,18 @@ let initialX: number | null = null;
 let initialY: number | null = null;
 let currentX: number | null = null;
 let currentY: number | null = null;
+
+// 常量定义
+const DRAG_THRESHOLD = 5; // 拖拽阈值，移动超过此距离才算拖拽
+const GLOW_DURATION_IN = 600; // 渐亮动画时长
+const GLOW_DURATION_OUT = 400; // 渐暗动画时长
+const POPUP_VERTICAL_THRESHOLD = 150; // 垂直方向空间阈值
+
+// 拖拽检测相关
+let hasDragged = false;
+
+// 拖拽时的弹窗状态管理
+let popupWasVisibleBeforeDrag = false; // 记录拖拽开始前弹窗是否可见
 
 // 边界吸附相关
 let snapAnimationId: number | null = null;
@@ -140,6 +257,21 @@ const startDrag = (event: MouseEvent | TouchEvent) => {
   event.preventDefault();
 
   isDragging.value = true;
+  hasDragged = false; // 重置拖拽标志
+
+  // 记录拖拽开始前弹窗状态
+  popupWasVisibleBeforeDrag = isPopupVisible.value && !isPopupMinimized.value;
+
+  // 开始拖拽时关闭弹窗，但保持高亮
+  if (isPopupVisible.value && !isPopupMinimized.value) {
+    isPopupVisible.value = false;
+    // 停止自动更新
+    if (cleanupAutoUpdate) {
+      cleanupAutoUpdate();
+      cleanupAutoUpdate = null;
+    }
+    // 注意：不关闭发光效果，保持高亮状态
+  }
 
   // 获取初始位置
   const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
@@ -171,6 +303,11 @@ const handleDrag = (event: MouseEvent | TouchEvent) => {
   const deltaX = clientX - startX;
   const deltaY = clientY - startY;
 
+  // 检查是否超过拖拽阈值
+  if (!hasDragged && (Math.abs(deltaX) > DRAG_THRESHOLD || Math.abs(deltaY) > DRAG_THRESHOLD)) {
+    hasDragged = true;
+  }
+
   currentX = initialX + deltaX;
   currentY = initialY + deltaY;
 
@@ -185,7 +322,7 @@ const handleDrag = (event: MouseEvent | TouchEvent) => {
 };
 
 // 停止拖拽并执行边界吸附
-const stopDrag = () => {
+const stopDrag = async () => {
   if (!isDragging.value) return;
 
   isDragging.value = false;
@@ -204,6 +341,11 @@ const stopDrag = () => {
 
   // 保存当前位置
   savePosition();
+
+  // 如果拖拽前弹窗是打开的，则重新打开（高亮已经保持着）
+  if (popupWasVisibleBeforeDrag) {
+    await updatePopupState(true, false);
+  }
 };
 
 // 边界吸附逻辑
@@ -252,6 +394,97 @@ const snapToBoundary = () => {
 
   // 平滑动画到目标位置
   animateToPosition(targetPosition.x!, targetPosition.y!);
+};
+
+// 处理模型点击事件
+const handleModelClick = async () => {
+  // 只有在没有发生拖拽的情况下才切换弹窗状态
+  if (!hasDragged) {
+    if (isPopupMinimized.value) {
+      // 如果是最小化状态，点击时恢复显示
+      await updatePopupState(true, false);
+    } else {
+      await updatePopupState(!isPopupVisible.value);
+    }
+  }
+
+  // 重置拖拽标志，为下次点击做准备
+  hasDragged = false;
+};
+
+// 处理弹窗最小化
+const handlePopupMinimize = async () => {
+  await updatePopupState(true, true);
+};
+
+// 处理弹窗关闭
+const handlePopupClose = async () => {
+  await updatePopupState(false, false);
+  isHistoryView.value = false; // 关闭时重置历史记录视图
+};
+
+// 处理显示历史记录
+const handleShowHistory = () => {
+  isHistoryView.value = !isHistoryView.value;
+};
+
+// 处理新建对话
+const handleNewChat = () => {
+  isHistoryView.value = false; // 切换到聊天视图（新对话页面）
+};
+
+// 处理弹窗外点击关闭
+const handleClickOutside = async (event: Event) => {
+  const target = event.target as HTMLElement;
+  if (popupRef.value && !popupRef.value.contains(target) && containerRef.value && !containerRef.value.contains(target)) {
+    await updatePopupState(false);
+  }
+};
+
+// 缓动函数
+const easeOut = (progress: number) => 1 - Math.pow(1 - progress, 3);
+
+// 控制模型发光效果
+let glowAnimationId: number | null = null;
+
+const controlModelGlow = (shouldGlow: boolean) => {
+  if (!celestialHubRef.value) return;
+
+  // 取消之前的动画
+  if (glowAnimationId) {
+    cancelAnimationFrame(glowAnimationId);
+    glowAnimationId = null;
+  }
+
+  const animate = (targetIntensity: number, targetEmissive: number, duration: number, reverse = false) => {
+    let startTime: number | null = null;
+
+    const step = (timestamp: number) => {
+      if (startTime === null) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easedProgress = easeOut(progress);
+
+      const intensity = reverse ? targetIntensity * (1 - easedProgress) : targetIntensity * easedProgress;
+      const emissive = reverse ? targetEmissive * (1 - easedProgress) : targetEmissive * easedProgress;
+
+      if (intensity > 0) {
+        celestialHubRef.value?.enableWhiteLight?.(intensity, emissive);
+      } else {
+        celestialHubRef.value?.disableWhiteLight?.();
+      }
+
+      if (progress < 1) {
+        glowAnimationId = requestAnimationFrame(step);
+      } else {
+        glowAnimationId = null;
+      }
+    };
+
+    glowAnimationId = requestAnimationFrame(step);
+  };
+
+  shouldGlow ? animate(50, 0.3, GLOW_DURATION_IN) : animate(50, 0.3, GLOW_DURATION_OUT, true);
 };
 
 // 平滑动画到指定位置
@@ -316,6 +549,9 @@ onMounted(async () => {
 
   // 添加窗口大小变化监听
   window.addEventListener('resize', handleResize);
+
+  // 添加全局点击监听，用于关闭弹窗
+  document.addEventListener('click', handleClickOutside);
 });
 
 // 组件卸载前清理
@@ -324,7 +560,20 @@ onBeforeUnmount(() => {
     cancelAnimationFrame(snapAnimationId);
   }
 
+  // 清理发光动画
+  if (glowAnimationId) {
+    cancelAnimationFrame(glowAnimationId);
+    glowAnimationId = null;
+  }
+
+  // 清理autoUpdate
+  if (cleanupAutoUpdate) {
+    cleanupAutoUpdate();
+    cleanupAutoUpdate = null;
+  }
+
   window.removeEventListener('resize', handleResize);
+  document.removeEventListener('click', handleClickOutside);
 
   // 清理可能残留的事件监听
   document.removeEventListener('mousemove', handleDrag);
@@ -344,7 +593,7 @@ onBeforeUnmount(() => {
   max-width: 120px;
   max-height: 120px;
   z-index: 1000;
-  cursor: grab;
+  cursor: default;
   border-radius: 8px;
   overflow: hidden;
 }
@@ -450,14 +699,67 @@ onBeforeUnmount(() => {
   }
 }
 
+/* 弹窗样式 */
+.celestial-popup {
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  padding: 0;
+  box-shadow: none;
+  z-index: 1001;
+  /* 使用屏幕占比，最大尺寸不超过 900x800px，最小保证可用 */
+  width: min(80vw, 900px);
+  height: min(80vh, 800px);
+  min-width: 320px;
+  min-height: 300px;
+  max-width: 100vw;
+  max-height: 100vh;
+  box-sizing: border-box;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+
+/* 弹窗动画 */
+.popup-enter-active,
+.popup-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.popup-enter-from {
+  opacity: 0;
+  transform: scale(0.8) translateY(-10px);
+}
+
+.popup-enter-to {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.popup-leave-from {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.popup-leave-to {
+  opacity: 0;
+  transform: scale(0.8) translateY(-10px);
+}
+
 /* 减少动画效果的用户偏好设置 */
 @media (prefers-reduced-motion: reduce) {
   .draggable-celestial-hub-container,
   .drag-handle,
   .drag-indicator,
-  .drag-indicator::before {
+  .drag-indicator::before,
+  .celestial-popup {
     transition: none;
     animation: none;
+  }
+
+  .popup-enter-active,
+  .popup-leave-active {
+    transition: none;
   }
 }
 </style>

@@ -20,9 +20,8 @@ const deskModelFileMap: Record<ClassroomTypeEnum, string> = {
 export const getClassroomModelPathByRecord = (courseRecord: CourseRecordVO | null): string => {
   const type = courseRecord?.classroomType ?? ClassroomTypeEnum.LARGE;
   const fileName = classroomModelFileMap[type] || 'classroomPro.gltf';
-  if (import.meta.env.DEV) {
-    return new URL(`@/assets/3Dmodel/classroom/${fileName}`, import.meta.url).href;
-  }
+  // 使用相对于 assets 目录的路径，确保在开发和生产环境中都能正确解析
+  // Vite 会将 src/assets 下的文件复制到 dist/assets，并保持相对路径结构
   return `/assets/3Dmodel/classroom/${fileName}`;
 };
 
@@ -30,8 +29,7 @@ export const getClassroomModelPathByRecord = (courseRecord: CourseRecordVO | nul
 export const getDeskModelPathByRecord = (courseRecord: CourseRecordVO | null): string => {
   const type = courseRecord?.classroomType ?? ClassroomTypeEnum.LARGE;
   const fileName = deskModelFileMap[type] || 'deskChairPro.gltf';
-  if (import.meta.env.DEV) {
-    return new URL(`@/assets/3Dmodel/desk_chair/${fileName}`, import.meta.url).href;
-  }
+  // 使用相对于 assets 目录的路径，确保在开发和生产环境中都能正确解析
+  // Vite 会将 src/assets 下的文件复制到 dist/assets，并保持相对路径结构
   return `/assets/3Dmodel/desk_chair/${fileName}`;
 };

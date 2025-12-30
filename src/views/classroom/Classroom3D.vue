@@ -912,6 +912,38 @@ const initThree = () => {
                 // 9. 点击 / 右键事件逻辑保持不变（沿用原来的 handleDeskClick 和 handleDeskContextMenu 代码块）
                 // 这里为了保持简洁，继续使用原有实现（已在前面存在），不再拆分为单独函数
 
+                // 桌椅模型加载完成后，初始化精灵管理器
+                const initializeSpriteManager = (texture: Texture) => {
+                  try {
+                    console.log('初始化精灵管理器，精灵数量:', spritePositions.length);
+                    spriteManager.initialize(spritePositions.length, texture);
+                    spriteManager.setPositions(spritePositions);
+
+                    // 设置场景引用
+                    if (scene && camera) {
+                      spriteManager.setScene(scene);
+                      spriteManager.setCamera(camera);
+                    }
+
+                    // 创建精灵实例
+                    try {
+                      spriteManager.createSpriteInstances();
+                    } catch (error) {
+                      console.error('创建精灵实例失败:', error);
+                    }
+
+                    // 如果已有学生列表，渲染学生精灵
+                    if (studentsList.value.length > 0) {
+                      renderStudentSprites(studentsList.value);
+                    }
+                  } catch (initError) {
+                    console.error('精灵管理器初始化失败:', initError);
+                  }
+                };
+
+                const defaultTexture = createAvatarFallbackTexture('');
+                initializeSpriteManager(defaultTexture);
+
                 resolve();
               } catch (error) {
                 if (window.instancedObjects) {
@@ -929,43 +961,10 @@ const initThree = () => {
               // 加载进度处理
             },
             (error) => {
+              console.error('桌椅模型加载失败:', error);
               reject(error);
             }
         );
-    });
-
-      await new Promise<void>((resolve) => {
-        // 初始化精灵管理器
-        const initializeSpriteManager = (texture: Texture) => {
-          try {
-            spriteManager.initialize(spritePositions.length, texture);
-            spriteManager.setPositions(spritePositions);
-
-            // 设置场景引用
-            if (scene && camera) {
-              spriteManager.setScene(scene);
-              spriteManager.setCamera(camera);
-            }
-
-            // 创建精灵实例
-            try {
-              spriteManager.createSpriteInstances();
-            } catch (error) {
-              // 静默处理错误
-            }
-
-            // 如果已有学生列表，渲染学生精灵
-            if (studentsList.value.length > 0) {
-              renderStudentSprites(studentsList.value);
-            }
-          } catch (initError) {
-            // 静默处理错误
-          }
-        };
-
-        const defaultTexture = createAvatarFallbackTexture('');
-        initializeSpriteManager(defaultTexture);
-        resolve();
       });
     } catch (error) {
       // 静默处理模型加载失败

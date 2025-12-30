@@ -521,7 +521,7 @@ const applyTexturesToModel = () => {
 };
 
 // 应用自发光效果
-const applyEmissiveEffect = (mesh: THREE.Mesh) => {
+const applyEmissiveEffect = (mesh: THREE.Mesh, emissiveIntensity: number = 0.3) => {
   if (!mesh || !mesh.isMesh) return;
 
   const primaryColor = getPrimaryColor();
@@ -530,13 +530,13 @@ const applyEmissiveEffect = (mesh: THREE.Mesh) => {
       if (mat && mat.isMaterial) {
         const stdMat = mat as THREE.MeshStandardMaterial;
         stdMat.emissive = primaryColor.clone();
-        stdMat.emissiveIntensity = 0.3;
+        stdMat.emissiveIntensity = emissiveIntensity;
       }
     });
   } else if (mesh.material && mesh.material.isMaterial) {
     const stdMat = mesh.material as THREE.MeshStandardMaterial;
     stdMat.emissive = primaryColor.clone();
-    stdMat.emissiveIntensity = 0.3;
+    stdMat.emissiveIntensity = emissiveIntensity;
   }
 };
 
@@ -560,11 +560,11 @@ const removeEmissiveEffect = (mesh: THREE.Mesh) => {
 };
 
 // 启用主色光效果
-const enableWhiteLight = () => {
+const enableWhiteLight = (intensity: number = 50, emissiveIntensity: number = 0.3) => {
   if (whiteLight) {
     const primaryColor = getPrimaryColor();
     whiteLight.color = primaryColor;
-    whiteLight.intensity = 50;
+    whiteLight.intensity = intensity;
 
     // 如果模型已加载，更新光源位置到模型后面
     if (bookModel) {
@@ -586,7 +586,7 @@ const enableWhiteLight = () => {
   if (bookModel) {
     bookModel.traverse((child: THREE.Object3D) => {
       if ((child as THREE.Mesh).isMesh) {
-        applyEmissiveEffect(child as THREE.Mesh);
+        applyEmissiveEffect(child as THREE.Mesh, emissiveIntensity);
       }
     });
   }
@@ -935,6 +935,12 @@ onMounted(() => {
 // 组件卸载前清理
 onBeforeUnmount(() => {
   cleanup();
+});
+
+// 暴露发光控制方法给父组件
+defineExpose({
+  enableWhiteLight,
+  disableWhiteLight
 });
 </script>
 

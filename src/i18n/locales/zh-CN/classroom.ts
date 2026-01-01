@@ -153,6 +153,14 @@ export default {
     exit: '退出教室',
     enterClassroom: '进入教室',
     live: '智慧课堂黑白',
+    waitingForTeacher: '直播尚未创建，请等待老师开启',
+    liveNotAvailable: '直播功能不可用',
+    liveStatus: {
+        live: '直播中',
+        ended: '已结束',
+        closed: '已关闭',
+        notStarted: '未开始'
+    },
     formatSeatLabel: '{row}排{column}列',
     pointerLockHint: '双击进入视角控制模式，点击鼠标左键切换视角，按 Esc 键退出',
     pointerLockHintTitle: '操作提示',

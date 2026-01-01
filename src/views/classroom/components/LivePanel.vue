@@ -15,46 +15,63 @@
         <NSpin />
       </div>
 
-      <div v-else>
-                <div v-if="!room" class="live-panel__create">
-          <LiveRoomCreateForm
-            :courseRecordId="props.classroomId ?? null"
-            :courseId="props.courseId ?? null"
-            :liveRoom="room"
-            @success="onCreateSuccess"
-          />
-        </div>
+      <div v-else class="live-panel__grid">
+        <div class="live-panel__left">
+          <div v-if="!room" class="live-panel__create">
+            <template v-if="isTeacher">
+              <LiveRoomCreateForm
+                :courseRecordId="props.classroomId ?? null"
+                :courseId="props.courseId ?? null"
+                :liveRoom="room"
+                @success="onCreateSuccess"
+              />
+            </template>
+            <template v-else>
+              <div class="live-panel__empty">{{ t('classroom.waitingForTeacher') }}</div>
+            </template>
+          </div>
 
-        <div v-else-if="room" class="live-panel__info">
-          <div class="course-info-row" v-if="courseInfo">
-            <img v-if="courseInfo.coverImageUrl" :src="courseInfo.coverImageUrl" alt="course cover" class="course-cover" />
-            <div class="course-meta">
-              <div class="course-title">{{ courseInfo.courseName }}</div>
-              <div class="course-teacher" v-if="courseInfo.teacherName">{{ courseInfo.teacherName }}</div>
-              <div class="course-desc" v-if="courseInfo.description">{{ courseInfo.description }}</div>
-              <div class="course-extra">
-                <span v-if="courseInfo.semester">学期: {{ courseInfo.semester }}</span>
-                <span v-if="courseInfo.location"> · 地点: {{ courseInfo.location }}</span>
+          <div v-else-if="room" class="live-panel__info">
+            <div class="course-info-row" v-if="courseInfo">
+              <img v-if="courseInfo.coverImageUrl" :src="courseInfo.coverImageUrl" alt="course cover" class="course-cover" />
+              <div class="course-meta">
+                <div class="course-title">{{ courseInfo.courseName }}</div>
+                <div class="course-teacher" v-if="courseInfo.teacherName">{{ courseInfo.teacherName }}</div>
+                <div class="course-desc" v-if="courseInfo.description">{{ courseInfo.description }}</div>
+                <div class="course-extra">
+                  <span v-if="courseInfo.semester">学期: {{ courseInfo.semester }}</span>
+                  <span v-if="courseInfo.location"> · 地点: {{ courseInfo.location }}</span>
+                </div>
               </div>
             </div>
+
+            <div class="room-row"><strong>房间名：</strong> {{ room.roomName }}</div>
+            <div class="room-row"><strong>状态：</strong> {{ getStatusLabel(room.status) }}</div>
+            <div class="room-row" v-if="room.startTime"><strong>开始：</strong> {{ room.startTime }}</div>
+            <div class="room-row" v-if="room.expectedEndTime"><strong>预计结束：</strong> {{ room.expectedEndTime }}</div>
+            <div class="room-row" v-if="room.maxParticipants !== null && room.maxParticipants !== undefined"><strong>最大人数：</strong> {{ room.maxParticipants }}</div>
+            <div class="room-row" v-if="room.recordingAssetUrl"><strong>回放：</strong> <a :href="room.recordingAssetUrl" target="_blank">查看</a></div>
+
           </div>
 
-          <div class="room-row"><strong>房间名：</strong> {{ room.roomName }}</div>
-          <div class="room-row"><strong>状态：</strong> {{ getStatusLabel(room.status) }}</div>
-          <div class="room-row" v-if="room.startTime"><strong>开始：</strong> {{ room.startTime }}</div>
-          <div class="room-row" v-if="room.expectedEndTime"><strong>预计结束：</strong> {{ room.expectedEndTime }}</div>
-          <div class="room-row" v-if="room.maxParticipants !== null && room.maxParticipants !== undefined"><strong>最大人数：</strong> {{ room.maxParticipants }}</div>
-          <div class="room-row" v-if="room.recordingAssetUrl"><strong>回放：</strong> <a :href="room.recordingAssetUrl" target="_blank">查看</a></div>
-
-          <div class="live-panel__actions">
-            <NButton type="primary" @click="joinLive" :loading="joining">进入直播间</NButton>
-            <span v-if="isTeacher">
-              <NButton type="warning" @click="endLive" :loading="ending">结束直播</NButton>
-            </span>
-          </div>
+          <div v-else class="live-panel__empty">暂无直播房间</div>
         </div>
 
-        <div v-else class="live-panel__empty">暂无直播房间</div>
+        <!-- footer actions: moved here so they are always at the bottom of the left column -->
+        <div class="live-panel__actions">
+          <template v-if="room && room.status === LiveRoomStatusEnum.LIVE">
+            <NButton type="primary" @click="joinLive" :loading="joiningLoading">{{ t('live.room.join') }}</NButton>
+          </template>
+
+          <span v-if="isTeacher">
+            <template v-if="room && room.status === LiveRoomStatusEnum.LIVE">
+              <NButton type="warning" @click="endLive" :loading="endingLoading">{{ t('live.room.stop') || '结束直播' }}</NButton>
+            </template>
+            <template v-else>
+              <NButton type="success" @click="startLive" :loading="startingLoading">{{ t('live.room.start') || '开启直播' }}</NButton>
+            </template>
+          </span>
+        </div>
       </div>
     </div>
   </div>
@@ -64,14 +81,18 @@
 import { ref, watch, onBeforeUnmount, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { NButton, NSpin, useMessage } from 'naive-ui';
+import { NButton, NSpin } from 'naive-ui';
 import { CloseOutline } from '@vicons/ionicons5';
 import LiveRoomCreateForm from '@/views/live/components/LiveRoomCreateForm.vue';
 import { LiveRoomRoleEnum } from '@/enum/live/liveRoomRoleEnum';
+import { LiveRoomStatusEnum } from '@/enum/live/liveRoomStatusEnum';
 import { useUserStore } from '@/store/modules/user';
+import { useErrorHandler } from '@/views/live/LiveRoom/composables/useErrorHandler';
+import { getGlobalApis } from '@/utils/naiveUIHelper';
 import {
   getLatestLiveRoom,
   endLiveRoom,
+  startLiveRoom,
   issueRoomToken,
   getSseToken
 } from '@/api/live/liveRoom';
@@ -84,17 +105,25 @@ const emit = defineEmits<{ close: [] }>();
 const { t } = useI18n();
 const router = useRouter();
 const userStore = useUserStore();
-const message = useMessage();
 
 const loading = ref<boolean | null>(null);
 // creating flag removed; child component handles creation
-const ending = ref(false);
+const ending = ref<boolean | null>(null);
 const room = ref<LiveRoomVO | null>(null);
 const courseInfo = ref<CourseVO | null>(null);
 const isTeacher = computed(() => {
   return userStore.hasRole && (userStore.hasRole('TEACHER') || userStore.hasRole('ADMIN'));
 });
-const joining = ref(false);
+const joining = ref<boolean | null>(null);
+const starting = ref<boolean | null>(null);
+
+// 初始化错误处理器
+const errorHandler = useErrorHandler();
+
+// 转换loading状态为boolean类型（naive-ui期望的类型）
+const joiningLoading = computed(() => Boolean(joining.value));
+const endingLoading = computed(() => Boolean(ending.value));
+const startingLoading = computed(() => Boolean(starting.value));
 
 // no-op
 
@@ -114,15 +143,30 @@ async function loadRoom() {
   room.value = null;
   try {
     const res: any = await getLatestLiveRoom(props.courseId ?? null, props.classroomId ?? null);
-    if (res && res.data) {
-      room.value = res.data;
-      // load course info if available
-      const cid = (room.value && room.value.courseId) ? room.value.courseId : (props.courseId ?? null);
-      if (cid) {
-        await loadCourse(cid);
-      } else {
-        courseInfo.value = null;
-      }
+    const data = res?.data ?? null;
+
+    // Treat empty or invalid responses (no id) as no room
+    if (!data || !data.id) {
+      room.value = null;
+      courseInfo.value = null;
+      return;
+    }
+
+    // Require a non-empty roomName to treat the response as a created room.
+    // If roomName is missing or empty, treat as "no room" so teachers see the create form.
+    if (typeof data.roomName !== 'string' || data.roomName.trim().length === 0) {
+      room.value = null;
+      courseInfo.value = null;
+      return;
+    }
+
+    room.value = data;
+    // load course info if available
+    const cid = room.value?.courseId ?? props.courseId ?? null;
+    if (cid) {
+      await loadCourse(cid);
+    } else {
+      courseInfo.value = null;
     }
   } finally {
     loading.value = false;
@@ -135,34 +179,43 @@ async function onCreateSuccess() {
 }
 
 async function loadCourse(courseId: string) {
-  try {
-    const res: any = await getCourseById(courseId);
-    courseInfo.value = res?.data || null;
-  } catch (e) {
+  const res: any = await getCourseById(courseId).catch((error) => {
     courseInfo.value = null;
+    errorHandler.handleError(error, 'load_course', {
+      showNotification: false
+    });
+    return null;
+  });
+  if (res?.data) {
+    courseInfo.value = res.data;
   }
 }
 
 async function endLive() {
   if (!room.value || !room.value.id) return;
   ending.value = true;
-  try {
-    await endLiveRoom(room.value.id);
+  await endLiveRoom(room.value.id).then(async () => {
     // reload
     await loadRoom();
-  } finally {
+  }).catch((error) => {
+    errorHandler.handleError(error, 'end_live', {
+      showNotification: true,
+      allowRetry: true,
+      onRetry: endLive
+    });
+  }).finally(() => {
     ending.value = false;
-  }
+  });
 }
 
 async function joinLive() {
   if (!room.value || !room.value.id || joining.value) return;
   joining.value = true;
-  try {
-    const role = isTeacher.value ? LiveRoomRoleEnum.TEACHER : LiveRoomRoleEnum.STUDENT;
-    const tokenReq: any = { role };
-    const res: any = await issueRoomToken(room.value.id, tokenReq);
 
+  const role = isTeacher.value ? LiveRoomRoleEnum.TEACHER : LiveRoomRoleEnum.STUDENT;
+  const tokenReq: any = { role };
+
+  await issueRoomToken(room.value.id, tokenReq).then((res: any) => {
     // Extract token string correctly
     let token = '';
     if (res?.token) {
@@ -173,7 +226,7 @@ async function joinLive() {
       token = res;
     }
 
-    if (token) {
+    if (token && room.value) {
       // 跳转到直播页面，传递 token 作为查询参数
       router.push({
         name: 'LiveRoom',
@@ -181,20 +234,45 @@ async function joinLive() {
         query: { token }
       });
     } else {
-      if (message) message.error('进入直播间失败');
+      errorHandler.handleError(new Error('获取直播令牌失败'), 'join_live_token', {
+        showNotification: true,
+        customMessage: '进入直播间失败：无法获取访问令牌'
+      });
     }
-  } catch (e) {
-    if (message) message.error('进入直播间失败');
-  } finally {
+  }).catch((error) => {
+    errorHandler.handleError(error, 'join_live', {
+      showNotification: true,
+      customMessage: '进入直播间失败'
+    });
+  }).finally(() => {
     joining.value = false;
-  }
+  });
+}
+
+async function startLive() {
+  if (!room.value || !room.value.id) return;
+  starting.value = true;
+
+  await startLiveRoom(room.value.id).then(async () => {
+    await loadRoom();
+    const { message } = getGlobalApis();
+    if (message) {
+      message.success(t('live.room.startSuccess') || '已开启直播');
+    }
+  }).catch((error) => {
+    errorHandler.handleError(error, 'start_live', {
+      showNotification: true,
+      customMessage: t('live.room.startFailed') || '开启直播失败'
+    });
+  }).finally(() => {
+    starting.value = false;
+  });
 }
 
 function getStatusLabel(status: number | null | undefined) {
-  // lazy map so we don't import enum file here
-  if (status === 1) return t('classroom.liveStatus.live');
-  if (status === 2) return t('classroom.liveStatus.ended');
-  if (status === 3) return t('classroom.liveStatus.closed');
+  if (status === LiveRoomStatusEnum.LIVE) return t('classroom.liveStatus.live');
+  if (status === LiveRoomStatusEnum.ENDED) return t('classroom.liveStatus.ended');
+  if (status === LiveRoomStatusEnum.CLOSED) return t('classroom.liveStatus.closed');
   return t('classroom.liveStatus.notStarted');
 }
 
@@ -207,7 +285,9 @@ function subscribeSse() {
   getSseToken(props.classroomId).then((res: any) => {
     const token = res?.data || res;
     if (!token) {
-      if (message) message.error('无法获取 SSE 订阅令牌');
+      errorHandler.handleError(new Error('无法获取 SSE 订阅令牌'), 'sse_token', {
+        showNotification: true
+      });
       return;
     }
     const url = `/api/live/subscribe?classroomId=${props.classroomId}&token=${token}`;
@@ -219,22 +299,28 @@ function subscribeSse() {
         room.value = data;
         // show notifications for status changes
         const status = data && (data.status || data.status === 0) ? Number(data.status) : null;
-        if (status === 1) {
-          message.success('直播开始');
-        } else if (status === 2) {
-          message.info('直播已结束');
-        } else if (status === 3) {
-          message.info('直播已关闭');
+        if (status === LiveRoomStatusEnum.LIVE) {
+          const { message } = getGlobalApis();
+          if (message) message.success('直播开始');
+        } else if (status === LiveRoomStatusEnum.ENDED) {
+          const { message } = getGlobalApis();
+          if (message) message.info('直播已结束');
+        } else if (status === LiveRoomStatusEnum.CLOSED) {
+          const { message } = getGlobalApis();
+          if (message) message.info('直播已关闭');
         }
       } catch (e) {
-        // ignore
+        // ignore JSON parse errors
       }
     });
     source.onerror = () => {
-      // ignore errors
+      // ignore connection errors
     };
-  }).catch(() => {
-    if (message) message.error('SSE 订阅失败');
+  }).catch((error) => {
+    errorHandler.handleError(error, 'sse_subscribe', {
+      showNotification: true,
+      customMessage: 'SSE 订阅失败'
+    });
   });
 }
 
@@ -255,23 +341,24 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 @use '@/assets/styles/index.scss' as *;
+
 .live-panel {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   animation: panel-enter 0.25s ease;
-  width: 78vw;
-  max-width: 1200px;
-  min-height: 78vh;
-  max-height: 86vh;
+  width: min(920px, 92vw);
+  max-width: 920px;
+  height: min(78vh, 720px);
+  max-height: 78vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--background-secondary-color) 80%, transparent), color-mix(in srgb, var(--background-tertiary-color) 95%, transparent));
-  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+  /* 更干净的背景：减少花哨渐变 */
+  background: color-mix(in srgb, var(--background-color) 96%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 85%, transparent);
   border-radius: 16px;
-  box-shadow: 0 18px 38px color-mix(in srgb, var(--shadow-color) 80%, transparent);
-  padding: 16px;
+  box-shadow: 0 22px 60px color-mix(in srgb, var(--shadow-color) 65%, transparent);
   overflow: hidden;
   z-index: 1003;
 }
@@ -279,27 +366,12 @@ onBeforeUnmount(() => {
 @keyframes panel-enter {
   from {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.98);
+    transform: translate(-50%, -50%) scale(0.985);
   }
   to {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
   }
-}
-
-.live-panel__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 14px;
-  border-bottom: 1px solid color-mix(in srgb, var(--border-secondary-color) 90%, transparent);
-}
-
-.live-panel__title {
-  font-weight: 600;
-  color: var(--text-color);
-  font-size: 18px;
-  line-height: 1.3;
 }
 
 .live-panel__close {
@@ -308,29 +380,49 @@ onBeforeUnmount(() => {
   right: 12px;
   z-index: 1004;
   color: var(--text-color);
+
+  &:hover {
+    color: var(--color-primary);
+    background-color: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  }
+}
+
+.live-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: color-mix(in srgb, var(--background-secondary-color) 55%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-secondary-color) 85%, transparent);
+}
+
+.live-panel__title {
+  font-weight: 600;
+  color: var(--text-color);
 }
 
 .live-panel__body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
   flex: 1;
-  min-height: 0;
-  overflow: auto;
-  padding: 12px;
-  background: color-mix(in srgb, var(--background-secondary-color) 75%, transparent);
-  border-radius: 12px;
+  padding: 16px;
+  overflow: hidden;
+  /* 内容区干净一点 */
+  background: color-mix(in srgb, var(--background-color) 92%, transparent);
 }
 
 .room-row {
-  margin: 8px 0;
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  column-gap: 12px;
+  align-items: baseline;
+  padding: 14px 14px;
+  border-radius: 12px;
   font-size: 14px;
   line-height: 1.6;
-  strong {
-    font-size: 14px;
-    font-weight: 600;
-    margin-right: 6px;
-  }
+  color: var(--text-color);
+  /* 轻分隔感 */
+  background: color-mix(in srgb, var(--background-color) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 75%, transparent);
+  margin: 12px 0;
 }
 
 .live-panel__actions {
@@ -343,12 +435,13 @@ onBeforeUnmount(() => {
   margin-bottom: 12px;
 }
 .course-cover {
-  width: 84px;
-  height: 60px;
+  width: 92px;
+  height: 64px;
   object-fit: cover;
-  border-radius: 6px;
+  border-radius: 10px;
   background: var(--background-color);
-  border: 1px solid var(--border-color);
+  border: 1px solid color-mix(in srgb, var(--border-color) 85%, transparent);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--shadow-color) 22%, transparent);
 }
 .course-meta {
   flex: 1;
@@ -357,9 +450,9 @@ onBeforeUnmount(() => {
   gap: 6px;
 }
 .course-title {
-  font-weight: 600;
-  font-size: 16px;
-  line-height: 1.25;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.3;
 }
 .course-teacher {
   color: var(--text-color-3);
@@ -385,6 +478,24 @@ onBeforeUnmount(() => {
   height: 36px;
   padding: 0 12px;
 }
+
+.live-panel__grid {
+  height: 100%;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr; /* single column: left fills entire modal */
+  gap: 16px;
+  align-items: stretch;
+}
+
+.live-panel__left {
+  width: 100%;
+}
+
+.live-panel__right {
+  display: none; /* hide right column since left should occupy full modal */
+}
+
 </style>
 
 

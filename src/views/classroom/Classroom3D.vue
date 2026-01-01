@@ -57,6 +57,8 @@ import {
   removeStudentSeat,
   updateStudentSeat
 } from '@/api/classroom/courseRecordStudent';
+import { getActiveLiveRoom, issueRoomToken } from '@/api/live/liveRoom';
+import { LiveRoomRoleEnum } from '@/enum/live/liveRoomRoleEnum';
 import StudentInfoPopup from './StudentInfoPopup.vue';
 import ClassroomToolbox from './components/ClassroomToolbox.vue';
 import QuestionPanel from './components/QuestionPanel.vue';
@@ -525,37 +527,62 @@ const handleExit = (e: MouseEvent) => {
 };
 
 // 跳转到直播页面，使用全局过渡动画
-const handleLive = (e: MouseEvent) => {
-  // 该函数改为根据身份处理：老师打开悬浮窗，学生进行一次是否在直播的校验并直接加入或提示
+const handleLive = async (e: MouseEvent) => {
   e.stopPropagation();
-  const willShow = !(showLivePanel.value ?? false);
-  if (willShow) {
-    showChapterPanel.value = false;
-    showQuestionPanel.value = false;
-    showPracticePanel.value = false;
-  }
 
-  // 判断是否为老师/管理员
+  // 老师/管理员：打开 LivePanel 悬浮窗（原逻辑）
   const isTeacherOrAdmin = canShowPracticeActions.value;
-  if (!isTeacherOrAdmin) {
-    // 学生：不再跳转页面，改为打开 LivePanel 悬浮窗，由悬浮窗提供进入房间入口
-    const classroomId = route.params.courseRecordId as string || null;
-    if (!classroomId) {
-      if (message) message.info(t('classroom.liveNotAvailable'));
-      return;
+  if (isTeacherOrAdmin) {
+    const willShow = !(showLivePanel.value ?? false);
+    if (willShow) {
+      showChapterPanel.value = false;
+      showQuestionPanel.value = false;
+      showPracticePanel.value = false;
     }
-    // 直接显示悬浮窗，让学生在悬浮窗里点击“进入直播间”
-    showLivePanel.value = true;
+    showLivePanel.value = willShow;
     return;
   }
 
-  // 老师/管理员：打开 LivePanel 悬浮窗（首次创建完成后不可再配置）
-  if (willShow) {
-    showChapterPanel.value = false;
-    showQuestionPanel.value = false;
-    showPracticePanel.value = false;
+  // 学生流程：查询是否有处于 LIVE 状态的房间（优先 active）
+  const classroomId = (route.params.courseRecordId as string) || null;
+  const courseId = (route.params.courseId as string) || null;
+  if (!classroomId) {
+    if (message) message.info(t('classroom.liveNotAvailable'));
+    return;
   }
-  showLivePanel.value = willShow;
+
+  try {
+    const res: any = await getActiveLiveRoom(courseId, classroomId);
+    const room = res?.data || null;
+
+    if (room && room.status === 1 && room.id) {
+      // 房间已开播：为学生签发 token 并直接跳转进入
+      const tokenRes: any = await issueRoomToken(room.id, { role: LiveRoomRoleEnum.STUDENT });
+      let token = '';
+      if (tokenRes?.token) {
+        token = tokenRes.token;
+      } else if (tokenRes?.data) {
+        token = typeof tokenRes.data === 'string' ? tokenRes.data : (tokenRes.data.token || '');
+      } else if (typeof tokenRes === 'string') {
+        token = tokenRes;
+      }
+
+      if (token) {
+        router.push({
+          name: 'LiveRoom',
+          params: { roomId: room.id },
+          query: { token }
+        });
+      } else {
+        if (message) message.error(t('live.room.tokenError') || '无法获取房间令牌，进入失败');
+      }
+    } else {
+      // 房间不存在或未开播——提示学生等待老师
+      if (message) message.info(t('classroom.waitingForTeacher') || '直播尚未创建，请等待老师开启');
+    }
+  } catch (err) {
+    if (message) message.error(t('classroom.liveNotAvailable') || '直播功能不可用');
+  }
 };
 
 const toolboxItems = computed<ClassroomToolboxItem[]>(() => {

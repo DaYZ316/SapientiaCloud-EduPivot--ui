@@ -179,6 +179,6 @@ export function endLiveRoom(id: string) {
  * 获取短期 SSE token（需登录），用于 EventSource 订阅
  */
 export function getSseToken(classroomId?: string | null) {
-    return http.post<string>('/live/live-room/sse-token', null, { params: { classroomId } })
+    return http.post<string>('/celestial-hub/live/sse-token', null, { params: { classroomId } })
 }
 

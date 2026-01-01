@@ -151,6 +151,14 @@ export default {
     exit: 'Exit Classroom',
     enterClassroom: 'Enter Classroom',
     live: 'Smart Classroom Live',
+    waitingForTeacher: 'Live room has not been created yet. Please wait for the teacher to start it.',
+    liveNotAvailable: 'Live not available',
+    liveStatus: {
+        live: 'Live',
+        ended: 'Ended',
+        closed: 'Closed',
+        notStarted: 'Not started'
+    },
     formatSeatLabel: 'Row {row} Column {column}',
     pointerLockHint: 'Double-click to enter view control, left click to switch view, press Esc to exit',
     pointerLockHintTitle: 'Operation Hint',

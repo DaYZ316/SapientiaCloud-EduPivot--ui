@@ -78,5 +78,17 @@ export default {
         recordingNotEnabled: 'Recording is not enabled for this room. Please enable recording when creating the room',
         noPermissionToRecord: 'You do not have permission to control recording',
         notLiveForStudent: 'Live not started'
+        ,
+        cannotToggleCamera: 'Cannot toggle camera (not connected or invalid state)',
+        cameraToggleFailed: 'Failed to toggle camera',
+        cannotToggleMicrophone: 'Cannot toggle microphone (not connected or invalid state)',
+        microphoneToggleFailed: 'Failed to toggle microphone',
+        cameraEnableFailed: 'Failed to enable camera, please check permissions or device availability',
+        mediaSetupFailed: 'Media device setup failed',
+        loadHistoryFailed: 'Failed to load message history',
+        start: 'Start Live',
+        stop: 'End Live',
+        startSuccess: 'Live started',
+        startFailed: 'Failed to start live'
     }
 }

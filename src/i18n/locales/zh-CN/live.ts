@@ -37,6 +37,7 @@ export default {
     room: {
         title: '直播间',
         statusUnknown: '状态未知',
+        notConnected: '未连接',
         onlineCount: '在线人数',
         currentRole: '当前角色：{role}',
         connectionState: '连接状态',
@@ -83,5 +84,17 @@ export default {
         recordingNotEnabled: '该房间未开启录制功能，请在创建房间时启用录制',
         noPermissionToRecord: '您没有权限控制录制',
         notLiveForStudent: '当前未开播'
+        ,
+        cannotToggleCamera: '无法切换摄像头（当前未连接或状态不允许）',
+        cameraToggleFailed: '切换摄像头失败',
+        cannotToggleMicrophone: '无法切换麦克风（当前未连接或状态不允许）',
+        microphoneToggleFailed: '切换麦克风失败',
+        cameraEnableFailed: '启用摄像头失败，请检查权限设置或设备是否可用',
+        mediaSetupFailed: '媒体设备设置失败',
+        loadHistoryFailed: '加载历史消息失败',
+        start: '开启直播',
+        stop: '结束直播',
+        startSuccess: '直播已开启',
+        startFailed: '开启直播失败'
     }
 }

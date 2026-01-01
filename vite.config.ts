@@ -153,6 +153,24 @@ export default defineConfig({
                         // Response logging
                     });
                 }
+            },
+            // 代理celestial-hub服务
+            '/celestial-hub': {
+                target: getProxyTarget(defaultServerConfig),
+                changeOrigin: true,
+                secure: false,
+                rewrite: (path) => path,
+                configure: (proxy) => {
+                    proxy.on('error', () => {
+                        // Proxy error handling
+                    });
+                    proxy.on('proxyReq', () => {
+                        // Request logging
+                    });
+                    proxy.on('proxyRes', () => {
+                        // Response logging
+                    });
+                }
             }
         }
     }

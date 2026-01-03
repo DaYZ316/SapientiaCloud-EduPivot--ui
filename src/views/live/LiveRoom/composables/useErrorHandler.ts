@@ -1,4 +1,4 @@
-import { ref, reactive, readonly, computed } from 'vue'
+import { ref, reactive, readonly, computed, type ComputedRef, type Ref } from 'vue'
 import { getGlobalApis } from '@/utils/naiveUIHelper'
 
 // 防重入和节流：避免errorHandler递归调用
@@ -20,11 +20,11 @@ export interface ErrorInfo {
 }
 
 export interface ErrorHandlerResult {
-  errors: ErrorInfo[]
+  errors: Readonly<Ref<readonly ErrorInfo[]>>
   handleError: (error: any, context: string, options?: ErrorHandlerOptions) => void
   clearError: (code: string) => void
   clearAllErrors: () => void
-  hasErrors: boolean
+  hasErrors: ComputedRef<boolean>
   getLastError: () => ErrorInfo | null
 }
 
@@ -48,6 +48,7 @@ export const useErrorHandler = (): ErrorHandlerResult => {
     businessErrors: 0,
     systemErrors: 0,
     userErrors: 0,
+    unknownErrors: 0,
     totalErrors: 0
   })
 
@@ -283,6 +284,9 @@ export const useErrorHandler = (): ErrorHandlerResult => {
 
   // 错误上报（可扩展为实际的监控系统）
   const reportError = (errorInfo: ErrorInfo): void => {
+    // 使用errorInfo参数，避免未使用警告
+    console.warn('[ErrorReport]', errorInfo)
+
     // 这里可以集成实际的错误监控服务
     // 例如：Sentry、LogRocket等
     if (import.meta.env.DEV) {

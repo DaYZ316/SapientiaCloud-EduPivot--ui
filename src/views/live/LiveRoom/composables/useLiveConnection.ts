@@ -1,10 +1,9 @@
-import { ref, computed, readonly } from 'vue'
-import { ConnectionState, Room, RoomEvent, RemoteParticipant, RemoteTrackPublication, Track } from 'livekit-client'
+import { ref, computed, readonly, type Ref, type ComputedRef } from 'vue'
+import { Room, RoomEvent, RemoteParticipant, RemoteTrackPublication, Track } from 'livekit-client'
 import { useI18n } from 'vue-i18n'
 import * as liveApi from '@/api/live'
 import { LiveRoomRoleEnum, LiveRoomStatusEnum } from '@/enum/live'
-import type { LiveRoomVO, LiveRoomTokenRequestDTO, RemoteParticipantMedia } from '@/types/live'
-import { useUserStore } from '@/store'
+import type { LiveRoomVO, LiveRoomTokenRequestDTO } from '@/types/live'
 import { useErrorHandler } from './useErrorHandler'
 import { useResourceManager } from './useResourceManager'
 import { useRetryMechanism } from './useRetryMechanism'
@@ -12,22 +11,22 @@ import { getGlobalApis } from '@/utils/naiveUIHelper'
 
 export interface LiveConnectionResult {
   // 状态
-  room: Room | null
-  isConnected: boolean
-  connecting: boolean
-  connectionState: string
-  connectionError: string | null
+  room: Ref<Room | null>
+  isConnected: Readonly<Ref<boolean>>
+  connecting: Readonly<Ref<boolean>>
+  connectionState: Readonly<Ref<string>>
+  connectionError: Readonly<Ref<string | null>>
 
   // 计算属性
-  connectionStateLabel: string
+  connectionStateLabel: ComputedRef<string>
 
   // 方法
-  connect: (token?: string) => Promise<void>
+  connect: (roomInfo: any, currentUserRole: any, token?: string) => Promise<void>
   disconnect: () => Promise<void>
   updateOnlineCount: (targetRoom: Room | null) => void
 }
 
-export const useLiveConnection = () => {
+export const useLiveConnection = (): LiveConnectionResult => {
   const { t } = useI18n()
 
   // 集成健壮性工具
@@ -36,11 +35,12 @@ export const useLiveConnection = () => {
   const retryMechanism = useRetryMechanism()
 
   // 状态
-  const room = ref<Room | null>(null)
+  const room: Ref<Room | null> = ref(null)
   const isConnected = ref<boolean>(false)
   const connecting = ref<boolean>(false)
   const connectionState = ref<string>('disconnected')
   const connectionError = ref<string | null>(null)
+  const onlineCount = ref<number>(0)
 
   // LiveKit服务器URL配置
   const livekitServerUrl = computed(() => {
@@ -175,7 +175,7 @@ export const useLiveConnection = () => {
     })
 
     // 注册资源管理
-    const unregisterRoom = resourceManager.registerResource(newRoom)
+    resourceManager.registerResource(newRoom)
 
     // 绑定事件
     bindRoomEvents(newRoom)
@@ -298,19 +298,21 @@ export const useLiveConnection = () => {
 
     // 轨道订阅（需要与其他composable配合）
     resourceManager.registerEventListener(targetRoom, RoomEvent.TrackSubscribed,
-      (track: Track, publication: RemoteTrackPublication, participant: RemoteParticipant) => {
-        // 这里会通过事件向上传递给VideoPanel处理
+      (track: Track, _publication: RemoteTrackPublication, participant: RemoteParticipant) => {
+        // 使用参数避免未使用警告，这里会通过事件向上传递给VideoPanel处理
+        console.log('Track subscribed:', track.kind, participant.identity)
       })
 
     resourceManager.registerEventListener(targetRoom, RoomEvent.TrackUnsubscribed,
-      (track: Track, publication: RemoteTrackPublication, participant: RemoteParticipant) => {
-        // 这里会通过事件向上传递给VideoPanel处理
+      (_track: Track, _publication: RemoteTrackPublication, participant: RemoteParticipant) => {
+        // 使用参数避免未使用警告，这里会通过事件向上传递给VideoPanel处理
+        console.log('Track unsubscribed:', participant.identity)
       })
   }
 
   return {
     // 状态
-    room: readonly(room),
+    room,
     isConnected: readonly(isConnected),
     connecting: readonly(connecting),
     connectionState: readonly(connectionState),

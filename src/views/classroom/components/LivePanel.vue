@@ -427,6 +427,9 @@ onBeforeUnmount(() => {
 
 .live-panel__actions {
   margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 .course-info-row {
   display: flex;

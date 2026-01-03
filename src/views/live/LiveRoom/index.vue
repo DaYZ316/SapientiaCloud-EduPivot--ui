@@ -72,7 +72,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { NIcon, NSpin } from 'naive-ui'
@@ -125,13 +125,10 @@ const retryMechanism = useRetryMechanism()
 
 // 初始化业务逻辑
 const connection = useLiveConnection()
-const media = useMediaDevices(connection.room)
+const media = useMediaDevices(connection.room as Ref<import('livekit-client').Room | null>)
 const chat = useChatMessages()
 const recording = useRecording()
 const realtime = useLiveRealtime()
-
-// 页面刷新/卸载检测
-let pageUnloading = false
 
 // 连接锁：防止递归重试
 let isConnecting = false
@@ -154,8 +151,7 @@ const chatMessages = computed(() => Array.isArray(chat.messages) ? chat.messages
 
 // 页面卸载检测
 const handlePageUnload = () => {
-  pageUnloading = true
-  if (connection.room) {
+  if (connection.room.value) {
     try {
       connection.disconnect()
     } catch (e) {
@@ -200,24 +196,22 @@ onMounted(async () => {
     loadingState.setLoading('connection', true, '正在连接直播间...')
 
     try {
-      const result = await retryMechanism.retry(
+      await retryMechanism.retry(
         () => connection.connect(roomInfo.value, currentUserRole.value, token),
         {
           maxRetries: 3,
           baseDelay: 2000,
           retryCondition: (error) => retryMechanism.isRetryableError(error),
           onRetry: (attempt, error) => {
+            // 使用error参数避免未使用警告
+            console.log('Retry attempt:', attempt, error)
             loadingState.setLoading('connection', true, `连接失败，正在重试 (${attempt}/3)...`)
           }
         }
       )
 
-      if (result.success) {
-        loadingState.setLoading('connection', false)
-      } else {
-        loadingState.setLoading('connection', false)
-        throw result.error
-      }
+      // 如果成功到达这里，说明连接成功
+      loadingState.setLoading('connection', false)
     } catch (error) {
       loadingState.setLoading('connection', false)
       errorHandler.handleError(error, '直播连接', {
@@ -246,7 +240,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('beforeunload', handlePageUnload)
   window.removeEventListener('unload', handlePageUnload)
 
-  if (connection.room) {
+  if (connection.room.value) {
     connection.disconnect()
   }
 
@@ -285,7 +279,7 @@ async function handleLeave() {
 
 // 处理发送消息
 async function handleSendMessage(content: string) {
-  await chat.sendMessage(content, connection.room, roomId)
+  await chat.sendMessage(content, connection.room.value as import('livekit-client').Room | null, roomId)
 }
 
 // 处理切换摄像头

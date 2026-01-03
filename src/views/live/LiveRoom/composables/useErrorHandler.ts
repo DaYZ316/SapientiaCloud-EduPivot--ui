@@ -54,6 +54,26 @@ export const useErrorHandler = (): ErrorHandlerResult => {
 
   // 错误分类和处理策略
   const parseError = (error: any, context: string): ErrorInfo => {
+    // 安全提取错误信息，避免使用可能包含DOM引用的属性
+    const getSafeErrorMessage = (err: any): string => {
+      try {
+        if (typeof err === 'string') return err
+        if (err?.message && typeof err.message === 'string') return err.message
+        if (err?.toString && typeof err.toString === 'function') return err.toString()
+        return '未知错误'
+      } catch {
+        return '未知错误'
+      }
+    }
+
+    const getSafeErrorName = (err: any): string => {
+      try {
+        return typeof err?.name === 'string' ? err.name : 'Error'
+      } catch {
+        return 'Error'
+      }
+    }
+
     let errorInfo: ErrorInfo = {
       code: 'unknown_error',
       title: '操作失败',
@@ -64,20 +84,27 @@ export const useErrorHandler = (): ErrorHandlerResult => {
       retryable: true
     }
 
-    // 网络错误检测
-    if (!navigator.onLine) {
-      errorInfo = {
-        code: 'network_offline',
-        title: '网络连接错误',
-        message: '请检查网络连接后重试',
-        type: 'network',
-        timestamp: Date.now(),
-        context,
-        retryable: true
+    // 网络错误检测 - 安全地检查网络状态
+    let isNetworkError = false
+    try {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        errorInfo = {
+          code: 'network_offline',
+          title: '网络连接错误',
+          message: '请检查网络连接后重试',
+          type: 'network',
+          timestamp: Date.now(),
+          context,
+          retryable: true
+        }
+        isNetworkError = true
       }
+    } catch {
+      // 如果navigator访问失败，跳过网络检查
     }
+
     // HTTP状态码错误
-    else if (error?.status) {
+    if (!isNetworkError && error?.status) {
       const status = error.status
       if (status === 401 || status === 403) {
         errorInfo = {
@@ -112,7 +139,7 @@ export const useErrorHandler = (): ErrorHandlerResult => {
       }
     }
     // 超时错误
-    else if (error?.message?.includes('timeout') || error?.code === 'TIMEOUT') {
+    else if (getSafeErrorMessage(error).includes('timeout') || error?.code === 'TIMEOUT') {
       errorInfo = {
         code: 'timeout_error',
         title: '请求超时',
@@ -124,7 +151,7 @@ export const useErrorHandler = (): ErrorHandlerResult => {
       }
     }
     // WebRTC相关错误
-    else if (error?.name === 'NotAllowedError') {
+    else if (getSafeErrorName(error) === 'NotAllowedError') {
       errorInfo = {
         code: 'media_permission_denied',
         title: '权限被拒绝',
@@ -135,7 +162,7 @@ export const useErrorHandler = (): ErrorHandlerResult => {
         retryable: false
       }
     }
-    else if (error?.name === 'NotFoundError') {
+    else if (getSafeErrorName(error) === 'NotFoundError') {
       errorInfo = {
         code: 'media_device_not_found',
         title: '设备未找到',
@@ -147,11 +174,11 @@ export const useErrorHandler = (): ErrorHandlerResult => {
       }
     }
     // 直播相关错误
-    else if (error?.message?.includes('room') || context.includes('live')) {
+    else if (getSafeErrorMessage(error).includes('room') || context.includes('live')) {
       errorInfo = {
         code: 'live_error',
         title: '直播错误',
-        message: error?.message || '直播功能暂时不可用',
+        message: getSafeErrorMessage(error) || '直播功能暂时不可用',
         type: 'business',
         timestamp: Date.now(),
         context,
@@ -159,9 +186,10 @@ export const useErrorHandler = (): ErrorHandlerResult => {
       }
     }
     // 通用错误处理
-    else if (error?.message) {
-      errorInfo.message = error.message
-      errorInfo.retryable = !error.message.includes('权限') && !error.message.includes('不存在')
+    else if (getSafeErrorMessage(error)) {
+      const safeMessage = getSafeErrorMessage(error)
+      errorInfo.message = safeMessage
+      errorInfo.retryable = !safeMessage.includes('权限') && !safeMessage.includes('不存在')
     }
 
     return errorInfo
@@ -179,17 +207,16 @@ export const useErrorHandler = (): ErrorHandlerResult => {
 
     // 防重入：避免递归调用
     if (handling) {
-      console.warn('[ErrorHandler] 递归调用被阻止', error)
       return
     }
 
     // 节流：相同错误1秒内只处理一次
-    const errorKey = `${context}|${String(error)}`
+    const safeErrorKey = `${context}|${typeof error?.name === 'string' ? error.name : 'Error'}|${typeof error?.message === 'string' ? error.message : 'Unknown'}`
     const now = Date.now()
-    if (errorKey === lastErrorKey && now - lastErrorTime < 1000) {
+    if (safeErrorKey === lastErrorKey && now - lastErrorTime < 1000) {
       return
     }
-    lastErrorKey = errorKey
+    lastErrorKey = safeErrorKey
     lastErrorTime = now
 
     handling = true
@@ -282,11 +309,9 @@ export const useErrorHandler = (): ErrorHandlerResult => {
     notification.error(notificationOptions)
   }
 
-  // 错误上报（可扩展为实际的监控系统）
-  const reportError = (errorInfo: ErrorInfo): void => {
-    // 使用errorInfo参数，避免未使用警告
-    console.warn('[ErrorReport]', errorInfo)
 
+  // 错误上报（可扩展为实际的监控系统）
+  const reportError = (_errorInfo: ErrorInfo): void => {
     // 这里可以集成实际的错误监控服务
     // 例如：Sentry、LogRocket等
     if (import.meta.env.DEV) {

@@ -298,7 +298,14 @@ const focusInput = () => {
 const handleKeyDown = (event: KeyboardEvent) => {
   if (event.key === 'Enter' && !event.shiftKey) {
     event.preventDefault()
+    // 如果正在发送或输入为空，则仅触发 enter 事件，不执行发送
+    if (props.isSending || !innerValue.value || innerValue.value.length === 0) {
+      emit('enter')
+      return
+    }
+    // 触发回车事件并执行发送，兼容现有父组件监听 send 的逻辑
     emit('enter')
+    emit('send')
   }
 }
 

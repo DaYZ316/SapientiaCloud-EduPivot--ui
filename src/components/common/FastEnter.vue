@@ -127,8 +127,27 @@ const handleQuickLinkClick = (quickLink: FastEnterQuickLink): void => {
       border-radius: 8px;
       transition: all 0.2s;
 
+      .app-icon {
+        transition: background-color 0.2s, transform 0.2s;
+      }
+
       &:hover {
         background-color: var(--n-color-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+
+        .app-icon {
+          background-color: var(--n-primary-color);
+        }
+
+        .app-info {
+          h3 {
+            color: var(--n-primary-color);
+          }
+          p {
+            color: var(--n-text-color);
+          }
+        }
       }
 
       .app-icon {
@@ -173,19 +192,23 @@ const handleQuickLinkClick = (quickLink: FastEnterQuickLink): void => {
       color: var(--n-text-color);
     }
 
-    ul {
+      ul {
       margin: 0;
       padding: 0;
       list-style: none;
 
       li {
-        padding: 8px 0;
+        padding: 8px 0 8px 8px;
         cursor: pointer;
-        transition: color 0.2s;
+        transition: color 0.2s, background-color 0.2s, padding-left 0.15s;
+        border-radius: 6px;
 
         &:hover {
+          background-color: var(--n-color-hover);
+          padding-left: 12px;
           span {
             color: var(--n-primary-color);
+            font-weight: 500;
           }
         }
 

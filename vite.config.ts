@@ -15,26 +15,27 @@ function copy3DModelsPlugin() {
         name: 'copy-3d-models',
         writeBundle() {
             const srcDir = path.resolve(__dirname, 'src/assets/3Dmodel')
-            const destDir = path.resolve(__dirname, 'dist/assets/3Dmodel')
-            
+            const destDir = path.resolve(__dirname, 'dist/assets')
+
             if (!existsSync(srcDir)) {
                 console.warn('3D模型源目录不存在:', srcDir)
                 return
             }
-            
-            function copyRecursive(src: string, dest: string) {
-                if (!existsSync(dest)) {
-                    mkdirSync(dest, {recursive: true})
-                }
-                
+
+            // 确保目标目录存在
+            if (!existsSync(destDir)) {
+                mkdirSync(destDir, {recursive: true})
+            }
+
+            function copyRecursive(src: string) {
                 const entries = readdirSync(src, {withFileTypes: true, encoding: 'utf8'})
-                
+
                 for (const entry of entries) {
                     const srcPath = path.join(src, entry.name)
-                    const destPath = path.join(dest, entry.name)
-                    
+                    const destPath = path.join(destDir, entry.name)
+
                     if (entry.isDirectory()) {
-                        copyRecursive(srcPath, destPath)
+                        copyRecursive(srcPath)
                     } else {
                         try {
                             copyFileSync(srcPath, destPath)
@@ -45,10 +46,10 @@ function copy3DModelsPlugin() {
                     }
                 }
             }
-            
+
             try {
-                console.log('开始复制 3D 模型文件...')
-                copyRecursive(srcDir, destDir)
+                console.log('开始复制 3D 模型文件到 assets 根目录...')
+                copyRecursive(srcDir)
                 console.log('3D 模型文件复制完成')
             } catch (error) {
                 console.error('复制 3D 模型文件失败:', error)
@@ -116,7 +117,6 @@ export default defineConfig({
         }
     },
     assetsInclude: ['**/*.gltf', '**/*.bin'],
-    publicDir: 'public',
     server: {
         host: '0.0.0.0', // 允许外部访问
         port: 80,
@@ -155,7 +155,6 @@ export default defineConfig({
                     });
                 }
             },
-            // 代理celestial-hub服务
             '/celestial-hub': {
                 target: getProxyTarget(defaultServerConfig),
                 changeOrigin: true,

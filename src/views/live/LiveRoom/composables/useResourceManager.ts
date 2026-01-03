@@ -2,7 +2,7 @@ import { ref, onBeforeUnmount } from 'vue'
 
 export interface ResourceManagerResult {
   registerResource: (resource: any, cleanup?: () => void) => () => void
-  registerTimer: (timer: NodeJS.Timeout) => () => void
+  registerTimer: (timer: number) => () => void
   registerMediaStream: (stream: MediaStream) => () => void
   registerEventListener: (target: any, event: string, handler: Function) => () => void
   cleanupAll: () => void
@@ -12,7 +12,7 @@ export interface ResourceManagerResult {
 export const useResourceManager = (): ResourceManagerResult => {
   // 资源存储
   const resources = ref<Map<any, () => void>>(new Map())
-  const timers = ref<Set<NodeJS.Timeout>>(new Set())
+  const timers = ref<Set<number>>(new Set())
   const mediaStreams = ref<Set<MediaStream>>(new Set())
   const eventListeners = ref<Map<any, Map<string, Function>>>(new Map())
 
@@ -44,7 +44,7 @@ export const useResourceManager = (): ResourceManagerResult => {
   }
 
   // 注册定时器
-  const registerTimer = (timer: NodeJS.Timeout): (() => void) => {
+  const registerTimer = (timer: number): (() => void) => {
     timers.value.add(timer)
 
     return () => {

@@ -83,6 +83,7 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { NButton, NSpin } from 'naive-ui';
 import { CloseOutline } from '@vicons/ionicons5';
+import { fetchEventSource } from '@microsoft/fetch-event-source';
 import LiveRoomCreateForm from '@/views/live/components/LiveRoomCreateForm.vue';
 import { LiveRoomRoleEnum } from '@/enum/live/liveRoomRoleEnum';
 import { LiveRoomStatusEnum } from '@/enum/live/liveRoomStatusEnum';
@@ -93,8 +94,7 @@ import {
   getLatestLiveRoom,
   endLiveRoom,
   startLiveRoom,
-  issueRoomToken,
-  getSseToken
+  issueRoomToken
 } from '@/api/live/liveRoom';
 import { getCourseById } from '@/api/course/course';
 import type { LiveRoomVO } from '@/types/live';
@@ -277,60 +277,78 @@ function getStatusLabel(status: number | null | undefined) {
 }
 
 // SSE subscription
-let source: EventSource | null = null;
-function subscribeSse() {
+let eventSourceController: AbortController | null = null;
+async function subscribeSse() {
   if (!props.classroomId) return;
   unsubscribeSse();
-  // First request a short-lived SSE token (authenticated AJAX), then open EventSource to hub with token
-  getSseToken(props.classroomId).then((res: any) => {
-    const token = res?.data || res;
-    if (!token) {
-      errorHandler.handleError(new Error('无法获取 SSE 订阅令牌'), 'sse_token', {
-        showNotification: true
-      });
-      return;
+
+  try {
+    const jwtToken = userStore.token;
+    if (!jwtToken) {
+      throw new Error('用户未登录，无法建立SSE连接');
     }
-    const url = `/api/live/subscribe?classroomId=${props.classroomId}&token=${token}`;
-    source = new EventSource(url);
-    source.addEventListener('room-status-change', (evt: MessageEvent) => {
-      try {
-        const data = JSON.parse(evt.data);
-        // update room info (hub may send map or LiveRoomVO-like object)
-        room.value = data;
-        // show notifications for status changes
-        const status = data && (data.status || data.status === 0) ? Number(data.status) : null;
-        if (status === LiveRoomStatusEnum.LIVE) {
-          const { message } = getGlobalApis();
-          if (message) message.success('直播开始');
-        } else if (status === LiveRoomStatusEnum.ENDED) {
-          const { message } = getGlobalApis();
-          if (message) message.info('直播已结束');
-        } else if (status === LiveRoomStatusEnum.CLOSED) {
-          const { message } = getGlobalApis();
-          if (message) message.info('直播已关闭');
+
+    const sseUrl = `/celestial-hub/live/subscribe?classroomId=${props.classroomId}`;
+
+    eventSourceController = new AbortController();
+
+    await fetchEventSource(sseUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${jwtToken}`,
+        'Accept': 'text/event-stream'
+      },
+      signal: eventSourceController.signal,
+      openWhenHidden: true,
+      credentials: 'include',
+      onopen: async (response) => {
+        if (response.ok) {
+          console.log('LivePanel SSE连接建立成功');
+        } else {
+          console.error('LivePanel SSE连接失败:', response.status, response.statusText);
         }
-      } catch (e) {
-        // ignore JSON parse errors
+      },
+      onmessage: (evt) => {
+        try {
+          const data = JSON.parse(evt.data);
+          // update room info (hub may send map or LiveRoomVO-like object)
+          room.value = data;
+          // show notifications for status changes
+          const status = data && (data.status || data.status === 0) ? Number(data.status) : null;
+          if (status === LiveRoomStatusEnum.LIVE) {
+            const { message } = getGlobalApis();
+            if (message) message.success('直播开始');
+          } else if (status === LiveRoomStatusEnum.ENDED) {
+            const { message } = getGlobalApis();
+            if (message) message.info('直播已结束');
+          } else if (status === LiveRoomStatusEnum.CLOSED) {
+            const { message } = getGlobalApis();
+            if (message) message.info('直播已关闭');
+          }
+        } catch (e) {
+          // ignore JSON parse errors
+        }
+      },
+      onerror: (error) => {
+        console.error('LivePanel SSE连接错误:', error);
+        // Don't show error notifications for connection issues, just log them
       }
     });
-    source.onerror = () => {
-      // ignore connection errors
-    };
-  }).catch((error) => {
+  } catch (error) {
     errorHandler.handleError(error, 'sse_subscribe', {
       showNotification: true,
       customMessage: 'SSE 订阅失败'
     });
-  });
+  }
 }
 
 function unsubscribeSse() {
-  if (source) {
+  if (eventSourceController) {
     try {
-      source.close();
+      eventSourceController.abort();
     } catch (e) {
     }
-    source = null;
+    eventSourceController = null;
   }
 }
 
@@ -427,6 +445,9 @@ onBeforeUnmount(() => {
 
 .live-panel__actions {
   margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 .course-info-row {
   display: flex;

@@ -51,7 +51,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { NSpin, NIcon } from 'naive-ui'
 import { VideocamOutline } from '@vicons/ionicons5'
@@ -65,7 +65,7 @@ interface Props {
   remoteParticipants: RemoteParticipantMedia[]
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 const { t } = useI18n()
 

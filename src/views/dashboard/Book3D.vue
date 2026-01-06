@@ -257,7 +257,7 @@ const loadBookModel = () => {
 
           // 计算缩放比例，确保模型适合视图
           const maxDim = Math.max(size.x, size.y, size.z);
-          const scale = 1.5 / maxDim; // 调整缩放因子以合适显示
+          const scale = 1.4 / maxDim; // 调整缩放因子以合适显示
           bookModel.scale.set(scale, scale, scale);
 
           // 修复缺失的纹理

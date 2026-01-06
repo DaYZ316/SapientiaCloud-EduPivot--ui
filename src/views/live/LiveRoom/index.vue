@@ -147,7 +147,10 @@ const connectionConnecting = computed(() => connection.connecting)
 const cameraEnabled = computed(() => media.cameraEnabled)
 const microphoneEnabled = computed(() => media.microphoneEnabled)
 const recordingLoading = computed(() => recording.recordingLoading)
-const chatMessages = computed(() => Array.isArray(chat.messages) ? chat.messages : [])
+const chatMessages = computed(() => {
+  const msgs = (chat.messages as any)?.value ?? (chat.messages as any)
+  return Array.isArray(msgs) ? msgs : []
+})
 
 // 页面卸载检测
 const handlePageUnload = () => {
@@ -188,7 +191,6 @@ onMounted(async () => {
   const connectWithRetry = async (token?: string) => {
     // 防递归：如果正在连接，直接返回
     if (isConnecting) {
-      console.warn('[connectWithRetry] 连接正在进行中，跳过重复调用')
       return
     }
 
@@ -202,9 +204,7 @@ onMounted(async () => {
           maxRetries: 3,
           baseDelay: 2000,
           retryCondition: (error) => retryMechanism.isRetryableError(error),
-          onRetry: (attempt, error) => {
-            // 使用error参数避免未使用警告
-            console.log('Retry attempt:', attempt, error)
+          onRetry: (attempt, _error) => {
             loadingState.setLoading('connection', true, `连接失败，正在重试 (${attempt}/3)...`)
           }
         }
@@ -212,6 +212,13 @@ onMounted(async () => {
 
       // 如果成功到达这里，说明连接成功
       loadingState.setLoading('connection', false)
+
+      // 设置实时消息监听
+      if (connection.room.value) {
+        chat.setupRealtimeMessages(connection.room.value)
+      }
+
+      // 媒体设置将在用户点击媒体控制按钮时进行
     } catch (error) {
       loadingState.setLoading('connection', false)
       errorHandler.handleError(error, '直播连接', {
@@ -354,7 +361,7 @@ async function handleToggleRecording() {
 
       .loading-text {
         font-size: 14px;
-        color: var(--text-color-2);
+        color: var(--text-secondary-color);
         text-align: center;
       }
     }

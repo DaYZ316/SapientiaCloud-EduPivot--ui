@@ -72,7 +72,7 @@ export const useChatMessages = () => {
         }
       ]
     } catch (error) {
-      console.error('加载历史消息失败:', error)
+      // 加载历史消息失败
       messages.value = [{
         id: 'error',
         sender: t('live.room.system'),
@@ -127,9 +127,36 @@ export const useChatMessages = () => {
         senderRole
       }
 
-      await liveApi.appendLiveRoomMessage(roomId, messageDTO)
+      const response = await liveApi.appendLiveRoomMessage(roomId, messageDTO)
+
+      // 如果后端返回了消息数据，使用后端时间更新 lastMessageTime，并替换本地临时消息
+      if (response?.data) {
+        const serverMsg: any = response.data
+
+        // 更新 lastMessageTime，保证轮询能检测到之后的消息
+        if (serverMsg.sendTime) {
+          lastMessageTime.value = serverMsg.sendTime
+        }
+
+        // 将本地临时消息替换为服务端版本，避免重复与 id 不一致
+        const lastIdx = messages.value.length - 1
+        const mapped = {
+          id: serverMsg.id || localMessage.id,
+          sender: serverMsg.senderName || localMessage.sender,
+          content: serverMsg.content || localMessage.content,
+          timestamp: serverMsg.sendTime ? new Date(serverMsg.sendTime).toLocaleTimeString() : localMessage.timestamp,
+          isOwn: true
+        }
+
+        if (lastIdx >= 0 && messages.value[lastIdx].id === localMessage.id) {
+          messages.value[lastIdx] = mapped
+        } else {
+          const exists = messages.value.some(m => m.id === mapped.id)
+          if (!exists) messages.value.push(mapped)
+        }
+      }
     } catch (error) {
-      console.error('发送消息失败:', error)
+      // 发送消息失败
       // 可以在消息上标记发送失败状态
     }
   }
@@ -157,7 +184,7 @@ export const useChatMessages = () => {
           isOwn
         })
       } catch (error) {
-        console.error('处理实时消息失败:', error)
+        // 处理实时消息失败
       }
     })
   }
@@ -219,7 +246,7 @@ export const useChatMessages = () => {
         }
       }
     } catch (error) {
-      console.error('轮询消息失败:', error)
+      // 轮询消息失败
     }
   }
 

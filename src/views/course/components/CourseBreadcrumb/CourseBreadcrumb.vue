@@ -2,7 +2,7 @@
   <div class="breadcrumb-container">
     <n-breadcrumb class="breadcrumb" size="large">
       <n-breadcrumb-item>
-        <router-link to="/">{{ t('course.home') }}</router-link>
+        <router-link to="/dashboard">{{ t('course.home') }}</router-link>
       </n-breadcrumb-item>
       <n-breadcrumb-item>
         <router-link to="/course/my-courses">{{ t('course.myCourses') }}</router-link>

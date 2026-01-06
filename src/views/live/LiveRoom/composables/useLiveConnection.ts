@@ -42,17 +42,16 @@ export const useLiveConnection = (): LiveConnectionResult => {
   const connectionError = ref<string | null>(null)
   const onlineCount = ref<number>(0)
 
-  // LiveKit服务器URL配置
   const livekitServerUrl = computed(() => {
-    const envUrl = (import.meta && (import.meta as any).env && (import.meta as any).env.VITE_LIVEKIT_WS) || ''
-    if (envUrl && envUrl.trim().length > 0) {
+    const envUrl = (import.meta as any)?.env?.VITE_LIVEKIT_WS
+    if (envUrl && envUrl.trim()) {
       return envUrl.trim()
     }
 
-    const isHttps = window.location.protocol === 'https:'
-    const wsProtocol = isHttps ? 'wss:' : 'ws:'
-    return `${wsProtocol}//${window.location.hostname}:7880`
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    return `${wsProtocol}//${window.location.host}`
   })
+  
 
   // 连接状态标签
   const connectionStateLabel = computed(() => {
@@ -66,21 +65,6 @@ export const useLiveConnection = (): LiveConnectionResult => {
     return labels[connectionState.value] || ''
   })
 
-  // 获取断开连接原因的描述
-  const getDisconnectReasonMessage = (reason: any): string => {
-    const reasonCode = typeof reason === 'number' ? reason : parseInt(reason?.toString() || '0')
-    switch (reasonCode) {
-      case 0: return '未知原因'
-      case 1: return '客户端主动断开'
-      case 2: return '重复身份'
-      case 3: return '服务器关闭'
-      case 4: return '参与者被移除'
-      case 5: return '房间已删除'
-      case 6: return '状态不匹配'
-      case 7: return '加入失败'
-      default: return `未知原因 (${reasonCode})`
-    }
-  }
 
   // 连接到直播房间（带重试机制）
   const connect = async (roomInfo: LiveRoomVO | null, currentUserRole: LiveRoomRoleEnum, providedToken?: string): Promise<void> => {
@@ -171,7 +155,26 @@ export const useLiveConnection = (): LiveConnectionResult => {
     // 创建Room实例
     const newRoom = new Room({
       adaptiveStream: true,
-      dynacast: true
+      dynacast: true,
+      // 禁用自动音频捕获，避免在没有用户手势时创建AudioContext
+      audioCaptureDefaults: {
+        deviceId: 'default',
+        autoGainControl: true,
+        echoCancellation: true,
+        noiseSuppression: true
+      },
+      // 禁用自动视频捕获
+      videoCaptureDefaults: {
+        deviceId: 'default'
+      },
+      // 禁用自动发布，这可以避免连接时自动尝试获取媒体设备
+      publishDefaults: {
+        simulcast: true,
+        videoEncoding: {
+          maxBitrate: 2000000,
+          maxFramerate: 30
+        }
+      }
     })
 
     // 注册资源管理
@@ -185,33 +188,8 @@ export const useLiveConnection = (): LiveConnectionResult => {
       ? `${livekitServerUrl.value}?room=${encodeURIComponent(returnedRoomName)}`
       : livekitServerUrl.value
 
-    // 连接到服务器
+    // 连接到服务器（LiveKit client会自动等待连接完成）
     await newRoom.connect(connectUrl, token)
-
-    // 等待RTC连接完成
-    await new Promise<void>((resolve, reject) => {
-      const timeoutId = setTimeout(() => {
-        reject(new Error('RTC连接超时：60秒后仍未完成媒体连接'))
-      }, 60000)
-
-      const onConnected = () => {
-        clearTimeout(timeoutId)
-        newRoom.off(RoomEvent.Connected, onConnected)
-        newRoom.off(RoomEvent.Disconnected, onDisconnected)
-        resolve()
-      }
-
-      const onDisconnected = (reason?: any) => {
-        clearTimeout(timeoutId)
-        newRoom.off(RoomEvent.Connected, onConnected)
-        newRoom.off(RoomEvent.Disconnected, onDisconnected)
-        const reasonMessage = getDisconnectReasonMessage(reason)
-        reject(new Error(`连接丢失: ${reasonMessage}`))
-      }
-
-      newRoom.on(RoomEvent.Connected, onConnected)
-      newRoom.on(RoomEvent.Disconnected, onDisconnected)
-    })
 
     // 连接成功
     room.value = newRoom
@@ -298,15 +276,13 @@ export const useLiveConnection = (): LiveConnectionResult => {
 
     // 轨道订阅（需要与其他composable配合）
     resourceManager.registerEventListener(targetRoom, RoomEvent.TrackSubscribed,
-      (track: Track, _publication: RemoteTrackPublication, participant: RemoteParticipant) => {
+      (_track: Track, _publication: RemoteTrackPublication, _participant: RemoteParticipant) => {
         // 使用参数避免未使用警告，这里会通过事件向上传递给VideoPanel处理
-        console.log('Track subscribed:', track.kind, participant.identity)
       })
 
     resourceManager.registerEventListener(targetRoom, RoomEvent.TrackUnsubscribed,
-      (_track: Track, _publication: RemoteTrackPublication, participant: RemoteParticipant) => {
+      (_track: Track, _publication: RemoteTrackPublication, _participant: RemoteParticipant) => {
         // 使用参数避免未使用警告，这里会通过事件向上传递给VideoPanel处理
-        console.log('Track unsubscribed:', participant.identity)
       })
   }
 

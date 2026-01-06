@@ -32,37 +32,66 @@ export const useRetryMechanism = (): RetryMechanismResult => {
     retryCount: 0
   })
 
+
   // 判断错误是否可以重试
   const isRetryableError = (error: any): boolean => {
     if (!error) return false
 
+    // 安全地提取错误信息，避免DataCloneError
+    let errorName = 'Error'
+    let errorMessage = ''
+    let errorCode: string | undefined
+
+    try {
+      // 只访问基本类型属性，避免DOM引用
+      if (typeof error?.name === 'string') errorName = error.name
+      if (typeof error?.message === 'string') errorMessage = error.message
+      if (typeof error?.code === 'string') errorCode = error.code
+    } catch {
+      // 如果访问失败，使用默认值
+    }
+
+    // ✅ 关键：AudioContext权限错误不应该触发连接重试
+    if (errorMessage.includes('AudioContext was not allowed') ||
+        errorMessage.includes('NotAllowedError') ||
+        errorMessage.includes('autoplay') ||
+        errorName === 'NotAllowedError') {
+      return false
+    }
+
     // 网络相关错误可以重试
-    if (error.message?.includes('网络') ||
-        error.message?.includes('timeout') ||
-        error.message?.includes('连接') ||
-        error.code === 'NETWORK_ERROR' ||
-        error.code === 'TIMEOUT') {
+    if (errorMessage.includes('网络') ||
+        errorMessage.includes('timeout') ||
+        errorMessage.includes('连接') ||
+        errorCode === 'NETWORK_ERROR' ||
+        errorCode === 'TIMEOUT') {
       return true
     }
 
-    // HTTP状态码判断
-    if (error.status) {
-      // 5xx服务器错误可以重试
-      if (error.status >= 500) return true
-      // 429 Too Many Requests 可以重试
-      if (error.status === 429) return true
-      // 408 Request Timeout 可以重试
-      if (error.status === 408) return true
+    // HTTP状态码判断（直接使用原始error，因为status是基本类型）
+    try {
+      if (error?.status) {
+        // 5xx服务器错误可以重试
+        if (error.status >= 500) return true
+        // 429 Too Many Requests 可以重试
+        if (error.status === 429) return true
+        // 408 Request Timeout 可以重试
+        if (error.status === 408) return true
+      }
+    } catch {
+      // 如果status访问失败，跳过
     }
 
     // WebRTC相关错误
-    if (error.name === 'NetworkError' ||
-        error.name === 'TimeoutError' ||
-        error.message?.includes('ICE') ||
-        error.message?.includes('connection')) {
+    if (errorName === 'NetworkError' ||
+        errorName === 'TimeoutError' ||
+        errorMessage.includes('ICE') ||
+        errorMessage.includes('connection')) {
       return true
     }
 
+    // 默认情况下，对于媒体错误，我们认为它们通常是不可重试的
+    // 因为通常涉及权限、设备不存在等问题
     return false
   }
 

@@ -32,7 +32,7 @@ const error = ref<string | null>(null);
 // 3D模型路径配置
 const modelUrl = import.meta.env.DEV
     ? new URL('@/assets/3Dmodel/celestail_hub/celestail_hub.gltf', import.meta.url).href
-    : '/assets/3Dmodel/celestail_hub/celestail_hub.gltf';
+    : '/assets/3Dmodel/celestail_hub.gltf';
 
 // Three.js相关对象
 let canvas: HTMLCanvasElement | null = null;

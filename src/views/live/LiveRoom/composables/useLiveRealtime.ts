@@ -64,10 +64,7 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
       loadingState.setLoading('sse', false)
       connectionState.value = 'failed'
 
-      console.error('SSE连接失败:', error)
-
       // SSE连接失败时启用轮询模式，不显示错误通知（因为这是正常降级）
-      console.log('SSE连接失败，启用轮询模式作为备用方案')
       startPolling()
 
       // 不抛出错误，因为轮询模式是可接受的降级方案
@@ -86,13 +83,9 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
         throw new Error('用户未登录，无法建立SSE连接')
       }
 
-      console.log('使用JWT token建立SSE连接')
-
       // 建立SSE连接
       // 使用fetch-event-source支持Authorization header，避免EventSource的header限制
       const sseUrl = `/celestial-hub/live/subscribe${currentClassroomId ? `?classroomId=${currentClassroomId}` : ''}`
-
-      console.log('尝试连接SSE (使用JWT Authorization header):', sseUrl)
 
       eventSourceController = new AbortController()
 
@@ -112,24 +105,20 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
         openWhenHidden: true,
         credentials: 'include',
         onopen: async (response) => {
-          console.log('SSE连接响应:', response.status, response.statusText)
-          if (response.ok) {
-            console.log('SSE连接建立成功')
-            isConnected.value = true
-            connectionState.value = 'connected'
-            reconnectAttempts.value = 0
-            startHeartbeat()
-          } else {
-            console.error('SSE连接失败:', response.status, response.statusText)
-            // 尝试读取错误响应体
-            try {
-              const errorText = await response.clone().text()
-              console.error('SSE错误详情:', errorText)
-            } catch (e) {
-              console.error('无法读取错误详情')
+            if (response.ok) {
+              isConnected.value = true
+              connectionState.value = 'connected'
+              reconnectAttempts.value = 0
+              startHeartbeat()
+            } else {
+              // 尝试读取错误响应体
+              try {
+                await response.clone().text()
+              } catch (e) {
+                // 无法读取错误详情
+              }
+              throw new Error(`SSE连接失败: ${response.status} ${response.statusText}`)
             }
-            throw new Error(`SSE连接失败: ${response.status} ${response.statusText}`)
-          }
         },
         onmessage: (event) => {
           try {
@@ -139,19 +128,16 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
             // JSON解析失败，静默处理
           }
         },
-        onerror: (error) => {
-          console.error('SSE连接错误:', error)
+        onerror: (_error) => {
           isConnected.value = false
           connectionState.value = 'disconnected'
 
           // 如果SSE失败，立即启用轮询作为备用方案
-          console.log('SSE连接失败，启用轮询模式作为备用')
           startPolling()
         }
       })
 
     } catch (error: any) {
-      console.error('SSE连接准备阶段出错:', error)
       throw error
     }
   }
@@ -270,13 +256,10 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
   const startPolling = (): void => {
     stopPolling()
 
-    console.log('开始轮询模式，每30秒检查一次连接状态')
-
     const pollMessages = async () => {
       try {
         // 在轮询模式下，我们保持连接状态为已连接
         // 但不实际获取消息，因为没有相应的API
-        console.log('轮询模式：保持连接状态')
 
         isConnected.value = true
         connectionState.value = 'connected'
@@ -284,7 +267,6 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
         // 可以在这里添加心跳检查或其他状态检查
         // 例如：检查房间是否仍然活跃
       } catch (error) {
-        console.error('轮询模式出错:', error)
         isConnected.value = false
         connectionState.value = 'disconnected'
       }
@@ -305,7 +287,6 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
 
   // 组件卸载时清理资源
   onBeforeUnmount(() => {
-    console.log('清理实时连接资源')
     disconnect()
   })
 

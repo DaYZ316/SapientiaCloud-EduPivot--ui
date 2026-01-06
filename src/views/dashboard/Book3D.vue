@@ -18,7 +18,7 @@ const error = ref<string | null>(null);
 // 使用静态路径，因为 3D 模型文件是通过插件直接复制到 dist/assets/3Dmodel/ 的
 const modelUrl = import.meta.env.DEV
     ? new URL('@/assets/3Dmodel/book/ancient_books.gltf', import.meta.url).href
-    : '/assets/3Dmodel/book/ancient_books.gltf';
+    : '/assets/3Dmodel/ancient_books.gltf';
 
 // Three.js相关对象
 let canvas: HTMLCanvasElement | null = null;

@@ -74,7 +74,7 @@ export default {
     githubLogin: 'Login with GitHub',
     oauth2Processing: 'Processing OAuth2 login...',
     oauth2CallbackFailed: 'OAuth2 login failed',
-    slogan: 'Smart Education, Start Your Future Learning Journey',
+    slogan: 'Smart AI, Start Your Future Journey',
 
     // Register step related
     registerSteps: {

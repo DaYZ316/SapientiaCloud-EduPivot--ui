@@ -96,6 +96,7 @@ import {NButton, NIcon} from 'naive-ui'
 import {CloseOutline} from '@vicons/ionicons5'
 import {getDefaultQuestionGenerateRequestDTO} from '@/api/celestialHub/question'
 import type {QuestionGenerateRequestDTO} from '@/types/celestialHub/question'
+import {useTransitionStore} from '@/store'
 
 interface Props {
   show: boolean
@@ -113,14 +114,26 @@ const emit = defineEmits<{
 }>()
 
 const {t} = useI18n()
+const transitionStore = useTransitionStore()
 
 const innerShow = ref(props.show)
 const skipCloseAnimation = ref(false)
 
 watch(() => props.show, (newValue) => {
   if (newValue) {
-    innerShow.value = true
-    skipCloseAnimation.value = false
+    // 等待过渡动画结束后再显示 SmartQuestionModal
+    if (transitionStore.showTransition) {
+      const unwatch = watch(() => transitionStore.showTransition, (transitioning) => {
+        if (!transitioning) {
+          unwatch()
+          innerShow.value = true
+          skipCloseAnimation.value = false
+        }
+      })
+    } else {
+      innerShow.value = true
+      skipCloseAnimation.value = false
+    }
   } else {
     if (skipCloseAnimation.value) {
       // 通过确定按钮关闭，立即隐藏，不使用退出动画

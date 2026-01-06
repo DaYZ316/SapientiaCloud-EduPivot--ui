@@ -33,12 +33,12 @@
         :style="popupStyles"
         class="celestial-popup"
       >
-        <CelestialHubPopup
+        <CelestialHubWindow
           :is-minimized="isPopupMinimized"
           :is-history-view="isHistoryView"
           @minimize="handlePopupMinimize"
           @close="handlePopupClose"
-          @show-history="handleShowHistory"
+          @show-history="handleShowHistory" 
           @new-chat="handleNewChat"
         />
       </div>
@@ -51,7 +51,7 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { computePosition, offset, flip, shift, autoUpdate } from '@floating-ui/dom';
 import CelestialHub from './CelestialHub.vue';
-import CelestialHubPopup from './CelestialHubPopup.vue';
+import CelestialHubWindow from './CelestialHubWindow.vue';
 
 // Props
 const props = defineProps({
@@ -707,8 +707,8 @@ onBeforeUnmount(() => {
   padding: 0;
   box-shadow: none;
   z-index: 1001;
-  /* 使用屏幕占比，最大尺寸不超过 900x800px，最小保证可用 */
-  width: min(80vw, 900px);
+  /* 使用屏幕占比，最大尺寸不超过 1200x800px，最小保证可用 */
+  width: min(80vw, 1400px);
   height: min(80vh, 800px);
   min-width: 320px;
   min-height: 300px;

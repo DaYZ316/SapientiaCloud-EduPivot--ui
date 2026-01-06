@@ -74,6 +74,22 @@ export function handleDateRangeChange(
 }
 
 /**
+ * 格式化日期时间字符串
+ * @param dateString 日期时间字符串
+ * @returns 格式化后的日期时间字符串
+ */
+export function formatDateTime(dateString: string | null): string {
+    if (!dateString) return ''
+
+    try {
+        const date = new Date(dateString)
+        return formatToBeijingTime(date)
+    } catch (error) {
+        return dateString
+    }
+}
+
+/**
  * 格式化日期字符串
  * @param dateString 日期字符串
  * @returns 格式化后的日期字符串

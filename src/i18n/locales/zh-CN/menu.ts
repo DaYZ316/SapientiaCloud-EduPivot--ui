@@ -1,5 +1,6 @@
 export default {
     dashboard: '控制台',
+    notification: '通知',
     settings: '设置',
     filePreview: '文件预览',
     profile: '个人资料',

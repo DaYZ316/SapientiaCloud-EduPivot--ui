@@ -11,6 +11,8 @@ export type EventBusEvents = {
     aiActiveSessionIdChanged: string | number | null
     aiSelectSession: ChatSessionVO
     aiNewChat: void
+    // 请求打开智能出题（来自其它页面的通知）
+    aiOpenSmartQuestion: void
     aiMyFavorites: void
 }
 

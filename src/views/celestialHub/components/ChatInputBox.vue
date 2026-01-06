@@ -90,6 +90,7 @@ import {NButton, NDropdown, NIcon, NInput, NSwitch, useMessage} from 'naive-ui'
 import {AttachOutline, MicOutline, Send, Stop} from '@vicons/ionicons5'
 import {useI18n} from 'vue-i18n'
 import {useUserStore} from '@/store'
+import {useRouter} from 'vue-router'
 import {useSpeechRecognition} from '@/composables/useSpeechRecognition'
 import FileReferenceSelector from './FileReferenceSelector.vue'
 import type {FileReference} from '@/types/celestialHub/knowledge'
@@ -136,6 +137,7 @@ const fileReferencesModel = computed({
 const {t} = useI18n()
 const userStore = useUserStore()
 const message = useMessage()
+const router = useRouter()
 
 // 判断是否是admin
 const isAdmin = computed(() => {
@@ -244,12 +246,17 @@ const handleDrop = (event: DragEvent) => {
   }
 }
 
-const toolsOptions = computed(() => [
-  {
-    label: t('chat.toolsMenu.smartQuestion'),
-    key: 'smartQuestion'
-  }
-])
+const toolsOptions = computed(() => {
+  const showNote = router.currentRoute.value.path !== '/ai'
+  return [
+    {
+      label: showNote
+        ? `${t('chat.toolsMenu.smartQuestion')} (${t('chat.toolsMenu.needMainPage')})`
+        : t('chat.toolsMenu.smartQuestion'),
+      key: 'smartQuestion'
+    }
+  ]
+})
 
 const inputRef = ref<InstanceType<typeof NInput> | null>(null)
 
@@ -325,6 +332,10 @@ const handleSendClick = () => {
 }
 
 const handleToolsSelect = (key: string | number) => {
+  if (key === 'smartQuestion') {
+    emit('open-tools', key)
+    return
+  }
   emit('open-tools', key)
 }
 </script>

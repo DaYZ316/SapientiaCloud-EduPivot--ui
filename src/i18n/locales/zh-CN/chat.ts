@@ -18,6 +18,7 @@ export default {
     resend: '重新提问',
     toolsMenu: {
         smartQuestion: '智能出题',
+        needMainPage: '需跳转主页面使用',
         questionCount: '出题数量',
         questionCountUnit: '道',
         questionType: '题目类型',

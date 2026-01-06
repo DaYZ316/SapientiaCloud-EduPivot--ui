@@ -21,3 +21,6 @@ export * from './celestialHub/index'
 
 // 导出live模块API
 export * from './live/index'
+
+// 导出dashboard模块API
+export * from './dashboard/index'

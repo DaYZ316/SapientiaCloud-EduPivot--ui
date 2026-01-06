@@ -25,6 +25,15 @@
           style="min-width: 180px;"
       />
     </n-form-item>
+    <n-form-item :label="t('course.searchForm.isPublic')" path="isPublic">
+      <n-select
+          v-model:value="searchForm.isPublic"
+          :options="coursePublicOptions"
+          :placeholder="t('course.searchForm.isPublicPlaceholder')"
+          clearable
+          style="min-width: 180px;"
+      />
+    </n-form-item>
     <n-form-item :label="t('course.searchForm.createTimeRange')" path="createTimeRange">
       <n-date-picker
           v-model:value="createTimeRange"
@@ -59,7 +68,7 @@ import type * as courseType from '@/types/course'
 import {useI18n} from 'vue-i18n'
 import Icon from '@/components/common/Icon.vue'
 import * as courseApi from '@/api/course'
-import {getCourseStatusOptions, getCourseTypeOptions} from '@/enum/course'
+import {getCourseStatusOptions, getCourseTypeOptions, getCoursePublicOptions} from '@/enum/course'
 import {handleDateRangeChange} from '@/utils/dateUtil'
 
 const {t} = useI18n()
@@ -93,6 +102,9 @@ const courseTypeOptions = computed(() => getCourseTypeOptions(t))
 
 // 课程状态选项
 const courseStatusOptions = computed(() => getCourseStatusOptions(t))
+
+// 课程公开状态选项
+const coursePublicOptions = computed(() => getCoursePublicOptions(t))
 
 // 处理日期范围变化
 function onDateRangeChange(value: [number, number] | null) {

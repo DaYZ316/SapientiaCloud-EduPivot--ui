@@ -11,6 +11,8 @@ export default {
         courseTypePlaceholder: 'Please select course type',
         courseStatus: 'Course Status',
         courseStatusPlaceholder: 'Please select course status',
+        isPublic: 'Is Public',
+        isPublicPlaceholder: 'Please select if public',
         semester: 'Semester',
         semesterPlaceholder: 'Please enter semester',
         location: 'Location',

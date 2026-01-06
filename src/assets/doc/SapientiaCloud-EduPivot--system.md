@@ -3078,6 +3078,1898 @@
 ```
 
 
+# 系统通知管理
+
+
+## updateNotification
+
+
+**接口地址**:`/api/system/notification`
+
+
+**请求方式**:`PUT`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>修改通知消息内容（仅限管理员修改消息体，不影响用户阅读状态）</p>
+
+
+
+**请求示例**:
+
+
+```javascript
+{
+  "id": "",
+  "title": "",
+  "content": "",
+  "attachmentUrls": "",
+  "type": 0
+}
+```
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|notificationDTO|通知数据传输对象|body|true|NotificationDTO|NotificationDTO|
+|&emsp;&emsp;id|通知ID，更新时必须提供||true|string(uuid)||
+|&emsp;&emsp;title|通知标题||false|string||
+|&emsp;&emsp;content|通知内容（富文本HTML）||false|string||
+|&emsp;&emsp;attachmentUrls|附件URL列表（JSON字符串或URL数组，前端与MinIO配合使用）||false|string||
+|&emsp;&emsp;type|通知类型||false|integer(int32)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultBoolean|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|boolean||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## removeNotificationByIds
+
+
+**接口地址**:`/api/system/notification`
+
+
+**请求方式**:`DELETE`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>用户批量删除通知（仅从自己的收件箱移除）</p>
+
+
+
+**请求示例**:
+
+
+```javascript
+[]
+```
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|strings|string|body|true|array||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultInteger|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|integer(int32)|integer(int32)|
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": 0
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## getNotificationById
+
+
+**接口地址**:`/api/system/notification/{id}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>根据收件箱ID获取通知详情（包含完整内容）</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|id|用户收件箱记录ID|path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultNotificationVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data||NotificationVO|NotificationVO|
+|&emsp;&emsp;id|通知ID|string(uuid)||
+|&emsp;&emsp;userId|接收用户ID|string(uuid)||
+|&emsp;&emsp;title|通知标题|string||
+|&emsp;&emsp;content|通知内容（富文本HTML）|string||
+|&emsp;&emsp;attachmentUrls|附件URL列表（JSON字符串或URL数组，前端与MinIO配合使用）|string||
+|&emsp;&emsp;type|通知类型 (0=系统通知, 1=课程通知, 2=作业通知, 3=直播通知, 4=其他)|integer(int32)||
+|&emsp;&emsp;typeLabel|通知类型标签|string||
+|&emsp;&emsp;status|阅读状态 (0=未读, 1=已读)|integer(int32)||
+|&emsp;&emsp;statusLabel|阅读状态标签|string||
+|&emsp;&emsp;readTime|阅读时间|string(date-time)||
+|&emsp;&emsp;senderId|发送者ID|string(uuid)||
+|&emsp;&emsp;senderName|发送者名称|string||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"id": "",
+		"userId": "",
+		"title": "",
+		"content": "",
+		"attachmentUrls": "",
+		"type": 0,
+		"typeLabel": "",
+		"status": 0,
+		"statusLabel": "",
+		"readTime": "",
+		"senderId": "",
+		"senderName": "",
+		"createTime": "",
+		"updateTime": ""
+	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## removeNotificationById
+
+
+**接口地址**:`/api/system/notification/{id}`
+
+
+**请求方式**:`DELETE`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>用户删除单条通知（仅从自己的收件箱移除）</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|id|用户收件箱记录ID|path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultBoolean|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|boolean||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## markAsRead
+
+
+**接口地址**:`/api/system/notification/{id}/read`
+
+
+**请求方式**:`PUT`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>标记单条通知为已读</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|id|用户收件箱记录ID|path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultBoolean|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|boolean||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## addNotification
+
+
+**接口地址**:`/api/system/notification/add`
+
+
+**请求方式**:`POST`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>发送单条通知给指定用户</p>
+
+
+
+**请求示例**:
+
+
+```javascript
+{
+  "userId": "",
+  "title": "",
+  "content": "",
+  "attachmentUrls": "",
+  "type": 0,
+  "senderId": "",
+  "senderName": ""
+}
+```
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|notificationAddDTO|创建通知数据传输对象|body|true|NotificationAddDTO|NotificationAddDTO|
+|&emsp;&emsp;userId|接收用户ID||true|string(uuid)||
+|&emsp;&emsp;title|通知标题||true|string||
+|&emsp;&emsp;content|通知内容（富文本HTML）||false|string||
+|&emsp;&emsp;attachmentUrls|附件URL列表（JSON字符串或URL数组，前端与MinIO配合使用）||false|string||
+|&emsp;&emsp;type|通知类型 (0=系统通知, 1=课程通知, 2=作业通知, 3=直播通知, 4=其他)||false|integer(int32)||
+|&emsp;&emsp;senderId|发送者ID||false|string(uuid)||
+|&emsp;&emsp;senderName|发送者名称||false|string||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultNotificationVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data||NotificationVO|NotificationVO|
+|&emsp;&emsp;id|通知ID|string(uuid)||
+|&emsp;&emsp;userId|接收用户ID|string(uuid)||
+|&emsp;&emsp;title|通知标题|string||
+|&emsp;&emsp;content|通知内容（富文本HTML）|string||
+|&emsp;&emsp;attachmentUrls|附件URL列表（JSON字符串或URL数组，前端与MinIO配合使用）|string||
+|&emsp;&emsp;type|通知类型 (0=系统通知, 1=课程通知, 2=作业通知, 3=直播通知, 4=其他)|integer(int32)||
+|&emsp;&emsp;typeLabel|通知类型标签|string||
+|&emsp;&emsp;status|阅读状态 (0=未读, 1=已读)|integer(int32)||
+|&emsp;&emsp;statusLabel|阅读状态标签|string||
+|&emsp;&emsp;readTime|阅读时间|string(date-time)||
+|&emsp;&emsp;senderId|发送者ID|string(uuid)||
+|&emsp;&emsp;senderName|发送者名称|string||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"id": "",
+		"userId": "",
+		"title": "",
+		"content": "",
+		"attachmentUrls": "",
+		"type": 0,
+		"typeLabel": "",
+		"status": 0,
+		"statusLabel": "",
+		"readTime": "",
+		"senderId": "",
+		"senderName": "",
+		"createTime": "",
+		"updateTime": ""
+	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## listAllNotification
+
+
+**接口地址**:`/api/system/notification/all`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>获取当前用户的所有通知列表（不分页，按时间倒序）</p>
+
+
+
+**请求参数**:
+
+
+暂无
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultListNotificationVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|array|NotificationVO|
+|&emsp;&emsp;id|通知ID|string(uuid)||
+|&emsp;&emsp;userId|接收用户ID|string(uuid)||
+|&emsp;&emsp;title|通知标题|string||
+|&emsp;&emsp;content|通知内容（富文本HTML）|string||
+|&emsp;&emsp;attachmentUrls|附件URL列表（JSON字符串或URL数组，前端与MinIO配合使用）|string||
+|&emsp;&emsp;type|通知类型 (0=系统通知, 1=课程通知, 2=作业通知, 3=直播通知, 4=其他)|integer(int32)||
+|&emsp;&emsp;typeLabel|通知类型标签|string||
+|&emsp;&emsp;status|阅读状态 (0=未读, 1=已读)|integer(int32)||
+|&emsp;&emsp;statusLabel|阅读状态标签|string||
+|&emsp;&emsp;readTime|阅读时间|string(date-time)||
+|&emsp;&emsp;senderId|发送者ID|string(uuid)||
+|&emsp;&emsp;senderName|发送者名称|string||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+|&emsp;&emsp;updateTime|更新时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": [
+		{
+			"id": "",
+			"userId": "",
+			"title": "",
+			"content": "",
+			"attachmentUrls": "",
+			"type": 0,
+			"typeLabel": "",
+			"status": 0,
+			"statusLabel": "",
+			"readTime": "",
+			"senderId": "",
+			"senderName": "",
+			"createTime": "",
+			"updateTime": ""
+		}
+	]
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## batchAddNotification
+
+
+**接口地址**:`/api/system/notification/batch-add`
+
+
+**请求方式**:`POST`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>批量发送通知给多个用户</p>
+
+
+
+**请求示例**:
+
+
+```javascript
+{
+  "userIds": [],
+  "title": "",
+  "content": "",
+  "attachmentUrls": "",
+  "type": 0,
+  "senderId": "",
+  "senderName": ""
+}
+```
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|notificationBatchAddDTO|批量创建通知数据传输对象|body|true|NotificationBatchAddDTO|NotificationBatchAddDTO|
+|&emsp;&emsp;userIds|接收用户ID列表||true|array|string(uuid)|
+|&emsp;&emsp;title|通知标题||true|string||
+|&emsp;&emsp;content|通知内容（富文本HTML）||false|string||
+|&emsp;&emsp;attachmentUrls|附件URL列表（JSON字符串或URL数组，前端与MinIO配合使用）||false|string||
+|&emsp;&emsp;type|通知类型 (0=系统通知, 1=课程通知, 2=作业通知, 3=直播通知, 4=其他)||false|integer(int32)||
+|&emsp;&emsp;senderId|发送者ID||false|string(uuid)||
+|&emsp;&emsp;senderName|发送者名称||false|string||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultInteger|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|integer(int32)|integer(int32)|
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": 0
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## batchMarkAsRead
+
+
+**接口地址**:`/api/system/notification/batch-read`
+
+
+**请求方式**:`PUT`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>批量标记多条通知为已读</p>
+
+
+
+**请求示例**:
+
+
+```javascript
+[]
+```
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|strings|string|body|true|array||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultInteger|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|integer(int32)|integer(int32)|
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": 0
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## listNotification
+
+
+**接口地址**:`/api/system/notification/list`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>分页查询用户的通知列表（包含已读/未读状态、消息内容）</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|userId|用户ID|query|false|string||
+|type|通知类型|query|false|string||
+|status|阅读状态 (0=未读, 1=已读)|query|false|string||
+|title|通知标题（模糊查询）|query|false|string||
+|startTime|开始时间|query|false|string||
+|endTime|结束时间|query|false|string||
+|pageNum|当前记录起始索引|query|false|string||
+|pageSize|每页显示记录数|query|false|string||
+|orderByColumn|排序列|query|false|string||
+|isAsc|排序的方向,可用值:asc,desc|query|false|string||
+|reasonable|分页参数合理化|query|false|string||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|TableDataResult|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|total|总记录数|integer(int64)|integer(int64)|
+|data|列表数据|array||
+|code|消息状态码|integer(int32)|integer(int32)|
+|message|消息内容|string||
+
+
+**响应示例**:
+```javascript
+{
+	"total": 0,
+	"data": [],
+	"code": 0,
+	"message": ""
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## removeNotificationMsg
+
+
+**接口地址**:`/api/system/notification/msg/{id}`
+
+
+**请求方式**:`DELETE`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>管理员撤回/逻辑删除通知消息（所有接收者将不可见）</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|id|通知消息ID (MsgID)|path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultBoolean|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|boolean||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## markAllAsRead
+
+
+**接口地址**:`/api/system/notification/read-all`
+
+
+**请求方式**:`PUT`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>一键标记当前用户所有通知为已读</p>
+
+
+
+**请求参数**:
+
+
+暂无
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultInteger|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|integer(int32)|integer(int32)|
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": 0
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## sendNotificationByScope
+
+
+**接口地址**:`/api/system/notification/send-by-scope`
+
+
+**请求方式**:`POST`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded,application/json`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>按范围群发通知（支持按角色Key或课程ID群发）</p>
+
+
+
+**请求示例**:
+
+
+```javascript
+{
+  "scopeType": 0,
+  "roleKey": "",
+  "courseId": "",
+  "title": "",
+  "content": "",
+  "attachmentUrls": "",
+  "type": 0,
+  "senderId": "",
+  "senderName": ""
+}
+```
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|notificationScopeSendDTO|按范围发送通知数据传输对象|body|true|NotificationScopeSendDTO|NotificationScopeSendDTO|
+|&emsp;&emsp;scopeType|发送范围类型 (0=按角色, 1=按课程学生)||true|integer(int32)||
+|&emsp;&emsp;roleKey|角色标识 (scopeType=0 时必填)||false|string||
+|&emsp;&emsp;courseId|课程ID (scopeType=1 时必填)||false|string(uuid)||
+|&emsp;&emsp;title|通知标题||true|string||
+|&emsp;&emsp;content|通知内容（富文本HTML）||false|string||
+|&emsp;&emsp;attachmentUrls|附件URL列表（JSON字符串或URL数组，前端与MinIO配合使用）||false|string||
+|&emsp;&emsp;type|通知类型 (0=系统通知, 1=课程通知, 2=作业通知, 3=直播通知, 4=其他)||false|integer(int32)||
+|&emsp;&emsp;senderId|发送者ID||false|string(uuid)||
+|&emsp;&emsp;senderName|发送者名称||false|string||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultInteger|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|integer(int32)|integer(int32)|
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": 0
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## getUnreadCount
+
+
+**接口地址**:`/api/system/notification/unread-count`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>获取当前用户的未读通知总数</p>
+
+
+
+**请求参数**:
+
+
+暂无
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultLong|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|integer(int64)|integer(int64)|
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": 0
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+# 仪表盘管理
+
+
+## getStatistics
+
+
+**接口地址**:`/api/system/dashboard/statistics`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>获取系统统计数据，包括学生总数、教师总数和课程总数。</p>
+
+
+
+**请求参数**:
+
+
+暂无
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultStatisticsVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data||StatisticsVO|StatisticsVO|
+|&emsp;&emsp;studentCount|学生总数|integer(int64)||
+|&emsp;&emsp;teacherCount|教师总数|integer(int64)||
+|&emsp;&emsp;courseCount|课程总数|integer(int64)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"studentCount": 0,
+		"teacherCount": 0,
+		"courseCount": 0
+	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
 # 用户管理
 
 
@@ -4863,6 +6755,118 @@
 # 用户内部接口
 
 
+## removeUserById
+
+
+**接口地址**:`/api/system/user/internal/{userId}`
+
+
+**请求方式**:`DELETE`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>删除用户</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|userId|用户ID|path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultBoolean|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|boolean||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
 ## getUserPermissions
 
 
@@ -5590,6 +7594,119 @@
 ```
 
 
+## updateGithubId
+
+
+**接口地址**:`/api/system/user/internal/github-id/{userId}`
+
+
+**请求方式**:`PUT`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>更新用户的GitHub ID</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|userId|用户ID|path|true|string(uuid)||
+|githubId|GitHub ID|query|true|string||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultBoolean|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|boolean||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
 ## getUserInfoByUsername
 
 
@@ -6046,6 +8163,129 @@
 ```
 
 
+## getUserInfoByMobile
+
+
+**接口地址**:`/api/system/user/internal/info/mobile/{mobile}`
+
+
+**请求方式**:`GET`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>通过手机号获取用户基本信息</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|mobile|手机号|path|true|string||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultSysUserBasicInfoVO|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data||SysUserBasicInfoVO|SysUserBasicInfoVO|
+|&emsp;&emsp;id|用户ID|string(uuid)||
+|&emsp;&emsp;username|用户名|string||
+|&emsp;&emsp;nickName|用户昵称|string||
+|&emsp;&emsp;avatar|用户头像URL|string||
+|&emsp;&emsp;createTime|创建时间|string(date-time)||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {
+		"id": "",
+		"username": "",
+		"nickName": "",
+		"avatar": "",
+		"createTime": ""
+	}
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
 ## updatePassword
 
 
@@ -6286,6 +8526,118 @@
 ```
 
 
+## physicalDeleteUserById
+
+
+**接口地址**:`/api/system/user/internal/physical/{userId}`
+
+
+**请求方式**:`DELETE`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>物理删除用户</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|userId|用户ID|path|true|string(uuid)||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultBoolean|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|boolean||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
 ## registerUser
 
 
@@ -6334,6 +8686,118 @@
 |&emsp;&emsp;nickName|用户昵称||false|string||
 |&emsp;&emsp;mobile|手机号码，用于接收短信验证码||true|string||
 |&emsp;&emsp;verificationCode|注册验证码（短信或邮件验证码）||true|string||
+
+
+**响应状态**:
+
+
+| 状态码 | 说明 | schema |
+| -------- | -------- | ----- | 
+|200|OK|ResultBoolean|
+|400|Bad Request|ResultMapStringString|
+|403|Forbidden|ResultString|
+
+
+**响应状态码-200**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|boolean||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": true
+}
+```
+
+
+**响应状态码-400**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|object||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": {}
+}
+```
+
+
+**响应状态码-403**:
+
+
+**响应参数**:
+
+
+| 参数名称 | 参数说明 | 类型 | schema |
+| -------- | -------- | ----- |----- | 
+|success|请求是否成功|boolean||
+|code|业务状态码 (200表示成功)|integer(int32)|integer(int32)|
+|message|响应消息|string||
+|data|响应数据体 (泛型)|string||
+
+
+**响应示例**:
+```javascript
+{
+	"success": true,
+	"code": 200,
+	"message": "操作成功",
+	"data": ""
+}
+```
+
+
+## softDeleteUserById
+
+
+**接口地址**:`/api/system/user/internal/soft-delete/{userId}`
+
+
+**请求方式**:`PUT`
+
+
+**请求数据类型**:`application/x-www-form-urlencoded`
+
+
+**响应数据类型**:`*/*`
+
+
+**接口描述**:<p>软删除用户</p>
+
+
+
+**请求参数**:
+
+
+| 参数名称 | 参数说明 | 请求类型    | 是否必须 | 数据类型 | schema |
+| -------- | -------- | ----- | -------- | -------- | ------ |
+|userId|用户ID|path|true|string(uuid)||
 
 
 **响应状态**:

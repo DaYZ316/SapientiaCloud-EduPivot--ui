@@ -244,3 +244,37 @@
     background-position: 0% 50%;
   }
 }
+
+.beian-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  padding: 12px 0;
+  background: transparent;
+  backdrop-filter: blur(10px);
+  text-align: center;
+  z-index: 1000;
+
+  a {
+    color: var(--text-disabled-color);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 400;
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: var(--color-primary);
+    }
+  }
+
+  // 响应式设计
+  @media (max-width: 768px) {
+    padding: 8px 0;
+
+    a {
+      font-size: 12px;
+    }
+  }
+}

@@ -95,6 +95,15 @@ const routes: RouteRecordRaw[] = [
                 }
             },
             {
+                path: '/system/notification',
+                name: 'Notification',
+                component: () => import('@/views/notification/index.vue'),
+                meta: {
+                    title: '通知管理',
+                    requiresAuth: true
+                }
+            },
+            {
                 path: '/info/teacher',
                 name: 'Teacher',
                 component: () => import('@/views/info/teacher/index.vue'),

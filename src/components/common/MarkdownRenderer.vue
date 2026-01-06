@@ -215,6 +215,9 @@ const addCopyButtonListeners = () => {
 
 .markdown-renderer {
   width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  box-sizing: border-box;
 
   // 覆盖 GitHub Markdown 样式，使用项目定义的变量
   .markdown-body {
@@ -519,12 +522,41 @@ const addCopyButtonListeners = () => {
 
 // KaTeX 数学公式样式调整
 .markdown-renderer {
-  .katex {
+  .katex,
+  .katex-display {
     color: var(--markdown-text-color);
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* 行内公式保持为 inline-block，不会强制换行；展示公式使用块级并可横向滚动 */
+  .katex {
+    display: inline-block;
+    vertical-align: middle;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-width: 100%;
   }
 
   .katex-display {
-    color: var(--markdown-text-color);
+    display: block;
+    margin: 0.6em auto;
+    padding: 0 12px;
+    overflow-x: auto; /* 当公式过宽时允许横向滚动，避免撑破布局 */
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 限制 KaTeX 内部渲染的 HTML/PNG/SVG 等元素宽度 */
+  .katex img,
+  .katex svg,
+  .katex .katex-html,
+  .katex-display img,
+  .katex-display svg,
+  .katex-display .katex-html {
+    max-width: 100%;
+    height: auto;
+    display: block;
   }
 }
 </style>

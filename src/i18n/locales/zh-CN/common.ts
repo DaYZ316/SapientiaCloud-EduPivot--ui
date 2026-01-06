@@ -30,6 +30,13 @@ export default {
     error: '错误',
     refresh: '刷新',
 
+    // 时间相关
+    justNow: '刚刚',
+    minutesAgo: '{minutes}分钟前',
+    hoursAgo: '{hours}小时前',
+    daysAgo: '{days}天前',
+    days: '天',
+
     // 头像上传相关
     uploadAvatar: '上传头像',
     cropAvatar: '裁剪头像',

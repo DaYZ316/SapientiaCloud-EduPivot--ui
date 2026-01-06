@@ -30,6 +30,13 @@ export default {
     error: 'Error',
     refresh: 'Refresh',
 
+    // Time related
+    justNow: 'Just now',
+    minutesAgo: '{minutes} minutes ago',
+    hoursAgo: '{hours} hours ago',
+    daysAgo: '{days} days ago',
+    days: 'days',
+
     // Avatar upload related
     uploadAvatar: 'Upload Avatar',
     cropAvatar: 'Crop Avatar',

@@ -11,6 +11,8 @@ export default {
         courseTypePlaceholder: '请选择课程类型',
         courseStatus: '课程状态',
         courseStatusPlaceholder: '请选择课程状态',
+        isPublic: '是否公开',
+        isPublicPlaceholder: '请选择是否公开',
         semester: '学期',
         semesterPlaceholder: '请输入学期',
         location: '上课地点',

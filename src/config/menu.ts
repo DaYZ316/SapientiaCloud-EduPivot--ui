@@ -7,6 +7,7 @@ import {
     KeyOutline,
     LibraryOutline,
     LogOutOutline,
+    NotificationsOutline,
     PeopleCircleOutline,
     PeopleOutline,
     PersonCircleOutline,
@@ -156,6 +157,11 @@ export const getMenuOptions = (t: (key: string) => string, lastCourseName?: stri
             ]
         },
         {
+            key: 'Notification',
+            label: t('menu.notification'),
+            icon: renderIcon(NotificationsOutline)
+        },
+        {
             key: 'Settings',
             label: t('menu.settings'),
             icon: renderIcon(SettingsOutline)
@@ -184,6 +190,7 @@ export const menuRouteMap: Record<string, string> = {
     'Dashboard': '/dashboard',
     'Profile': '/profile',
     'AI': '/ai',
+    'Notification': '/system/notification',
     'Settings': '/settings',
     'FilePreview': '/file/preview',
     'User': '/system/user',
@@ -224,5 +231,6 @@ export const menuExpandMap: Record<string, string[]> = {
     'User': ['system'],
     'Role': ['system'],
     'Permission': ['system'],
+    'Notification': [], // 通知页面不需要展开任何菜单
     'FilePreview': [] // 文件预览页面不需要展开任何菜单
 }

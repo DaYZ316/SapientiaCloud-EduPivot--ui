@@ -41,6 +41,11 @@
         <Register v-else key="register" @switch-to-login="handleShowLogin"/>
       </Transition>
     </div>
+    <div class="beian-footer">
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">
+        冀ICP备2025141309号
+      </a>
+    </div>
   </div>
 </template>
 

@@ -107,9 +107,7 @@ const courseMenuHandler = createCourseMenuHandler(router, menuStore)
 
 // 计算属性
 const collapsed = computed(() => themeStore.sidebarCollapsed)
-const displayAppName = computed(() =>
-    locale.value === 'en-US' ? t('app.name').replace(' ', '<br>') : t('app.name')
-)
+const displayAppName = computed(() => t('chat.aiName'))
 
 // 根据当前路由确定应该高亮的菜单项
 const getCurrentMenuKey = (routeName: string): string => {
@@ -255,7 +253,7 @@ onUnmounted(() => {
   gap: 8px;
   color: var(--color-primary);
   font-weight: 600;
-  font-size: 16px;
+  font-size: 20px;
   transition: color 0.3s ease;
   cursor: pointer;
   user-select: none;
@@ -279,6 +277,8 @@ onUnmounted(() => {
   transition: opacity 0.3s ease, color 0.3s ease;
   text-align: center;
   line-height: 1.2;
+  font-size: 1.2em;
+  font-weight: 700;
 
   &.logo-text-highlight {
     color: var(--color-primary-light);
@@ -429,7 +429,7 @@ onUnmounted(() => {
   }
 
   .logo-text {
-    font-size: 16px;
+    font-size: 18px;
   }
 }
 </style>

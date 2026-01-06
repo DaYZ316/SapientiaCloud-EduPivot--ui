@@ -425,7 +425,7 @@ const handleMouseMove = (event: MouseEvent) => {
   const rect = canvas.getBoundingClientRect();
   // 计算鼠标在画布中的归一化位置 (-1 到 1)
   mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  mouse.y = ((event.clientY - rect.top) / rect.height) * 2 - 1; // 移除负号，修正上下方向
 
   // 计算目标旋转角度（根据鼠标位置）
   // 限制旋转范围，避免过度旋转

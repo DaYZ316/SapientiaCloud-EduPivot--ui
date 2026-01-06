@@ -557,6 +557,7 @@ watch(
     {immediate: true}
 )
 
+
 // 组件挂载时检查 query 参数并自动选择会话
 onMounted(async () => {
   if (route.query.openSmartQuestion === 'true') {

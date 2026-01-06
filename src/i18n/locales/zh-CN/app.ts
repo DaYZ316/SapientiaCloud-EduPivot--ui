@@ -1,8 +1,8 @@
 export default {
     name: '智语·云枢',
-    description: '智能教育转型平台',
+    description: '智能AI平台',
     title: {
-        default: '智能教育转型平台',
+        default: '智能AI平台',
         dashboard: '仪表板',
         profile: '个人资料',
         settings: '设置',

@@ -1,3 +1,151 @@
 .dashboard-container {
-  padding: 16px;
+  display: flex;
+  width: 100%;
+  background-color: transparent;
+  position: relative;
+}
+
+.left-content {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  gap: 20px;
+  overflow-y: hidden;
+}
+
+.welcome-row {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+  flex-shrink: 0;
+}
+
+.welcome-card
+.statistics-card {
+  flex: 2;
+}
+
+.statistics-card {
+  flex: 1;
+}
+
+.welcome-section {
+  height: 300px;
+  flex-shrink: 0;
+}
+
+.ai-chat-card,
+.notification-card {
+  flex-shrink: 0;
+}
+
+.notification-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+
+  .notification-card {
+    width: 70%;
+    flex: none;
+  }
+
+  .recent-courses-container {
+    width: 30%;
+    flex: none;
+    margin-top: 8px;
+    /* 固定总高度与通知卡一致 */
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.welcome-header {
+  display: flex;
+  align-items: center;
+}
+
+.welcome-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cards-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+.book-container {
+  position: absolute;
+  top: 200px;
+  right: 150px;
+  width: 50vw;
+  height: 50vh;
+  max-width: 600px;
+  max-height: 500px;
+  z-index: 0;
+  transition: all 0.3s ease-in-out;
+  transform: translateZ(0); /* 强制硬件加速 */
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .dashboard-container {
+    flex-direction: column;
+  }
+
+  .left-content {
+    width: 100%;
+    height: auto;
+    padding: 12px;
+  }
+
+  .welcome-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .welcome-card,
+  .statistics-card,
+  .ai-chat-card,
+  .notification-card {
+    flex: none;
+  }
+
+  .welcome-section {
+    height: 100px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .book-container {
+    position: absolute;
+    top: 200px;
+    right: 140px;
+    width: 90vw;
+    height: 45vh;
+    max-width: 500px;
+    max-height: 400px;
+    transition: all 0.3s ease-in-out;
+  }
 }

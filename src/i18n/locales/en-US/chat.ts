@@ -18,6 +18,7 @@ export default {
     resend: 'Resend',
     toolsMenu: {
         smartQuestion: 'Smart question',
+        needMainPage: 'Need to jump to main page to use',
         questionCount: 'Number of questions',
         questionCountUnit: 'questions',
         questionType: 'Question type',

@@ -286,6 +286,8 @@ onUnmounted(() => {
   background-color: var(--background-color);
   gap: 16px;
   min-height: 64px;
+  position: relative;
+  z-index: 100;
 
   .header-left {
     display: flex;

@@ -1,32 +1,33 @@
 <template>
   <div class="dashboard-container">
-    <div class="book-container">
-
+    <div class="left-content">
+      <div class="welcome-row">
+        <WelcomeCard class="welcome-card"/>
+        <StatisticsCard class="statistics-card"/>
+      </div>
+      <AiChatCard class="ai-chat-card"/>
+    <div class="notification-row">
+      <NotificationCard class="notification-card"/>
+      <RecentActiveCourses class="recent-courses-container"/>
     </div>
-    <!-- <CelestailHub /> -->
+    </div>
+    <!-- 右侧书本区域 -->
+    <div class="book-container">
+      <Book3D />
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-// 主页逻辑已清空
+import Book3D from './Book3D.vue'
+import WelcomeCard from './WelcomeCard.vue'
+import StatisticsCard from './StatisticsCard.vue'
+import AiChatCard from './AiChatCard.vue'
+import NotificationCard from './NotificationCard.vue'
+import RecentActiveCourses from './RecentActiveCourses.vue'
+
 </script>
 
 <style lang="scss" scoped>
 @use './index.scss';
-
-.dashboard-container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.book-container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
 </style>

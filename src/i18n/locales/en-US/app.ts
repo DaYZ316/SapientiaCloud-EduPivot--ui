@@ -1,8 +1,8 @@
 export default {
     name: 'SapientiaCloud EduPivot',
-    description: 'Intelligent Education Transformation Platform',
+    description: 'Intelligent AI Platform',
     title: {
-        default: 'Intelligent Education Transformation Platform',
+        default: 'Intelligent AI Platform',
         dashboard: 'Dashboard',
         profile: 'Profile',
         settings: 'Settings',

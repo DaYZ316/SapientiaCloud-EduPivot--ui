@@ -10,3 +10,6 @@ export * from './role'
 
 // 导出用户相关类型
 export * from './user'
+
+// 导出通知相关类型
+export * from './notification'

@@ -421,7 +421,7 @@ const customRequest = ({ file, onFinish, onError }: UploadCustomRequestOptions) 
     file.url = res.data.url
     file.name = res.data.objectName || file.name // 使用后端返回的文件名或者原始文件名
     onFinish()
-  }).catch(e => {
+  }).catch(() => {
     onError()
   })
 }

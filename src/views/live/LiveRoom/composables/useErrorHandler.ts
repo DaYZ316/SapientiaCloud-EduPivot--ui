@@ -37,7 +37,7 @@ export interface ErrorHandlerOptions {
 }
 
 export const useErrorHandler = (): ErrorHandlerResult => {
-  const { message, notification, dialog } = getGlobalApis()
+  const { notification, dialog } = getGlobalApis()
 
   // 错误历史记录
   const errors = ref<ErrorInfo[]>([])
@@ -254,8 +254,8 @@ export const useErrorHandler = (): ErrorHandlerResult => {
         // 显示通知 - 带去重
         showNotificationOnce(errorInfo, allowRetry && errorInfo.retryable && onRetry ? onRetry : null)
       } else {
-        // 轻量提示
-        message.error(errorInfo.message)
+        // 简化的错误提示
+        console.error(`[${context}] ${errorInfo.message}`)
       }
 
       // 上报错误到监控系统（可扩展）

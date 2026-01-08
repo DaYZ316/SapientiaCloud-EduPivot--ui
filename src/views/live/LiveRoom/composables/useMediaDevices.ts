@@ -3,7 +3,6 @@ import { ConnectionState } from 'livekit-client'
 import { useI18n } from 'vue-i18n'
 import { useErrorHandler } from './useErrorHandler'
 import { useRetryMechanism } from './useRetryMechanism'
-import { getGlobalApis } from '@/utils/naiveUIHelper'
 import type { Room } from 'livekit-client'
 import type { Ref } from 'vue'
 
@@ -24,7 +23,6 @@ export interface MediaDevicesResult {
 
 export const useMediaDevices = (room: Ref<Room | null>) => {
   const { t } = useI18n()
-  const { message } = getGlobalApis()
 
   // 集成健壮性工具
   const errorHandler = useErrorHandler()
@@ -69,31 +67,28 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
     }
 
     // ✅ 关键：在用户手势中先启动音频上下文，解除自动播放限制
-    try {
-      await safeAsyncCall(
-        () => currentRoom.startAudio(),
-        '音频上下文启动失败'
-      )
-    } catch (error: any) {
+    safeAsyncCall(
+      () => currentRoom.startAudio(),
+      '音频上下文启动失败'
+    ).catch(() => {
       // 即使startAudio失败，也要安全处理
-    }
+    })
 
     const enabled = !cameraEnabled.value
 
     try {
       // 如果要启用摄像头，先检查是否存在 video input 设备，避免在无设备时继续重试
       if (enabled && navigator?.mediaDevices?.enumerateDevices) {
-        try {
-          const devices = await navigator.mediaDevices.enumerateDevices()
+        navigator.mediaDevices.enumerateDevices().then((devices) => {
           const hasVideoInput = devices.some(d => d.kind === 'videoinput')
           if (!hasVideoInput) {
             const notFoundErr: any = new Error('未检测到摄像头设备，请检查设备连接或浏览器权限')
             notFoundErr.name = 'NotFoundError'
             throw notFoundErr
           }
-        } catch (enumErr) {
+        }).catch(() => {
           // 如果 enumerateDevices 本身失败，继续让后续逻辑尝试并在 catch 中集中处理
-        }
+        })
       }
 
       await retryMechanism.retry(
@@ -111,16 +106,15 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
               // 步骤1: 清理现有轨道（如果有）
               const existingVideoTracks = Array.from(currentRoom.localParticipant.videoTrackPublications.values())
               if (existingVideoTracks.length > 0) {
-                try {
-                  await safeAsyncCall(
-                    () => currentRoom.localParticipant.setCameraEnabled(false),
-                    '清理现有摄像头轨道失败'
-                  )
+                safeAsyncCall(
+                  () => currentRoom.localParticipant.setCameraEnabled(false),
+                  '清理现有摄像头轨道失败'
+                ).then(() => {
                   // 等待轨道完全停止
-                  await new Promise(resolve => setTimeout(resolve, 300))
-                } catch (cleanupError: any) {
+                  return new Promise(resolve => setTimeout(resolve, 300))
+                }).catch(() => {
                   // 清理失败，继续执行
-                }
+                })
               }
 
               // 步骤2: 启用摄像头 - 使用安全包装器和超时保护
@@ -151,7 +145,7 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
               cameraEnabled.value = false
 
               // 增强错误信息，避免传递可能包含不可克隆对象的原始错误
-              const enhancedError = new Error('摄像头启用失败')
+              const enhancedError = new Error(trackError?.message || '摄像头启用失败')
               enhancedError.name = trackError?.name || 'CameraError'
               throw enhancedError
             }
@@ -168,42 +162,8 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
 
       // 错误已通过errorHandler处理，这里不再输出
 
-      // 使用统一错误处理并给出更明确的用户提示
-      let customMessage = t('live.room.value.cameraToggleFailed')
-
-      // 安全地提取原始错误信息来进行错误类型判断
-      let originalErrorName = 'Error'
-      let originalErrorMessage = ''
-
-      try {
-        if (typeof error?.name === 'string') originalErrorName = error.name
-        if (typeof error?.message === 'string') originalErrorMessage = error.message
-      } catch (accessError) {
-        // 如果访问原始错误对象失败，可能就是DataCloneError的原因
-        originalErrorName = 'DataCloneError'
-        originalErrorMessage = 'could not be cloned'
-      }
-
-      // 高级错误诊断和用户指导
-      if (originalErrorName === 'DataCloneError' || originalErrorMessage.includes('could not be cloned')) {
-        customMessage = '摄像头启动失败：浏览器内部错误，请尝试刷新页面或更换浏览器'
-      } else if (originalErrorName === 'NotAllowedError' || originalErrorMessage.includes('permission') || originalErrorMessage.includes('denied')) {
-        customMessage = '摄像头权限被拒绝。请点击地址栏的摄像头图标，允许网站访问摄像头'
-      } else if (originalErrorName === 'NotFoundError' || originalErrorMessage.includes('未检测到摄像头') || originalErrorMessage.includes('device not found')) {
-        customMessage = '未检测到摄像头设备。请检查：1)摄像头是否连接电脑 2)其他应用是否正在使用摄像头 3)尝试重启浏览器'
-      } else if (originalErrorMessage.includes('busy') || originalErrorMessage.includes('in use')) {
-        customMessage = '摄像头被其他应用占用。请关闭其他视频通话软件或浏览器标签页'
-      } else if (originalErrorMessage.includes('timeout') || originalErrorMessage.includes('超时')) {
-        customMessage = '摄像头启动超时。请检查设备连接，或尝试刷新页面重新连接'
-      } else if (originalErrorMessage.includes('network') || originalErrorMessage.includes('connection')) {
-        customMessage = '网络连接问题导致摄像头无法启动。请检查网络连接后重试'
-      } else if (originalErrorMessage.includes('track') || originalErrorMessage.includes('轨道')) {
-        customMessage = '摄像头轨道初始化失败。请尝试：1)刷新页面 2)检查摄像头权限 3)更换浏览器'
-      } else if (originalErrorMessage.includes('启用失败') || originalErrorMessage.includes('enable')) {
-        customMessage = '摄像头硬件启动失败。请检查：1)摄像头指示灯是否亮起 2)设备管理器中摄像头状态 3)尝试重启电脑'
-      } else {
-        customMessage = `摄像头启动失败：${originalErrorMessage || '未知错误'}。建议：刷新页面、检查摄像头连接、确认浏览器权限`
-      }
+      // 简化的错误处理
+      const customMessage = error?.message || '摄像头启动失败，请检查设备连接和权限设置'
 
       errorHandler.handleError(safeError, 'media_camera_toggle', {
         showNotification: true,
@@ -307,42 +267,8 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
 
       // 错误已通过errorHandler处理，这里不再输出
 
-      // 使用统一错误处理
-      let customMessage = t('live.room.value.microphoneToggleFailed')
-
-      // 安全地提取原始错误信息来进行错误类型判断
-      let originalErrorName = 'Error'
-      let originalErrorMessage = ''
-
-      try {
-        if (typeof error?.name === 'string') originalErrorName = error.name
-        if (typeof error?.message === 'string') originalErrorMessage = error.message
-      } catch (accessError) {
-        // 如果访问原始错误对象失败，可能就是DataCloneError的原因
-        originalErrorName = 'DataCloneError'
-        originalErrorMessage = 'could not be cloned'
-      }
-
-      // 高级错误诊断和用户指导
-      if (originalErrorName === 'DataCloneError' || originalErrorMessage.includes('could not be cloned')) {
-        customMessage = '麦克风启动失败：浏览器内部错误，请尝试刷新页面或更换浏览器'
-      } else if (originalErrorName === 'NotAllowedError' || originalErrorMessage.includes('permission') || originalErrorMessage.includes('denied')) {
-        customMessage = '麦克风权限被拒绝。请点击地址栏的麦克风图标，允许网站访问麦克风'
-      } else if (originalErrorName === 'NotFoundError' || originalErrorMessage.includes('device not found')) {
-        customMessage = '未检测到麦克风设备。请检查：1)麦克风是否连接电脑 2)其他应用是否正在使用麦克风 3)尝试重启浏览器'
-      } else if (originalErrorMessage.includes('busy') || originalErrorMessage.includes('in use')) {
-        customMessage = '麦克风被其他应用占用。请关闭其他音频通话软件或浏览器标签页'
-      } else if (originalErrorMessage.includes('timeout') || originalErrorMessage.includes('超时')) {
-        customMessage = '麦克风启动超时。请检查设备连接，或尝试刷新页面重新连接'
-      } else if (originalErrorMessage.includes('network') || originalErrorMessage.includes('connection')) {
-        customMessage = '网络连接问题导致麦克风无法启动。请检查网络连接后重试'
-      } else if (originalErrorMessage.includes('track') || originalErrorMessage.includes('轨道')) {
-        customMessage = '麦克风轨道初始化失败。请尝试：1)刷新页面 2)检查麦克风权限 3)更换浏览器'
-      } else if (originalErrorMessage.includes('启用失败') || originalErrorMessage.includes('enable')) {
-        customMessage = '麦克风硬件启动失败。请检查：1)麦克风指示灯是否亮起 2)设备管理器中麦克风状态 3)尝试重启电脑'
-      } else {
-        customMessage = `麦克风启动失败：${originalErrorMessage || '未知错误'}。建议：刷新页面、检查麦克风连接、确认浏览器权限`
-      }
+      // 简化的错误处理
+      const customMessage = error?.message || '麦克风启动失败，请检查设备连接和权限设置'
 
       errorHandler.handleError(safeError, 'media_microphone_toggle', {
         showNotification: true,
@@ -398,7 +324,10 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
 
       if (!cameraSuccess) {
         cameraEnabled.value = false
-        message.warning(t('live.room.value.cameraEnableFailed') || '启用摄像头失败，请检查权限设置或设备是否可用')
+        errorHandler.handleError(new Error('Camera enable failed'), 'media_camera_enable', {
+          showNotification: true,
+          customMessage: t('live.room.value.cameraEnableFailed') || '启用摄像头失败，请检查权限设置或设备是否可用'
+        })
       }
 
       // 等待轨道发布
@@ -408,8 +337,11 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
       microphoneEnabled.value = false
       cameraEnabled.value = false
 
-      // 使用安全的错误处理
-      message.error(t('live.room.value.mediaSetupFailed') || '媒体设备设置失败')
+      // 使用统一的错误处理器
+      errorHandler.handleError(error, 'media_setup', {
+        showNotification: true,
+        customMessage: t('live.room.value.mediaSetupFailed') || '媒体设备设置失败'
+      })
     }
   }
 

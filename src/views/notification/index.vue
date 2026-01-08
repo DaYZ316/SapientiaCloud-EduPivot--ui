@@ -197,6 +197,7 @@
               :placeholder="t('notification.addNotification.attachmentsPlaceholder')"
               multiple
               directory-dnd
+              :custom-request="customRequest"
           >
             <template #trigger>
               <n-button>
@@ -257,7 +258,24 @@
           <n-text strong>{{ t('notification.detail.attachments') }}:</n-text>
         </div>
         <div v-if="currentNotification?.attachmentUrls" class="attachments-list">
-          <!-- 附件展示逻辑 -->
+          <div v-for="(item, index) in currentAttachments" :key="index" class="attachment-item">
+            <n-icon size="20" class="attachment-icon">
+              <DocumentAttachOutline/>
+            </n-icon>
+            <div class="attachment-info">
+              <div class="attachment-name">{{ item.name || '附件' + (index + 1) }}</div>
+            </div>
+            <div class="attachment-actions">
+              <n-button text type="primary" @click="downloadAttachment(item.url)">
+                <template #icon>
+                  <n-icon>
+                    <DownloadOutline/>
+                  </n-icon>
+                </template>
+                下载
+              </n-button>
+            </div>
+          </div>
         </div>
       </div>
     </n-modal>
@@ -267,7 +285,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, h } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useMessage, useDialog } from 'naive-ui'
+import { useMessage, useDialog, type UploadCustomRequestOptions, type UploadFileInfo } from 'naive-ui'
 import {
   SearchOutline,
   RefreshOutline,
@@ -276,7 +294,9 @@ import {
   TrashOutline,
   CheckmarkDoneOutline,
   CloudUploadOutline,
-  EyeOutline
+  EyeOutline,
+  DownloadOutline,
+  DocumentAttachOutline
 } from '@vicons/ionicons5'
 
 import PageHeader from '@/components/common/PageHeader.vue'
@@ -300,6 +320,10 @@ import {
   getNotificationReadStatusOptions,
   NotificationReadStatus
 } from '@/enum/system/notificationTypeEnum'
+import { getAllRoles } from '@/api/system/role'
+import { getAllUsers } from '@/api/system/user'
+import { listAllCourse } from '@/api/course/course'
+import { uploadFile } from '@/api/minIO'
 
 // 国际化
 const { t } = useI18n()
@@ -332,14 +356,75 @@ const sendForm = reactive({
 const showDetailModal = ref(false)
 const currentNotification = ref<NotificationVO | null>(null)
 
+// 解析附件列表
+const currentAttachments = computed(() => {
+  if (!currentNotification.value?.attachmentUrls) return []
+  try {
+    const urls = currentNotification.value.attachmentUrls
+    // 简单的判断是否为JSON格式
+    if (urls.trim().startsWith('[')) {
+      return JSON.parse(urls)
+    }
+    return []
+  } catch (e) {
+    return []
+  }
+})
+
+// 下载附件
+const downloadAttachment = (url: string) => {
+  window.open(url, '_blank')
+}
+
 // 计算属性
 const notificationTypeOptions = computed(() => getNotificationTypeOptions(false))
 const notificationReadStatusOptions = computed(() => getNotificationReadStatusOptions(false))
 
 // 模拟数据（实际项目中需要从API获取）
-const roleOptions = ref([])
-const courseOptions = ref([])
-const userOptions = ref([])
+const roleOptions = ref<any[]>([])
+const courseOptions = ref<any[]>([])
+const userOptions = ref<any[]>([])
+
+// 加载角色选项
+const loadRoleOptions = () => {
+  getAllRoles().then(res => {
+    roleOptions.value = res.data.map((r: any) => ({
+      label: r.roleName,
+      value: r.roleKey
+    }))
+  })
+}
+
+// 加载课程选项
+const loadCourseOptions = () => {
+  listAllCourse().then(res => {
+    courseOptions.value = res.data.map((c: any) => ({
+      label: c.courseName,
+      value: c.id
+    }))
+  })
+}
+
+// 加载用户选项
+const loadUserOptions = () => {
+  getAllUsers().then(res => {
+    userOptions.value = res.data.map((u: any) => ({
+      label: u.nickName || u.username,
+      value: u.id
+    }))
+  })
+}
+
+// 文件上传自定义请求
+const customRequest = ({ file, onFinish, onError }: UploadCustomRequestOptions) => {
+  uploadFile(file.file as File).then(res => {
+    file.url = res.data.url
+    file.name = res.data.objectName || file.name // 使用后端返回的文件名或者原始文件名
+    onFinish()
+  }).catch(e => {
+    onError()
+  })
+}
 
 // 表单验证规则
 const sendFormRules = {
@@ -490,13 +575,19 @@ const handleSendNotification = () => {
     if (!errors) {
       sendLoading.value = true
 
+      // 处理附件列表，提取URL和名称
+      const attachments = (sendForm.attachmentUrls as UploadFileInfo[]).map(file => ({
+        name: file.name,
+        url: file.url
+      })).filter(item => item.url)
+
       // 根据发送类型调用不同的API
       const sendData = {
         title: sendForm.title,
         content: sendForm.content,
         type: sendForm.type !== null ? Number(sendForm.type) : null,
-        // 后端期望字段始终存在；当无附件时传空字符串（文档中示例使用 ""）
-        attachmentUrls: sendForm.attachmentUrls.length > 0 ? JSON.stringify(sendForm.attachmentUrls) : "",
+        // 后端期望字段始终存在；当无附件时传空字符串
+        attachmentUrls: attachments.length > 0 ? JSON.stringify(attachments) : "",
         // 从 userStore 中读取 senderId / senderName，若不存在则传 null
         senderId: userStore.userInfo?.id ?? null,
         senderName: userStore.userInfo?.nickName ?? null
@@ -664,9 +755,9 @@ const handleViewDetail = (row: NotificationVO) => {
 // 组件挂载时初始化
 onMounted(() => {
   // 加载角色、课程、用户选项数据
-  // loadRoleOptions()
-  // loadCourseOptions()
-  // loadUserOptions()
+  loadRoleOptions()
+  loadCourseOptions()
+  loadUserOptions()
 })
 </script>
 

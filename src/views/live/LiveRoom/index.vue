@@ -72,11 +72,12 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { NIcon, NSpin } from 'naive-ui'
 import { VideocamOutline } from '@vicons/ionicons5'
+import { RoomEvent, Track } from 'livekit-client'
 import PageHeader from '@/components/common/PageHeader.vue'
 import ChatPanel from '@/components/common/ChatPanel.vue'
 import VideoPanel from './components/VideoPanel.vue'
@@ -151,6 +152,43 @@ const chatMessages = computed(() => {
   const msgs = (chat.messages as any)?.value ?? (chat.messages as any)
   return Array.isArray(msgs) ? msgs : []
 })
+
+const attachLocalVideoTrack = () => {
+  const currentRoom = connection.room.value
+  if (!currentRoom || !videoPanelRef.value) return
+  const publications = Array.from(currentRoom.localParticipant.videoTrackPublications.values())
+  const videoPublication = publications.find(pub => pub.track && pub.track.kind === Track.Kind.Video)
+  if (videoPublication?.track) {
+    videoPanelRef.value.attachLocalVideo(videoPublication.track)
+  }
+}
+
+watch(cameraEnabled, (enabled) => {
+  if (!enabled) {
+    videoPanelRef.value?.cleanupLocalVideo()
+    return
+  }
+  attachLocalVideoTrack()
+})
+
+watch(
+  () => connection.room.value,
+  (currentRoom) => {
+    if (!currentRoom) return
+
+    resourceManager.registerEventListener(currentRoom, RoomEvent.LocalTrackPublished, (publication: any) => {
+      if (publication?.track?.kind === Track.Kind.Video) {
+        videoPanelRef.value?.attachLocalVideo(publication.track)
+      }
+    })
+
+    resourceManager.registerEventListener(currentRoom, RoomEvent.LocalTrackUnpublished, (publication: any) => {
+      if (publication?.track?.kind === Track.Kind.Video) {
+        videoPanelRef.value?.cleanupLocalVideo()
+      }
+    })
+  }
+)
 
 // 页面卸载检测
 const handlePageUnload = () => {

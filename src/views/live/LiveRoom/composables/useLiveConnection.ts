@@ -1,4 +1,4 @@
-import { ref, computed, readonly, type Ref, type ComputedRef } from 'vue'
+import { ref, shallowRef, computed, readonly, type Ref, type ComputedRef } from 'vue'
 import { Room, RoomEvent, RemoteParticipant, RemoteTrackPublication, Track } from 'livekit-client'
 import { useI18n } from 'vue-i18n'
 import * as liveApi from '@/api/live'
@@ -7,7 +7,6 @@ import type { LiveRoomVO, LiveRoomTokenRequestDTO } from '@/types/live'
 import { useErrorHandler } from './useErrorHandler'
 import { useResourceManager } from './useResourceManager'
 import { useRetryMechanism } from './useRetryMechanism'
-import { getGlobalApis } from '@/utils/naiveUIHelper'
 
 export interface LiveConnectionResult {
   // 状态
@@ -35,7 +34,7 @@ export const useLiveConnection = (): LiveConnectionResult => {
   const retryMechanism = useRetryMechanism()
 
   // 状态
-  const room: Ref<Room | null> = ref(null)
+  const room: Ref<Room | null> = shallowRef(null)
   const isConnected = ref<boolean>(false)
   const connecting = ref<boolean>(false)
   const connectionState = ref<string>('disconnected')
@@ -51,7 +50,7 @@ export const useLiveConnection = (): LiveConnectionResult => {
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
     return `${wsProtocol}//${window.location.host}`
   })
-  
+
 
   // 连接状态标签
   const connectionStateLabel = computed(() => {
@@ -199,11 +198,6 @@ export const useLiveConnection = (): LiveConnectionResult => {
     connectionError.value = null
     updateOnlineCount(newRoom)
 
-    // 连接成功提示：使用全局 message 显示成功通知（不要通过 errorHandler 显示成功）
-    const { message } = getGlobalApis()
-    if (message) {
-      message.success(t('live.room.connected'))
-    }
 
   }
 

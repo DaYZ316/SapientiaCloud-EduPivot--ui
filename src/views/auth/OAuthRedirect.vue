@@ -39,13 +39,17 @@ const handleOAuthCallback = async () => {
   }
 
   // 调用后端API处理回调
-  const result = await oauth2Callback(provider, code, state).catch(() => {
+  console.log('OAuth2回调参数:', {provider, code, state})
+  const result = await oauth2Callback(provider, code, state).catch((error) => {
+    console.error('OAuth2回调API调用失败:', error)
     return null
   })
+  console.log('OAuth2回调API返回结果:', result)
 
   if (result && result.success && result.data) {
-    // 如果返回了accessToken，设置登录状态
+    // 获取accessToken，支持多种可能的返回结构
     const accessToken = result.data.accessToken || (result.data as any).accessToken
+
     if (accessToken) {
       // 设置登录状态
       userStore.setLoginState(accessToken)
@@ -63,12 +67,16 @@ const handleOAuthCallback = async () => {
         router.push('/dashboard')
       }, 1000)
     } else {
+      console.error('OAuth2回调成功但未返回accessToken:', result.data)
+      message.error(t('auth.oauthCallbackNoToken'))
       transitionStore.hide(1250)
       setTimeout(() => {
         router.push('/login')
       }, 2000)
     }
   } else {
+    console.error('OAuth2回调失败:', result)
+    message.error(t('auth.oauthCallbackFailed'))
     transitionStore.hide(1250)
     setTimeout(() => {
       router.push('/login')

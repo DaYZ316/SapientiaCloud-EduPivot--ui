@@ -17,7 +17,7 @@ const routes: RouteRecordRaw[] = [
         }
     },
     {
-        path: '/api/auth/oauth2/callback/:provider',
+        path: '/auth/oauth2/callback/:provider',
         name: 'OAuthRedirect',
         component: () => import('@/views/auth/OAuthRedirect.vue'),
         meta: {

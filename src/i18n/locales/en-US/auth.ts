@@ -74,6 +74,7 @@ export default {
     githubLogin: 'Login with GitHub',
     oauth2Processing: 'Processing OAuth2 login...',
     oauth2CallbackFailed: 'OAuth2 login failed',
+    oauthCallbackNoToken: 'OAuth2 callback successful but no access token received',
     slogan: 'Smart AI, Start Your Future Journey',
 
     // Register step related

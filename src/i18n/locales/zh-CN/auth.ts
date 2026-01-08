@@ -75,6 +75,7 @@ export default {
     githubLogin: 'GitHub登录',
     oauth2Processing: '正在处理OAuth2登录...',
     oauth2CallbackFailed: 'OAuth2登录失败',
+    oauthCallbackNoToken: 'OAuth2回调成功但未获取到访问令牌',
     slogan: '智慧AI，开启未来之旅',
 
     // 注册步骤相关

@@ -409,7 +409,7 @@ const handleLoginTypeChange = (value: 'password' | 'verification') => {
 
 // 处理GitHub登录
 const handleGithubLogin = () => {
-  const baseUrl = import.meta.env.DEV ? '/api' : getApiBaseUrl(defaultServerConfig)
+  const baseUrl = getApiBaseUrl(defaultServerConfig)
   window.location.href = `${baseUrl}/auth/oauth2/authorize/github`
 }
 

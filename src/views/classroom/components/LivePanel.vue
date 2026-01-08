@@ -311,13 +311,6 @@ async function subscribeSse() {
       onmessage: (evt) => {
         try {
           const data = JSON.parse(evt.data);
-          // Require a non-empty roomName to treat the response as a created room.
-          // If roomName is missing or empty, treat as "no room" so teachers see the create form.
-          if (typeof data.roomName !== 'string' || data.roomName.trim().length === 0) {
-            room.value = null;
-            courseInfo.value = null;
-            return;
-          }
           // update room info (hub may send map or LiveRoomVO-like object)
           room.value = data;
           // show notifications for status changes

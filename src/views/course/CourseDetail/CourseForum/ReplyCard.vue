@@ -201,6 +201,7 @@ import {computed, h, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useRouter} from 'vue-router'
 import anonymousUserImg from '@/assets/image/anonymous-user.png'
+import {showBackendError} from '@/utils/errorUtil'
 import {
   NAvatar,
   NButton,
@@ -432,10 +433,10 @@ const loadChildReplies = async () => {
       childReplies.value = response.data || []
       childRepliesLoaded.value = true
     } else {
-      message.error(response.message || t('course.forum.loadChildRepliesFailed'))
+      showBackendError(response, t('course.forum.loadFailed'), t('course.forum.loadChildRepliesFailed'))
     }
   } catch (error) {
-    message.error(t('course.forum.loadChildRepliesFailed'))
+    showBackendError(null, t('course.forum.loadFailed'), t('course.forum.loadChildRepliesFailed'))
   } finally {
     childRepliesLoading.value = false
   }

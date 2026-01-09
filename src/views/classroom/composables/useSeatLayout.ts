@@ -15,6 +15,12 @@ export interface SeatLayoutResult {
       classroomXLength: number | null,
       classroomZLength: number | null
   ) => THREE.Vector3;
+  calculateActualSeatPosition: (
+      seatIndex: number,
+      position: THREE.Vector3,
+      classroomXLength: number | null,
+      classroomZLength: number | null
+  ) => THREE.Vector3;
   fillSpritePositions: (
       spritePositions: THREE.Vector3[],
       maxInstances: number,
@@ -203,6 +209,42 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
     return calculateMiddleSeatPosition(instanceId, position, classroomXLength, classroomZLength);
   };
 
+  /**
+   * 计算精灵模型的实际位置（考虑桌椅模型和座位位置的映射关系）
+   * 小型/中型教室：一个桌椅模型对应一个座位，位置相同
+   * 大型教室：一个桌椅模型对应四个座位，四个座位呈一排均匀分布
+   */
+  const calculateActualSeatPosition = (
+      seatIndex: number,
+      position: THREE.Vector3,
+      classroomXLength: number | null,
+      classroomZLength: number | null
+  ): THREE.Vector3 => {
+    if (classroomType.value === ClassroomTypeEnum.LARGE) {
+      // 大型教室：一个桌椅模型对应四个座位
+      const seatsPerModel = 4; // 每个模型包含4个座位
+      const modelIndex = Math.floor(seatIndex / seatsPerModel); // 计算所属的桌椅模型索引
+      const seatInModel = seatIndex % seatsPerModel; // 在模型中的座位位置（0-3）
+
+      // 先计算桌椅模型的位置
+      calculateLargeSeatPosition(modelIndex, position, classroomXLength, classroomZLength);
+
+      // 在桌椅模型位置基础上，计算座位在模型中的相对位置
+      // 4个座位均匀分布，左右各两个座位
+      const modelWidth = 4.0; // 假设桌椅模型宽度为4米
+      const seatSpacing = modelWidth / (seatsPerModel + 1); // 座位间距
+      const leftOffset = -modelWidth / 2; // 模型左边界
+
+      // 计算座位在模型中的X偏移（从左到右：0, 1, 2, 3）
+      position.x += leftOffset + seatSpacing * (seatInModel + 1);
+
+      return position;
+    } else {
+      // 小型/中型教室：一个桌椅模型对应一个座位，直接使用原有逻辑
+      return calculateSeatPosition(seatIndex, position, classroomXLength, classroomZLength);
+    }
+  };
+
   const fillSpritePositions = (
       spritePositions: THREE.Vector3[],
       maxInstances: number,
@@ -214,11 +256,11 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
 
     const tempPosition = new THREE.Vector3();
     for (let i = 0; i < maxInstances; i++) {
-      calculateSeatPosition(i, tempPosition, classroomXLength, classroomZLength);
+      calculateActualSeatPosition(i, tempPosition, classroomXLength, classroomZLength);
       if (!spritePositions[i]) {
         spritePositions[i] = new THREE.Vector3();
       }
-      spritePositions[i].set(tempPosition.x, tempPosition.y + 2.0, tempPosition.z);
+      spritePositions[i].set(tempPosition.x, tempPosition.y + 0.4, tempPosition.z);
     }
   };
 
@@ -228,6 +270,7 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
     columnCount,
     instanceCount,
     calculateSeatPosition,
+    calculateActualSeatPosition,
     fillSpritePositions
   };
 };

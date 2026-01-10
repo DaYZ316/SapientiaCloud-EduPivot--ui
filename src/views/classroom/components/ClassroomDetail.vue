@@ -197,24 +197,39 @@
               <!-- 座位预览部分 (75% 宽度) -->
               <div class="seating-preview-section">
                 <label class="form-label required">{{ t('classroom.detail.seatingPreview') }}</label>
-                <div v-if="rows > 0 && cols > 0" class="seating-preview">
-                  <div class="preview-grid">
-                    <div
-                        v-for="(_row, rowIndex) in rows"
-                        :key="`row-${rowIndex}`"
-                        class="preview-row"
-                    >
+                <div v-if="rows > 0 && cols > 0" class="seating-preview" ref="seatingPreviewRef">
+                  <template v-if="classroomType === ClassroomTypeEnum.LARGE">
+                    <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:12px;">
+                      <template v-for="compIndex in Math.ceil((rows * cols) / 4)" :key="`comp-${compIndex}`">
+                        <div style="width:140px;height:80px;border:1px solid rgba(0,0,0,0.12);border-radius:6px;display:flex;overflow:hidden;background:rgba(255,255,255,0.02);">
+                          <div v-for="i in 4" :key="i" style="flex:1;border-left:1px solid rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-color);">
+                            <span v-if="getSeatLabel((compIndex - 1) * 4 + (i - 1))">{{ getSeatLabel((compIndex - 1) * 4 + (i - 1)) }}</span>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+                    <p class="preview-info" style="text-align:center;margin-top:8px;">{{ t('classroom.detail.totalSeats', {count: rows * cols}) }}</p>
+                  </template>
+                  <template v-else>
+                    <div class="preview-grid">
                       <div
-                          v-for="(_col, colIndex) in cols"
-                          :key="`seat-${rowIndex}-${colIndex}`"
-                          :title="`${t('classroom.detail.seat')}: ${String.fromCharCode(65 + colIndex)}${rowIndex + 1}`"
-                          class="preview-seat"
+                          v-for="(_row, rowIndex) in rows"
+                          :key="`row-${rowIndex}`"
+                          class="preview-row"
                       >
+                        <div
+                            v-for="(_col, colIndex) in cols"
+                            :key="`seat-${rowIndex}-${colIndex}`"
+                            :title="`${t('classroom.detail.seat')}: ${String.fromCharCode(65 + colIndex)}${rowIndex + 1}`"
+                            class="preview-seat"
+                            :style="{ width: cellSizeDetail + 'px', height: cellSizeDetail + 'px' }"
+                        >
                         {{ String.fromCharCode(65 + colIndex) }}{{ rowIndex + 1 }}
                       </div>
+                      </div>
                     </div>
-                  </div>
-                  <p class="preview-info">{{ t('classroom.detail.totalSeats', {count: rows * cols}) }}</p>
+                    <p class="preview-info">{{ t('classroom.detail.totalSeats', {count: rows * cols}) }}</p>
+                  </template>
                 </div>
               </div>
             </div>
@@ -254,9 +269,10 @@ import {
 import {useCourseStore, useUserStore} from '@/store'
 import {useTransitionStore} from '@/store/modules/transition'
 import type {CourseRecordDTO, CourseRecordVO} from '@/types/classroom'
-import {getClassroomTypeFromString, getClassroomTypeString} from '@/enum/classroom/classroomTypeEnum'
+import {getClassroomTypeFromString, getClassroomTypeString, ClassroomTypeEnum} from '@/enum/classroom/classroomTypeEnum'
 import {CourseRecordStatusEnum} from '@/enum/classroom/courseRecordStatusEnum'
 import {runViewTransition} from '@/utils/themeAnimation'
+ 
 
 interface Props {
   courseId: string
@@ -282,6 +298,7 @@ const endTime = ref<number | null>(null)
 const selectedClassroomSize = ref('classroomMini') // 默认选中小型教室
 const rows = ref(4) // 默认4行
 const cols = ref(3) // 默认3列
+const classroomType = ref<number | null>(null)
 const isSubmitting = ref(false)
 const isDeleting = ref(false)
 const isCancelling = ref(false)
@@ -513,6 +530,43 @@ function resetFormData() {
   courseRecordId.value = null
 }
 
+// Helper: convert seatIndex -> label like A1
+const getSeatLabel = (seatIndex: number): string | null => {
+  const total = rows.value * cols.value;
+  if (seatIndex < 0 || seatIndex >= total) return null;
+  const columnCount = cols.value || 1;
+  const locationX = Math.floor(seatIndex / columnCount); // row
+  const locationY = seatIndex % columnCount; // column
+  return `${String.fromCharCode(65 + locationY)}${locationX + 1}`;
+};
+
+// Responsive sizing for preview in detail
+const seatingPreviewRef = ref<HTMLElement | null>(null);
+const CELL_MIN_D = 28;
+const CELL_MAX_D = 72;
+const GAP_D = 8;
+const cellSizeDetail = ref<number>(44);
+
+const computeCellSizeDetail = () => {
+  const container = seatingPreviewRef.value;
+  if (!container) return;
+  const padding = 0; // container padding if any
+  const available = Math.max(0, container.clientWidth - padding);
+  const colsCount = cols.value || 1;
+  const size = Math.floor((available - (colsCount - 1) * GAP_D) / colsCount);
+  cellSizeDetail.value = Math.max(CELL_MIN_D, Math.min(CELL_MAX_D, size));
+};
+
+onMounted(() => {
+  // existing onMounted logic above will run; attach resize listener for preview sizing
+  computeCellSizeDetail();
+  window.addEventListener('resize', computeCellSizeDetail);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', computeCellSizeDetail);
+});
+
 // 处理留在此页
 function handleStayHere() {
   createdRecordId.value = null
@@ -648,6 +702,7 @@ async function loadCourseRecordData(id: string) {
     if (data.layoutColumns) {
       cols.value = data.layoutColumns
     }
+  classroomType.value = data.classroomType ?? classroomType.value
   } catch (error) {
     console.error('加载课程数据失败:', error)
     // 加载失败时重置表单
@@ -669,12 +724,36 @@ onMounted(() => {
       loadCourseRecordData(data.id)
     }
   })
+
+  // 页面初始化时如果已有 courseRecordId，则从后端获取座位信息并更新（用于预览）
+  if (courseRecordId.value) {
+    loadCourseRecordData(courseRecordId.value).catch(err => {
+      console.warn('初始化获取教室座位信息失败:', err);
+    });
+  }
 })
 
 onBeforeUnmount(() => {
   // 移除事件监听器，避免内存泄漏
   eventBus.off('resetClassroomDetail')
   eventBus.off('selectCourseRecord')
+
+  // 退出页面时，将当前座位配置信息同步到后端（如果存在课程记录ID）
+  const saveLayoutOnExit = async () => {
+    if (!courseRecordId.value) return;
+    try {
+      const dto = getDefaultCourseRecordDTO()
+      dto.id = courseRecordId.value
+      dto.layoutRows = rows.value
+      dto.layoutColumns = cols.value
+      // 仅更新座位布局相关字段
+      await updateCourseRecord(dto)
+    } catch (error) {
+      console.warn('保存教室座位信息失败:', error)
+    }
+  }
+  // fire-and-forget; don't block unmount
+  saveLayoutOnExit()
 })
 </script>
 

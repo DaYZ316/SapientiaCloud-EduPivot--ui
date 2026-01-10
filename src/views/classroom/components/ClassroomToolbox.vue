@@ -57,16 +57,16 @@
           <div class="large-components-row" :style="{ gap: DRAWER_GAP + 'px' }">
             <template v-for="r in editRows" :key="'row-' + r">
               <div class="large-component-row" style="display:flex;gap:8px;justify-content:center;">
-                <template v-for="c in editCols" :key="'comp-' + r + '-' + c">
+                <template v-for="c in componentCount" :key="'comp-' + r + '-' + c">
                   <div
                     class="large-component"
-                    :style="{ width: largeComponentWidth + 'px', height: (cellSize * 2 + DRAWER_GAP) + 'px', display:'grid', gridTemplateColumns: 'repeat(2, ' + cellSize + 'px)', gridAutoRows: cellSize + 'px' }"
+                    :style="{ width: (largeCellSize * 4) + 'px', height: largeCellSize + 'px', display:'grid', gridTemplateColumns: 'repeat(4, ' + largeCellSize + 'px)', gridAutoRows: largeCellSize + 'px' }"
                   >
                     <div
-                      v-for="local in 4"
+                    v-for="local in 4"
                       :key="local"
                       class="large-seat"
-                      :style="{ width: cellSize + 'px', height: cellSize + 'px', fontSize: Math.max(10, Math.floor(cellSize / 2)) + 'px' }"
+                      :style="{ width: largeCellSize + 'px', height: largeCellSize + 'px', fontSize: Math.max(10, Math.floor(largeCellSize / 2)) + 'px' }"
                     >
                       <span v-if="getSeatLabelFromComp(r - 1, c - 1, local - 1)">
                         {{ getSeatLabelFromComp(r - 1, c - 1, local - 1) }}
@@ -169,9 +169,23 @@ const cellSize = computed(() => {
 });
 // large preview: component width per component column
 const largeComponentWidth = computed(() => {
-  const compsInRow = Math.max(1, editCols.value || 1);
+  const compsInRow = Math.max(1, componentCount.value || 1);
   const available = Math.max(0, drawerInnerWidth.value - (compsInRow - 1) * DRAWER_GAP);
   return Math.max(100, Math.floor(available / compsInRow));
+});
+// For large preview we want 4 seats horizontally per component and each seat should be square.
+// component count for LARGE classroom (number of components per row)
+// componentCount represents number of components (models) per row shown in the editor.
+const componentCount = computed(() => {
+  return Math.max(1, editCols.value || 1);
+});
+
+const largeCellSize = computed(() => {
+  const compsInRow = Math.max(1, componentCount.value || 1);
+  const totalSeatCols = compsInRow * 4;
+  const available = Math.max(0, drawerInnerWidth.value - (compsInRow - 1) * DRAWER_GAP);
+  const size = Math.floor(available / totalSeatCols);
+  return Math.max(CELL_MIN, Math.min(CELL_MAX, size));
 });
 onMounted(() => {
   isOpen.value = false;
@@ -180,20 +194,8 @@ onMounted(() => {
 const isOpenResolved = computed(() => Boolean(isOpen.value));
 
 const normalizedItems = computed(() => {
-  const base = props.items || [];
-  // 如果当前路由包含 courseRecordId，则在工具栏中追加“编辑座位”项
-  const extra: ClassroomToolboxItem[] = [];
-  const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
-  if (recordId) {
-    extra.push({
-      key: 'edit-seating',
-      label: '编辑座位',
-      labelKey: null,
-      icon: CreateOutline,
-      handler: undefined
-    } as unknown as ClassroomToolboxItem);
-  }
-  return base.concat(extra);
+  // 按行业规范，工具栏组件仅负责渲染传入的 items，不再自行注入路由相关项
+  return props.items ? [...props.items] : [];
 });
 
 const radialItems = computed(() => {
@@ -247,9 +249,15 @@ const loadCurrentLayout = async () => {
     const resp = await getCourseRecordById(recordId);
     const data = resp?.data || null;
     if (data) {
-      editRows.value = data.layoutRows ?? editRows.value;
-      editCols.value = data.layoutColumns ?? editCols.value;
       classroomType.value = data.classroomType ?? classroomType.value;
+      editRows.value = data.layoutRows ?? editRows.value;
+      // 后端返回的 layoutColumns 为实际座位列数，前端编辑器需要模型（组件）数量：componentCount = ceil(seatCols/4)
+      if (classroomType.value === ClassroomTypeEnum.LARGE) {
+        const seatCols = data.layoutColumns ?? null;
+        editCols.value = seatCols !== null ? Math.max(1, Math.ceil(Number(seatCols) / 4)) : editCols.value;
+      } else {
+        editCols.value = data.layoutColumns ?? editCols.value;
+      }
     }
   } catch (error) {
     // 静默处理
@@ -266,13 +274,56 @@ const confirmEdit = async () => {
   if (!recordId) return;
   saving.value = true;
   try {
-    // 构建仅包含必要属性的最小化负载，避免把大量 null 发送到后端导致 400
-    const payload: Record<string, any> = { id: recordId };
-    if (typeof editRows.value === 'number') payload.layoutRows = editRows.value;
-    if (typeof editCols.value === 'number') payload.layoutColumns = editCols.value;
+    // 获取完整现有记录并基于完整 DTO 更新，避免后端对必需字段校验导致 400
+    const currentResp = await getCourseRecordById(recordId);
+    const currentData = currentResp?.data || null;
 
-    const resp = await updateCourseRecord(payload as any);
-    // 如果后端返回标准结构可检查 success/code 字段
+    const payload = getDefaultCourseRecordDTO();
+    payload.id = recordId;
+    payload.courseId = currentData?.courseId ?? null;
+    payload.teacherId = currentData?.teacherId ?? null;
+    payload.courseName = currentData?.courseName ?? null;
+    payload.courseDescription = currentData?.courseDescription ?? null;
+    payload.classroomType = currentData?.classroomType ?? null;
+    payload.startTime = currentData?.startTime ?? null;
+    payload.overTime = currentData?.overTime ?? null;
+    payload.layoutRows = typeof editRows.value === 'number' ? editRows.value : null;
+    payload.layoutColumns = typeof editCols.value === 'number' ? editCols.value : null;
+
+    // 保留完整 DTO（避免省略必需字段），并确保字段类型/格式符合后端期望
+    // 将时间格式化为 ISO（后端通常期望 ISO 格式）
+    if (currentData?.startTime) {
+      try {
+        payload.startTime = new Date(String(currentData.startTime).replace(' ', 'T')).toISOString();
+      } catch {
+        payload.startTime = currentData.startTime;
+      }
+    } else {
+      payload.startTime = null;
+    }
+    if (currentData?.overTime) {
+      try {
+        payload.overTime = new Date(String(currentData.overTime).replace(' ', 'T')).toISOString();
+      } catch {
+        payload.overTime = currentData.overTime;
+      }
+    } else {
+      payload.overTime = null;
+    }
+    // 包含 status 字段（可能为 null 或数字），避免后端因为缺少字段抛异常
+    payload.status = currentData?.status ?? null;
+    // 确保行列为数字类型或 null
+    payload.layoutRows = typeof payload.layoutRows !== 'undefined' ? Number(payload.layoutRows) : null;
+    // 对于 LARGE 教室，后端期望收到的是实际座位列数（每个组件包含 4 个并排座位）
+    let columnsToSend: number | null = null;
+    if (classroomType.value === ClassroomTypeEnum.LARGE) {
+      columnsToSend = typeof editCols.value === 'number' ? Number(editCols.value) * 4 : null;
+    } else {
+      columnsToSend = typeof editCols.value === 'number' ? Number(editCols.value) : null;
+    }
+    payload.layoutColumns = columnsToSend !== undefined ? columnsToSend : null;
+
+    const resp = await updateCourseRecord(payload as any, { meta: { hideHttpError: true, hideBusinessError: true } });
     const success = typeof resp === 'boolean' ? resp : Boolean(resp && (resp.success === true || resp.code === 200));
     if (!success) {
       const msg = resp && (resp.message || resp.msg) ? (resp.message || resp.msg) : '保存失败';
@@ -284,9 +335,27 @@ const confirmEdit = async () => {
     message.success('教室座位信息已保存');
     drawerVisible.value = false;
     // 通知外部刷新（Classroom3D 将监听并处理）
-    (eventBus as any).emit('classroomLayoutUpdated', recordId);
-    // 强制刷新页面以确保所有实例和精灵使用新布局（保守方案）
-    window.location.reload();
+    // 尝试拉取最新 DTO 并同步到前端，避免直接刷新页面导致不必要的重加载
+    try {
+      const latestResp = await getCourseRecordById(recordId);
+      const latest = latestResp?.data || null;
+      if (latest) {
+      // 同步编辑器值（editCols 存储为组件（模型）列数）
+        classroomType.value = latest.classroomType ?? classroomType.value;
+        editRows.value = latest.layoutRows ?? editRows.value;
+      if (classroomType.value === ClassroomTypeEnum.LARGE) {
+        // latest.layoutColumns 是后端的实际座位列数，前端需要组件数量（每个组件包含4座）
+        editCols.value = latest.layoutColumns ? Math.max(1, Math.ceil(Number(latest.layoutColumns) / 4)) : editCols.value;
+      } else {
+        editCols.value = latest.layoutColumns ?? editCols.value;
+      }
+        (eventBus as any).emit('classroomLayoutUpdated', recordId);
+      } else {
+        (eventBus as any).emit('classroomLayoutUpdated', recordId);
+      }
+    } catch {
+      (eventBus as any).emit('classroomLayoutUpdated', recordId);
+    }
   } catch (error: any) {
     // 如果后端返回了详细错误信息，尝试读取并显示
     const serverMsg = error && (error.message || (error.response && error.response.data && (error.response.data.message || error.response.data.msg)));
@@ -300,8 +369,8 @@ const handleClick = (item: ClassroomToolboxItem, event: MouseEvent) => {
   if (item.key === 'edit-seating') {
     openEditDrawer();
   } else {
-    if (item.handler) {
-      item.handler(event);
+  if (item.handler) {
+    item.handler(event);
     }
   }
   isOpen.value = false;
@@ -317,12 +386,13 @@ const getSeatLabel = (seatIndex: number): string | null => {
 };
 
 // For large classroom: compute seat label from component row/col and local seat index (0..3)
+// For LARGE classroom: map component row/col + local seat index(0..3) to global seat label.
 const getSeatLabelFromComp = (compRow: number, compCol: number, localIndex: number): string | null => {
-  // global seat row/col
-  const globalRow = compRow * 2 + Math.floor(localIndex / 2);
-  const globalCol = compCol * 2 + (localIndex % 2);
-  const totalRows = editRows.value * 2;
-  const totalCols = editCols.value * 2;
+  // componentCount * 4 == total seat columns
+  const globalRow = compRow; // each component row corresponds to one seat row in 1x4 layout
+  const globalCol = compCol * 4 + localIndex; // 4 seats per component, arranged horizontally
+  const totalRows = editRows.value;
+  const totalCols = (editCols.value || 1) * 4;
   if (globalRow < 0 || globalRow >= totalRows || globalCol < 0 || globalCol >= totalCols) return null;
   return `${String.fromCharCode(65 + globalCol)}${globalRow + 1}`;
 };

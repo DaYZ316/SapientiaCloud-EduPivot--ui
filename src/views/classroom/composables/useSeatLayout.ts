@@ -55,8 +55,12 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
     if (!enabled.value) {
       return 0;
     }
-    // 大型教室固定 4 列
+    // 大型教室默认 4 列，但如果 DTO 中有显式 layoutColumns 则使用该值（允许自定义）
     if (classroomType.value === ClassroomTypeEnum.LARGE) {
+      const columns = courseRecord.value?.layoutColumns ?? null;
+      if (columns !== null) {
+        return Math.min(Math.max(columns, 1), 12);
+      }
       return 4;
     }
     const columns = courseRecord.value?.layoutColumns ?? null;
@@ -70,7 +74,7 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
     if (!enabled.value) {
       return 0;
     }
-    const count = rowCount.value * columnCount.value;
+    let count = rowCount.value * columnCount.value;
     const type = classroomType.value;
     // 根据教室类型设置最大座位数量限制
     let maxSeats: number;
@@ -80,6 +84,7 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
       maxSeats = 80; // 中型教室最多54张
     } else if (type === ClassroomTypeEnum.LARGE) {
       maxSeats = 40; // 大型教室最多40张（桌椅更大所以数量少了）
+      count = rowCount.value * (columnCount.value/4);
     } else {
       maxSeats = 50; // 默认值
     }
@@ -158,28 +163,33 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
       _classroomXLength: number | null,
       classroomZLength: number | null
   ): THREE.Vector3 => {
-    // 左右方向：大型教室 20 米宽，分为 10 份，四张课桌椅各占两份，第 3、8 份为走廊
-    const width = 20;
-    const segmentCount = 10;
-    const segmentWidth = width / segmentCount; // 每份 2 米
-    const deskColumns = 4;
-    const deskCenterSegments = [ 0, 3, 5, 8]; // 每张桌子的“中心”所在的份索引（0-based）
-
-    const rowIndex = Math.floor(instanceId / deskColumns);
-    const columnIndex = instanceId % deskColumns;
-    const centerSegment = deskCenterSegments[Math.min(columnIndex, deskCenterSegments.length - 1)];
-
-    // 以教室中心为原点，x 正向为右
-    const halfWidth = width / 2;
-    position.x = -halfWidth + centerSegment * segmentWidth + 2;
-
-    // 前后方向：教室 30 米深，座位从距离前墙 8 米处开始，每排相隔 2 米，直到后墙
+    // 使用 segment-based center mapping 保留 deskCenterSegments 的语义
+    const width = _classroomXLength && _classroomXLength > 0 ? _classroomXLength : 20;
     const depth = classroomZLength && classroomZLength > 0 ? classroomZLength : 30;
-    const halfDepth = depth / 2;
-    const frontZ = halfDepth;          // 前墙 z
-    const startZ = frontZ - 8.4;         // 第一排 z
-    const zStep = 2;                   // 每排间隔
 
+    // 列数（组件数或座位列数视外层传入），使用 columnCount 作为实例每排列数
+    const cols = (columnCount.value/4) || 1;
+    const rowIndex = Math.floor(instanceId / cols);
+    const columnIndex = instanceId % cols;
+
+    // segmentCount 划分教室宽度为若干段，deskCenterSegments 表示每列实例对应的段索引
+    const segmentCount = 10;
+    const segmentWidth = width / segmentCount;
+
+    // 生成 deskCenterSegments 映射：当 cols === 1 时希望使用索引 0（左侧）；否则均匀分布段索引从 0 到 segmentCount-1
+    let deskCenterSegments = [ 0, 3, 5, 8];
+    deskCenterSegments.length-=(4-cols);
+
+    const centerSegment = deskCenterSegments[Math.min(columnIndex, deskCenterSegments.length - 1)];
+    // 以段中心为参考计算 x 坐标（加上半个段宽使其位于段中心）
+    const halfWidth = width / 2;
+    position.x = -halfWidth + centerSegment * segmentWidth + segmentWidth / 2;
+
+    // 前后方向：与之前相同
+    const halfDepth = depth / 2;
+    const frontZ = halfDepth;
+    const startZ = frontZ - 8.4;
+    const zStep = 2;
     let z = startZ - rowIndex * zStep;
     const backZ = -halfDepth;
     if (z < backZ) {
@@ -187,7 +197,7 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
     }
     position.z = z;
 
-    // 上下方向：第一排高度 0.5 米，之后每排 +0.7 米
+    // 高度随行数增加
     position.y = 2.05 + rowIndex * 0.18;
 
     return position;

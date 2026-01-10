@@ -615,6 +615,17 @@ const toolboxItems = computed<ClassroomToolboxItem[]>(() => {
         }
       }
   );
+  // 如果当前路由包含 courseRecordId，则在工具栏中追加“编辑座位”项（由页面负责注入，避免工具箱组件自行构造）
+  const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
+  if (recordId && !items.some(it => it.key === 'edit-seating')) {
+    items.push({
+      key: 'edit-seating',
+      label: '编辑座位',
+      labelKey: null,
+      icon: CreateOutline,
+      handler: undefined
+    } as unknown as ClassroomToolboxItem);
+  }
 
   return items;
 });

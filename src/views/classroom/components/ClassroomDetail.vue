@@ -199,12 +199,24 @@
                 <label class="form-label required">{{ t('classroom.detail.seatingPreview') }}</label>
                 <div v-if="rows > 0 && cols > 0" class="seating-preview" ref="seatingPreviewRef">
                   <template v-if="classroomType === ClassroomTypeEnum.LARGE">
-                    <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:12px;">
-                      <template v-for="compIndex in Math.ceil((rows * cols) / 4)" :key="`comp-${compIndex}`">
-                        <div style="width:140px;height:80px;border:1px solid rgba(0,0,0,0.12);border-radius:6px;display:flex;overflow:hidden;background:rgba(255,255,255,0.02);">
-                          <div v-for="i in 4" :key="i" style="flex:1;border-left:1px solid rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-color);">
-                            <span v-if="getSeatLabel((compIndex - 1) * 4 + (i - 1))">{{ getSeatLabel((compIndex - 1) * 4 + (i - 1)) }}</span>
-                          </div>
+                    <div class="large-components-row" :style="{ gap: GAP_D + 'px' }">
+                      <template v-for="r in rows" :key="'row-' + r">
+                        <div class="large-component-row" style="display:flex;gap:8px;justify-content:center;">
+                          <template v-for="c in componentCount" :key="'comp-' + r + '-' + c">
+                            <div
+                              class="large-component"
+                              :style="{ width: '140px', height: '80px', display:'grid', gridTemplateColumns: 'repeat(4, 1fr)', gridAutoRows: '1fr' }"
+                            >
+                              <div
+                                v-for="local in 4"
+                                :key="local"
+                                class="large-seat"
+                                :style="{ fontSize: '12px' }"
+                              >
+                                <span v-if="getSeatLabelFromComp(r - 1, c - 1, local - 1)">{{ getSeatLabelFromComp(r - 1, c - 1, local - 1) }}</span>
+                              </div>
+                            </div>
+                          </template>
                         </div>
                       </template>
                     </div>
@@ -410,7 +422,8 @@ const isFormValid = computed(() => {
 })
 
 // 教室大小变化处理
-function onClassroomSizeChange(newSize: string) {
+function onClassroomSizeChange(/* newSize param may be unreliable; read from reactive selectedClassroomSize */) {
+  const newSize = String(selectedClassroomSize.value);
   // 根据教室大小调整默认座位数
   switch (newSize) {
     case 'classroomMini':
@@ -433,6 +446,10 @@ function onClassroomSizeChange(newSize: string) {
       rows.value = 6
       cols.value = 3
   }
+  // 更新对应的 classroomType，确保预览渲染逻辑使用正确类型
+  classroomType.value = getClassroomTypeFromString(newSize)
+  // 重新计算预览格子尺寸以响应式适配新规格
+  computeCellSizeDetail()
 }
 
 
@@ -566,6 +583,21 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('resize', computeCellSizeDetail);
 });
+
+// component count for LARGE preview (number of components per row)
+const componentCount = computed(() => {
+  return Math.max(1, Math.ceil((cols.value || 1) / 4));
+});
+
+// For LARGE classroom: compute seat label from component row/col and local seat index (0..3)
+const getSeatLabelFromComp = (compRow: number, compCol: number, localIndex: number): string | null => {
+  const globalRow = compRow;
+  const globalCol = compCol * 4 + localIndex;
+  const totalRows = rows.value;
+  const totalCols = cols.value || 1;
+  if (globalRow < 0 || globalRow >= totalRows || globalCol < 0 || globalCol >= totalCols) return null;
+  return `${String.fromCharCode(65 + globalCol)}${globalRow + 1}`;
+};
 
 // 处理留在此页
 function handleStayHere() {
@@ -759,4 +791,34 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 @use './ClassroomDetail.scss';
+
+/* large component styles - synchronized with ClassroomToolbox.vue */
+.large-components-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.large-component {
+  width: 140px;
+  height: 80px;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 6px;
+  display: flex;
+  overflow: hidden;
+  background: rgba(255,255,255,0.02);
+}
+.large-seat {
+  flex: 1;
+  border-left: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--text-color);
+}
+.large-seat:first-child {
+  border-left: none;
+}
 </style>

@@ -1,4 +1,5 @@
 import http from '@/utils/http'
+import type {AxiosRequestConfig} from 'axios'
 import type {CourseRecordDTO, CourseRecordPageQueryDTO, CourseRecordVO} from '@/types/classroom'
 import type {TableDataResult} from '@/types/common/baseEntity'
 
@@ -83,7 +84,7 @@ export function listCourseRecordByTeacherId(teacherId: string) {
 }
 
 // 修改课程记录信息
-export function updateCourseRecord(data: CourseRecordDTO) {
-    return http.put<boolean>('/classroom/course-record/update', data)
+export function updateCourseRecord(data: CourseRecordDTO, config?: AxiosRequestConfig) {
+    return http.put<boolean>('/classroom/course-record/update', data, config)
 }
 

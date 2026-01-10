@@ -15,17 +15,30 @@
     <div class="book-container">
       <Book3D />
     </div>
+    <!-- 分割线 -->
+    <div class="bottom-divider" ref="dividerRef">
+      <span class="divider-text">{{ $t('dashboard.morePublicCourses') }}</span>
+    </div>
+    <!-- 课程列表 -->
+    <CourseList ref="courseListRef" />
   </div>
 </template>
 
 <script lang="ts" setup>
+import { ref, type ComponentPublicInstance } from 'vue'
 import Book3D from './Book3D.vue'
 import WelcomeCard from './WelcomeCard.vue'
 import StatisticsCard from './StatisticsCard.vue'
 import AiChatCard from './AiChatCard.vue'
 import NotificationCard from './NotificationCard.vue'
 import RecentActiveCourses from './RecentActiveCourses.vue'
+import CourseList from './CourseList.vue'
+import { useScrollLogic } from './useScroll'
 
+const courseListRef = ref<ComponentPublicInstance>()
+const dividerRef = ref<HTMLElement>()
+
+useScrollLogic(courseListRef, dividerRef)
 </script>
 
 <style lang="scss" scoped>

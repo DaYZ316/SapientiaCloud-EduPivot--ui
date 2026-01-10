@@ -59,7 +59,8 @@ export default {
     unreadCount: '未读通知：{count}条',
     viewAll: '查看全部',
     markAsRead: '标记已读',
-    noNotifications: '暂无通知'
+    noNotifications: '暂无通知',
+    empty: '暂无通知'
   },
   aiChat: {
     title: 'AI智能助手',
@@ -93,4 +94,6 @@ export default {
   recentCourses: {
     viewMoreCourses: '查看更多课程'
   }
+  ,
+  morePublicCourses: '更多课程（公开）'
 }

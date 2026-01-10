@@ -149,6 +149,9 @@ function goToQuestionGenerator() {
   --ai-feature-height: 120px;
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
+  box-shadow:
+    0 8px 32px var(--shadow-color),
+    0 4px 16px var(--shadow-secondary-color);
   user-select: none;
   transition: all 0.3s ease;
 
@@ -270,6 +273,9 @@ function goToQuestionGenerator() {
     height: auto;
     min-height: 400px;
     margin-top: 12px;
+    box-shadow:
+      0 6px 24px var(--shadow-color),
+      0 3px 12px var(--shadow-secondary-color);
 
     .celestial-hub-content {
       padding: 24px;

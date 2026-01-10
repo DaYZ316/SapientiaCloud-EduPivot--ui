@@ -102,6 +102,9 @@ onMounted(() => {
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
   border: none;
+  box-shadow:
+    0 8px 32px var(--shadow-color),
+    0 4px 16px var(--shadow-secondary-color);
   user-select: none;
 
   .stats-container {
@@ -129,7 +132,7 @@ onMounted(() => {
         align-items: center;
         justify-content: center;
         text-shadow:
-          0 3px 12px rgba(24, 144, 255, 0.4),
+          0 3px 12px color-mix(in srgb, var(--primary-color) 40%, transparent),
           0 2px 4px rgba(0, 0, 0, 0.15);
         filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
       }
@@ -153,8 +156,8 @@ onMounted(() => {
     margin-right: auto;
     border-radius: 16px;
     box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.12),
-      0 3px 12px rgba(0, 0, 0, 0.08),
+      0 6px 24px var(--shadow-color),
+      0 3px 12px var(--shadow-secondary-color),
       inset 0 1px 0 rgba(255, 255, 255, 0.15);
 
     .stats-container {
@@ -172,7 +175,7 @@ onMounted(() => {
           font-size: 36px;
           min-height: 48px;
           text-shadow:
-            0 3px 10px rgba(24, 144, 255, 0.35),
+            0 3px 10px color-mix(in srgb, var(--primary-color) 35%, transparent),
             0 2px 3px rgba(0, 0, 0, 0.12);
         }
 
@@ -185,8 +188,8 @@ onMounted(() => {
 
   .dark .statistics-card {
     box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.4),
-      0 3px 12px rgba(0, 0, 0, 0.25),
+      0 8px 32px var(--shadow-color),
+      0 4px 16px var(--shadow-secondary-color),
       inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 }
@@ -197,8 +200,8 @@ onMounted(() => {
     background: rgba(26, 26, 26, 0.75);
     border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow:
-      0 12px 40px rgba(0, 0, 0, 0.4),
-      0 4px 16px rgba(0, 0, 0, 0.25),
+      0 12px 40px var(--shadow-color),
+      0 4px 16px var(--shadow-secondary-color),
       inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 }

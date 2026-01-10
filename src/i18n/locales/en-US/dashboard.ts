@@ -93,4 +93,6 @@ export default {
   recentCourses: {
     viewMoreCourses: 'View More Courses'
   }
+  ,
+  morePublicCourses: 'More Courses (Public)'
 }

@@ -13,7 +13,8 @@ export enum BusinessBucketCodeEnum {
     COURSE_PUBLIC = 'COURSE_PUBLIC',
     COURSE_PRIVATE = 'COURSE_PRIVATE',
     LIVE_PLAYBACK = 'LIVE_PLAYBACK',
-    AI_QA_ASSET = 'AI_QA_ASSET'
+    AI_QA_ASSET = 'AI_QA_ASSET',
+    SYSTEM_NOTIFICATION = 'SYSTEM_NOTIFICATION'
 }
 
 /**
@@ -73,6 +74,14 @@ export const businessBucketOptions: BusinessBucketOption[] = [
         bucketCode: BusinessBucketCodeEnum.AI_QA_ASSET,
         defaultBucketName: 'sapientiacloud-ai-qa',
         description: 'AI 问答生成的临时文件'
+    },
+    {
+        value: BusinessBucketCodeEnum.SYSTEM_NOTIFICATION,
+        label: '系统通知资源',
+        code: 5,
+        bucketCode: BusinessBucketCodeEnum.SYSTEM_NOTIFICATION,
+        defaultBucketName: 'sapientiacloud-system-notification',
+        description: '系统通知中的图片、视频、附件资源'
     }
 ]
 

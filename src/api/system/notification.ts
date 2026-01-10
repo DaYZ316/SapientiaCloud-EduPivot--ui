@@ -10,6 +10,7 @@ import type {
 // 获取默认通知查询对象
 export function getDefaultNotificationQuery(): NotificationPageQueryDTO {
     return {
+        boxType: 0,
         type: null,
         title: null,
         status: null,

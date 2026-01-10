@@ -1,5 +1,9 @@
-export default {
+﻿export default {
   title: '通知管理',
+  tab: {
+    received: '收件箱',
+    sent: '已发送'
+  },
   searchForm: {
     title: '标题',
     titlePlaceholder: '请输入通知标题关键字',
@@ -19,6 +23,8 @@ export default {
     content: '内容',
     type: '类型',
     status: '状态',
+    recipientCount: '收件人数',
+    readCount: '已读人数',
     senderName: '发送者',
     createTime: '创建时间',
     readTime: '阅读时间',
@@ -90,6 +96,8 @@ export default {
     title: '通知详情',
     attachments: '附件',
     attachment: '附件',
-    readTime: '阅读时间'
+    readTime: '阅读时间',
+    download: '下载',
+    unknownAttachment: '未知附件'
   }
 }

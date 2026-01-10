@@ -36,6 +36,10 @@ export interface NotificationVO {
     createTime: string
     /** 更新时间 */
     updateTime: string
+    /** 已发送视图：收件人数 */
+    recipientCount?: number | null
+    /** 已发送视图：已读人数 */
+    readCount?: number | null
 }
 
 /**
@@ -132,4 +136,10 @@ export interface NotificationPageQueryDTO extends PageEntity {
     startTime?: string | null
     /** 结束时间 */
     endTime?: string | null
+    /** 消息箱类型 (0=received,1=sent) */
+    boxType?: number | null
+    /** 发送者ID（用于已发送查询，可不传） */
+    senderId?: string | null
+    /** 用户ID（收件箱查询时使用，可不传，后端会默认当前登录用户） */
+    userId?: string | null
 }

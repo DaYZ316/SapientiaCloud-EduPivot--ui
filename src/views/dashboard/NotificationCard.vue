@@ -8,7 +8,7 @@
         v-if="notifications.length > 0"
         text
         size="small"
-        @click="$router.push('/notification')"
+        @click="$router.push('/system/notification')"
       >
         {{ t('dashboard.notifications.viewAll') }}
       </n-button>
@@ -28,7 +28,7 @@
         v-for="notification in notifications"
         :key="notification.id"
         class="notification-item"
-        :class="{ 'unread': notification.status === 0 }"
+        :class="{ 'unread': notification.status === NotificationReadStatus.UNREAD }"
         @click="handleNotificationClick(notification)"
       >
         <div class="notification-icon">
@@ -50,12 +50,14 @@
             <n-text class="notification-title" strong :ellipsis="{ tooltip: true }">
               {{ notification.title }}
             </n-text>
-            <n-text v-if="notification.status === 0" class="unread-dot"></n-text>
           </div>
           <n-text class="notification-sender" depth="3">
             {{ notification.senderName }}
           </n-text>
-          <n-text class="notification-time" depth="3">
+        </div>
+        <div class="notification-meta">
+          <n-text v-if="notification.status === NotificationReadStatus.UNREAD" class="unread-dot"></n-text>
+          <n-text class="notification-time-right" depth="3">
             {{ formatDateTime(notification.createTime) }}
           </n-text>
         </div>
@@ -78,7 +80,7 @@ import {
 } from 'naive-ui'
 import type { NotificationVO } from '@/types/system/notification'
 import { listAllNotification, markNotificationAsRead } from '@/api/system/notification'
-import { NotificationType } from '@/enum/system/notificationTypeEnum'
+import { NotificationType, NotificationReadStatus } from '@/enum/system/notificationTypeEnum'
 import { formatDateTime } from '@/utils/dateUtil'
 
 const { t } = useI18n()
@@ -92,8 +94,8 @@ const loadNotifications = async () => {
     loading.value = true
     const result = await listAllNotification()
     if (result.data) {
-      // 取前5条通知
-      notifications.value = result.data.slice(0, 5)
+      // ȡǰ4��֪ͨ
+      notifications.value = result.data.slice(0, 4)
     }
   } catch (error) {
     // 静默处理错误
@@ -104,17 +106,23 @@ const loadNotifications = async () => {
 
 const handleNotificationClick = async (notification: NotificationVO) => {
   // 如果是未读通知，标记为已读
-  if (notification.status === 0) {
+  if (notification.status === NotificationReadStatus.UNREAD) {
     try {
       await markNotificationAsRead(notification.id)
-      notification.status = 1 // 更新本地状态
-    } catch (error) {
-      // 静默处理错误
-    }
-  }
+      notification.status = NotificationReadStatus.READ // 更新本地状�?
 
-  // 跳转到通知详情或通知列表页面
-  router.push('/notification')
+      // 延迟一点跳转，确保后端状态同步完�?
+      setTimeout(() => {
+        router.push({ path: '/system/notification', query: { id: notification.id } })
+      }, 300)
+    } catch (error) {
+      // 静默处理错误，即使标记失败也跳转
+      router.push({ path: '/system/notification', query: { id: notification.id } })
+    }
+  } else {
+    // 已读通知直接跳转
+    router.push({ path: '/system/notification', query: { id: notification.id } })
+  }
 }
 
 
@@ -128,6 +136,8 @@ onMounted(() => {
 
 .notification-card {
   height: 400px;
+  display: flex;
+  flex-direction: column;
   z-index: 10;
   width: 70%;
   margin-top: 16px;
@@ -142,7 +152,7 @@ onMounted(() => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     padding: 0 4px;
 
     .header-title {
@@ -170,14 +180,19 @@ onMounted(() => {
   .notification-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
+    flex: 1;
+    justify-content: space-between;
+    min-height: 0;
   }
 
   .notification-item {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 12px;
-    padding: 16px;
+    padding: 14px 16px;
+    width: 100%;
+    box-sizing: border-box;
     border-radius: 10px;
     background: color-mix(in srgb, var(--background-secondary-color) 6%, var(--background-color));
     border: 1px solid var(--border-secondary-color);
@@ -197,15 +212,14 @@ onMounted(() => {
 
     .notification-icon {
       flex-shrink: 0;
-      width: 32px;
-      height: 32px;
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       background: color-mix(in srgb, var(--primary-color) 10%, var(--background-color));
       color: var(--primary-color);
-      margin-top: 2px;
     }
 
     .notification-content {
@@ -214,43 +228,56 @@ onMounted(() => {
 
       .notification-title-row {
         display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 6px;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 2px;
 
         .notification-title {
-          font-size: 14px;
+          font-size: 13px;
           color: var(--text-color);
           flex: 1;
-          margin-right: 8px;
-        }
-
-        .unread-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: var(--primary-color);
-          flex-shrink: 0;
-          margin-top: 6px;
+          min-width: 0;
         }
       }
 
       .notification-sender {
-        font-size: 12px;
-        color: var(--text-secondary-color);
-        margin-bottom: 4px;
-      }
-
-      .notification-time {
+        display: block;
         font-size: 11px;
         color: var(--text-secondary-color);
-        opacity: 0.8;
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
+    }
+
+    .notification-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .unread-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      flex-shrink: 0;
+    }
+
+    .notification-time-right {
+      font-size: 11px;
+      color: var(--text-secondary-color);
+      opacity: 0.8;
+      white-space: nowrap;
+      flex-shrink: 0;
+      line-height: 1;
     }
   }
 }
 
-// 响应式设计
+// Responsive
 @media (max-width: 768px) {
   .notification-card {
     height: auto;
@@ -267,6 +294,7 @@ onMounted(() => {
 
     .notification-list {
       gap: 8px;
+      justify-content: flex-start;
     }
 
     .notification-item {
@@ -280,19 +308,20 @@ onMounted(() => {
       .notification-content {
         .notification-title-row {
           .notification-title {
-            font-size: 13px;
+            font-size: 12px;
           }
         }
 
         .notification-sender {
-          font-size: 11px;
-        }
-
-        .notification-time {
           font-size: 10px;
         }
+      }
+
+      .notification-time-right {
+        font-size: 10px;
       }
     }
   }
 }
 </style>
+

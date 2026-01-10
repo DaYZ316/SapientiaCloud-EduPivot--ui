@@ -18,6 +18,13 @@
     .n-date-picker {
       width: 100%;
     }
+    
+    .n-form-item > .n-button + .n-button {
+      margin-left: 8px;
+    }
+    .n-form-item:last-child .n-button:not(:first-child) {
+      margin-left: 12px;
+    }
   }
 
   .table-actions {
@@ -31,37 +38,65 @@
     }
   }
 
+  // 表格内操作列按钮间距补丁：确保操作按钮不会挤在一起
+  :deep(.n-data-table) {
+    :deep(.n-space) {
+      > .n-button {
+        margin-left: 8px;
+      }
+    }
+  }
+
   .notification-detail {
-    .detail-row {
-      margin-bottom: 12px;
+    .detail-descriptions {
+      margin-bottom: 16px;
+
+      :deep(.n-descriptions-item-label) {
+        font-weight: 500;
+        color: var(--text-secondary-color);
+      }
+
+      :deep(.n-descriptions-item-content) {
+        color: var(--text-color);
+      }
+    }
+
+    .detail-section {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 10px;
+      margin-bottom: 16px;
 
-      .n-text {
-        line-height: 1.5;
+      &:last-child {
+        margin-bottom: 0;
+      }
 
-        &:first-child {
-          font-weight: 500;
-          color: var(--text-secondary-color);
-          font-size: 14px;
-        }
+      .detail-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-color);
 
-        &:last-child {
-          color: var(--text-color);
-          word-break: break-word;
+        &::after {
+          content: '';
+          flex: 1;
+          height: 1px;
+          background-color: var(--border-secondary-color);
         }
       }
     }
 
     .notification-content {
-      padding: 12px;
-      background-color: var(--background-tertiary-color);
-      border-radius: 4px;
-      margin-bottom: 16px;
-      line-height: 1.6;
+      padding: 14px 16px;
+      background-color: var(--background-secondary-color);
+      border-radius: 8px;
+      margin-bottom: 0;
+      line-height: 1.7;
       border: 1px solid var(--border-color);
       color: var(--text-color);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
 
       // 富文本内容样式
       h1, h2, h3, h4, h5, h6 {
@@ -168,6 +203,37 @@
           }
         }
       }
+    }
+  }
+
+  .upload-attachments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+
+    .upload-attachment-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 12px;
+      background-color: var(--background-tertiary-color);
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+    }
+
+    .upload-attachment-name {
+      flex: 1;
+      min-width: 0;
+      color: var(--text-color);
+      word-break: break-all;
+    }
+
+    .upload-attachment-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
     }
   }
 

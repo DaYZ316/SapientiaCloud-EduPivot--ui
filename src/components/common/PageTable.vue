@@ -191,9 +191,18 @@ async function fetchData() {
     const res = await props.apiFn(queryParams)
     if (res) {
       const {list, total} = parseResponse(res)
-      dataList.value = list
+      // 防御性去重：如果后端偶发返回重复项（同一 id 多次出现），去掉重复项
+      const uniqueByIdMap = new Map<string, any>()
+      for (const item of list) {
+        const idKey = item?.id ?? JSON.stringify(item)
+        if (!uniqueByIdMap.has(idKey)) {
+          uniqueByIdMap.set(idKey, item)
+        }
+      }
+      const uniqueList = Array.from(uniqueByIdMap.values())
+      dataList.value = uniqueList
       pagination.total = total
-      emits('update:data', list)
+      emits('update:data', dataList.value)
     }
     return res
   } finally {
@@ -226,6 +235,7 @@ function reset(): void {
 defineExpose({
   pagination,
   fetchData,
+  refresh: fetchData,
   reset
 })
 

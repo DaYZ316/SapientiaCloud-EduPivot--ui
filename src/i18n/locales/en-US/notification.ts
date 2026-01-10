@@ -1,5 +1,9 @@
 export default {
     title: 'Notification Management',
+    tab: {
+        received: 'Inbox',
+        sent: 'Sent'
+    },
     searchForm: {
         title: 'Title',
         titlePlaceholder: 'Please enter notification title keywords',
@@ -7,6 +11,8 @@ export default {
         typePlaceholder: 'Please select notification type',
         status: 'Read Status',
         statusPlaceholder: 'Please select read status',
+        recipientCount: 'Recipients',
+        readCount: 'Read Count',
         senderName: 'Sender',
         senderNamePlaceholder: 'Please enter sender name',
         createTimeRange: 'Create Time Range',
@@ -90,6 +96,8 @@ export default {
         title: 'Notification Details',
         attachments: 'Attachments',
         attachment: 'Attachment',
+        download: 'Download',
+        unknownAttachment: 'Unknown Attachment ',
         readTime: 'Read Time'
     }
 }

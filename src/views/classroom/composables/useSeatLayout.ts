@@ -337,6 +337,7 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
       position.y += 0.5;
       return position;
     }
+    return position;
   };
 
   const fillSpritePositions = (

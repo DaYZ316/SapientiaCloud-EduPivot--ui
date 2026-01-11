@@ -182,14 +182,20 @@
                     <label class="input-label">{{ t('classroom.detail.rows') }}</label>
                     <n-input-number
                         v-model:value="rows"
+                        :min="1"
+                        style="width:100%;"
                         :placeholder="t('classroom.detail.rowsPlaceholder')"
+                        @update:value="computeCellSizeDetail"
                     />
                   </div>
                   <div class="input-group">
                     <label class="input-label">{{ t('classroom.detail.columns') }}</label>
                     <n-input-number
-                        v-model:value="cols"
+                        v-model:value="componentCols"
+                        :min="1"
+                        style="width:100%;"
                         :placeholder="t('classroom.detail.columnsPlaceholder')"
+                        @update:value="computeCellSizeDetail"
                     />
                   </div>
                 </div>
@@ -204,8 +210,7 @@
                         <div class="large-component-row" style="display:flex;gap:8px;justify-content:center;">
                           <template v-for="c in componentCount" :key="'comp-' + r + '-' + c">
                             <div
-                              class="large-component"
-                              :style="{ width: '140px', height: '80px', display:'grid', gridTemplateColumns: 'repeat(4, 1fr)', gridAutoRows: '1fr' }"
+                              class="large-component"                        
                             >
                               <div
                                 v-for="local in 4"
@@ -215,7 +220,7 @@
                               >
                                 <span v-if="getSeatLabelFromComp(r - 1, c - 1, local - 1)">{{ getSeatLabelFromComp(r - 1, c - 1, local - 1) }}</span>
                               </div>
-                            </div>
+                          </div>
                           </template>
                         </div>
                       </template>
@@ -334,14 +339,14 @@ const classroomSpecs = computed(() => [
   {
     value: 'classroomMedium',
     name: t('classroom.detail.classroomMedium'),
-    capacity: 24,
+    capacity: 64,
     features: t('classroom.detail.classroomMediumFeatures'),
     icon: BusinessOutline
   },
   {
     value: 'classroomPro',
     name: t('classroom.detail.classroomPro'),
-    capacity: 48,
+    capacity: 160,
     features: t('classroom.detail.classroomProFeatures'),
     icon: SchoolOutline
   },
@@ -431,19 +436,19 @@ function onClassroomSizeChange(/* newSize param may be unreliable; read from rea
       cols.value = 3
       break
     case 'classroomMedium':
-      rows.value = 6
-      cols.value = 4
+      rows.value = 8
+      cols.value = 8
       break
     case 'classroomPro':
-      rows.value = 8
-      cols.value = 6
+      rows.value = 10
+      cols.value = 16
       break
     case 'classroomPromax':
       rows.value = 10
-      cols.value = 8
+      cols.value = 16
       break
     default:
-      rows.value = 6
+      rows.value = 4
       cols.value = 3
   }
   // 更新对应的 classroomType，确保预览渲染逻辑使用正确类型
@@ -585,8 +590,31 @@ onBeforeUnmount(() => {
 });
 
 // component count for LARGE preview (number of components per row)
+// When classroom is LARGE, the UI's columns input should represent model/component count (each component = 4 seats).
+const componentCols = computed<number>({
+  get() {
+    if (classroomType.value === ClassroomTypeEnum.LARGE) {
+      return Math.max(1, Math.ceil((cols.value || 1) / 4));
+    }
+    return cols.value || 1;
+  },
+  set(v: number) {
+    if (classroomType.value === ClassroomTypeEnum.LARGE) {
+      // store as actual seat columns (components * 4)
+      cols.value = Number(v) * 4;
+    } else {
+      cols.value = Number(v);
+    }
+    // recompute preview sizing after change
+    computeCellSizeDetail();
+  }
+});
+
 const componentCount = computed(() => {
-  return Math.max(1, Math.ceil((cols.value || 1) / 4));
+  if (classroomType.value === ClassroomTypeEnum.LARGE) {
+    return Math.max(1, componentCols.value || 1);
+  }
+  return Math.max(1, cols.value || 1);
 });
 
 // For LARGE classroom: compute seat label from component row/col and local seat index (0..3)
@@ -791,34 +819,4 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 @use './ClassroomDetail.scss';
-
-/* large component styles - synchronized with ClassroomToolbox.vue */
-.large-components-row {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.large-component {
-  width: 140px;
-  height: 80px;
-  border: 1px solid rgba(0,0,0,0.12);
-  border-radius: 6px;
-  display: flex;
-  overflow: hidden;
-  background: rgba(255,255,255,0.02);
-}
-.large-seat {
-  flex: 1;
-  border-left: 1px solid rgba(0,0,0,0.06);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  color: var(--text-color);
-}
-.large-seat:first-child {
-  border-left: none;
-}
 </style>

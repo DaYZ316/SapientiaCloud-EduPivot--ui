@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type {InstancedMesh} from 'three';
+import {ClassroomTypeEnum} from '@/enum/classroom/classroomTypeEnum';
 
 type SubComponentMeshInfo = {
   mesh: THREE.Mesh;
@@ -125,7 +126,8 @@ export class ModelInstanceManager {
       instancedMeshGroups: InstancedMesh[],
       startIndex: number,
       count: number,
-      positionCallback: (instanceId: number, position: THREE.Vector3) => THREE.Vector3
+      positionCallback: (instanceId: number, position: THREE.Vector3) => THREE.Vector3,
+      classroomType?: number
   ): void {
     const matrix = new THREE.Matrix4();
     const groupMatrix = new THREE.Matrix4();
@@ -133,13 +135,23 @@ export class ModelInstanceManager {
     const globalPosition = new THREE.Vector3();
     const localPosition = new THREE.Vector3();
     const quaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI/2, 0));
-    const groupQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI/2, 0));
+    // groupQuaternion will be computed per-instance below when needed to orient towards a point
     const scale = new THREE.Vector3(1, 1, 1);
 
     for (let i = 0; i < count; i++) {
       const instanceId = startIndex + i;
 
       positionCallback(instanceId, globalPosition);
+
+      let groupQuaternion: THREE.Quaternion;
+      if (classroomType === ClassroomTypeEnum.EXTRA_LARGE) {
+        const dx = 0 - globalPosition.x;
+        const dz = 10 - globalPosition.z;
+        const yaw = Math.atan2(dx, dz) + Math.PI;
+        groupQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, yaw, 0));
+      } else {
+        groupQuaternion = new THREE.Quaternion();
+      }
 
       groupMatrix.compose(globalPosition, groupQuaternion, scale);
 
@@ -155,7 +167,9 @@ export class ModelInstanceManager {
         localPosition.copy(instancedMesh.userData.meshPosition);
         localPosition.applyMatrix4(componentMatrix);
 
-        matrix.compose(localPosition, quaternion, scale);
+        // combine group rotation (facing origin) with mesh's local base rotation
+        const finalQuaternion = groupQuaternion.clone().multiply(quaternion);
+        matrix.compose(localPosition, finalQuaternion, scale);
         instancedMesh.setMatrixAt(instanceId, matrix);
       });
     }

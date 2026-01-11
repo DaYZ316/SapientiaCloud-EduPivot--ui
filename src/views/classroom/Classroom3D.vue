@@ -2,12 +2,12 @@
   <div class="classroom-3d-container">
     <canvas ref="canvasRef" class="webgl_7"></canvas>
     <ClassroomToolbox :items="toolboxItems"/>
-    <ChapterPanel :course-id="route.params.courseId as string || null" :show="showChapterPanel ?? false"
+    <ChapterPanel :course-id="route.params.courseId || null" :show="showChapterPanel ?? false"
                   @close="closeChapterPanel"/>
-    <QuestionPanel :classroom-id="route.params.courseRecordId as string || null" :course-id="route.params.courseId as string || null"
+    <QuestionPanel :classroom-id="route.params.courseRecordId || null" :course-id="route.params.courseId || null"
                    :show="showQuestionPanel ?? false" @close="closeQuestionPanel"/>
     <PracticePanel
-        :classroom-id="route.params.courseRecordId as string || null"
+        :classroom-id="route.params.courseRecordId || null"
         :show="showPracticePanel ?? false"
         @close="closePracticePanel"
     />
@@ -33,7 +33,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, onBeforeUnmount, onMounted, ref} from 'vue';
+import {computed, onBeforeUnmount, onMounted, ref, watch} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {useI18n} from 'vue-i18n';
 import type {InstancedMesh, PerspectiveCamera, Scene, Texture, WebGLRenderer} from 'three';
@@ -50,11 +50,11 @@ import {
   updateStudentSeat,
   removeStudentSeat
 } from '@/api/classroom/courseRecordStudent';
-import StudentInfoPopup from '../components/StudentInfoPopup.vue';
-import ClassroomToolbox from './ClassroomToolbox.vue';
-import QuestionPanel from './QuestionPanel.vue';
-import ChapterPanel from './ChapterPanel.vue';
-import PracticePanel from './PracticePanel.vue';
+import StudentInfoPopup from './components/StudentInfoPopup.vue';
+import ClassroomToolbox from './components/ClassroomToolbox.vue';
+import QuestionPanel from './components/QuestionPanel.vue';
+import ChapterPanel from './components/ChapterPanel.vue';
+import PracticePanel from './components/PracticePanel.vue';
 import {useUserStore} from '@/store/modules/user';
 import {getGlobalApis} from '@/utils/naiveUIHelper';
 import {showBackendError} from '@/utils/errorUtil';
@@ -661,7 +661,8 @@ const initThree = () => {
   window.cameraPositions = computeCameraPositionsBySize(
       classroomXLenghtRef.value,
       classroomYLenghtRef.value,
-      classroomZLenghtRef.value
+      classroomZLenghtRef.value,
+      courseRecord.value?.classroomType
   );
 
   camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 1000);
@@ -733,6 +734,24 @@ const initThree = () => {
     // 保持指针锁定状态（如果之前已锁定）
     // PointerLockControls 会自动处理相机旋转，切换位置后继续使用即可
   }
+
+  // 监听 courseRecord 或类型变化，确保相机位置根据教室类型动态更新（例如 EXTRA_LARGE）
+  watch(courseRecord, (newVal) => {
+    if (!camera) return;
+    // 重新计算相机组
+    window.cameraPositions = computeCameraPositionsBySize(
+        classroomXLenghtRef.value,
+        classroomYLenghtRef.value,
+        classroomZLenghtRef.value,
+        newVal?.classroomType ?? null
+    );
+    const frontConfig = window.cameraPositions?.front;
+    if (frontConfig) {
+      camera.position.set(frontConfig.position.x, frontConfig.position.y, frontConfig.position.z);
+      camera.setRotationFromEuler(frontConfig.initialRotation);
+      camera.updateProjectionMatrix();
+    }
+  }, { immediate: true });
 
   // 添加指针锁定错误处理
   if (canvas && controls) {
@@ -941,7 +960,8 @@ const initThree = () => {
               window.cameraPositions = computeCameraPositionsBySize(
                   classroomXLenghtRef.value,
                   classroomYLenghtRef.value,
-                  classroomZLenghtRef.value
+                  classroomZLenghtRef.value,
+                  courseRecord.value?.classroomType
               );
 
               // 模型加载完成后，将相机初始位置设置为相机组中的 front 视角
@@ -1032,7 +1052,13 @@ const initThree = () => {
                 };
 
                 // 批量设置矩阵 - 保持内部组件相对位置
-                modelInstanceManager.setInstanceMatricesAsGroup(instancedMeshGroups, 0, maxAllowedInstances, calculatePosition);
+                modelInstanceManager.setInstanceMatricesAsGroup(
+                    instancedMeshGroups,
+                    0,
+                    maxAllowedInstances,
+                    calculatePosition,
+                    courseRecord.value?.classroomType || undefined
+                );
 
                 // 5. 批量存储精灵位置 - 优化内存分配
                 fillSpritePositions(

@@ -63,7 +63,7 @@
                     :style="{ width: (largeCellSize * 4) + 'px', height: largeCellSize + 'px', display:'grid', gridTemplateColumns: 'repeat(4, ' + largeCellSize + 'px)', gridAutoRows: largeCellSize + 'px' }"
                   >
                     <div
-                    v-for="local in 4"
+                      v-for="local in 4"
                       :key="local"
                       class="large-seat"
                       :style="{ width: largeCellSize + 'px', height: largeCellSize + 'px', fontSize: Math.max(10, Math.floor(largeCellSize / 2)) + 'px' }"
@@ -116,7 +116,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, onBeforeUnmount, ref} from 'vue';
+import {computed, onMounted, onBeforeUnmount, ref, watch} from 'vue';
 import {useI18n} from 'vue-i18n';
 import {useRoute} from 'vue-router';
 import {useMessage} from 'naive-ui';
@@ -125,6 +125,7 @@ import {BriefcaseOutline, CloseOutline, CreateOutline} from '@vicons/ionicons5';
 import {ClassroomTypeEnum} from '@/enum/classroom/classroomTypeEnum';
 import type {ClassroomToolboxItem} from '@/views/classroom/composables/toolbox';
 import {getCourseRecordById, updateCourseRecord, getDefaultCourseRecordDTO} from '@/api/classroom/courseRecord';
+import {listStudentsByRecordId} from '@/api/classroom/courseRecordStudent';
 import eventBus from '@/utils/eventBus';
 
 const props = withDefaults(defineProps<{ items: ClassroomToolboxItem[] | null }>(), {
@@ -256,7 +257,7 @@ const loadCurrentLayout = async () => {
         const seatCols = data.layoutColumns ?? null;
         editCols.value = seatCols !== null ? Math.max(1, Math.ceil(Number(seatCols) / 4)) : editCols.value;
       } else {
-        editCols.value = data.layoutColumns ?? editCols.value;
+      editCols.value = data.layoutColumns ?? editCols.value;
       }
     }
   } catch (error) {
@@ -268,6 +269,47 @@ const openEditDrawer = async () => {
   await loadCurrentLayout();
   drawerVisible.value = true;
 };
+
+// 防止减少行/列导致已入座学生被裁剪：若用户尝试减少行或列，先检查后端已分配座位
+const getOccupiedSeatIndices = async (): Promise<number[]> => {
+  const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
+  if (!recordId) return [];
+  try {
+    const resp = await listStudentsByRecordId(recordId);
+    const list = resp?.data || resp || [];
+    return (list as any[]).map((s: any) => Number(s.seatIndex)).filter((n: number) => !isNaN(n));
+  } catch {
+    return [];
+  }
+};
+
+watch(editRows, async (newRows, oldRows) => {
+  if (typeof oldRows !== 'number' || typeof newRows !== 'number') return;
+  if (newRows >= oldRows) return; // only guard on reduction
+  const occupied = await getOccupiedSeatIndices();
+  // compute current seat columns (actual seat columns)
+  const seatCols = classroomType.value === ClassroomTypeEnum.LARGE ? (editCols.value || 1) * 4 : (editCols.value || 1);
+  const newTotal = Math.max(0, newRows) * seatCols;
+  const hasConflict = occupied.some(idx => idx >= newTotal);
+  if (hasConflict) {
+    message.error(t('classroom.detail.cantDecreaseRowsBecauseOccupied') || '无法减少行数：存在已入座学生');
+    editRows.value = oldRows;
+  }
+});
+
+watch(editCols, async (newCols, oldCols) => {
+  if (typeof oldCols !== 'number' || typeof newCols !== 'number') return;
+  if (newCols >= oldCols) return; // only guard on reduction
+  const occupied = await getOccupiedSeatIndices();
+  // compute new seatCols based on classroom type (for LARGE, each component has 4 seats)
+  const newSeatCols = classroomType.value === ClassroomTypeEnum.LARGE ? Math.max(1, newCols) * 4 : Math.max(1, newCols);
+  const totalSeats = (editRows.value || 0) * newSeatCols;
+  const hasConflict = occupied.some(idx => idx >= totalSeats);
+  if (hasConflict) {
+    message.error(t('classroom.detail.cantDecreaseColsBecauseOccupied') || '无法减少列数：存在已入座学生');
+    editCols.value = oldCols;
+  }
+});
 
 const confirmEdit = async () => {
   const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
@@ -354,7 +396,7 @@ const confirmEdit = async () => {
         (eventBus as any).emit('classroomLayoutUpdated', recordId);
       }
     } catch {
-      (eventBus as any).emit('classroomLayoutUpdated', recordId);
+    (eventBus as any).emit('classroomLayoutUpdated', recordId);
     }
   } catch (error: any) {
     // 如果后端返回了详细错误信息，尝试读取并显示

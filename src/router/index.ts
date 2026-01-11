@@ -1,4 +1,4 @@
-﻿import type {RouteRecordRaw} from 'vue-router'
+import type {RouteRecordRaw} from 'vue-router'
 import {createRouter, createWebHistory} from 'vue-router'
 import {useLoadingBarStore, useTransitionStore, useUserStore} from '@/store'
 import {TitleUtil} from '@/utils'
@@ -196,7 +196,7 @@ const routes: RouteRecordRaw[] = [
             {
                 path: '/course/detail/:courseId/classroom',
                 name: 'CourseClassroom',
-                component: () => import('@/views/classroom/components/ClassroomSelect.vue'),
+                component: () => import('@/views/classroom/ClassroomSelect.vue'),
                 meta: {
                     title: '教室管理',
                     requiresAuth: true

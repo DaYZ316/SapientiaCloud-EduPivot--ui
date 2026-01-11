@@ -11,7 +11,7 @@
 </template>
 
 <script setup>
-import Classroom3D from './Classroom3D.vue';
+import Classroom3D from '../Classroom3D.vue';
 import {useRoute, useRouter} from 'vue-router';
 import {useI18n} from 'vue-i18n';
 

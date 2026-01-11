@@ -630,6 +630,36 @@
             text-align: center;
             transition: color 0.3s ease;
           }
+          
+          /* large component styles - moved from ClassroomDetail.vue */
+          .large-components-row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+          }
+          .large-component {
+            width: 140px;
+            height: 40px;
+            border: 1px solid rgba(0,0,0,0.12);
+            border-radius: 6px;
+            display: flex;
+            overflow: hidden;
+            background: rgba(255,255,255,0.02);
+          }
+          .large-seat {
+            flex: 1;
+            border-left: 1px solid rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--text-color);
+          }
+          .large-seat:first-child {
+            border-left: none;
+          }
         }
       }
     }

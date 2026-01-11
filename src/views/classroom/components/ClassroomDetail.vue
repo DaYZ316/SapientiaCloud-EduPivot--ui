@@ -182,14 +182,20 @@
                     <label class="input-label">{{ t('classroom.detail.rows') }}</label>
                     <n-input-number
                         v-model:value="rows"
+                        :min="1"
+                        style="width:100%;"
                         :placeholder="t('classroom.detail.rowsPlaceholder')"
+                        @update:value="computeCellSizeDetail"
                     />
                   </div>
                   <div class="input-group">
                     <label class="input-label">{{ t('classroom.detail.columns') }}</label>
                     <n-input-number
-                        v-model:value="cols"
+                        v-model:value="componentCols"
+                        :min="1"
+                        style="width:100%;"
                         :placeholder="t('classroom.detail.columnsPlaceholder')"
+                        @update:value="computeCellSizeDetail"
                     />
                   </div>
                 </div>
@@ -199,12 +205,23 @@
                 <label class="form-label required">{{ t('classroom.detail.seatingPreview') }}</label>
                 <div v-if="rows > 0 && cols > 0" class="seating-preview" ref="seatingPreviewRef">
                   <template v-if="classroomType === ClassroomTypeEnum.LARGE">
-                    <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:12px;">
-                      <template v-for="compIndex in Math.ceil((rows * cols) / 4)" :key="`comp-${compIndex}`">
-                        <div style="width:140px;height:80px;border:1px solid rgba(0,0,0,0.12);border-radius:6px;display:flex;overflow:hidden;background:rgba(255,255,255,0.02);">
-                          <div v-for="i in 4" :key="i" style="flex:1;border-left:1px solid rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-color);">
-                            <span v-if="getSeatLabel((compIndex - 1) * 4 + (i - 1))">{{ getSeatLabel((compIndex - 1) * 4 + (i - 1)) }}</span>
+                    <div class="large-components-row" :style="{ gap: GAP_D + 'px' }">
+                      <template v-for="r in rows" :key="'row-' + r">
+                        <div class="large-component-row" style="display:flex;gap:8px;justify-content:center;">
+                          <template v-for="c in componentCount" :key="'comp-' + r + '-' + c">
+                            <div
+                              class="large-component"                        
+                            >
+                              <div
+                                v-for="local in 4"
+                                :key="local"
+                                class="large-seat"
+                                :style="{ fontSize: '12px' }"
+                              >
+                                <span v-if="getSeatLabelFromComp(r - 1, c - 1, local - 1)">{{ getSeatLabelFromComp(r - 1, c - 1, local - 1) }}</span>
+                              </div>
                           </div>
+                          </template>
                         </div>
                       </template>
                     </div>
@@ -322,14 +339,14 @@ const classroomSpecs = computed(() => [
   {
     value: 'classroomMedium',
     name: t('classroom.detail.classroomMedium'),
-    capacity: 24,
+    capacity: 64,
     features: t('classroom.detail.classroomMediumFeatures'),
     icon: BusinessOutline
   },
   {
     value: 'classroomPro',
     name: t('classroom.detail.classroomPro'),
-    capacity: 48,
+    capacity: 160,
     features: t('classroom.detail.classroomProFeatures'),
     icon: SchoolOutline
   },
@@ -410,7 +427,8 @@ const isFormValid = computed(() => {
 })
 
 // 教室大小变化处理
-function onClassroomSizeChange(newSize: string) {
+function onClassroomSizeChange(/* newSize param may be unreliable; read from reactive selectedClassroomSize */) {
+  const newSize = String(selectedClassroomSize.value);
   // 根据教室大小调整默认座位数
   switch (newSize) {
     case 'classroomMini':
@@ -418,21 +436,25 @@ function onClassroomSizeChange(newSize: string) {
       cols.value = 3
       break
     case 'classroomMedium':
-      rows.value = 6
-      cols.value = 4
+      rows.value = 8
+      cols.value = 8
       break
     case 'classroomPro':
-      rows.value = 8
-      cols.value = 6
+      rows.value = 10
+      cols.value = 16
       break
     case 'classroomPromax':
       rows.value = 10
-      cols.value = 8
+      cols.value = 16
       break
     default:
-      rows.value = 6
+      rows.value = 4
       cols.value = 3
   }
+  // 更新对应的 classroomType，确保预览渲染逻辑使用正确类型
+  classroomType.value = getClassroomTypeFromString(newSize)
+  // 重新计算预览格子尺寸以响应式适配新规格
+  computeCellSizeDetail()
 }
 
 
@@ -566,6 +588,44 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('resize', computeCellSizeDetail);
 });
+
+// component count for LARGE preview (number of components per row)
+// When classroom is LARGE, the UI's columns input should represent model/component count (each component = 4 seats).
+const componentCols = computed<number>({
+  get() {
+    if (classroomType.value === ClassroomTypeEnum.LARGE) {
+      return Math.max(1, Math.ceil((cols.value || 1) / 4));
+    }
+    return cols.value || 1;
+  },
+  set(v: number) {
+    if (classroomType.value === ClassroomTypeEnum.LARGE) {
+      // store as actual seat columns (components * 4)
+      cols.value = Number(v) * 4;
+    } else {
+      cols.value = Number(v);
+    }
+    // recompute preview sizing after change
+    computeCellSizeDetail();
+  }
+});
+
+const componentCount = computed(() => {
+  if (classroomType.value === ClassroomTypeEnum.LARGE) {
+    return Math.max(1, componentCols.value || 1);
+  }
+  return Math.max(1, cols.value || 1);
+});
+
+// For LARGE classroom: compute seat label from component row/col and local seat index (0..3)
+const getSeatLabelFromComp = (compRow: number, compCol: number, localIndex: number): string | null => {
+  const globalRow = compRow;
+  const globalCol = compCol * 4 + localIndex;
+  const totalRows = rows.value;
+  const totalCols = cols.value || 1;
+  if (globalRow < 0 || globalRow >= totalRows || globalCol < 0 || globalCol >= totalCols) return null;
+  return `${String.fromCharCode(65 + globalCol)}${globalRow + 1}`;
+};
 
 // 处理留在此页
 function handleStayHere() {

@@ -115,6 +115,9 @@ export default {
         cancelConfirm: '确定要取消该课程记录吗？一旦取消将无法恢复，请谨慎操作',
         cancelConfirmText: '确认取消',
         cancelSuccess: '课程记录已取消'
+        ,
+        cantDecreaseRowsBecauseOccupied: '无法减少行数：存在已入座学生，请先移除或调整学生座位。',
+        cantDecreaseColsBecauseOccupied: '无法减少列数：存在已入座学生，请先移除或调整学生座位。'
     },
     seatConfirm: {
         title: '是否入座当前座位？',

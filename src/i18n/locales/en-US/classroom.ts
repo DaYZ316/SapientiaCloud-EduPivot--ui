@@ -115,6 +115,9 @@ export default {
         cancelConfirm: 'Are you sure you want to cancel this course record? Once cancelled, this operation cannot be undone. Please proceed with caution',
         cancelConfirmText: 'Confirm Cancel',
         cancelSuccess: 'Course record cancelled successfully'
+        ,
+        cantDecreaseRowsBecauseOccupied: 'Cannot decrease rows: there are students already seated. Please remove or reassign students first.',
+        cantDecreaseColsBecauseOccupied: 'Cannot decrease columns: there are students already seated. Please remove or reassign students first.'
     },
     seatConfirm: {
         title: 'Take this seat?',

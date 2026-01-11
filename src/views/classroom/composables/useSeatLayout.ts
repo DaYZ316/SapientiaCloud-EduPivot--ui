@@ -37,7 +37,8 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
     // 小型 / 中型 / 大型教室启用座位排布
     return type === ClassroomTypeEnum.SMALL
         || type === ClassroomTypeEnum.MIDDLE
-        || type === ClassroomTypeEnum.LARGE;
+        || type === ClassroomTypeEnum.LARGE
+        || type === ClassroomTypeEnum.EXTRA_LARGE;
   });
 
   const rowCount = computed(() => {
@@ -55,8 +56,12 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
     if (!enabled.value) {
       return 0;
     }
-    // 大型教室固定 4 列
-    if (classroomType.value === ClassroomTypeEnum.LARGE) {
+    // 大型/超大型教室默认 4 列，但如果 DTO 中有显式 layoutColumns 则使用该值（允许自定义）
+    if (classroomType.value === ClassroomTypeEnum.LARGE || classroomType.value === ClassroomTypeEnum.EXTRA_LARGE) {
+      const columns = courseRecord.value?.layoutColumns ?? null;
+      if (columns !== null) {
+        return Math.min(Math.max(columns, 1), 12);
+      }
       return 4;
     }
     const columns = courseRecord.value?.layoutColumns ?? null;
@@ -70,7 +75,7 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
     if (!enabled.value) {
       return 0;
     }
-    const count = rowCount.value * columnCount.value;
+    let count = rowCount.value * columnCount.value;
     const type = classroomType.value;
     // 根据教室类型设置最大座位数量限制
     let maxSeats: number;
@@ -80,6 +85,7 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
       maxSeats = 80; // 中型教室最多54张
     } else if (type === ClassroomTypeEnum.LARGE) {
       maxSeats = 40; // 大型教室最多40张（桌椅更大所以数量少了）
+      count = rowCount.value * (columnCount.value/4);
     } else {
       maxSeats = 50; // 默认值
     }
@@ -108,20 +114,20 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
     // 左右方向：教室宽6米，右边1米用于摆放架子，剩余5米均匀分布座位
     const shelfWidth = 0.6; // 右边架子宽度0.6米
     const availableWidth = width - shelfWidth; // 5米
-    const leftBound = -halfWidth; // -3米（左边界）
+    const leftBound = -halfWidth + shelfWidth + 1; // -3米（左边界）
 
     // 计算列索引（0-based）
     const columnIndex = instanceId % actualColumns;
     // 3张座位均匀分布在5米内，间距 = 5 / (3+1) = 1.25米
     const spacing = availableWidth / (actualColumns + 1);
-    position.x = leftBound + spacing * (columnIndex + 1) - 1;
+    position.x = leftBound + spacing * (columnIndex + 1);
 
     // 前后方向：第一排距离前墙3米，每排间隔2米
     const frontWallZ = halfDepth; // 前墙z坐标（5米）
     const firstRowOffset = 5; // 第一排距离前墙4.6米
     const rowSpacing = 1.8; // 每排间隔1.8米
     const rowIndex = Math.floor(instanceId / actualColumns);
-    position.z = frontWallZ - firstRowOffset - rowIndex * rowSpacing;
+    position.z = frontWallZ - firstRowOffset - rowIndex * rowSpacing - 0.8;
 
     // 上下方向：座位高度0.5米
     position.y = 0.5;
@@ -158,28 +164,33 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
       _classroomXLength: number | null,
       classroomZLength: number | null
   ): THREE.Vector3 => {
-    // 左右方向：大型教室 20 米宽，分为 10 份，四张课桌椅各占两份，第 3、8 份为走廊
-    const width = 20;
-    const segmentCount = 10;
-    const segmentWidth = width / segmentCount; // 每份 2 米
-    const deskColumns = 4;
-    const deskCenterSegments = [ 0, 3, 5, 8]; // 每张桌子的“中心”所在的份索引（0-based）
-
-    const rowIndex = Math.floor(instanceId / deskColumns);
-    const columnIndex = instanceId % deskColumns;
-    const centerSegment = deskCenterSegments[Math.min(columnIndex, deskCenterSegments.length - 1)];
-
-    // 以教室中心为原点，x 正向为右
-    const halfWidth = width / 2;
-    position.x = -halfWidth + centerSegment * segmentWidth + 2;
-
-    // 前后方向：教室 30 米深，座位从距离前墙 8 米处开始，每排相隔 2 米，直到后墙
+    // 使用 segment-based center mapping 保留 deskCenterSegments 的语义
+    const width = _classroomXLength && _classroomXLength > 0 ? _classroomXLength : 20;
     const depth = classroomZLength && classroomZLength > 0 ? classroomZLength : 30;
-    const halfDepth = depth / 2;
-    const frontZ = halfDepth;          // 前墙 z
-    const startZ = frontZ - 8.4;         // 第一排 z
-    const zStep = 2;                   // 每排间隔
 
+    // 列数（组件数或座位列数视外层传入），使用 columnCount 作为实例每排列数
+    const cols = (columnCount.value/4) || 1;
+    const rowIndex = Math.floor(instanceId / cols);
+    const columnIndex = instanceId % cols;
+
+    // segmentCount 划分教室宽度为若干段，deskCenterSegments 表示每列实例对应的段索引
+    const segmentCount = 10;
+    const segmentWidth = width / segmentCount;
+
+    // 生成 deskCenterSegments 映射：当 cols === 1 时希望使用索引 0（左侧）；否则均匀分布段索引从 0 到 segmentCount-1
+    let deskCenterSegments = [ 0, 3, 5, 8];
+    deskCenterSegments.length-=(4-cols);
+
+    const centerSegment = deskCenterSegments[Math.min(columnIndex, deskCenterSegments.length - 1)];
+    // 以段中心为参考计算 x 坐标（加上半个段宽使其位于段中心）
+    const halfWidth = width / 2;
+    position.x = -halfWidth + centerSegment * segmentWidth + segmentWidth / 2;
+
+    // 前后方向：与之前相同
+    const halfDepth = depth / 2;
+    const frontZ = halfDepth;
+    const startZ = frontZ - 8.4;
+    const zStep = 2;
     let z = startZ - rowIndex * zStep;
     const backZ = -halfDepth;
     if (z < backZ) {
@@ -187,8 +198,74 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
     }
     position.z = z;
 
-    // 上下方向：第一排高度 0.5 米，之后每排 +0.7 米
+    // 高度随行数增加
     position.y = 2.05 + rowIndex * 0.18;
+
+    return position;
+  };
+
+  // 超大型教室座位计算（扇形弧形排布）
+  const calculateExtraLargeSeatPosition = (
+      instanceId: number,
+      position: THREE.Vector3,
+      _classroomXLength: number | null,
+      classroomZLength: number | null
+  ): THREE.Vector3 => {
+    // Parameters from user: outer diameter 30m, inner diameter 10m, angle span 142°
+    const outerRadius = 60 / 2; // 15
+    const innerRadius = 20 / 2; // 5
+    const angleSpanDeg = 142;
+    const angleSpan = (angleSpanDeg * Math.PI) / 180;
+
+    // number of radial rows and a base seats-per-outer-ring
+    const rows = Math.max(1, rowCount.value || 1);
+    const outerSeatCount = Math.max(1, columnCount.value || 1);
+
+    // compute radii for each ring
+    const radii: number[] = [];
+    for (let r = 0; r < rows; r++) {
+      if (rows === 1) {
+        radii.push((innerRadius + outerRadius) / 2);
+      } else {
+        const t = r / (rows - 1);
+        radii.push(innerRadius + t * (outerRadius - innerRadius));
+      }
+    }
+
+    // compute seats per ring proportional to circumference
+    const seatsPerRing: number[] = radii.map((radius) => {
+      const factor = radius / outerRadius;
+      const seats = Math.max(1, Math.round(outerSeatCount * factor));
+      return seats;
+    });
+
+    // find which ring this instanceId belongs to (instances ordered ring0..ringN)
+    let remaining = instanceId;
+    let ring = 0;
+    while (ring < seatsPerRing.length && remaining >= seatsPerRing[ring]) {
+      remaining -= seatsPerRing[ring];
+      ring++;
+    }
+    if (ring >= seatsPerRing.length) {
+      // clamp to last ring
+      ring = seatsPerRing.length - 1;
+      remaining = seatsPerRing[ring] - 1;
+    }
+
+    const seatsInThisRing = seatsPerRing[ring];
+    const idxInRing = remaining;
+
+    // Angular placement: centered at forward (Z axis), symmetric
+    const startAngle = -angleSpan / 2;
+    const step = seatsInThisRing > 0 ? angleSpan / seatsInThisRing : angleSpan;
+    const angle = startAngle + (idxInRing + 0.5) * step;
+
+    const radius = radii[ring];
+    // convert polar to cartesian (x right, z forward)
+    position.x = Math.sin(angle) * radius;
+    position.z = -Math.cos(angle) * radius + 8;
+    // small height offset per ring for perspective
+    position.y = 1.8 + ring * 0.5;
 
     return position;
   };
@@ -199,6 +276,9 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
       classroomXLength: number | null,
       classroomZLength: number | null
   ): THREE.Vector3 => {
+    if (classroomType.value === ClassroomTypeEnum.EXTRA_LARGE) {
+      return calculateExtraLargeSeatPosition(instanceId, position, classroomXLength, classroomZLength);
+    }
     if (classroomType.value === ClassroomTypeEnum.LARGE) {
       return calculateLargeSeatPosition(instanceId, position, classroomXLength, classroomZLength);
     }
@@ -220,6 +300,18 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
       classroomXLength: number | null,
       classroomZLength: number | null
   ): THREE.Vector3 => {
+    if (classroomType.value === ClassroomTypeEnum.SMALL) {
+      calculateSeatPosition(seatIndex, position, classroomXLength, classroomZLength);
+      position.x -= 0.8;
+      position.y += 0.7;
+      return position;
+    }
+    if (classroomType.value === ClassroomTypeEnum.MIDDLE) {
+      calculateSeatPosition(seatIndex, position, classroomXLength, classroomZLength);
+      position.x += 0.4;
+      position.y += 1.8;
+      return position;
+    }
     if (classroomType.value === ClassroomTypeEnum.LARGE) {
       // 大型教室：一个桌椅模型对应四个座位
       const seatsPerModel = 4; // 每个模型包含4个座位
@@ -239,10 +331,13 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
       position.x += leftOffset + seatSpacing * (seatInModel + 1);
 
       return position;
-    } else {
-      // 小型/中型教室：一个桌椅模型对应一个座位，直接使用原有逻辑
-      return calculateSeatPosition(seatIndex, position, classroomXLength, classroomZLength);
+    } 
+    if (classroomType.value === ClassroomTypeEnum.EXTRA_LARGE) {
+      calculateSeatPosition(seatIndex, position, classroomXLength, classroomZLength);
+      position.y += 0.5;
+      return position;
     }
+    return position;
   };
 
   const fillSpritePositions = (

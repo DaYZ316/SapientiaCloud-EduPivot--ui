@@ -23,6 +23,8 @@ export interface ClassroomInteractionOptions {
   classroomType?: ClassroomTypeEnum | null;
   classroomXLength?: number | null;
   classroomZLength?: number | null;
+  // actual seat columns (total seat columns in classroom), used to map labels like A1 -> index for EXTRA_LARGE
+  seatColumns?: number | null;
   onSeatHover?: (seatIndex: number | null, event: MouseEvent) => void;
   onSeatClick?: (seatIndex: number) => void;
   onSeatContextMenu?: (seatIndex: number) => void;
@@ -117,63 +119,63 @@ export const useClassroomInteraction = (): ClassroomInteractionResult => {
             instancedMesh.getMatrixAt(modelIndex, modelMatrix);
             modelMatrix.multiply(instancedMesh.matrixWorld);
 
-        // 将交点从世界坐标转换到模型本地坐标（保留用于后续参考）
-        const localPoint = intersection.point.clone();
-        localPoint.applyMatrix4(new THREE.Matrix4().copy(modelMatrix).invert());
+            // 将交点从世界坐标转换到模型本地坐标（保留用于后续参考）
+            const localPoint = intersection.point.clone();
+            localPoint.applyMatrix4(new THREE.Matrix4().copy(modelMatrix).invert());
 
-        // 获取模型的边界框（若无则计算）
-        if (!instancedMesh.geometry.boundingBox) {
-          instancedMesh.geometry.computeBoundingBox();
-        }
-
-        if (instancedMesh.geometry.boundingBox) {
-          // 直接在世界空间对每个子座位的 box 进行精确射线相交检测，避免阈值偏移
-          const geomBox = instancedMesh.geometry.boundingBox.clone(); // 本地坐标下的包围盒
-          // 使用 Z 轴（模型深度）来左右并排分布座位
-          const geomCenterZ = (geomBox.max.z + geomBox.min.z) / 2;
-          const modelDepth = geomBox.max.z - geomBox.min.z;
-
-          const seatSpacing = modelDepth / (seatsPerModel + 1);
-          const seatDepth = modelDepth / seatsPerModel;
-          const leftOffset = -modelDepth / 2;
-
-          const tmpHit = new THREE.Vector3();
-          let closestDist = Number.POSITIVE_INFINITY;
-          let chosenSeat: number | null = null;
-
-          // 遍历每个子座位，构建其在本地坐标系下的 Box（沿 Z 轴分割），然后变换到世界坐标系再检测射线相交
-          for (let si = 0; si < seatsPerModel; si++) {
-            const seatCenterLocalZ = geomCenterZ + leftOffset + seatSpacing * (si + 1);
-            const halfDepth = seatDepth / 2;
-
-            const seatLocalBox = new THREE.Box3(
-              new THREE.Vector3(geomBox.min.x, geomBox.min.y, seatCenterLocalZ - halfDepth),
-              new THREE.Vector3(geomBox.max.x, geomBox.max.y, seatCenterLocalZ + halfDepth)
-            );
-
-            // 将本地 box 变换到世界坐标系
-            const seatWorldBox = seatLocalBox.clone();
-            seatWorldBox.applyMatrix4(modelMatrix);
-
-            // 射线与 box 相交测试
-            const hitPoint = raycaster.ray.intersectBox(seatWorldBox, tmpHit);
-            if (hitPoint) {
-              const dist = raycaster.ray.origin.distanceTo(tmpHit);
-              if (dist < closestDist) {
-                closestDist = dist;
-                chosenSeat = si;
-              }
+            // 获取模型的边界框（若无则计算）
+            if (!instancedMesh.geometry.boundingBox) {
+              instancedMesh.geometry.computeBoundingBox();
             }
-          }
 
-          if (chosenSeat !== null) {
-            const seatIndex = modelIndex * seatsPerModel + chosenSeat;
-            return seatIndex;
-          }
+            if (instancedMesh.geometry.boundingBox) {
+              // 直接在世界空间对每个子座位的 box 进行精确射线相交检测，避免阈值偏移
+              const geomBox = instancedMesh.geometry.boundingBox.clone(); // 本地坐标下的包围盒
+              // 使用 Z 轴（模型深度）来左右并排分布座位
+              const geomCenterZ = (geomBox.max.z + geomBox.min.z) / 2;
+              const modelDepth = geomBox.max.z - geomBox.min.z;
 
-          // 如果没有命中任一子座位，退回到模型第一个子座位作为默认
-          return modelIndex * seatsPerModel;
-        }
+              const seatSpacing = modelDepth / (seatsPerModel + 1);
+              const seatDepth = modelDepth / seatsPerModel;
+              const leftOffset = -modelDepth / 2;
+
+              const tmpHit = new THREE.Vector3();
+              let closestDist = Number.POSITIVE_INFINITY;
+              let chosenSeat: number | null = null;
+
+              // 遍历每个子座位，构建其在本地坐标系下的 Box（沿 Z 轴分割），然后变换到世界坐标系再检测射线相交
+              for (let si = 0; si < seatsPerModel; si++) {
+                const seatCenterLocalZ = geomCenterZ + leftOffset + seatSpacing * (si + 1);
+                const halfDepth = seatDepth / 2;
+
+                const seatLocalBox = new THREE.Box3(
+                  new THREE.Vector3(geomBox.min.x, geomBox.min.y, seatCenterLocalZ - halfDepth),
+                  new THREE.Vector3(geomBox.max.x, geomBox.max.y, seatCenterLocalZ + halfDepth)
+                );
+
+                // 将本地 box 变换到世界坐标系
+                const seatWorldBox = seatLocalBox.clone();
+                seatWorldBox.applyMatrix4(modelMatrix);
+
+                // 射线与 box 相交测试
+                const hitPoint = raycaster.ray.intersectBox(seatWorldBox, tmpHit);
+                if (hitPoint) {
+                  const dist = raycaster.ray.origin.distanceTo(tmpHit);
+                  if (dist < closestDist) {
+                    closestDist = dist;
+                    chosenSeat = si;
+                  }
+                }
+              }
+
+              if (chosenSeat !== null) {
+                const seatIndex = modelIndex * seatsPerModel + chosenSeat;
+                return seatIndex;
+              }
+
+              // 如果没有命中任一子座位，退回到模型第一个子座位作为默认
+              return modelIndex * seatsPerModel;
+            }
           } else {
             // 小型/中型教室：一个模型对应一个座位，直接返回instanceId
             return instanceId;

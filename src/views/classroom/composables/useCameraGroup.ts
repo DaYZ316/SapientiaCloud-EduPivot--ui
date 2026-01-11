@@ -1,6 +1,7 @@
 import {ref} from 'vue';
 import type {Ref} from 'vue';
 import * as THREE from 'three';
+import {ClassroomTypeEnum} from '@/enum/classroom/classroomTypeEnum';
 
 interface CameraVector {
   x: number;
@@ -41,7 +42,8 @@ const createCameraRotationToCenter = (position: CameraVector, targetY: number): 
 export const computeCameraPositionsBySize = (
   xLength: number | null,
   yLength: number | null,
-  zLength: number | null
+  zLength: number | null,
+  classroomType?: ClassroomTypeEnum | null
 ): ClassroomCameraPositions => {
   // x: 右, y: 上, z: 前
   const safeX = xLength && xLength > 0 ? xLength : 18; // 左右宽度
@@ -75,6 +77,23 @@ export const computeCameraPositionsBySize = (
     z: -(halfZ - wallOffsetZ)
   };
 
+  // Special camera placement for EXTRA_LARGE classrooms (wider/further views)
+  if (classroomType === ClassroomTypeEnum.EXTRA_LARGE) {
+    const extraBack = Math.max(8, safeZ * 0.4);
+    const extraHeight = Math.max(2, safeY * 0.2);
+    frontPos.y = baseHeight + extraHeight - 4;
+    frontPos.z = halfZ - wallOffsetZ - extraBack + 8;
+
+    rightRearPos.x = halfX + wallOffsetX * 0.5 - 8;
+    rightRearPos.y = baseHeight + extraHeight - 2;
+    rightRearPos.z = -(halfZ - wallOffsetZ + extraBack) + 30;
+
+    leftRearPos.x = -rightRearPos.x;
+    leftRearPos.y = rightRearPos.y;
+    leftRearPos.z = rightRearPos.z;
+  }
+
+  
   return {
     front: {
       // 教室前部中上靠墙

@@ -17,6 +17,12 @@
         :show="showLivePanel ?? false"
         @close="closeLivePanel"
     />
+    <LivePanel
+        :classroom-id="route.params.courseRecordId as string || null"
+        :course-id="route.params.courseId as string || null"
+        :show="showLivePanel ?? false"
+        @close="closeLivePanel"
+    />
     <!-- 学生信息框 -->
     <StudentInfoPopup
         :position="popupPosition"
@@ -52,16 +58,17 @@ import {Sky} from 'three/examples/jsm/objects/Sky.js';
 import {getCourseRecordById} from '@/api/classroom/courseRecord';
 import {
   addStudentSeat,
+  getDefaultCourseRecordStudentDTO,
   listStudentsByRecordId,
   removeStudentSeat,
   updateStudentSeat
 } from '@/api/classroom/courseRecordStudent';
 import StudentInfoPopup from './StudentInfoPopup.vue';
-import ClassroomToolbox from './components/ClassroomToolbox.vue';
-import QuestionPanel from './components/QuestionPanel.vue';
-import ChapterPanel from './components/ChapterPanel.vue';
-import PracticePanel from './components/PracticePanel.vue';
-import LivePanel from './components/LivePanel.vue';
+import ClassroomToolbox from './ClassroomToolbox.vue';
+import QuestionPanel from './QuestionPanel.vue';
+import ChapterPanel from './ChapterPanel.vue';
+import PracticePanel from './PracticePanel.vue';
+import LivePanel from './LivePanel.vue';
 import {useUserStore} from '@/store/modules/user';
 import {getGlobalApis} from '@/utils/naiveUIHelper';
 import {SpriteManager} from '@/views/classroom/composables/spriteManager';
@@ -86,6 +93,7 @@ import {
 } from '@/views/classroom/composables/useModelRouter';
 import {useSeatLayout} from '@/views/classroom/composables/useSeatLayout';
 import {ModelInstanceManager} from '@/views/classroom/composables/ModelInstanceManager';
+import {useClassroomInteraction} from '@/views/classroom/composables/useClassroomInteraction';
 import {
   BookOutline,
   CreateOutline,
@@ -123,6 +131,12 @@ const {
   fillSpritePositions
 } = useSeatLayout(courseRecord);
 
+// 教室交互管理
+const {
+  initInteractions,
+  dispose: disposeInteractions
+} = useClassroomInteraction();
+
 
 // 学生信息框相关状态
 const showStudentInfo = ref(false);
@@ -132,6 +146,8 @@ const popupPosition = ref({x: 0, y: 0});
 const studentsList = ref<CourseRecordStudentVO[]>([]);
 const pendingSeatContext = ref<SeatAssignmentContext | null>(null);
 const fallbackTextureRef = ref<Texture | null>(null);
+// 创建座位索引到学生信息的映射，用于快速查找
+const seatStudentMap = ref<Map<number, CourseRecordStudentVO>>(new Map());
 const showPointerLockHint = ref(false);
 let pointerHintTimeout: number | null = null;
 const showChapterPanel = ref<boolean | null>(null);
@@ -213,6 +229,10 @@ const closePracticePanel = () => {
   showPracticePanel.value = false;
 };
 
+const closeLivePanel = () => {
+  showLivePanel.value = false;
+};
+
 
 const createAvatarFallbackTexture = (displayName: string): THREE.CanvasTexture => {
   const canvas = document.createElement('canvas');
@@ -261,6 +281,7 @@ const confirmSeatSelection = async () => {
     return false;
   }
   const userInfo = userStore.userInfo;
+  const studentInfoFromStore = userStore.studentInfo;
   if (!userInfo || !userInfo.id) {
     resetSeatConfirmState();
     return false;
@@ -274,33 +295,41 @@ const confirmSeatSelection = async () => {
   const avatarUrl = pendingSeatContext.value.avatarUrl;
   const fallbackTexture = fallbackTextureRef.value || createAvatarFallbackTexture(pendingSeatContext.value.displayName || '');
 
-  // 获取座位3D坐标（如果不存在则使用默认值）
-  const seatPosition = spritePositions[seatIndex];
-  let locationX: number = 0;
-  let locationY: number = 0;
-  let locationZ: number | null = null;
-
-  if (seatPosition) {
-    locationX = seatPosition.x;
-    locationY = seatPosition.y;
-    locationZ = seatPosition.z;
-  }
+  // 计算座位排和列索引（从座位索引转换为排和列）
+  // locationX: 排索引, locationY: 列索引, locationZ: 默认0
+  const columnCountValue = columnCount.value || 1;
+  const locationX: number = Math.floor(seatIndex / columnCountValue); // 排索引
+  const locationY: number = seatIndex % columnCountValue; // 列索引
+  const locationZ: number | null = null; // Z坐标默认为null，后端处理
 
   // 构建API请求数据
-  const existingSeat = studentsList.value.find(student => student.studentId === userInfo.id) || null;
-  const seatData: CourseRecordStudentDTO = {
-    recordId: recordId,
-    studentId: userInfo.id,
-    courseId: courseRecord.value?.courseId || null,
-    seatIndex: seatIndex,
-    locationX: locationX,
-    locationY: locationY,
-    locationZ: locationZ,
-    rotationY: null,
-    seatStatus: SeatStatusEnum.NORMAL,
-    attendanceStatus: null,
-    participationScore: null
-  };
+  const currentStudentId = studentInfoFromStore && studentInfoFromStore.id ? studentInfoFromStore.id : null;
+  // 如果当前登录用户没有学生身份，则提示先绑定学生信息
+  if (!currentStudentId) {
+    resetSeatConfirmState();
+    if (dialog) {
+      dialog.warning({
+        title: t('classroom.noStudentIdentityTitle'),
+        content: t('classroom.noStudentIdentityContent'),
+        positiveText: t('common.confirm')
+      });
+    } else if (message) {
+      message.info(t('classroom.noStudentIdentityContent'));
+    }
+    return false;
+  }
+
+  const existingSeat = studentsList.value.find(student => student.studentId === currentStudentId) || null;
+  const seatData: CourseRecordStudentDTO = getDefaultCourseRecordStudentDTO();
+  seatData.recordId = recordId;
+  seatData.studentId = currentStudentId;
+  seatData.courseId = courseRecord.value?.courseId || null;
+  seatData.seatIndex = seatIndex;
+  seatData.locationX = locationX;
+  seatData.locationY = locationY;
+  seatData.locationZ = locationZ;
+  seatData.rotationY = null;
+  seatData.seatStatus = SeatStatusEnum.NORMAL;
 
   // 调用API添加学生座位
   const apiResponse = existingSeat ? await updateStudentSeat(seatData) : await addStudentSeat(seatData);
@@ -309,6 +338,9 @@ const confirmSeatSelection = async () => {
       : Boolean(apiResponse && (apiResponse.success === true || apiResponse.code === 200));
 
   if (!isSuccessResponse) {
+    if (message) {
+      message.error(t('classroom.seatConfirm.assignFailed') || '入座失败，请稍后重试');
+    }
     resetSeatConfirmState();
     return false;
   }
@@ -321,12 +353,13 @@ const confirmSeatSelection = async () => {
   }
 
   // API调用成功后更新前端显示
-  const applyTextureToSprite = (texture: Texture, shouldDisposeFallback = true) => {
+    const applyTextureToSprite = (texture: Texture, shouldDisposeFallback = true) => {
     if (!texture) {
       resetSeatConfirmState();
       return;
     }
-    spriteManager.updateSpriteInfo(userInfo.id, texture, seatIndex);
+    // 使用 studentId 更新精灵（后端和学生列表使用的是 studentId）
+    spriteManager.updateSpriteInfo(currentStudentId, texture, seatIndex);
     resetSeatConfirmState(shouldDisposeFallback);
     // 刷新学生列表
     if (recordId) {
@@ -424,24 +457,17 @@ const fetchCourseRecord = async () => {
 
     // 从路由参数获取课程记录ID
     const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
-    console.log('路由参数:', route.params);
-    console.log('课程记录ID:', recordId);
     if (!recordId) {
-      console.warn('没有找到课程记录ID');
       return;
     }
 
     // 调用API获取课程记录
-    console.log('正在获取课程记录...');
     const response = await getCourseRecordById(String(recordId));
-    console.log('API响应:', response);
     courseRecord.value = response?.data || null;
-    console.log('课程记录:', courseRecord.value);
 
     // 获取学生列表
     await fetchStudentsList(String(recordId));
   } catch (error) {
-    console.error('获取课程记录失败:', error);
     recordError.value = '获取课程记录失败，使用默认配置';
     // 发生错误时不阻止组件继续加载，而是使用默认配置
   } finally {
@@ -495,12 +521,21 @@ const fetchStudentsList = async (recordId: string) => {
     const response = await listStudentsByRecordId(recordId);
     studentsList.value = response?.data || [];
 
+    // 建立座位索引到学生信息的映射，用于快速查找
+    seatStudentMap.value.clear();
+    studentsList.value.forEach(student => {
+      if (student.seatIndex !== null && student.seatIndex !== undefined) {
+        seatStudentMap.value.set(student.seatIndex, student);
+      }
+    });
+
     // 渲染学生精灵模型
     if (studentsList.value.length > 0 && spriteManager && spriteManager.isInitialized) {
       await renderStudentSprites(studentsList.value);
     }
   } catch (error) {
     studentsList.value = [];
+    seatStudentMap.value.clear();
   }
 };
 
@@ -517,10 +552,6 @@ const handleExit = (e: MouseEvent) => {
       router.back();
     }
   }, e);
-};
-
-const closeLivePanel = () => {
-  showLivePanel.value = false;
 };
 
 // 跳转到直播页面，使用全局过渡动画
@@ -918,7 +949,6 @@ const initThree = () => {
   // 加载模型 - 顺序加载实现
   const loadModelsSequentially = async () => {
     try {
-      console.log('开始加载3D模型...');
       // 加载第一个模型（教室）
       await new Promise<void>((resolve, reject) => {
         if (!loader) {
@@ -928,9 +958,6 @@ const initThree = () => {
 
         // 获取教室模型URL（现在是异步的）
         getClassroomModelPathByRecord(courseRecord.value).then((classroomModelUrl) => {
-          console.log('教室模型URL:', classroomModelUrl);
-
-          console.log('正在加载教室模型...');
           loader!.load(
               classroomModelUrl,
               (gltf: GLTF) => {
@@ -1000,16 +1027,14 @@ const initThree = () => {
                 }
                 resolve();
               },
-              (progress) => {
-                console.log('教室模型加载进度:', progress);
+              () => {
+                // 加载进度处理
               },
               (error) => {
-                console.error('教室模型加载失败:', error);
                 reject(error);
               }
           );
         }).catch((error) => {
-          console.error('获取教室模型路径失败:', error);
           reject(error);
         });
       });
@@ -1026,9 +1051,6 @@ const initThree = () => {
 
         // 获取桌椅模型URL（现在是异步的）
         getDeskModelPathByRecord(courseRecord.value).then((deskModelUrl) => {
-          console.log('桌椅模型URL:', deskModelUrl);
-
-          console.log('正在加载桌椅模型...');
           loader!.load(
               deskModelUrl,
             (gltf: GLTF) => {
@@ -1341,10 +1363,138 @@ const initThree = () => {
                   });
                 }
 
+                // 8. 初始化教室交互（悬浮、点击、右键等）
+                if (canvas && camera && scene) {
+                  initInteractions({
+                    canvas,
+                    camera,
+                    scene,
+                    classroomModel: classroomModel || undefined,
+                    instancedMeshGroups,
+                    classroomType: courseRecord.value?.classroomType || null,
+                    classroomXLength: classroomXLenghtRef.value,
+                    classroomZLength: classroomZLenghtRef.value,
+                    onSeatHover: (seatIndex, event) => {
+                      // 显示学生信息弹窗
+                      if (seatIndex !== null) {
+                        const seatIdx = seatIndex;
+                        showStudentInfo.value = true;
+                        currentSeatIndex.value = seatIdx;
+                        currentStudent.value = seatStudentMap.value.get(seatIdx) || null;
+
+                        // 设置弹窗位置（鼠标位置附近）
+                        popupPosition.value = {
+                          x: event.clientX + 15,
+                          y: event.clientY + 15
+                        };
+                      } else {
+                        // 隐藏学生信息弹窗
+                        showStudentInfo.value = false;
+                        currentStudent.value = null;
+                        currentSeatIndex.value = null;
+                      }
+                    },
+                    onSeatClick: (seatIndex) => {
+                      // 处理座位点击（入座）
+                      const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
+                      if (!recordId) return;
+
+                      // 如果当前账号没有学生身份，使用 NaiveUI dialog 给出提示并阻止入座流程
+                      const currentStudentId = userStore.studentInfo?.id || null;
+                      if (!currentStudentId) {
+                        if (dialog) {
+                          dialog.warning({
+                            title: t('classroom.noStudentIdentityTitle') || t('classroom.warning'),
+                            content: t('classroom.noStudentIdentityContent') || t('classroom.pleaseBindStudentAccount'),
+                            positiveText: t('common.confirm')
+                          });
+                        } else if (message) {
+                          message.info(t('classroom.noStudentIdentityContent') || '当前账户未绑定学生信息，请先绑定学生身份');
+                        }
+                        return;
+                      }
+
+                      // 检查该座位是否已被占用（使用 studentId 比较）
+                      const occupant = studentsList.value.find(s => s.seatIndex === seatIndex) || null;
+
+                      if (occupant && occupant.studentId !== currentStudentId) {
+                        if (message) {
+                          message.info(t('classroom.seatOccupied'));
+                        }
+                        return;
+                      }
+
+                      // 打开确认对话，交由现有流程处理入座
+                      const seatLabel = formatSeatLabel(Math.floor(seatIndex / (columnCount.value || 1)), seatIndex % (columnCount.value || 1));
+                      const avatarUrl = userStore.userInfo?.avatar ?? null;
+                      const displayName = getIdentityName(userStore.userInfo || null);
+                      openSeatConfirmModal({
+                        seatIndex,
+                        seatLabel,
+                        avatarUrl,
+                        displayName
+                      });
+                    },
+                    onSeatContextMenu: (seatIndex) => {
+                      // 处理座位右键（退座）
+                      const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
+                      if (!recordId) return;
+
+                      const occupant = studentsList.value.find(s => s.seatIndex === seatIndex) || null;
+                      const currentUser = userStore.userInfo;
+
+                      if (!occupant) {
+                        if (message) {
+                          message.info(t('classroom.noStudentOnSeat'));
+                        }
+                        return;
+                      }
+
+                      const canRemove = (currentUser && occupant.studentId === currentUser.id) || isClassroomOwner.value;
+                      if (!canRemove) {
+                        if (message) {
+                          message.info(t('classroom.noPermissionToRemove'));
+                        }
+                        return;
+                      }
+
+                      if (dialog) {
+                        dialog.warning({
+                          title: t('classroom.removeSeatConfirmTitle'),
+                          content: t('classroom.removeSeatConfirmContent', {studentName: occupant.studentName || ''}),
+                          positiveText: t('common.confirm'),
+                          negativeText: t('common.cancel'),
+                          onPositiveClick: async () => {
+                            const apiResponse = await removeStudentSeat(recordId, occupant.studentId);
+                            const isSuccess = typeof apiResponse === 'boolean'
+                                ? apiResponse
+                                : Boolean(apiResponse && (apiResponse.success === true || apiResponse.code === 200));
+
+                            if (!isSuccess) {
+                              return;
+                            }
+                            // 更新前端显示：移除精灵数据并刷新列表
+                            try {
+                              if (spriteManager && spriteManager.isInitialized) {
+                                spriteManager.removeUserData(occupant.studentId);
+                              }
+                            } catch (e) {
+                              // 静默处理
+                            }
+                            await fetchStudentsList(recordId);
+                            if (message) {
+                              message.success(t('classroom.removeSeatSuccess'));
+                            }
+                          }
+                        });
+                      }
+                    }
+                  });
+                }
+
                 // 桌椅模型加载完成后，初始化精灵管理器
                 const initializeSpriteManager = (texture: Texture) => {
                   try {
-                    console.log('初始化精灵管理器，精灵数量:', spritePositions.length);
                     spriteManager.initialize(spritePositions.length, texture);
                     spriteManager.setPositions(spritePositions);
 
@@ -1358,7 +1508,7 @@ const initThree = () => {
                     try {
                       spriteManager.createSpriteInstances();
                     } catch (error) {
-                      console.error('创建精灵实例失败:', error);
+                      // 静默处理
                     }
 
                     // 如果已有学生列表，渲染学生精灵
@@ -1366,7 +1516,7 @@ const initThree = () => {
                       renderStudentSprites(studentsList.value);
                     }
                   } catch (initError) {
-                    console.error('精灵管理器初始化失败:', initError);
+                    // 静默处理
                   }
                 };
 
@@ -1386,16 +1536,14 @@ const initThree = () => {
                 reject(error);
               }
             },
-            (progress) => {
-              console.log('桌椅模型加载进度:', progress);
+            () => {
+              // 加载进度处理
             },
             (error) => {
-              console.error('桌椅模型加载失败:', error);
               reject(error);
             }
           );
         }).catch((error) => {
-          console.error('获取桌椅模型路径失败:', error);
           reject(error);
         });
       });
@@ -1573,6 +1721,9 @@ onBeforeUnmount(() => {
     });
     (window as any).pointerLockHandlers = [];
   }
+
+  // 清理教室交互资源
+  disposeInteractions();
 
   // 清理课桌悬浮和点击事件监听器
   if (window.deskHoverHandlers && Array.isArray(window.deskHoverHandlers)) {

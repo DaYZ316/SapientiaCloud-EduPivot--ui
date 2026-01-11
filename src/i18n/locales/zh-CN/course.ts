@@ -409,7 +409,8 @@ export default {
         chapters: '章节',
         classroom: '课堂',
         tasks: '任务',
-        questions: '题库'
+        questions: '题库',
+        practice: '课堂练习'
     },
 
     // 计数器

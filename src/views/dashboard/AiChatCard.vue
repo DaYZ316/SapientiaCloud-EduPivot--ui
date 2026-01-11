@@ -4,17 +4,13 @@
       <!-- 天枢介绍 -->
       <div class="celestial-hub-intro">
         <div class="intro-header">
-          <n-gradient-text
-            :gradient="{
-              from: '#1890ff',
-              to: '#722ed1',
-              deg: 45
-            }"
+          <n-text
             size="24"
             class="intro-title"
+            style="color: var(--primary-color);"
           >
             {{ t('dashboard.aiChat.title') }}
-          </n-gradient-text>
+          </n-text>
           <n-text class="intro-subtitle" depth="2">
             {{ t('dashboard.aiChat.subtitle') }}
           </n-text>
@@ -95,12 +91,11 @@
 <script lang="ts" setup>
 import {
   NCard,
-  NGradientText,
   NText,
   NGrid,
   NGridItem,
   NIcon,
- 
+
 } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { getGlobalApis } from '@/utils/naiveUIHelper'

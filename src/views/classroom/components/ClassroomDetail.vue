@@ -552,15 +552,6 @@ function resetFormData() {
   courseRecordId.value = null
 }
 
-// Helper: convert seatIndex -> label like A1
-const getSeatLabel = (seatIndex: number): string | null => {
-  const total = rows.value * cols.value;
-  if (seatIndex < 0 || seatIndex >= total) return null;
-  const columnCount = cols.value || 1;
-  const locationX = Math.floor(seatIndex / columnCount); // row
-  const locationY = seatIndex % columnCount; // column
-  return `${String.fromCharCode(65 + locationY)}${locationX + 1}`;
-};
 
 // Responsive sizing for preview in detail
 const seatingPreviewRef = ref<HTMLElement | null>(null);
@@ -797,23 +788,6 @@ onBeforeUnmount(() => {
   // 移除事件监听器，避免内存泄漏
   eventBus.off('resetClassroomDetail')
   eventBus.off('selectCourseRecord')
-
-  // 退出页面时，将当前座位配置信息同步到后端（如果存在课程记录ID）
-  const saveLayoutOnExit = async () => {
-    if (!courseRecordId.value) return;
-    try {
-      const dto = getDefaultCourseRecordDTO()
-      dto.id = courseRecordId.value
-      dto.layoutRows = rows.value
-      dto.layoutColumns = cols.value
-      // 仅更新座位布局相关字段
-      await updateCourseRecord(dto)
-    } catch (error) {
-      console.warn('保存教室座位信息失败:', error)
-    }
-  }
-  // fire-and-forget; don't block unmount
-  saveLayoutOnExit()
 })
 </script>
 

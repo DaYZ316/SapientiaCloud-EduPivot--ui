@@ -208,8 +208,7 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
   const calculateExtraLargeSeatPosition = (
       instanceId: number,
       position: THREE.Vector3,
-      _classroomXLength: number | null,
-      classroomZLength: number | null
+      _classroomXLength: number | null
   ): THREE.Vector3 => {
     // Parameters from user: outer diameter 30m, inner diameter 10m, angle span 142°
     const outerRadius = 60 / 2; // 15
@@ -277,7 +276,7 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
       classroomZLength: number | null
   ): THREE.Vector3 => {
     if (classroomType.value === ClassroomTypeEnum.EXTRA_LARGE) {
-      return calculateExtraLargeSeatPosition(instanceId, position, classroomXLength, classroomZLength);
+      return calculateExtraLargeSeatPosition(instanceId, position, classroomXLength);
     }
     if (classroomType.value === ClassroomTypeEnum.LARGE) {
       return calculateLargeSeatPosition(instanceId, position, classroomXLength, classroomZLength);

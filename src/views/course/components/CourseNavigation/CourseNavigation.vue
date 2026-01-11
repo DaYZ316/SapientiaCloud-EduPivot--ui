@@ -85,6 +85,20 @@
           </template>
           {{ $t('course.navigation.questions') }}
         </n-button>
+
+        <n-button
+            block
+            class="nav-button"
+            size="large"
+            @click="handleNavigation('practice')"
+        >
+          <template #icon>
+            <n-icon>
+              <BookOutline/>
+            </n-icon>
+          </template>
+          {{ $t('course.navigation.practice') }}
+        </n-button>
       </div>
     </n-card>
   </div>
@@ -93,6 +107,7 @@
 <script lang="ts" setup>
 import {useRouter} from 'vue-router'
 import {
+  BookOutline,
   ChatbubbleOutline,
   CheckmarkCircleOutline,
   HelpCircleOutline,
@@ -136,6 +151,9 @@ const handleNavigation = (type: string) => {
       break
     case 'questions':
       router.push(`/course/detail/${courseIdValue}/questions`)
+      break
+    case 'practice':
+      router.push(`/course/detail/${courseIdValue}/practice`)
       break
     default:
       break

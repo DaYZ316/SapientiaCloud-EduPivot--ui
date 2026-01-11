@@ -6,14 +6,14 @@ const classroomModelImports = {
   [ClassroomTypeEnum.SMALL]: () => import('@/assets/3Dmodel/classroom/classroomMini.gltf?url'),
   [ClassroomTypeEnum.MIDDLE]: () => import('@/assets/3Dmodel/classroom/classroomMiddle.gltf?url'),
   [ClassroomTypeEnum.LARGE]: () => import('@/assets/3Dmodel/classroom/classroomPro.gltf?url'),
-  [ClassroomTypeEnum.EXTRA_LARGE]: () => import('@/assets/3Dmodel/classroom/classroomPro.gltf?url')
+  [ClassroomTypeEnum.EXTRA_LARGE]: () => import('@/assets/3Dmodel/classroom/classroomUltra.gltf?url')
 };
 
 const deskModelImports = {
   [ClassroomTypeEnum.SMALL]: () => import('@/assets/3Dmodel/desk_chair/deskChairMini.gltf?url'),
   [ClassroomTypeEnum.MIDDLE]: () => import('@/assets/3Dmodel/desk_chair/deskChairMiddle.gltf?url'),
   [ClassroomTypeEnum.LARGE]: () => import('@/assets/3Dmodel/desk_chair/deskChairPro.gltf?url'),
-  [ClassroomTypeEnum.EXTRA_LARGE]: () => import('@/assets/3Dmodel/desk_chair/deskChairPro.gltf?url')
+  [ClassroomTypeEnum.EXTRA_LARGE]: () => import('@/assets/3Dmodel/desk_chair/deskChairUltra.gltf?url')
 };
 
 // 缓存已解析的URL

@@ -1,5 +1,6 @@
 export default {
     dashboard: 'Dashboard',
+    notification: 'Notification',
     settings: 'Settings',
     filePreview: 'File Preview',
     profile: 'Profile',

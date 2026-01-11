@@ -11,6 +11,8 @@ import type {QuestionVO} from '@/types/course/question'
 export interface ClassroomQuestionDTO {
     /** 记录ID（更新时必填） */
     id: string | null
+    /** 课程ID */
+    courseId: string | null
     /** 课堂记录ID */
     classroomId: string | null
     /** 题目ID */
@@ -33,8 +35,12 @@ export interface ClassroomQuestionDTO {
 export interface ClassroomQuestionVO {
     /** 记录ID */
     id: string
+    /** 课程ID */
+    courseId: string
     /** 课堂记录ID */
     classroomId: string
+    /** 课堂名称 */
+    classroomName: string
     /** 题目ID */
     questionId: string
     /** 题目标题 */
@@ -55,6 +61,8 @@ export interface ClassroomQuestionVO {
  * 课堂练习分页查询DTO
  */
 export interface ClassroomQuestionPageQueryDTO extends PageEntity {
+    /** 课程ID */
+    courseId?: string | null
     /** 课堂记录ID */
     classroomId?: string | null
 }

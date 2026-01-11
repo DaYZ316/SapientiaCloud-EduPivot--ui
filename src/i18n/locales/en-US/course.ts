@@ -402,7 +402,8 @@ export default {
         chapters: 'Chapters',
         classroom: 'Classroom',
         tasks: 'Tasks',
-        questions: 'Question Bank'
+        questions: 'Question Bank',
+        practice: 'Classroom Practice'
     },
 
     // Counter

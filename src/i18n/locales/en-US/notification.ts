@@ -25,6 +25,8 @@ export default {
         content: 'Content',
         type: 'Type',
         status: 'Status',
+        recipientCount: 'Recipients',
+        readCount: 'Read Count',
         senderName: 'Sender',
         createTime: 'Create Time',
         readTime: 'Read Time',

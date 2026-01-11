@@ -121,7 +121,7 @@ import {useI18n} from 'vue-i18n';
 import {useRoute} from 'vue-router';
 import {useMessage} from 'naive-ui';
 import {NButton, NTooltip, NDrawer, NInputNumber, NSpace} from 'naive-ui';
-import {BriefcaseOutline, CloseOutline, CreateOutline} from '@vicons/ionicons5';
+import {BriefcaseOutline, CloseOutline} from '@vicons/ionicons5';
 import {ClassroomTypeEnum} from '@/enum/classroom/classroomTypeEnum';
 import type {ClassroomToolboxItem} from '@/views/classroom/composables/toolbox';
 import {getCourseRecordById, updateCourseRecord, getDefaultCourseRecordDTO} from '@/api/classroom/courseRecord';
@@ -167,12 +167,6 @@ const cellSize = computed(() => {
   const available = Math.max(0, drawerInnerWidth.value - (colsCount - 1) * DRAWER_GAP);
   const size = Math.floor(available / colsCount);
   return Math.max(CELL_MIN, Math.min(CELL_MAX, size));
-});
-// large preview: component width per component column
-const largeComponentWidth = computed(() => {
-  const compsInRow = Math.max(1, componentCount.value || 1);
-  const available = Math.max(0, drawerInnerWidth.value - (compsInRow - 1) * DRAWER_GAP);
-  return Math.max(100, Math.floor(available / compsInRow));
 });
 // For large preview we want 4 seats horizontally per component and each seat should be square.
 // component count for LARGE classroom (number of components per row)
@@ -368,7 +362,7 @@ const confirmEdit = async () => {
     const resp = await updateCourseRecord(payload as any, { meta: { hideHttpError: true, hideBusinessError: true } });
     const success = typeof resp === 'boolean' ? resp : Boolean(resp && (resp.success === true || resp.code === 200));
     if (!success) {
-      const msg = resp && (resp.message || resp.msg) ? (resp.message || resp.msg) : '保存失败';
+      const msg = resp && resp.message ? resp.message : '保存失败';
       message.error(msg);
       drawerVisible.value = false;
       return;
@@ -418,14 +412,6 @@ const handleClick = (item: ClassroomToolboxItem, event: MouseEvent) => {
   isOpen.value = false;
 };
 
-const getSeatLabel = (seatIndex: number): string | null => {
-  const total = editRows.value * editCols.value;
-  if (seatIndex < 0 || seatIndex >= total) return null;
-  const columnCount = editCols.value || 1;
-  const locationX = Math.floor(seatIndex / columnCount); // row
-  const locationY = seatIndex % columnCount; // column
-  return `${String.fromCharCode(65 + locationY)}${locationX + 1}`;
-};
 
 // For large classroom: compute seat label from component row/col and local seat index (0..3)
 // For LARGE classroom: map component row/col + local seat index(0..3) to global seat label.

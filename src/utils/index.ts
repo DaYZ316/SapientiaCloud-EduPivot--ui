@@ -19,6 +19,3 @@ export * from './titleUtil'
 
 // 导出头像工具函数
 export * from './avatarUtil'
-
-// 导出错误处理工具函数
-export * from './errorUtil'

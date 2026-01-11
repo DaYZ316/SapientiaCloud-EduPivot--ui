@@ -194,7 +194,7 @@ async function fetchData() {
       // 防御性去重：如果后端偶发返回重复项（同一 id 多次出现），去掉重复项
       const uniqueByIdMap = new Map<string, any>()
       for (const item of list) {
-        const idKey = item?.id ?? JSON.stringify(item)
+        const idKey = (item as any)?.id ?? JSON.stringify(item)
         if (!uniqueByIdMap.has(idKey)) {
           uniqueByIdMap.set(idKey, item)
         }

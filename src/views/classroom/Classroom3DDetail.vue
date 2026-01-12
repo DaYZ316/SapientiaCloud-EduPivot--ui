@@ -7,13 +7,11 @@
       {{ t('classroom.exit') }}
     </n-button>
     <Classroom3D/>
-    <DraggableCelestialHub :is-active="false" :size="96" />
   </div>
 </template>
 
 <script setup>
 import Classroom3D from './components/Classroom3D.vue';
-import DraggableCelestialHub from '@/components/common/DraggableCelestialHub.vue';
 import {useRoute, useRouter} from 'vue-router';
 import {useI18n} from 'vue-i18n';
 
@@ -56,6 +54,21 @@ function showClassroomSelect() {
   transition: all 0.3s ease;
 }
 
+/* 悬停状态 */
+.sunrise-exit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px var(--shadow-color),
+  inset 0 -1px 0 var(--border-color);
+  background-color: var(--background-secondary-color);
+}
+
+/* 点击状态 */
+.sunrise-exit-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px var(--shadow-secondary-color),
+  inset 0 1px 3px var(--shadow-color);
+  background-color: var(--background-tertiary-color);
+}
 
 /* 聚焦状态 - 符合全局设计 */
 .sunrise-exit-button:focus {

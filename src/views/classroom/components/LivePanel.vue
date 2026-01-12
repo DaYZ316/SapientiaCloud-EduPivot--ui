@@ -7,7 +7,7 @@
     </NButton>
 
     <div class="live-panel__header">
-      <div class="live-panel__title">直播房间配置</div>
+      <div class="live-panel__title">{{ t('live.panel.title') }}</div>
     </div>
 
     <div class="live-panel__body">
@@ -15,47 +15,45 @@
         <NSpin />
       </div>
 
-      <div v-else class="live-panel__grid">
-        <div class="live-panel__left">
-          <div v-if="!room" class="live-panel__create">
-            <template v-if="isTeacher">
-              <LiveRoomCreateForm
-                :courseRecordId="props.classroomId ?? null"
-                :courseId="props.courseId ?? null"
-                :liveRoom="room"
-                @success="onCreateSuccess"
-              />
-            </template>
-            <template v-else>
-              <div class="live-panel__empty">{{ t('classroom.waitingForTeacher') }}</div>
-            </template>
-          </div>
+      <div v-else class="live-panel__content">
+        <div v-if="!room" class="live-panel__create">
+          <template v-if="isTeacher">
+            <LiveRoomCreateForm
+              :courseRecordId="props.classroomId ?? null"
+              :courseId="props.courseId ?? null"
+              :liveRoom="room"
+              @success="onCreateSuccess"
+            />
+          </template>
+          <template v-else>
+            <div class="live-panel__empty">{{ t('classroom.waitingForTeacher') }}</div>
+          </template>
+        </div>
 
-          <div v-else-if="room" class="live-panel__info">
-            <div class="course-info-row" v-if="courseInfo">
-              <img v-if="courseInfo.coverImageUrl" :src="courseInfo.coverImageUrl" alt="course cover" class="course-cover" />
-              <div class="course-meta">
-                <div class="course-title">{{ courseInfo.courseName }}</div>
-                <div class="course-teacher" v-if="courseInfo.teacherName">{{ courseInfo.teacherName }}</div>
-                <div class="course-desc" v-if="courseInfo.description">{{ courseInfo.description }}</div>
-                <div class="course-extra">
-                  <span v-if="courseInfo.semester">学期: {{ courseInfo.semester }}</span>
-                  <span v-if="courseInfo.location"> · 地点: {{ courseInfo.location }}</span>
-                </div>
+        <div v-else-if="room" class="live-panel__info">
+          <div class="course-info-row" v-if="courseStore.currentCourseInfo">
+            <img v-if="courseStore.currentCourseInfo.coverImageUrl" :src="courseStore.currentCourseInfo.coverImageUrl" :alt="t('live.panel.courseCoverAlt')" class="course-cover" />
+            <div class="course-meta">
+              <div class="course-title">{{ courseStore.currentCourseInfo.courseName }}</div>
+              <div class="course-teacher" v-if="courseStore.currentCourseInfo.teacherName">{{ courseStore.currentCourseInfo.teacherName }}</div>
+              <div class="course-desc" v-if="courseStore.currentCourseInfo.description">{{ courseStore.currentCourseInfo.description }}</div>
+              <div class="course-extra">
+                <span v-if="courseStore.currentCourseInfo.semester">{{ t('live.panel.semester') }}{{ courseStore.currentCourseInfo.semester }}</span>
+                <span v-if="courseStore.currentCourseInfo.location">{{ t('live.panel.location') }}{{ courseStore.currentCourseInfo.location }}</span>
               </div>
             </div>
-
-            <div class="room-row"><strong>房间名：</strong> {{ room.roomName }}</div>
-            <div class="room-row"><strong>状态：</strong> {{ getStatusLabel(room.status) }}</div>
-            <div class="room-row" v-if="room.startTime"><strong>开始：</strong> {{ room.startTime }}</div>
-            <div class="room-row" v-if="room.expectedEndTime"><strong>预计结束：</strong> {{ room.expectedEndTime }}</div>
-            <div class="room-row" v-if="room.maxParticipants !== null && room.maxParticipants !== undefined"><strong>最大人数：</strong> {{ room.maxParticipants }}</div>
-            <div class="room-row" v-if="room.recordingAssetUrl"><strong>回放：</strong> <a :href="room.recordingAssetUrl" target="_blank">查看</a></div>
-
           </div>
 
-          <div v-else class="live-panel__empty">暂无直播房间</div>
+          <div class="room-row"><strong>{{ t('live.panel.roomName') }}</strong> {{ room.roomName }}</div>
+          <div class="room-row"><strong>{{ t('live.panel.status') }}</strong> {{ getStatusLabel(room.status) }}</div>
+          <div class="room-row" v-if="room.startTime"><strong>{{ t('live.panel.startTime') }}</strong> {{ room.startTime }}</div>
+          <div class="room-row" v-if="room.expectedEndTime"><strong>{{ t('live.panel.expectedEndTime') }}</strong> {{ room.expectedEndTime }}</div>
+          <div class="room-row" v-if="room.maxParticipants !== null && room.maxParticipants !== undefined"><strong>{{ t('live.panel.maxParticipants') }}</strong> {{ room.maxParticipants }}</div>
+          <div class="room-row" v-if="room.recordingAssetUrl"><strong>{{ t('live.panel.recording') }}</strong> <a :href="room.recordingAssetUrl" target="_blank">{{ t('live.panel.view') }}</a></div>
+
         </div>
+
+        <div v-else class="live-panel__empty">{{ t('live.panel.noRoom') }}</div>
 
         <!-- footer actions: moved here so they are always at the bottom of the left column -->
         <div class="live-panel__actions">
@@ -67,7 +65,7 @@
             <template v-if="room && room.status === LiveRoomStatusEnum.LIVE">
               <NButton type="warning" @click="endLive" :loading="endingLoading">{{ t('live.room.stop') || '结束直播' }}</NButton>
             </template>
-            <template v-else>
+            <template v-else-if="room">
               <NButton type="success" @click="startLive" :loading="startingLoading">{{ t('live.room.start') || '开启直播' }}</NButton>
             </template>
           </span>
@@ -78,16 +76,16 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, onBeforeUnmount, computed } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { NButton, NSpin } from 'naive-ui';
 import { CloseOutline } from '@vicons/ionicons5';
-import { fetchEventSource } from '@microsoft/fetch-event-source';
 import LiveRoomCreateForm from '@/views/live/components/LiveRoomCreateForm.vue';
 import { LiveRoomRoleEnum } from '@/enum/live/liveRoomRoleEnum';
 import { LiveRoomStatusEnum } from '@/enum/live/liveRoomStatusEnum';
 import { useUserStore } from '@/store/modules/user';
+import { useCourseStore } from '@/store/modules/course';
 import { useErrorHandler } from '@/views/live/LiveRoom/composables/useErrorHandler';
 import { getGlobalApis } from '@/utils/naiveUIHelper';
 import {
@@ -96,21 +94,19 @@ import {
   startLiveRoom,
   issueRoomToken
 } from '@/api/live/liveRoom';
-import { getCourseById } from '@/api/course/course';
 import type { LiveRoomVO } from '@/types/live';
-import type { CourseVO } from '@/types/course';
 
 const props = defineProps<{ show: boolean; classroomId: string | null; courseId?: string | null }>();
 const emit = defineEmits<{ close: [] }>();
 const { t } = useI18n();
 const router = useRouter();
 const userStore = useUserStore();
+const courseStore = useCourseStore();
 
 const loading = ref<boolean | null>(null);
 // creating flag removed; child component handles creation
 const ending = ref<boolean | null>(null);
 const room = ref<LiveRoomVO | null>(null);
-const courseInfo = ref<CourseVO | null>(null);
 const isTeacher = computed(() => {
   return userStore.hasRole && (userStore.hasRole('TEACHER') || userStore.hasRole('ADMIN'));
 });
@@ -125,14 +121,9 @@ const joiningLoading = computed(() => Boolean(joining.value));
 const endingLoading = computed(() => Boolean(ending.value));
 const startingLoading = computed(() => Boolean(starting.value));
 
-// no-op
-
 watch(() => props.show, async (val) => {
   if (val) {
     await loadRoom();
-    subscribeSse();
-  } else {
-    unsubscribeSse();
   }
 });
 
@@ -148,7 +139,6 @@ async function loadRoom() {
     // Treat empty or invalid responses (no id) as no room
     if (!data || !data.id) {
       room.value = null;
-      courseInfo.value = null;
       return;
     }
 
@@ -156,17 +146,14 @@ async function loadRoom() {
     // If roomName is missing or empty, treat as "no room" so teachers see the create form.
     if (typeof data.roomName !== 'string' || data.roomName.trim().length === 0) {
       room.value = null;
-      courseInfo.value = null;
       return;
     }
 
     room.value = data;
-    // load course info if available
+    // ensure course info is available in store
     const cid = room.value?.courseId ?? props.courseId ?? null;
-    if (cid) {
-      await loadCourse(cid);
-    } else {
-      courseInfo.value = null;
+    if (cid && courseStore.currentCourseId !== cid) {
+      await courseStore.refreshCourseInfo(cid);
     }
   } finally {
     loading.value = false;
@@ -178,18 +165,6 @@ async function onCreateSuccess() {
   await loadRoom();
 }
 
-async function loadCourse(courseId: string) {
-  const res: any = await getCourseById(courseId).catch((error) => {
-    courseInfo.value = null;
-    errorHandler.handleError(error, 'load_course', {
-      showNotification: false
-    });
-    return null;
-  });
-  if (res?.data) {
-    courseInfo.value = res.data;
-  }
-}
 
 async function endLive() {
   if (!room.value || !room.value.id) return;
@@ -276,85 +251,6 @@ function getStatusLabel(status: number | null | undefined) {
   return t('classroom.liveStatus.notStarted');
 }
 
-// SSE subscription
-let eventSourceController: AbortController | null = null;
-async function subscribeSse() {
-  if (!props.classroomId) return;
-  unsubscribeSse();
-
-  try {
-    const jwtToken = userStore.token;
-    if (!jwtToken) {
-      throw new Error('用户未登录，无法建立SSE连接');
-    }
-
-    const sseUrl = `/celestial-hub/live/subscribe?classroomId=${props.classroomId}`;
-
-    eventSourceController = new AbortController();
-
-    await fetchEventSource(sseUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${jwtToken}`,
-        'Accept': 'text/event-stream'
-      },
-      signal: eventSourceController.signal,
-      openWhenHidden: true,
-      credentials: 'include',
-      onopen: async (response) => {
-        if (response.ok) {
-          console.log('LivePanel SSE连接建立成功');
-        } else {
-          console.error('LivePanel SSE连接失败:', response.status, response.statusText);
-        }
-      },
-      onmessage: (evt) => {
-        try {
-          const data = JSON.parse(evt.data);
-          // update room info (hub may send map or LiveRoomVO-like object)
-          room.value = data;
-          // show notifications for status changes
-          const status = data && (data.status || data.status === 0) ? Number(data.status) : null;
-          if (status === LiveRoomStatusEnum.LIVE) {
-            const { message } = getGlobalApis();
-            if (message) message.success('直播开始');
-          } else if (status === LiveRoomStatusEnum.ENDED) {
-            const { message } = getGlobalApis();
-            if (message) message.info('直播已结束');
-          } else if (status === LiveRoomStatusEnum.CLOSED) {
-            const { message } = getGlobalApis();
-            if (message) message.info('直播已关闭');
-          }
-        } catch (e) {
-          // ignore JSON parse errors
-        }
-      },
-      onerror: (error) => {
-        console.error('LivePanel SSE连接错误:', error);
-        // Don't show error notifications for connection issues, just log them
-      }
-    });
-  } catch (error) {
-    errorHandler.handleError(error, 'sse_subscribe', {
-      showNotification: true,
-      customMessage: 'SSE 订阅失败'
-    });
-  }
-}
-
-function unsubscribeSse() {
-  if (eventSourceController) {
-    try {
-      eventSourceController.abort();
-    } catch (e) {
-    }
-    eventSourceController = null;
-  }
-}
-
-onBeforeUnmount(() => {
-  unsubscribeSse();
-});
 </script>
 
 <style scoped lang="scss">
@@ -414,14 +310,9 @@ onBeforeUnmount(() => {
   border-bottom: 1px solid color-mix(in srgb, var(--border-secondary-color) 85%, transparent);
 }
 
-.live-panel__title {
-  font-weight: 600;
-  color: var(--text-color);
-}
-
 .live-panel__body {
   flex: 1;
-  padding: 16px;
+  padding: 30px 16px 0 16px;
   overflow: hidden;
   /* 内容区干净一点 */
   background: color-mix(in srgb, var(--background-color) 92%, transparent);
@@ -500,21 +391,10 @@ onBeforeUnmount(() => {
   padding: 0 12px;
 }
 
-.live-panel__grid {
+.live-panel__content {
   height: 100%;
   width: 100%;
-  display: grid;
-  grid-template-columns: 1fr; /* single column: left fills entire modal */
-  gap: 16px;
-  align-items: stretch;
-}
-
-.live-panel__left {
-  width: 100%;
-}
-
-.live-panel__right {
-  display: none; /* hide right column since left should occupy full modal */
+  padding: 12px;
 }
 
 </style>

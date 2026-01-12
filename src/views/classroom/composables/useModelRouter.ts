@@ -1,64 +1,42 @@
 import type {CourseRecordVO} from '@/types/classroom';
 import {ClassroomTypeEnum} from '@/enum/classroom/classroomTypeEnum';
 
-// 动态导入3D模型文件，Vite会处理路径解析
-const classroomModelImports = {
-  [ClassroomTypeEnum.SMALL]: () => import('@/assets/3Dmodel/classroom/classroomMini.gltf?url'),
-  [ClassroomTypeEnum.MIDDLE]: () => import('@/assets/3Dmodel/classroom/classroomMiddle.gltf?url'),
-  [ClassroomTypeEnum.LARGE]: () => import('@/assets/3Dmodel/classroom/classroomPro.gltf?url'),
-  [ClassroomTypeEnum.EXTRA_LARGE]: () => import('@/assets/3Dmodel/classroom/classroomUltra.gltf?url')
+// 模型文件名映射
+const classroomModelFileMap: Record<ClassroomTypeEnum, string> = {
+  [ClassroomTypeEnum.SMALL]: 'classroomMini.gltf',
+  [ClassroomTypeEnum.MIDDLE]: 'classroomMiddle.gltf',
+  [ClassroomTypeEnum.LARGE]: 'classroomPro.gltf',
+  [ClassroomTypeEnum.EXTRA_LARGE]: 'classroomUltra.gltf'
 };
 
-const deskModelImports = {
-  [ClassroomTypeEnum.SMALL]: () => import('@/assets/3Dmodel/desk_chair/deskChairMini.gltf?url'),
-  [ClassroomTypeEnum.MIDDLE]: () => import('@/assets/3Dmodel/desk_chair/deskChairMiddle.gltf?url'),
-  [ClassroomTypeEnum.LARGE]: () => import('@/assets/3Dmodel/desk_chair/deskChairPro.gltf?url'),
-  [ClassroomTypeEnum.EXTRA_LARGE]: () => import('@/assets/3Dmodel/desk_chair/deskChairUltra.gltf?url')
+const deskModelFileMap: Record<ClassroomTypeEnum, string> = {
+  [ClassroomTypeEnum.SMALL]: 'deskChairMini.gltf',
+  [ClassroomTypeEnum.MIDDLE]: 'deskChairMiddle.gltf',
+  [ClassroomTypeEnum.LARGE]: 'deskChairPro.gltf',
+  [ClassroomTypeEnum.EXTRA_LARGE]: 'deskChairUltra.gltf'
 };
 
-// 缓存已解析的URL
-const urlCache: Map<string, string> = new Map();
+// 获取模型路径的辅助函数
+const getModelPath = (fileName: string, modelType: 'classroom' | 'desk_chair'): string => {
+  const modelPath = modelType === 'classroom'
+    ? `@/assets/3Dmodel/classroom/${fileName}`
+    : `@/assets/3Dmodel/desk_chair/${fileName}`;
 
-// 教室模型路径（根据课程记录的教室类型返回 dev/prod 可用路径）
-export const getClassroomModelPathByRecord = async (courseRecord: CourseRecordVO | null): Promise<string> => {
+  return import.meta.env.DEV
+    ? new URL(modelPath, import.meta.url).href
+    : `/assets/${fileName}`;
+};
+
+// 教室模型路径（根据课程记录的教室类型响应式切换）
+export const getClassroomModelPathByRecord = (courseRecord: CourseRecordVO | null): string => {
   const type = courseRecord?.classroomType ?? ClassroomTypeEnum.LARGE;
-  const cacheKey = `classroom_${type}`;
-
-  if (urlCache.has(cacheKey)) {
-    return urlCache.get(cacheKey)!;
-  }
-
-  try {
-    const importFn = classroomModelImports[type] || classroomModelImports[ClassroomTypeEnum.LARGE];
-    const module = await importFn();
-    const url = module.default;
-    urlCache.set(cacheKey, url);
-    return url;
-  } catch (error) {
-    console.error('Failed to load classroom model:', error);
-    // 返回默认路径作为fallback
-    return `/assets/3Dmodel/classroom/classroomPro.gltf`;
-  }
+  const fileName = classroomModelFileMap[type] || 'classroomPro.gltf';
+  return getModelPath(fileName, 'classroom');
 };
 
-// 课桌椅模型路径（根据教室类型返回 dev/prod 可用路径）
-export const getDeskModelPathByRecord = async (courseRecord: CourseRecordVO | null): Promise<string> => {
+// 课桌椅模型路径（根据教室类型响应式切换）
+export const getDeskModelPathByRecord = (courseRecord: CourseRecordVO | null): string => {
   const type = courseRecord?.classroomType ?? ClassroomTypeEnum.LARGE;
-  const cacheKey = `desk_${type}`;
-
-  if (urlCache.has(cacheKey)) {
-    return urlCache.get(cacheKey)!;
-  }
-
-  try {
-    const importFn = deskModelImports[type] || deskModelImports[ClassroomTypeEnum.LARGE];
-    const module = await importFn();
-    const url = module.default;
-    urlCache.set(cacheKey, url);
-    return url;
-  } catch (error) {
-    console.error('Failed to load desk model:', error);
-    // 返回默认路径作为fallback
-    return `/assets/3Dmodel/desk_chair/deskChairPro.gltf`;
-  }
+  const fileName = deskModelFileMap[type] || 'deskChairPro.gltf';
+  return getModelPath(fileName, 'desk_chair');
 };

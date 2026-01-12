@@ -554,7 +554,6 @@ const buildSyncPayload = (): ClassroomQuestionDTO[] => {
   return syncFormRows.value.map((row) => {
     const dto = getDefaultClassroomQuestionDTO();
     dto.id = row.publishedId;
-    dto.courseId = props.courseId;
     dto.classroomId = resolvedClassroomId.value;
     dto.questionId = row.id;
     dto.questionTitle = row.title;

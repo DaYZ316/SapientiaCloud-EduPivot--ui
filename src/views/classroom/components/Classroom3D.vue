@@ -11,18 +11,6 @@
         :show="showPracticePanel ?? false"
         @close="closePracticePanel"
     />
-    <LivePanel
-        :classroom-id="route.params.courseRecordId as string || null"
-        :course-id="route.params.courseId as string || null"
-        :show="showLivePanel ?? false"
-        @close="closeLivePanel"
-    />
-    <LivePanel
-        :classroom-id="route.params.courseRecordId as string || null"
-        :course-id="route.params.courseId as string || null"
-        :show="showLivePanel ?? false"
-        @close="closeLivePanel"
-    />
     <!-- 学生信息框 -->
     <StudentInfoPopup
         :position="popupPosition"
@@ -45,7 +33,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, onBeforeUnmount, onMounted, ref} from 'vue';
+import {computed, onBeforeUnmount, onMounted, ref, watch} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {useI18n} from 'vue-i18n';
 import type {InstancedMesh, PerspectiveCamera, Scene, Texture, WebGLRenderer} from 'three';
@@ -53,22 +41,20 @@ import * as THREE from 'three';
 import type {GLTF} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {PointerLockControls} from 'three/examples/jsm/controls/PointerLockControls.js';
-import {ModelClickHandler} from '@/utils/threeModelClickHandler';
 import {Sky} from 'three/examples/jsm/objects/Sky.js';
 import {getCourseRecordById} from '@/api/classroom/courseRecord';
 import {
   addStudentSeat,
   getDefaultCourseRecordStudentDTO,
   listStudentsByRecordId,
-  removeStudentSeat,
-  updateStudentSeat
+  updateStudentSeat,
+  removeStudentSeat
 } from '@/api/classroom/courseRecordStudent';
 import StudentInfoPopup from './StudentInfoPopup.vue';
 import ClassroomToolbox from './ClassroomToolbox.vue';
 import QuestionPanel from './QuestionPanel.vue';
 import ChapterPanel from './ChapterPanel.vue';
 import PracticePanel from './PracticePanel.vue';
-import LivePanel from './LivePanel.vue';
 import {useUserStore} from '@/store/modules/user';
 import {getGlobalApis} from '@/utils/naiveUIHelper';
 import {SpriteManager} from '@/views/classroom/composables/spriteManager';
@@ -92,8 +78,10 @@ import {
   getDeskModelPathByRecord,
 } from '@/views/classroom/composables/useModelRouter';
 import {useSeatLayout} from '@/views/classroom/composables/useSeatLayout';
+import {ClassroomTypeEnum} from '@/enum/classroom/classroomTypeEnum';
 import {ModelInstanceManager} from '@/views/classroom/composables/ModelInstanceManager';
 import {useClassroomInteraction} from '@/views/classroom/composables/useClassroomInteraction';
+import eventBus from '@/utils/eventBus';
 import {
   BookOutline,
   CreateOutline,
@@ -104,7 +92,6 @@ import {
 } from '@vicons/ionicons5';
 
 const {t} = useI18n();
-const modelClickHandler = new ModelClickHandler();
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
@@ -123,10 +110,10 @@ const isClassroomOwner = computed(() => {
   return Boolean(teacherId && currentTeacherId && teacherId === currentTeacherId);
 });
 
-// 座位排布（仅小型 / 中型教室启用），仅保留当前使用的字段
+// 座位排布（仅小型 / 中型教室启用）
 const {
-  instanceCount,
   columnCount,
+  instanceCount,
   calculateSeatPosition,
   fillSpritePositions
 } = useSeatLayout(courseRecord);
@@ -144,16 +131,15 @@ const currentStudent = ref<CourseRecordStudentVO | null>(null);
 const currentSeatIndex = ref<number | null>(null);
 const popupPosition = ref({x: 0, y: 0});
 const studentsList = ref<CourseRecordStudentVO[]>([]);
-const pendingSeatContext = ref<SeatAssignmentContext | null>(null);
-const fallbackTextureRef = ref<Texture | null>(null);
 // 创建座位索引到学生信息的映射，用于快速查找
 const seatStudentMap = ref<Map<number, CourseRecordStudentVO>>(new Map());
+const pendingSeatContext = ref<SeatAssignmentContext | null>(null);
+const fallbackTextureRef = ref<Texture | null>(null);
 const showPointerLockHint = ref(false);
 let pointerHintTimeout: number | null = null;
 const showChapterPanel = ref<boolean | null>(null);
 const showQuestionPanel = ref<boolean | null>(null);
 const showPracticePanel = ref<boolean | null>(null);
-const showLivePanel = ref<boolean | null>(null);
 const canShowPracticeActions = computed(() => {
   const roles = userStore.roles || [];
   const hasAdminRole = Array.isArray(roles) && roles.some(role => role.roleKey === 'ADMIN');
@@ -229,10 +215,25 @@ const closePracticePanel = () => {
   showPracticePanel.value = false;
 };
 
-const closeLivePanel = () => {
-  showLivePanel.value = false;
+const getIdentityName = (info: Record<string, any> | null | undefined): string => {
+  if (!info) {
+    return '';
+  }
+  const identity: AvatarIdentityProps = {
+    avatarSrc: info.avatar ?? info.studentAvatar ?? null,
+    username:
+        info.studentName
+        || info.realName
+        || info.name
+        || info.username
+        || null,
+    nickName: info.nickName ?? null,
+    studentRealName: info.studentRealName ?? info.realName ?? null,
+    teacherRealName: info.teacherRealName ?? null,
+    fallbackSrc: null
+  };
+  return resolveUserName(identity);
 };
-
 
 const createAvatarFallbackTexture = (displayName: string): THREE.CanvasTexture => {
   const canvas = document.createElement('canvas');
@@ -307,13 +308,7 @@ const confirmSeatSelection = async () => {
   // 如果当前登录用户没有学生身份，则提示先绑定学生信息
   if (!currentStudentId) {
     resetSeatConfirmState();
-    if (dialog) {
-      dialog.warning({
-        title: t('classroom.noStudentIdentityTitle'),
-        content: t('classroom.noStudentIdentityContent'),
-        positiveText: t('common.confirm')
-      });
-    } else if (message) {
+    if (message) {
       message.info(t('classroom.noStudentIdentityContent'));
     }
     return false;
@@ -338,9 +333,6 @@ const confirmSeatSelection = async () => {
       : Boolean(apiResponse && (apiResponse.success === true || apiResponse.code === 200));
 
   if (!isSuccessResponse) {
-    if (message) {
-      message.error(t('classroom.seatConfirm.assignFailed') || '入座失败，请稍后重试');
-    }
     resetSeatConfirmState();
     return false;
   }
@@ -428,26 +420,6 @@ const openSeatConfirmModal = (context: SeatAssignmentContext) => {
   }
 };
 
-const getIdentityName = (info: Record<string, any> | null | undefined): string => {
-  if (!info) {
-    return '';
-  }
-  const identity: AvatarIdentityProps = {
-    avatarSrc: info.avatar ?? info.studentAvatar ?? null,
-    username:
-        info.studentName
-        || info.realName
-        || info.name
-        || info.username
-        || null,
-    nickName: info.nickName ?? null,
-    studentRealName: info.studentRealName ?? info.realName ?? null,
-    teacherRealName: info.teacherRealName ?? null,
-    fallbackSrc: null
-  };
-  return resolveUserName(identity);
-};
-
 
 // 获取课程记录信息
 const fetchCourseRecord = async () => {
@@ -468,7 +440,7 @@ const fetchCourseRecord = async () => {
     // 获取学生列表
     await fetchStudentsList(String(recordId));
   } catch (error) {
-    recordError.value = '获取课程记录失败，使用默认配置';
+    recordError.value = t('classroom.fetchCourseRecordFailed');
     // 发生错误时不阻止组件继续加载，而是使用默认配置
   } finally {
     loadingRecord.value = false;
@@ -521,7 +493,7 @@ const fetchStudentsList = async (recordId: string) => {
     const response = await listStudentsByRecordId(recordId);
     studentsList.value = response?.data || [];
 
-    // 建立座位索引到学生信息的映射，用于快速查找
+    // 建立座位索引到学生信息的映射，用于悬浮显示
     seatStudentMap.value.clear();
     studentsList.value.forEach(student => {
       if (student.seatIndex !== null && student.seatIndex !== undefined) {
@@ -556,43 +528,29 @@ const handleExit = (e: MouseEvent) => {
 
 // 跳转到直播页面，使用全局过渡动画
 const handleLive = (e: MouseEvent) => {
-  // 该函数改为根据身份处理：老师打开悬浮窗，学生进行一次是否在直播的校验并直接加入或提示
-  e.stopPropagation();
-  const willShow = !(showLivePanel.value ?? false);
-  if (willShow) {
-    showChapterPanel.value = false;
-    showQuestionPanel.value = false;
-    showPracticePanel.value = false;
-  }
-
-  // 判断是否为老师/管理员
-  const isTeacherOrAdmin = canShowPracticeActions.value;
-  if (!isTeacherOrAdmin) {
-    // 学生：不再跳转页面，改为打开 LivePanel 悬浮窗，由悬浮窗提供进入房间入口
-    const classroomId = route.params.courseRecordId as string || null;
-    if (!classroomId) {
-      if (message) message.info(t('classroom.liveNotAvailable'));
-      return;
+  transitionStore.show();
+  const courseId = route.params.courseId as string;
+  const courseRecordId = route.params.courseRecordId as string;
+  runViewTransition(() => {
+    if (courseId && courseRecordId) {
+      router.push({
+        name: 'CourseLive',
+        params: {
+          courseId,
+          courseRecordId
+        }
+      });
+    } else {
+      router.push({name: 'Live'});
     }
-    // 直接显示悬浮窗，让学生在悬浮窗里点击"进入直播间"
-    showLivePanel.value = true;
-    return;
-  }
-
-  // 老师/管理员：打开 LivePanel 悬浮窗（首次创建完成后不可再配置）
-  if (willShow) {
-    showChapterPanel.value = false;
-    showQuestionPanel.value = false;
-    showPracticePanel.value = false;
-  }
-  showLivePanel.value = willShow;
+  }, e);
 };
 
 const toolboxItems = computed<ClassroomToolboxItem[]>(() => {
   const items: ClassroomToolboxItem[] = [
     {
       key: 'chapters',
-      label: '章节',
+      label: t('classroom.chapters'),
       labelKey: 'classroom.chapters',
       icon: BookOutline,
       handler: handleChapterButton
@@ -601,7 +559,7 @@ const toolboxItems = computed<ClassroomToolboxItem[]>(() => {
 
   items.push({
     key: 'class-practice',
-    label: '课堂练习',
+    label: t('classroom.classPractice'),
     labelKey: 'classroom.classPractice',
     icon: SchoolOutline,
     handler: handlePracticeButton
@@ -611,7 +569,7 @@ const toolboxItems = computed<ClassroomToolboxItem[]>(() => {
     items.push(
         {
           key: 'publish-practice',
-          label: '发布练习',
+          label: t('classroom.publishPractice'),
           labelKey: 'classroom.publishPractice',
           icon: CreateOutline,
           handler: handleQuestionButton
@@ -642,6 +600,17 @@ const toolboxItems = computed<ClassroomToolboxItem[]>(() => {
         }
       }
   );
+  // 如果当前路由包含 courseRecordId，则在工具栏中追加"编辑座位"项（由页面负责注入，避免工具箱组件自行构造）
+  const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
+  if (recordId && !items.some(it => it.key === 'edit-seating')) {
+    items.push({
+      key: 'edit-seating',
+      label: t('classroom.editSeating'),
+      labelKey: 'classroom.editSeating',
+      icon: CreateOutline,
+      handler: undefined
+    } as unknown as ClassroomToolboxItem);
+  }
 
   return items;
 });
@@ -677,7 +646,8 @@ const initThree = () => {
   window.cameraPositions = computeCameraPositionsBySize(
       classroomXLenghtRef.value,
       classroomYLenghtRef.value,
-      classroomZLenghtRef.value
+      classroomZLenghtRef.value,
+      courseRecord.value?.classroomType
   );
 
   camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 1000);
@@ -749,6 +719,24 @@ const initThree = () => {
     // 保持指针锁定状态（如果之前已锁定）
     // PointerLockControls 会自动处理相机旋转，切换位置后继续使用即可
   }
+
+  // 监听 courseRecord 或类型变化，确保相机位置根据教室类型动态更新（例如 EXTRA_LARGE）
+  watch(courseRecord, (newVal) => {
+    if (!camera) return;
+    // 重新计算相机组
+    window.cameraPositions = computeCameraPositionsBySize(
+        classroomXLenghtRef.value,
+        classroomYLenghtRef.value,
+        classroomZLenghtRef.value,
+        newVal?.classroomType ?? null
+    );
+    const frontConfig = window.cameraPositions?.front;
+    if (frontConfig) {
+      camera.position.set(frontConfig.position.x, frontConfig.position.y, frontConfig.position.z);
+      camera.setRotationFromEuler(frontConfig.initialRotation);
+      camera.updateProjectionMatrix();
+    }
+  }, { immediate: true });
 
   // 添加指针锁定错误处理
   if (canvas && controls) {
@@ -925,26 +913,7 @@ const initThree = () => {
   /**
    * 加载教室模型
    */
-  if (scene && camera && renderer) {
-    modelClickHandler.init(scene, camera, renderer.domElement);
-  }
-  // 创建自定义的LoadingManager来处理资源路径
-  const loadingManager = new THREE.LoadingManager();
-  loadingManager.setURLModifier((url) => {
-    // 如果URL是相对路径（不以/或http开头），说明是GLTF文件内部引用的资源
-    if (!url.startsWith('/') && !url.startsWith('http')) {
-      // 根据当前加载的模型类型来确定资源路径
-      // 对于教室模型，资源在 /assets/3Dmodel/classroom/
-      // 对于桌椅模型，资源在 /assets/3Dmodel/desk_chair/
-      // 这里我们使用一个简单的启发式方法：如果URL包含'desk'关键词，就认为是桌椅模型
-      const isDeskModel = url.includes('desk') || url.includes('chair') || url.includes('Chair');
-      const basePath = isDeskModel ? '/assets/3Dmodel/desk_chair/' : '/assets/3Dmodel/classroom/';
-      return basePath + url;
-    }
-    return url;
-  });
-
-  loader = new GLTFLoader(loadingManager);
+  loader = new GLTFLoader();
 
   // 加载模型 - 顺序加载实现
   const loadModelsSequentially = async () => {
@@ -955,88 +924,73 @@ const initThree = () => {
           reject(new Error('Loader not initialized'));
           return;
         }
+        loader.load(
+            getClassroomModelPathByRecord(courseRecord.value),
+            (gltf: GLTF) => {
+              classroomModel = gltf.scene;
+              // 调整模型大小和位置
+              classroomModel.position.set(0, 0, 0);
+              classroomModel.rotation.y = Math.PI / 2; // 根据需要调整旋转
 
-        // 获取教室模型URL（现在是异步的）
-        getClassroomModelPathByRecord(courseRecord.value).then((classroomModelUrl) => {
-          loader!.load(
-              classroomModelUrl,
-              (gltf: GLTF) => {
-                classroomModel = gltf.scene;
-                // 调整模型大小和位置
-                classroomModel.position.set(0, 0, 0);
-                classroomModel.rotation.y = Math.PI / 2; // 根据需要调整旋转
+              // 计算并输出模型尺寸
+              const box = new THREE.Box3().setFromObject(classroomModel);
+              const size = new THREE.Vector3();
+              box.getSize(size);
 
-                // 计算并输出模型尺寸
-                const box = new THREE.Box3().setFromObject(classroomModel);
-                const size = new THREE.Vector3();
-                box.getSize(size);
+              classroomXLenghtRef.value = size.x;
+              classroomYLenghtRef.value = size.y;
+              classroomZLenghtRef.value = size.z;
 
-                classroomXLenghtRef.value = size.x;
-                classroomYLenghtRef.value = size.y;
-                classroomZLenghtRef.value = size.z;
+              // 根据最新的教室模型尺寸重新计算相机位置
+              window.cameraPositions = computeCameraPositionsBySize(
+                  classroomXLenghtRef.value,
+                  classroomYLenghtRef.value,
+                  classroomZLenghtRef.value,
+                  courseRecord.value?.classroomType
+              );
 
-                // 根据最新的教室模型尺寸重新计算相机位置
-                window.cameraPositions = computeCameraPositionsBySize(
-                    classroomXLenghtRef.value,
-                    classroomYLenghtRef.value,
-                    classroomZLenghtRef.value
+              // 模型加载完成后，将相机初始位置设置为相机组中的 front 视角
+              const frontConfig = window.cameraPositions?.front;
+              if (camera && frontConfig) {
+                camera.position.set(
+                    frontConfig.position.x,
+                    frontConfig.position.y,
+                    frontConfig.position.z
                 );
-
-                // 模型加载完成后，将相机初始位置设置为相机组中的 front 视角
-                const frontConfig = window.cameraPositions?.front;
-                if (camera && frontConfig) {
-                  camera.position.set(
-                      frontConfig.position.x,
-                      frontConfig.position.y,
-                      frontConfig.position.z
-                  );
-                  camera.setRotationFromEuler(frontConfig.initialRotation);
-                }
-
-                // 处理Blender中添加的点光源，转换为three.js标准
-                classroomModel.traverse((child: THREE.Object3D) => {
-                  // 检查是否为光源对象
-                  const light = child as THREE.Light;
-                  if (light.isLight) {
-                    // 点光源增强处理
-                    const pointLight = light as THREE.PointLight;
-                    if (pointLight.isPointLight) {
-                      // 设置点光源的强度为0.2
-                      pointLight.intensity = 8;
-                      // 设置合适的衰减
-                      pointLight.decay = 2;
-                      // 增加光源范围
-                      pointLight.distance = Math.max(pointLight.distance || 10, 15);
-                    }
-                  }
-                });
-
-                /**
-                 * 射线选择
-                 */
-                modelClickHandler.addClickListener(
-                    classroomModel,
-                    '大黑板',
-                    () => {
-                      // 使用Vue Router跳转到'/html-forest'界面
-                    }
-                );
-
-                if (scene && classroomModel) {
-                  scene.add(classroomModel);
-                }
-                resolve();
-              },
-              () => {
-                // 加载进度处理
-              },
-              (error) => {
-                reject(error);
+                camera.setRotationFromEuler(frontConfig.initialRotation);
               }
-          );
-        }).catch((error) => {
-          reject(error);
-        });
+
+              // 处理Blender中添加的点光源，转换为three.js标准
+              classroomModel.traverse((child: THREE.Object3D) => {
+                // 检查是否为光源对象
+                const light = child as THREE.Light;
+                if (light.isLight) {
+                  // 点光源增强处理
+                  const pointLight = light as THREE.PointLight;
+                  if (pointLight.isPointLight) {
+                    // 设置点光源的强度为0.2
+                    pointLight.intensity = 8;
+                    // 设置合适的衰减
+                    pointLight.decay = 2;
+                    // 增加光源范围
+                    pointLight.distance = Math.max(pointLight.distance || 10, 15);
+                  }
+                }
+              });
+
+
+              if (scene && classroomModel) {
+                scene.add(classroomModel);
+              }
+              resolve();
+            },
+            () => {
+              // 加载进度处理
+            },
+            (error) => {
+              reject(error);
+            }
+        );
       });
 
       // 第一个模型加载完成后，加载第二个模型（桌椅）
@@ -1046,13 +1000,8 @@ const initThree = () => {
           return;
         }
 
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
-
-        // 获取桌椅模型URL（现在是异步的）
-        getDeskModelPathByRecord(courseRecord.value).then((deskModelUrl) => {
-          loader!.load(
-              deskModelUrl,
+        loader.load(
+            getDeskModelPathByRecord(courseRecord.value),
             (gltf: GLTF) => {
               try {
                 const modelInstanceManager = new ModelInstanceManager();
@@ -1063,12 +1012,16 @@ const initThree = () => {
                 // 计算总网格数量
                 const totalMeshCount = subComponents.reduce((sum, component) => sum + component.meshes.length, 0);
                 if (totalMeshCount === 0) {
-                  throw new Error('未在桌椅模型中找到任何网格对象');
+                  throw new Error(t('classroom.noMeshObjectsFound'));
                 }
 
-                // 2. 智能计算安全的实例数量
+                // 2. 智能计算安全的实例数量（实例数量指模型实例数量）
                 const hardwareLimit = 65536; // WebGL 1.0 限制
                 const maxAllowedInstances = Math.min(instanceCount.value, 1000, hardwareLimit);
+
+                // 计算实际座位数量（大型教室：每个模型对应 4 个座位；其他类型：每个模型对应 1 个座位）
+                const seatsPerModel = courseRecord.value?.classroomType === ClassroomTypeEnum.LARGE ? 4 : 1;
+                const totalSeatCount = maxAllowedInstances * seatsPerModel;
 
                 // 3. 创建整体模型的实例化网格集合
                 const instancedMeshGroups = modelInstanceManager.createGroupedInstancedMeshes(subComponents, maxAllowedInstances);
@@ -1084,12 +1037,18 @@ const initThree = () => {
                 };
 
                 // 批量设置矩阵 - 保持内部组件相对位置
-                modelInstanceManager.setInstanceMatricesAsGroup(instancedMeshGroups, 0, maxAllowedInstances, calculatePosition);
+                modelInstanceManager.setInstanceMatricesAsGroup(
+                    instancedMeshGroups,
+                    0,
+                    maxAllowedInstances,
+                    calculatePosition,
+                    courseRecord.value?.classroomType || undefined
+                );
 
                 // 5. 批量存储精灵位置 - 优化内存分配
                 fillSpritePositions(
                     spritePositions,
-                    maxAllowedInstances,
+                    totalSeatCount,
                     classroomXLenghtRef.value,
                     classroomZLenghtRef.value
                 );
@@ -1108,260 +1067,6 @@ const initThree = () => {
                   window.instancedObjects = [];
                 }
                 window.instancedObjects.push(...instancedMeshGroups);
-
-                // 8. 悬浮事件
-                let isCursorPointer = false;
-                const handleDeskHover = (event: MouseEvent) => {
-                  if (!canvas || !camera) return;
-                  if (document.pointerLockElement === canvas) {
-                    return;
-                  }
-
-                  const rect = canvas.getBoundingClientRect();
-                  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-                  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-                  raycaster.setFromCamera(mouse, camera);
-
-                  let foundDesk = false;
-                  for (const instancedMesh of instancedMeshGroups) {
-                    const intersects = raycaster.intersectObject(instancedMesh);
-                    if (intersects.length > 0) {
-                      foundDesk = true;
-                      break;
-                    }
-                  }
-
-                  if (foundDesk && !isCursorPointer) {
-                    canvas!.style.cursor = 'pointer';
-                    isCursorPointer = true;
-                  } else if (!foundDesk && isCursorPointer) {
-                    canvas!.style.cursor = 'default';
-                    isCursorPointer = false;
-                  }
-                };
-
-                if (canvas) {
-                  const handleMouseLeave = () => {
-                    if (isCursorPointer) {
-                      (canvas as HTMLCanvasElement).style.cursor = 'default';
-                      isCursorPointer = false;
-                    }
-                  };
-                  canvas.addEventListener('mousemove', handleDeskHover);
-                  canvas.addEventListener('mouseleave', handleMouseLeave);
-
-                  if (!window.deskHoverHandlers) {
-                    window.deskHoverHandlers = [];
-                  }
-                  window.deskHoverHandlers.push({
-                    hoverHandler: handleDeskHover,
-                    leaveHandler: handleMouseLeave,
-                    canvas: canvas as HTMLCanvasElement
-                  });
-                }
-
-                // 9. 添加课桌点击事件处理（左键入座 / 右键站起）
-                const handleDeskClick = (event: MouseEvent) => {
-                  if (!canvas || !camera) return;
-
-                  // 只处理左键点击入座逻辑，右键交由上下文菜单事件处理
-                  if (event.button !== 0) return;
-
-                  // 如果指针已锁定，直接切换视角（不处理课桌点击，因为无法准确获取鼠标位置）
-                  if (document.pointerLockElement === canvas) {
-                    if (typeof window.switchCameraPosition === 'function') {
-                      window.switchCameraPosition();
-                    }
-                    return;
-                  }
-
-                  // 检查精灵管理器是否已初始化
-                  if (!spriteManager || !spriteManager.isInitialized) {
-                    // 如果没有初始化，可能是要切换视角
-                    if (typeof window.switchCameraPosition === 'function') {
-                      window.switchCameraPosition();
-                    }
-                    return;
-                  }
-
-                  // 计算鼠标在标准化设备坐标中的位置 (-1 到 1)
-                  const rect = canvas.getBoundingClientRect();
-                  const mouseX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-                  const mouseY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-                  mouse.x = mouseX;
-                  mouse.y = mouseY;
-
-                  // 设置射线投射器的射线
-                  raycaster.setFromCamera(mouse, camera);
-
-                  // 检测与所有实例化网格的交点
-                  for (const instancedMesh of instancedMeshGroups) {
-                    const intersects = raycaster.intersectObject(instancedMesh);
-
-                    if (intersects.length > 0) {
-                      const intersection = intersects[0];
-
-                      // 检查是否有实例ID
-                      if (intersection.instanceId !== undefined) {
-                        const instanceId = intersection.instanceId;
-
-                        if (isClassroomOwner.value) {
-                          if (message) {
-                            message.info(t('classroom.seatConfirm.ownerForbiddenMessage'));
-                          }
-                          break;
-                        }
-
-                        // 从user store获取当前用户信息
-                        const userInfo = userStore.userInfo;
-                        if (!userInfo || !userInfo.id) {
-                          return;
-                        }
-
-                        // 检查该座位是否已有学生
-                        const existingStudent = studentsList.value.find(student => student.seatIndex === instanceId);
-                        if (existingStudent) {
-                          if (existingStudent.studentId === userInfo.id) {
-                            if (message) {
-                              message.info(t('classroom.seatConfirm.selfSeatMessage'));
-                            }
-                          } else if (message) {
-                            message.info(t('classroom.seatConfirm.occupiedMessage'));
-                          }
-                          break;
-                        }
-
-                        // 获取学生信息
-                        const studentInfo = userStore.studentInfo;
-                        const avatarUrl = (userInfo?.avatar) || (studentInfo?.avatar) || null;
-                        const displayName = getIdentityName(studentInfo) || getIdentityName(userInfo) || '您';
-                        const row = Math.floor(instanceId / columnCount.value);
-                        const column = instanceId % columnCount.value;
-
-                        openSeatConfirmModal({
-                          seatIndex: instanceId,
-                          seatLabel: formatSeatLabel(row, column),
-                          avatarUrl,
-                          displayName
-                        });
-
-                        // 只处理第一个交点
-                        break;
-                      }
-                    }
-                  }
-                };
-
-                // 右键站起事件处理
-                const handleDeskContextMenu = async (event: MouseEvent) => {
-                  if (!canvas || !camera) return;
-
-                  // 禁用默认右键菜单
-                  event.preventDefault();
-
-                  // 指针锁定状态下不处理站起逻辑
-                  if (document.pointerLockElement === canvas) {
-                    return;
-                  }
-
-                  const userInfo = userStore.userInfo;
-                  if (!userInfo || !userInfo.id) {
-                    return;
-                  }
-
-                  const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
-                  if (!recordId) {
-                    return;
-                  }
-
-                  // 计算鼠标在标准化设备坐标中的位置 (-1 到 1)
-                  const rect = canvas.getBoundingClientRect();
-                  const mouseX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-                  const mouseY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-                  mouse.x = mouseX;
-                  mouse.y = mouseY;
-
-                  raycaster.setFromCamera(mouse, camera);
-
-                  for (const instancedMesh of instancedMeshGroups) {
-                    const intersects = raycaster.intersectObject(instancedMesh);
-
-                    if (intersects.length > 0) {
-                      const intersection = intersects[0];
-
-                      if (intersection.instanceId !== undefined) {
-                        const instanceId = intersection.instanceId;
-
-                        // 查找该座位是否是当前用户
-                        const existingStudent = studentsList.value.find(student => student.seatIndex === instanceId);
-                        if (!existingStudent || existingStudent.studentId !== userInfo.id) {
-                          return;
-                        }
-
-                        const doStandUp = async () => {
-                          const apiResult = await removeStudentSeat(recordId, userInfo.id);
-                          const isSuccess = typeof apiResult === 'boolean'
-                              ? apiResult
-                              : Boolean(apiResult && (apiResult.success === true || apiResult.code === 200));
-
-                          if (!isSuccess) {
-                            return false;
-                          }
-
-                          // 前端移除座位信息
-                          studentsList.value = studentsList.value.filter(student => student.studentId !== userInfo.id);
-
-                          // 从精灵管理器中移除
-                          try {
-                            spriteManager.removeUserData(userInfo.id);
-                          } catch (e) {
-                            // 静默处理
-                          }
-
-                          if (message) {
-                            message.success(t('classroom.seatConfirm.standUpSuccess'));
-                          }
-
-                          return true;
-                        };
-
-                        if (dialog) {
-                          dialog.warning({
-                            title: t('classroom.seatConfirm.standUpTitle'),
-                            content: t('classroom.seatConfirm.standUpContent'),
-                            positiveText: t('common.confirm'),
-                            negativeText: t('common.cancel'),
-                            onPositiveClick: async () => {
-                              await doStandUp();
-                            }
-                          });
-                        } else {
-                          await doStandUp();
-                        }
-
-                        return;
-                      }
-                    }
-                  }
-                };
-
-                // 添加点击事件监听器
-                // 使用 click 事件（按下并抬起一次）来触发视角切换或入座
-                if (canvas) {
-                  canvas.addEventListener('click', handleDeskClick);
-                  canvas.addEventListener('contextmenu', handleDeskContextMenu);
-
-                  if (!window.deskHoverHandlers) {
-                    window.deskHoverHandlers = [];
-                  }
-                  window.deskHoverHandlers.push({
-                    clickHandler: handleDeskClick,
-                    canvas: canvas
-                  });
-                }
 
                 // 8. 初始化教室交互（悬浮、点击、右键等）
                 if (canvas && camera && scene) {
@@ -1399,17 +1104,11 @@ const initThree = () => {
                       const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
                       if (!recordId) return;
 
-                      // 如果当前账号没有学生身份，使用 NaiveUI dialog 给出提示并阻止入座流程
+                      // 如果当前账号没有学生身份，使用 message.info 给出提示并阻止入座流程
                       const currentStudentId = userStore.studentInfo?.id || null;
                       if (!currentStudentId) {
-                        if (dialog) {
-                          dialog.warning({
-                            title: t('classroom.noStudentIdentityTitle') || t('classroom.warning'),
-                            content: t('classroom.noStudentIdentityContent') || t('classroom.pleaseBindStudentAccount'),
-                            positiveText: t('common.confirm')
-                          });
-                        } else if (message) {
-                          message.info(t('classroom.noStudentIdentityContent') || '当前账户未绑定学生信息，请先绑定学生身份');
+                        if (message) {
+                          message.info(t('classroom.noStudentIdentityContent'));
                         }
                         return;
                       }
@@ -1435,7 +1134,7 @@ const initThree = () => {
                         displayName
                       });
                     },
-                    onSeatContextMenu: (seatIndex) => {
+                    onSeatContextMenu: async (seatIndex) => {
                       // 处理座位右键（退座）
                       const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
                       if (!recordId) return;
@@ -1458,70 +1157,27 @@ const initThree = () => {
                         return;
                       }
 
-                      if (dialog) {
-                        dialog.warning({
-                          title: t('classroom.removeSeatConfirmTitle'),
-                          content: t('classroom.removeSeatConfirmContent', {studentName: occupant.studentName || ''}),
-                          positiveText: t('common.confirm'),
-                          negativeText: t('common.cancel'),
-                          onPositiveClick: async () => {
-                            const apiResponse = await removeStudentSeat(recordId, occupant.studentId);
-                            const isSuccess = typeof apiResponse === 'boolean'
-                                ? apiResponse
-                                : Boolean(apiResponse && (apiResponse.success === true || apiResponse.code === 200));
-
-                            if (!isSuccess) {
-                              return;
-                            }
-                            // 更新前端显示：移除精灵数据并刷新列表
-                            try {
-                              if (spriteManager && spriteManager.isInitialized) {
-                                spriteManager.removeUserData(occupant.studentId);
-                              }
-                            } catch (e) {
-                              // 静默处理
-                            }
-                            await fetchStudentsList(recordId);
-                            if (message) {
-                              message.success(t('classroom.removeSeatSuccess'));
-                            }
-                          }
-                        });
+                      // 直接执行退座操作
+                      const apiResponse = await removeStudentSeat(recordId, occupant.studentId);
+                      const isSuccess = typeof apiResponse === 'boolean' ? apiResponse : Boolean(apiResponse && (apiResponse.success === true || apiResponse.code === 200));
+                      if (!isSuccess) {
+                        return;
+                      }
+                      // 更新前端显示：移除精灵数据并刷新列表
+                      try {
+                        if (spriteManager && spriteManager.isInitialized) {
+                          spriteManager.removeUserData(occupant.studentId);
+                        }
+                      } catch (e) {
+                        // 静默处理
+                      }
+                      await fetchStudentsList(recordId);
+                      if (message) {
+                        message.success(t('classroom.removeSeatSuccess'));
                       }
                     }
                   });
                 }
-
-                // 桌椅模型加载完成后，初始化精灵管理器
-                const initializeSpriteManager = (texture: Texture) => {
-                  try {
-                    spriteManager.initialize(spritePositions.length, texture);
-                    spriteManager.setPositions(spritePositions);
-
-                    // 设置场景引用
-                    if (scene && camera) {
-                      spriteManager.setScene(scene);
-                      spriteManager.setCamera(camera);
-                    }
-
-                    // 创建精灵实例
-                    try {
-                      spriteManager.createSpriteInstances();
-                    } catch (error) {
-                      // 静默处理
-                    }
-
-                    // 如果已有学生列表，渲染学生精灵
-                    if (studentsList.value.length > 0) {
-                      renderStudentSprites(studentsList.value);
-                    }
-                  } catch (initError) {
-                    // 静默处理
-                  }
-                };
-
-                const defaultTexture = createAvatarFallbackTexture('');
-                initializeSpriteManager(defaultTexture);
 
                 resolve();
               } catch (error) {
@@ -1542,10 +1198,53 @@ const initThree = () => {
             (error) => {
               reject(error);
             }
-          );
-        }).catch((error) => {
-          reject(error);
-        });
+        );
+    });
+
+      await new Promise<void>((resolve) => {
+        // 初始化精灵管理器
+        const initializeSpriteManager = (texture: Texture) => {
+          try {
+            // 使用实际座位数量初始化精灵管理器（避免把实例数量误当作座位数量）
+            const seatCountForInit = spritePositions.length;
+            spriteManager.initialize(seatCountForInit, texture);
+            spriteManager.setPositions(spritePositions);
+
+            // 设置场景引用
+            if (scene && camera) {
+              spriteManager.setScene(scene);
+              spriteManager.setCamera(camera);
+            }
+
+            // 创建精灵实例
+            try {
+              spriteManager.createSpriteInstances();
+            } catch (error) {
+              // 静默处理错误
+            }
+
+            // 如果已有学生列表，渲染学生精灵
+            if (studentsList.value.length > 0) {
+              renderStudentSprites(studentsList.value);
+            }
+          } catch (initError) {
+            // 静默处理错误
+          }
+        };
+
+        const defaultTexture = createAvatarFallbackTexture('');
+        initializeSpriteManager(defaultTexture);
+
+        // 精灵管理器初始化完成后，立即获取学生座位信息并渲染精灵
+        // 这样桌椅模型加载完成后，占用的座位上会立即显示学生头像
+        const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
+        if (recordId) {
+          fetchStudentsList(recordId).catch(error => {
+            console.warn(t('classroom.fetchStudentsListFailed'), error);
+          });
+        }
+
+        resolve();
       });
     } catch (error) {
       // 静默处理模型加载失败
@@ -1677,6 +1376,11 @@ onMounted(async () => {
   showQuestionPanel.value = false;
   await fetchCourseRecord();
   initThree();
+  // 监听座位布局更新事件，刷新页面或重新拉取数据
+  (eventBus as any).on && (eventBus as any).on('classroomLayoutUpdated', async () => {
+    // 保守处理：刷新页面以确保所有实例按照新布局重建
+    window.location.reload();
+  });
 });
 
 onBeforeUnmount(() => {
@@ -1725,25 +1429,12 @@ onBeforeUnmount(() => {
   // 清理教室交互资源
   disposeInteractions();
 
-  // 清理课桌悬浮和点击事件监听器
-  if (window.deskHoverHandlers && Array.isArray(window.deskHoverHandlers)) {
-    window.deskHoverHandlers.forEach(({hoverHandler, leaveHandler, clickHandler, canvas: handlerCanvas}) => {
-      if (handlerCanvas && hoverHandler) {
-        handlerCanvas.removeEventListener('mousemove', hoverHandler);
-        handlerCanvas.style.cursor = 'default';
-      }
-      if (handlerCanvas && leaveHandler) {
-        handlerCanvas.removeEventListener('mouseleave', leaveHandler);
-      }
-      if (handlerCanvas && clickHandler) {
-        handlerCanvas.removeEventListener('click', clickHandler);
-      }
-    });
-    window.deskHoverHandlers = [];
-  }
-
-  // 清理点击处理器资源
-  modelClickHandler.dispose();
+  // 清理学生信息弹窗状态
+  showStudentInfo.value = false;
+  currentStudent.value = null;
+  currentSeatIndex.value = null;
+  studentsList.value = [];
+  seatStudentMap.value.clear();
 
   // 清理window上的引用
   if (window.cameraPositions) {
@@ -1761,6 +1452,8 @@ onBeforeUnmount(() => {
   if (window.controls) {
     delete window.controls;
   }
+  // 移除事件监听
+  (eventBus as any).off && (eventBus as any).off('classroomLayoutUpdated');
 
   // 清理批量实例化的网格对象
   if (window.instancedObjects) {

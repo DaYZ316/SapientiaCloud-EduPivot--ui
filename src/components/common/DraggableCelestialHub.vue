@@ -618,6 +618,10 @@ onBeforeUnmount(() => {
   transition: opacity 0.2s ease;
 }
 
+.draggable-celestial-hub-container:hover {
+  cursor: pointer;
+}
+
 .draggable-celestial-hub-container:hover .drag-handle {
   opacity: 1;
 }

@@ -59,10 +59,15 @@ export const useRetryMechanism = (): RetryMechanismResult => {
       return false
     }
 
+    const normalizedMessage = errorMessage.toLowerCase()
+
     // 网络相关错误可以重试
-    if (errorMessage.includes('网络') ||
-        errorMessage.includes('timeout') ||
-        errorMessage.includes('连接') ||
+    if (normalizedMessage.includes('network') ||
+        normalizedMessage.includes('timeout') ||
+        normalizedMessage.includes('timed out') ||
+        normalizedMessage.includes('connection') ||
+        normalizedMessage.includes('connect') ||
+        normalizedMessage.includes('websocket') ||
         errorCode === 'NETWORK_ERROR' ||
         errorCode === 'TIMEOUT') {
       return true

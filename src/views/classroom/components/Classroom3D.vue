@@ -11,6 +11,12 @@
         :show="showPracticePanel ?? false"
         @close="closePracticePanel"
     />
+    <LivePanel
+        :classroom-id="route.params.courseRecordId as string || null"
+        :course-id="route.params.courseId as string || null"
+        :show="showLivePanel ?? false"
+        @close="closeLivePanel"
+    />
     <!-- 学生信息框 -->
     <StudentInfoPopup
         :position="popupPosition"
@@ -55,6 +61,7 @@ import ClassroomToolbox from './ClassroomToolbox.vue';
 import QuestionPanel from './QuestionPanel.vue';
 import ChapterPanel from './ChapterPanel.vue';
 import PracticePanel from './PracticePanel.vue';
+import LivePanel from './LivePanel.vue';
 import {useUserStore} from '@/store/modules/user';
 import {getGlobalApis} from '@/utils/naiveUIHelper';
 import {SpriteManager} from '@/views/classroom/composables/spriteManager';
@@ -140,6 +147,7 @@ let pointerHintTimeout: number | null = null;
 const showChapterPanel = ref<boolean | null>(null);
 const showQuestionPanel = ref<boolean | null>(null);
 const showPracticePanel = ref<boolean | null>(null);
+const showLivePanel = ref<boolean | null>(null);
 const canShowPracticeActions = computed(() => {
   const roles = userStore.roles || [];
   const hasAdminRole = Array.isArray(roles) && roles.some(role => role.roleKey === 'ADMIN');
@@ -213,6 +221,10 @@ const handlePracticeButton = (event: MouseEvent) => {
 
 const closePracticePanel = () => {
   showPracticePanel.value = false;
+};
+
+const closeLivePanel = () => {
+  showLivePanel.value = false;
 };
 
 const getIdentityName = (info: Record<string, any> | null | undefined): string => {
@@ -526,24 +538,30 @@ const handleExit = (e: MouseEvent) => {
   }, e);
 };
 
-// 跳转到直播页面，使用全局过渡动画
+// 跳转到直播页面，根据身份处理
 const handleLive = (e: MouseEvent) => {
-  transitionStore.show();
-  const courseId = route.params.courseId as string;
-  const courseRecordId = route.params.courseRecordId as string;
-  runViewTransition(() => {
-    if (courseId && courseRecordId) {
-      router.push({
-        name: 'CourseLive',
-        params: {
-          courseId,
-          courseRecordId
-        }
-      });
-    } else {
-      router.push({name: 'Live'});
+  e.stopPropagation();
+  const willShow = !(showLivePanel.value ?? false);
+  if (willShow) {
+    showChapterPanel.value = false;
+    showQuestionPanel.value = false;
+    showPracticePanel.value = false;
+  }
+
+  // 学生：直接打开 LivePanel 悬浮窗，由悬浮窗提供进入房间入口
+  const isTeacherOrAdmin = canShowPracticeActions.value;
+  if (!isTeacherOrAdmin) {
+    const classroomId = route.params.courseRecordId as string || null;
+    if (!classroomId) {
+      if (message) message.info(t('classroom.liveNotAvailable'));
+      return;
     }
-  }, e);
+    showLivePanel.value = true;
+    return;
+  }
+
+  // 老师/管理员：打开 LivePanel 悬浮窗
+  showLivePanel.value = willShow;
 };
 
 const toolboxItems = computed<ClassroomToolboxItem[]>(() => {

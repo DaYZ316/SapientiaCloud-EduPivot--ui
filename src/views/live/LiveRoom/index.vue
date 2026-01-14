@@ -6,7 +6,7 @@
     <n-spin v-if="loadingState.hasAnyLoading" size="large" class="global-loading">
       <div class="loading-content">
         <n-icon :component="VideocamOutline" size="32" />
-        <div class="loading-text">{{ loadingState.getLoadingMessage(loadingState.getLoadingStates()[0]) || '处理中...' }}</div>
+        <div class="loading-text">{{ loadingState.getLoadingMessage(loadingState.getLoadingStates()[0]) || t('live.common.processing') }}</div>
       </div>
     </n-spin>
 
@@ -72,12 +72,12 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { NIcon, NSpin } from 'naive-ui'
 import { VideocamOutline } from '@vicons/ionicons5'
-import { RoomEvent, Track } from 'livekit-client'
+import { RoomEvent, Track, RemoteParticipant, RemoteTrackPublication } from 'livekit-client'
 import PageHeader from '@/components/common/PageHeader.vue'
 import ChatPanel from '@/components/common/ChatPanel.vue'
 import VideoPanel from './components/VideoPanel.vue'
@@ -187,26 +187,103 @@ watch(
         videoPanelRef.value?.cleanupLocalVideo()
       }
     })
+
+    // 添加远程参与者视频轨道处理
+    resourceManager.registerEventListener(currentRoom, RoomEvent.TrackSubscribed, (track: Track, _publication: RemoteTrackPublication, participant: RemoteParticipant) => {
+      if (track.kind === Track.Kind.Video && videoPanelRef.value) {
+        // 更新 remoteParticipants 数组
+        const existingIndex = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
+        if (existingIndex >= 0) {
+          // 更新现有参与者
+          remoteParticipants.value[existingIndex] = {
+            participantId: participant.identity,
+            videoTrack: track,
+            audioTrack: null // 可以后续扩展音频处理
+          }
+        } else {
+          // 添加新参与者
+          remoteParticipants.value.push({
+            participantId: participant.identity,
+            videoTrack: track,
+            audioTrack: null
+          })
+        }
+
+        // 附加视频轨道到 VideoPanel
+        videoPanelRef.value.attachRemoteVideo(participant.identity, track)
+      }
+    })
+
+    resourceManager.registerEventListener(currentRoom, RoomEvent.TrackUnsubscribed, (track: Track, _publication: RemoteTrackPublication, participant: RemoteParticipant) => {
+      if (track.kind === Track.Kind.Video && videoPanelRef.value) {
+        // 从 remoteParticipants 数组中移除
+        const index = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
+        if (index >= 0) {
+          remoteParticipants.value.splice(index, 1)
+        }
+
+        // 分离视频轨道
+        videoPanelRef.value.detachRemoteVideo(participant.identity, track)
+      }
+    })
+
+    // 处理参与者连接和断开
+    resourceManager.registerEventListener(currentRoom, RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
+      // 当参与者连接时，检查是否已有视频轨道
+      const videoPublications = Array.from(participant.videoTrackPublications.values())
+      videoPublications.forEach((publication: RemoteTrackPublication) => {
+        if (publication.track && publication.track.kind === Track.Kind.Video && videoPanelRef.value) {
+          const existingIndex = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
+          if (existingIndex >= 0) {
+            remoteParticipants.value[existingIndex].videoTrack = publication.track
+          } else {
+            remoteParticipants.value.push({
+              participantId: participant.identity,
+              videoTrack: publication.track,
+              audioTrack: null
+            })
+          }
+          videoPanelRef.value.attachRemoteVideo(participant.identity, publication.track)
+        }
+      })
+    })
+
+    resourceManager.registerEventListener(currentRoom, RoomEvent.ParticipantDisconnected, (participant: RemoteParticipant) => {
+      // 从 remoteParticipants 数组中移除参与者
+      const index = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
+      if (index >= 0) {
+        remoteParticipants.value.splice(index, 1)
+      }
+
+      // 清理视频轨道
+      if (videoPanelRef.value) {
+        // 这里可以调用 VideoPanel 的清理方法，如果有的话
+      }
+    })
   }
 )
 
 // 页面卸载检测
 const handlePageUnload = () => {
   if (connection.room.value) {
-    try {
-      connection.disconnect()
-    } catch (e) {
+    // 在页面卸载时进行同步清理，忽略可能的错误
+    connection.disconnect().catch(() => {
       // 忽略清理过程中的错误
-    }
+    })
   }
 }
 
 // 加载房间信息
 async function loadRoomInfo() {
-  const response = await liveApi.getLiveRoomById(roomId).then((res) => res, () => null)
-  if (response?.data) {
-    roomInfo.value = response.data
-  }
+  return liveApi.getLiveRoomById(roomId).then((res) => {
+    if (res?.data) {
+      roomInfo.value = res.data
+    }
+    return res
+  }, () => {
+    // 静默处理错误，不抛出异常
+    return null
+  })
 }
 
 // 初始化
@@ -233,21 +310,19 @@ onMounted(async () => {
     }
 
     isConnecting = true
-    loadingState.setLoading('connection', true, '正在连接直播间...')
+    loadingState.setLoading('connection', true, t('live.common.connectingRoom'))
 
-    try {
-      await retryMechanism.retry(
-        () => connection.connect(roomInfo.value, currentUserRole.value, token),
-        {
-          maxRetries: 3,
-          baseDelay: 2000,
-          retryCondition: (error) => retryMechanism.isRetryableError(error),
-          onRetry: (attempt, _error) => {
-            loadingState.setLoading('connection', true, `连接失败，正在重试 (${attempt}/3)...`)
-          }
+    return retryMechanism.retry(
+      () => connection.connect(roomInfo.value, currentUserRole.value, token),
+      {
+        maxRetries: 3,
+        baseDelay: 2000,
+        retryCondition: (error) => retryMechanism.isRetryableError(error),
+        onRetry: (attempt, _error) => {
+          loadingState.setLoading('connection', true, t('live.common.retryingConnection', { attempt, total: 3 }))
         }
-      )
-
+      }
+    ).then(() => {
       // 如果成功到达这里，说明连接成功
       loadingState.setLoading('connection', false)
 
@@ -257,18 +332,18 @@ onMounted(async () => {
       }
 
       // 媒体设置将在用户点击媒体控制按钮时进行
-    } catch (error) {
+    }, (error) => {
       loadingState.setLoading('connection', false)
-      errorHandler.handleError(error, '直播连接', {
+      errorHandler.handleError(error, t('live.common.connectionContext'), {
         allowRetry: true,
         onRetry: () => connectWithRetry(token)
       })
 
       // 连接失败时启用降级模式 - 启动消息轮询
       chat.startPolling(roomId)
-    } finally {
+    }).finally(() => {
       isConnecting = false
-    }
+    })
   }
 
   if (providedToken) {
@@ -298,11 +373,9 @@ onBeforeUnmount(() => {
 
 // 处理离开房间
 async function handleLeave() {
-  loadingState.setLoading('disconnect', true, '正在断开连接...')
+  loadingState.setLoading('disconnect', true, t('live.common.disconnecting'))
 
-  try {
-    await connection.disconnect()
-
+  return connection.disconnect().then(() => {
     // 清理视频面板资源
     if (videoPanelRef.value) {
       videoPanelRef.value.cleanupRemoteVideos()
@@ -316,10 +389,10 @@ async function handleLeave() {
     chat.startPolling(roomId)
 
     loadingState.setLoading('disconnect', false)
-  } catch (error) {
+  }, (error) => {
     loadingState.setLoading('disconnect', false)
-    errorHandler.handleError(error, '断开连接')
-  }
+    errorHandler.handleError(error, t('live.common.disconnectContext'))
+  })
 }
 
 // 处理发送消息
@@ -329,51 +402,48 @@ async function handleSendMessage(content: string) {
 
 // 处理切换摄像头
 async function handleToggleCamera() {
-  loadingState.setLoading('camera', true, '正在切换摄像头...')
+  loadingState.setLoading('camera', true, t('live.common.switchingCamera'))
 
-  try {
-    await media.toggleCamera()
+  return media.toggleCamera().then(() => {
     loadingState.setLoading('camera', false)
-  } catch (error) {
+  }, (error) => {
     loadingState.setLoading('camera', false)
-    errorHandler.handleError(error, '摄像头切换', {
+    errorHandler.handleError(error, t('live.common.cameraToggleContext'), {
       allowRetry: true,
       onRetry: handleToggleCamera
     })
-  }
+  })
 }
 
 // 处理切换麦克风
 async function handleToggleMicrophone() {
-  loadingState.setLoading('microphone', true, '正在切换麦克风...')
+  loadingState.setLoading('microphone', true, t('live.common.switchingMicrophone'))
 
-  try {
-    await media.toggleMicrophone()
+  return media.toggleMicrophone().then(() => {
     loadingState.setLoading('microphone', false)
-  } catch (error) {
+  }, (error) => {
     loadingState.setLoading('microphone', false)
-    errorHandler.handleError(error, '麦克风切换', {
+    errorHandler.handleError(error, t('live.common.microphoneToggleContext'), {
       allowRetry: true,
       onRetry: handleToggleMicrophone
     })
-  }
+  })
 }
 
 // 处理切换录制
 async function handleToggleRecording() {
-  const action = recording.isRecording ? '停止录制' : '开始录制'
-  loadingState.setLoading('recording', true, `正在${action}...`)
+  const action = recording.isRecording ? t('live.common.recordingStop') : t('live.common.recordingStart')
+  loadingState.setLoading('recording', true, t('live.common.recordingInProgress', { action }))
 
-  try {
-    await recording.toggleRecording(roomInfo.value, currentUserRole.value)
+  return recording.toggleRecording(roomInfo.value, currentUserRole.value).then(() => {
     loadingState.setLoading('recording', false)
-  } catch (error) {
+  }, (error) => {
     loadingState.setLoading('recording', false)
-    errorHandler.handleError(error, `录制${action}`, {
+    errorHandler.handleError(error, t('live.common.recordingContext', { action }), {
       allowRetry: true,
       onRetry: handleToggleRecording
     })
-  }
+  })
 }
 </script>
 

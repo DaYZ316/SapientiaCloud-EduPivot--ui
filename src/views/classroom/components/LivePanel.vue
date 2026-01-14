@@ -15,47 +15,52 @@
         <NSpin />
       </div>
 
-      <div v-else class="live-panel__content">
-        <div v-if="!room" class="live-panel__create">
-          <template v-if="isTeacher">
-            <LiveRoomCreateForm
-              :courseRecordId="props.classroomId ?? null"
-              :courseId="props.courseId ?? null"
-              :liveRoom="room"
-              @success="onCreateSuccess"
-            />
-          </template>
-          <template v-else>
-            <div class="live-panel__empty">{{ t('classroom.waitingForTeacher') }}</div>
-          </template>
-        </div>
+      <div v-else class="live-panel__grid">
+        <div class="live-panel__left">
+          <div v-if="!room" class="live-panel__create">
+            <template v-if="isTeacher">
+              <LiveRoomCreateForm
+                :courseRecordId="props.classroomId ?? null"
+                :courseId="props.courseId ?? null"
+                :liveRoom="room"
+                @success="onCreateSuccess"
+              />
+            </template>
+            <template v-else>
+              <div class="live-panel__empty">{{ t('classroom.waitingForTeacher') }}</div>
+            </template>
+          </div>
 
-        <div v-else-if="room" class="live-panel__info">
-          <div class="course-info-row" v-if="courseStore.currentCourseInfo">
-            <img v-if="courseStore.currentCourseInfo.coverImageUrl" :src="courseStore.currentCourseInfo.coverImageUrl" :alt="t('live.panel.courseCoverAlt')" class="course-cover" />
-            <div class="course-meta">
-              <div class="course-title">{{ courseStore.currentCourseInfo.courseName }}</div>
-              <div class="course-teacher" v-if="courseStore.currentCourseInfo.teacherName">{{ courseStore.currentCourseInfo.teacherName }}</div>
-              <div class="course-desc" v-if="courseStore.currentCourseInfo.description">{{ courseStore.currentCourseInfo.description }}</div>
-              <div class="course-extra">
-                <span v-if="courseStore.currentCourseInfo.semester">{{ t('live.panel.semester') }}{{ courseStore.currentCourseInfo.semester }}</span>
-                <span v-if="courseStore.currentCourseInfo.location">{{ t('live.panel.location') }}{{ courseStore.currentCourseInfo.location }}</span>
+          <div v-else-if="room" class="live-panel__info">
+            <div class="course-info-row" v-if="courseInfo">
+              <img v-if="courseInfo.coverImageUrl" :src="courseInfo.coverImageUrl" alt="course cover" class="course-cover" />
+              <div class="course-meta">
+                <div class="course-title">{{ courseInfo.courseName }}</div>
+                <div class="course-teacher" v-if="courseInfo.teacherName">{{ courseInfo.teacherName }}</div>
+                <div class="course-desc" v-if="courseInfo.description">{{ courseInfo.description }}</div>
+                <div class="course-extra">
+                  <span v-if="courseInfo.semester">{{ t('live.panel.semester') }}{{ courseInfo.semester }}</span>
+                  <span v-if="courseInfo.location"> · {{ t('live.panel.location') }}{{ courseInfo.location }}</span>
+                </div>
               </div>
+            </div>
+
+            <div class="room-row"><strong>{{ t('live.panel.roomName') }}</strong> {{ room.roomName }}</div>
+            <div class="room-row"><strong>{{ t('live.panel.status') }}</strong> {{ getStatusLabel(room.status) }}</div>
+            <div class="room-row" v-if="room.startTime"><strong>{{ t('live.panel.startTime') }}</strong> {{ room.startTime }}</div>
+            <div class="room-row" v-if="room.expectedEndTime"><strong>{{ t('live.panel.expectedEndTime') }}</strong> {{ room.expectedEndTime }}</div>
+            <div class="room-row" v-if="room.maxParticipants !== null && room.maxParticipants !== undefined">
+              <strong>{{ t('live.panel.maxParticipants') }}</strong> {{ room.maxParticipants }}
+            </div>
+            <div class="room-row" v-if="room.recordingAssetUrl">
+              <strong>{{ t('live.panel.recording') }}</strong>
+              <a :href="room.recordingAssetUrl" target="_blank">{{ t('live.panel.view') }}</a>
             </div>
           </div>
 
-          <div class="room-row"><strong>{{ t('live.panel.roomName') }}</strong> {{ room.roomName }}</div>
-          <div class="room-row"><strong>{{ t('live.panel.status') }}</strong> {{ getStatusLabel(room.status) }}</div>
-          <div class="room-row" v-if="room.startTime"><strong>{{ t('live.panel.startTime') }}</strong> {{ room.startTime }}</div>
-          <div class="room-row" v-if="room.expectedEndTime"><strong>{{ t('live.panel.expectedEndTime') }}</strong> {{ room.expectedEndTime }}</div>
-          <div class="room-row" v-if="room.maxParticipants !== null && room.maxParticipants !== undefined"><strong>{{ t('live.panel.maxParticipants') }}</strong> {{ room.maxParticipants }}</div>
-          <div class="room-row" v-if="room.recordingAssetUrl"><strong>{{ t('live.panel.recording') }}</strong> <a :href="room.recordingAssetUrl" target="_blank">{{ t('live.panel.view') }}</a></div>
-
+          <div v-else class="live-panel__empty">{{ t('live.panel.noRoom') }}</div>
         </div>
 
-        <div v-else class="live-panel__empty">{{ t('live.panel.noRoom') }}</div>
-
-        <!-- footer actions: moved here so they are always at the bottom of the left column -->
         <div class="live-panel__actions">
           <template v-if="room && room.status === LiveRoomStatusEnum.LIVE">
             <NButton type="primary" @click="joinLive" :loading="joiningLoading">{{ t('live.room.join') }}</NButton>
@@ -63,10 +68,10 @@
 
           <span v-if="isTeacher">
             <template v-if="room && room.status === LiveRoomStatusEnum.LIVE">
-              <NButton type="warning" @click="endLive" :loading="endingLoading">{{ t('live.room.stop') || '结束直播' }}</NButton>
+              <NButton type="warning" @click="endLive" :loading="endingLoading">{{ t('live.room.stop') }}</NButton>
             </template>
             <template v-else-if="room">
-              <NButton type="success" @click="startLive" :loading="startingLoading">{{ t('live.room.start') || '开启直播' }}</NButton>
+              <NButton type="success" @click="startLive" :loading="startingLoading">{{ t('live.room.start') }}</NButton>
             </template>
           </span>
         </div>
@@ -76,16 +81,16 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, computed } from 'vue';
+import { ref, watch, onBeforeUnmount, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { NButton, NSpin } from 'naive-ui';
 import { CloseOutline } from '@vicons/ionicons5';
+import { fetchEventSource } from '@microsoft/fetch-event-source';
 import LiveRoomCreateForm from '@/views/live/components/LiveRoomCreateForm.vue';
 import { LiveRoomRoleEnum } from '@/enum/live/liveRoomRoleEnum';
 import { LiveRoomStatusEnum } from '@/enum/live/liveRoomStatusEnum';
 import { useUserStore } from '@/store/modules/user';
-import { useCourseStore } from '@/store/modules/course';
 import { useErrorHandler } from '@/views/live/LiveRoom/composables/useErrorHandler';
 import { getGlobalApis } from '@/utils/naiveUIHelper';
 import {
@@ -94,19 +99,21 @@ import {
   startLiveRoom,
   issueRoomToken
 } from '@/api/live/liveRoom';
+import { getStudentSeat } from '@/api/classroom/courseRecordStudent';
+import { getCourseById } from '@/api/course/course';
 import type { LiveRoomVO } from '@/types/live';
+import type { CourseVO } from '@/types/course';
 
 const props = defineProps<{ show: boolean; classroomId: string | null; courseId?: string | null }>();
 const emit = defineEmits<{ close: [] }>();
 const { t } = useI18n();
 const router = useRouter();
 const userStore = useUserStore();
-const courseStore = useCourseStore();
 
 const loading = ref<boolean | null>(null);
-// creating flag removed; child component handles creation
 const ending = ref<boolean | null>(null);
 const room = ref<LiveRoomVO | null>(null);
+const courseInfo = ref<CourseVO | null>(null);
 const isTeacher = computed(() => {
   return userStore.hasRole && (userStore.hasRole('TEACHER') || userStore.hasRole('ADMIN'));
 });
@@ -116,7 +123,7 @@ const starting = ref<boolean | null>(null);
 // 初始化错误处理器
 const errorHandler = useErrorHandler();
 
-// 转换loading状态为boolean类型（naive-ui期望的类型）
+// 转换 loading 状态为 boolean 类型（naive-ui 期望的类型）
 const joiningLoading = computed(() => Boolean(joining.value));
 const endingLoading = computed(() => Boolean(ending.value));
 const startingLoading = computed(() => Boolean(starting.value));
@@ -124,6 +131,9 @@ const startingLoading = computed(() => Boolean(starting.value));
 watch(() => props.show, async (val) => {
   if (val) {
     await loadRoom();
+    subscribeSse();
+  } else {
+    unsubscribeSse();
   }
 });
 
@@ -136,24 +146,24 @@ async function loadRoom() {
     const res: any = await getLatestLiveRoom(props.courseId ?? null, props.classroomId ?? null);
     const data = res?.data ?? null;
 
-    // Treat empty or invalid responses (no id) as no room
     if (!data || !data.id) {
       room.value = null;
+      courseInfo.value = null;
       return;
     }
 
-    // Require a non-empty roomName to treat the response as a created room.
-    // If roomName is missing or empty, treat as "no room" so teachers see the create form.
     if (typeof data.roomName !== 'string' || data.roomName.trim().length === 0) {
       room.value = null;
+      courseInfo.value = null;
       return;
     }
 
     room.value = data;
-    // ensure course info is available in store
     const cid = room.value?.courseId ?? props.courseId ?? null;
-    if (cid && courseStore.currentCourseId !== cid) {
-      await courseStore.refreshCourseInfo(cid);
+    if (cid) {
+      await loadCourse(cid);
+    } else {
+      courseInfo.value = null;
     }
   } finally {
     loading.value = false;
@@ -161,16 +171,26 @@ async function loadRoom() {
 }
 
 async function onCreateSuccess() {
-  // reload latest room after child emitted success
   await loadRoom();
 }
 
+async function loadCourse(courseId: string) {
+  const res: any = await getCourseById(courseId).catch((error) => {
+    courseInfo.value = null;
+    errorHandler.handleError(error, 'load_course', {
+      showNotification: false
+    });
+    return null;
+  });
+  if (res?.data) {
+    courseInfo.value = res.data;
+  }
+}
 
 async function endLive() {
   if (!room.value || !room.value.id) return;
   ending.value = true;
   await endLiveRoom(room.value.id).then(async () => {
-    // reload
     await loadRoom();
   }).catch((error) => {
     errorHandler.handleError(error, 'end_live', {
@@ -187,11 +207,39 @@ async function joinLive() {
   if (!room.value || !room.value.id || joining.value) return;
   joining.value = true;
 
+  if (!isTeacher.value) {
+    const { message } = getGlobalApis();
+    const recordId = props.classroomId ?? null;
+    const studentId = userStore.studentInfo?.id ?? null;
+    if (!recordId) {
+      if (message) message.info(t('classroom.liveNotAvailable'));
+      joining.value = false;
+      return;
+    }
+    if (!studentId) {
+      if (message) message.info(t('classroom.noStudentIdentityContent'));
+      joining.value = false;
+      return;
+    }
+    try {
+      const seatRes: any = await getStudentSeat(recordId, studentId);
+      const seatInfo = seatRes?.data ?? seatRes ?? null;
+      if (!seatInfo || seatInfo.seatIndex === null || seatInfo.seatIndex === undefined) {
+        if (message) message.info(t('live.panel.seatRequired'));
+        joining.value = false;
+        return;
+      }
+    } catch (error) {
+      if (message) message.info(t('live.panel.seatRequired'));
+      joining.value = false;
+      return;
+    }
+  }
+
   const role = isTeacher.value ? LiveRoomRoleEnum.TEACHER : LiveRoomRoleEnum.STUDENT;
   const tokenReq: any = { role };
 
   await issueRoomToken(room.value.id, tokenReq).then((res: any) => {
-    // Extract token string correctly
     let token = '';
     if (res?.token) {
       token = res.token;
@@ -202,22 +250,21 @@ async function joinLive() {
     }
 
     if (token && room.value) {
-      // 跳转到直播页面，传递 token 作为查询参数
       router.push({
         name: 'LiveRoom',
         params: { roomId: room.value.id },
         query: { token }
       });
     } else {
-      errorHandler.handleError(new Error('获取直播令牌失败'), 'join_live_token', {
+      errorHandler.handleError(new Error(t('live.panel.joinTokenFailed')), 'join_live_token', {
         showNotification: true,
-        customMessage: '进入直播间失败：无法获取访问令牌'
+        customMessage: t('live.panel.joinTokenFailed')
       });
     }
   }).catch((error) => {
     errorHandler.handleError(error, 'join_live', {
       showNotification: true,
-      customMessage: '进入直播间失败'
+      customMessage: t('live.panel.joinFailed')
     });
   }).finally(() => {
     joining.value = false;
@@ -232,12 +279,12 @@ async function startLive() {
     await loadRoom();
     const { message } = getGlobalApis();
     if (message) {
-      message.success(t('live.room.startSuccess') || '已开启直播');
+      message.success(t('live.room.startSuccess'));
     }
   }).catch((error) => {
     errorHandler.handleError(error, 'start_live', {
       showNotification: true,
-      customMessage: t('live.room.startFailed') || '开启直播失败'
+      customMessage: t('live.room.startFailed')
     });
   }).finally(() => {
     starting.value = false;
@@ -251,6 +298,89 @@ function getStatusLabel(status: number | null | undefined) {
   return t('classroom.liveStatus.notStarted');
 }
 
+let eventSourceController: AbortController | null = null;
+async function subscribeSse() {
+  if (!props.classroomId) return;
+  unsubscribeSse();
+
+  try {
+    const jwtToken = userStore.token;
+    if (!jwtToken) {
+      throw new Error(t('live.sse.notLoggedIn'));
+    }
+
+    const sseUrl = `/celestial-hub/live/subscribe?classroomId=${props.classroomId}`;
+
+    eventSourceController = new AbortController();
+
+    await fetchEventSource(sseUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${jwtToken}`,
+        'Accept': 'text/event-stream'
+      },
+      signal: eventSourceController.signal,
+      openWhenHidden: true,
+      credentials: 'include',
+      onopen: async (response) => {
+        if (response.ok) {
+          console.log('LivePanel SSE连接建立成功');
+        } else {
+          console.error('LivePanel SSE连接失败:', response.status, response.statusText);
+        }
+      },
+      onmessage: (evt) => {
+        try {
+          const data = JSON.parse(evt.data);
+          const hasRoomName = typeof data?.roomName === 'string' && data.roomName.trim().length > 0;
+          if (!data || !data.id || !hasRoomName) {
+            const currentHasRoomName = typeof room.value?.roomName === 'string' && room.value.roomName.trim().length > 0;
+            if (!currentHasRoomName) {
+              room.value = null;
+              courseInfo.value = null;
+            }
+            return;
+          }
+          room.value = data;
+          const status = data && (data.status || data.status === 0) ? Number(data.status) : null;
+          if (status === LiveRoomStatusEnum.LIVE) {
+            const { message } = getGlobalApis();
+            if (message) message.success(t('live.sse.liveStarted'));
+          } else if (status === LiveRoomStatusEnum.ENDED) {
+            const { message } = getGlobalApis();
+            if (message) message.info(t('live.sse.liveEnded'));
+          } else if (status === LiveRoomStatusEnum.CLOSED) {
+            const { message } = getGlobalApis();
+            if (message) message.info(t('live.sse.liveClosed'));
+          }
+        } catch (e) {
+        }
+      },
+      onerror: (error) => {
+        console.error('LivePanel SSE连接错误:', error);
+      }
+    });
+  } catch (error) {
+    errorHandler.handleError(error, 'sse_subscribe', {
+      showNotification: true,
+      customMessage: t('live.sse.subscribeFailed')
+    });
+  }
+}
+
+function unsubscribeSse() {
+  if (eventSourceController) {
+    try {
+      eventSourceController.abort();
+    } catch (e) {
+    }
+    eventSourceController = null;
+  }
+}
+
+onBeforeUnmount(() => {
+  unsubscribeSse();
+});
 </script>
 
 <style scoped lang="scss">
@@ -268,7 +398,6 @@ function getStatusLabel(status: number | null | undefined) {
   max-height: 78vh;
   display: flex;
   flex-direction: column;
-  /* 更干净的背景：减少花哨渐变 */
   background: color-mix(in srgb, var(--background-color) 96%, transparent);
   border: 1px solid color-mix(in srgb, var(--border-color) 85%, transparent);
   border-radius: 16px;
@@ -310,11 +439,15 @@ function getStatusLabel(status: number | null | undefined) {
   border-bottom: 1px solid color-mix(in srgb, var(--border-secondary-color) 85%, transparent);
 }
 
+.live-panel__title {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
 .live-panel__body {
   flex: 1;
-  padding: 30px 16px 0 16px;
+  padding: 16px;
   overflow: hidden;
-  /* 内容区干净一点 */
   background: color-mix(in srgb, var(--background-color) 92%, transparent);
 }
 
@@ -328,7 +461,6 @@ function getStatusLabel(status: number | null | undefined) {
   font-size: 14px;
   line-height: 1.6;
   color: var(--text-color);
-  /* 轻分隔感 */
   background: color-mix(in srgb, var(--background-color) 92%, transparent);
   border: 1px solid color-mix(in srgb, var(--border-color) 75%, transparent);
   margin: 12px 0;
@@ -391,12 +523,20 @@ function getStatusLabel(status: number | null | undefined) {
   padding: 0 12px;
 }
 
-.live-panel__content {
+.live-panel__grid {
   height: 100%;
   width: 100%;
-  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: stretch;
 }
 
+.live-panel__left {
+  width: 100%;
+}
+
+.live-panel__right {
+  display: none;
+}
 </style>
-
-

@@ -1,4 +1,5 @@
 import { ref, reactive, readonly, computed, type ComputedRef, type Ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { getGlobalApis } from '@/utils/naiveUIHelper'
 
 // 防重入和节流：避免errorHandler递归调用
@@ -37,6 +38,7 @@ export interface ErrorHandlerOptions {
 }
 
 export const useErrorHandler = (): ErrorHandlerResult => {
+  const { t } = useI18n()
   const { notification, dialog } = getGlobalApis()
 
   // 错误历史记录
@@ -60,9 +62,9 @@ export const useErrorHandler = (): ErrorHandlerResult => {
         if (typeof err === 'string') return err
         if (err?.message && typeof err.message === 'string') return err.message
         if (err?.toString && typeof err.toString === 'function') return err.toString()
-        return '未知错误'
+        return t('live.errors.unknownError')
       } catch {
-        return '未知错误'
+        return t('live.errors.unknownError')
       }
     }
 
@@ -76,8 +78,8 @@ export const useErrorHandler = (): ErrorHandlerResult => {
 
     let errorInfo: ErrorInfo = {
       code: 'unknown_error',
-      title: '操作失败',
-      message: '发生了未知错误，请稍后重试',
+      title: t('live.errors.operationFailedTitle'),
+      message: t('live.errors.operationFailedMessage'),
       type: 'unknown',
       timestamp: Date.now(),
       context,
@@ -90,8 +92,8 @@ export const useErrorHandler = (): ErrorHandlerResult => {
       if (typeof navigator !== 'undefined' && !navigator.onLine) {
         errorInfo = {
           code: 'network_offline',
-          title: '网络连接错误',
-          message: '请检查网络连接后重试',
+          title: t('live.errors.networkErrorTitle'),
+          message: t('live.errors.networkErrorMessage'),
           type: 'network',
           timestamp: Date.now(),
           context,
@@ -109,8 +111,8 @@ export const useErrorHandler = (): ErrorHandlerResult => {
       if (status === 401 || status === 403) {
         errorInfo = {
           code: 'auth_error',
-          title: '权限不足',
-          message: '您没有执行此操作的权限',
+          title: t('live.errors.permissionDeniedTitle'),
+          message: t('live.errors.permissionDeniedMessage'),
           type: 'business',
           timestamp: Date.now(),
           context,
@@ -119,8 +121,8 @@ export const useErrorHandler = (): ErrorHandlerResult => {
       } else if (status === 404) {
         errorInfo = {
           code: 'not_found',
-          title: '资源不存在',
-          message: '请求的资源不存在',
+          title: t('live.errors.notFoundTitle'),
+          message: t('live.errors.notFoundMessage'),
           type: 'business',
           timestamp: Date.now(),
           context,
@@ -129,8 +131,8 @@ export const useErrorHandler = (): ErrorHandlerResult => {
       } else if (status >= 500) {
         errorInfo = {
           code: 'server_error',
-          title: '服务器错误',
-          message: '服务器暂时不可用，请稍后重试',
+          title: t('live.errors.serverErrorTitle'),
+          message: t('live.errors.serverErrorMessage'),
           type: 'system',
           timestamp: Date.now(),
           context,
@@ -142,8 +144,8 @@ export const useErrorHandler = (): ErrorHandlerResult => {
     else if (getSafeErrorMessage(error).includes('timeout') || error?.code === 'TIMEOUT') {
       errorInfo = {
         code: 'timeout_error',
-        title: '请求超时',
-        message: '网络请求超时，请检查网络连接',
+        title: t('live.errors.timeoutTitle'),
+        message: t('live.errors.timeoutMessage'),
         type: 'network',
         timestamp: Date.now(),
         context,
@@ -154,8 +156,8 @@ export const useErrorHandler = (): ErrorHandlerResult => {
     else if (getSafeErrorName(error) === 'NotAllowedError') {
       errorInfo = {
         code: 'media_permission_denied',
-        title: '权限被拒绝',
-        message: '摄像头或麦克风权限被拒绝，请在浏览器设置中允许',
+        title: t('live.errors.mediaPermissionDeniedTitle'),
+        message: t('live.errors.mediaPermissionDeniedMessage'),
         type: 'user',
         timestamp: Date.now(),
         context,
@@ -165,8 +167,8 @@ export const useErrorHandler = (): ErrorHandlerResult => {
     else if (getSafeErrorName(error) === 'NotFoundError') {
       errorInfo = {
         code: 'media_device_not_found',
-        title: '设备未找到',
-        message: '未找到摄像头或麦克风设备',
+        title: t('live.errors.mediaDeviceNotFoundTitle'),
+        message: t('live.errors.mediaDeviceNotFoundMessage'),
         type: 'system',
         timestamp: Date.now(),
         context,
@@ -177,8 +179,8 @@ export const useErrorHandler = (): ErrorHandlerResult => {
     else if (getSafeErrorMessage(error).includes('room') || context.includes('live')) {
       errorInfo = {
         code: 'live_error',
-        title: '直播错误',
-        message: getSafeErrorMessage(error) || '直播功能暂时不可用',
+        title: t('live.errors.liveErrorTitle'),
+        message: getSafeErrorMessage(error) || t('live.errors.liveErrorMessage'),
         type: 'business',
         timestamp: Date.now(),
         context,
@@ -189,7 +191,7 @@ export const useErrorHandler = (): ErrorHandlerResult => {
     else if (getSafeErrorMessage(error)) {
       const safeMessage = getSafeErrorMessage(error)
       errorInfo.message = safeMessage
-      errorInfo.retryable = !safeMessage.includes('权限') && !safeMessage.includes('不存在')
+      errorInfo.retryable = !['auth_error', 'not_found'].includes(errorInfo.code)
     }
 
     return errorInfo
@@ -248,14 +250,14 @@ export const useErrorHandler = (): ErrorHandlerResult => {
         dialog.error({
           title: errorInfo.title,
           content: errorInfo.message,
-          positiveText: '确定'
+          positiveText: t('live.errors.confirm')
         })
       } else if (showNotification) {
         // 显示通知 - 带去重
         showNotificationOnce(errorInfo, allowRetry && errorInfo.retryable && onRetry ? onRetry : null)
       } else {
-        // 简化的错误提示
-        console.error(`[${context}] ${errorInfo.message}`)
+        // 简化的错误提示 - 记录到错误历史，不输出到控制台
+        // 错误信息已通过 errors.value 记录，可通过其他方式查看
       }
 
       // 上报错误到监控系统（可扩展）
@@ -303,7 +305,7 @@ export const useErrorHandler = (): ErrorHandlerResult => {
         notification.destroyAll()
         onRetry()
       }
-      notificationOptions.actionText = '重试'
+      notificationOptions.actionText = t('live.errors.retry')
     }
 
     notification.error(notificationOptions)

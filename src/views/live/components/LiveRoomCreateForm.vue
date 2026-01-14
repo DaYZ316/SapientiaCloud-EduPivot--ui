@@ -57,7 +57,7 @@
         <n-space>
           <n-button :disabled="!courseRecordId" @click="handleReset">{{ t('common.reset') }}</n-button>
           <n-button :disabled="!courseRecordId" :loading="submitting" type="primary" @click="handleSubmit">
-            创建直播房间
+            {{ t('live.actions.create') }}
           </n-button>
         </n-space>
       </div>

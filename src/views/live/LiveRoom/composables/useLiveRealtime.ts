@@ -1,4 +1,5 @@
 import { ref, readonly, onBeforeUnmount, type Ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { fetchEventSource } from '@microsoft/fetch-event-source'
 import { useUserStore } from '@/store'
 import { useResourceManager } from './useResourceManager'
@@ -28,6 +29,7 @@ export interface LiveRealtimeResult {
 }
 
 export const useLiveRealtime = (): LiveRealtimeResult => {
+  const { t } = useI18n()
   // 使用store和健壮性管理器
   const userStore = useUserStore()
   const resourceManager = useResourceManager()
@@ -52,7 +54,7 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
   const connect = async (classroomId: string | null, _roomInfo?: LiveRealtimeMessage | null): Promise<void> => {
     if (isConnected.value) return
 
-    loadingState.setLoading('sse', true, '正在连接实时消息...')
+    loadingState.setLoading('sse', true, t('live.sse.connecting'))
 
     try {
       // SSE连接不重试，因为token是一次性的，重试会失败
@@ -80,7 +82,7 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
       // 获取用户JWT token用于SSE认证
       const jwtToken = userStore.token
       if (!jwtToken) {
-        throw new Error('用户未登录，无法建立SSE连接')
+      throw new Error(t('live.sse.notLoggedIn'))
       }
 
       // 建立SSE连接
@@ -117,7 +119,10 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
               } catch (e) {
                 // 无法读取错误详情
               }
-              throw new Error(`SSE连接失败: ${response.status} ${response.statusText}`)
+              throw new Error(t('live.sse.connectFailed', {
+                status: response.status,
+                statusText: response.statusText
+              }))
             }
         },
         onmessage: (event) => {

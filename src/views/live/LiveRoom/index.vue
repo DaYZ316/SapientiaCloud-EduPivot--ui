@@ -6,7 +6,7 @@
     <n-spin v-if="loadingState.hasAnyLoading" size="large" class="global-loading">
       <div class="loading-content">
         <n-icon :component="VideocamOutline" size="32" />
-        <div class="loading-text">{{ loadingState.getLoadingMessage(loadingState.getLoadingStates()[0]) || '处理中...' }}</div>
+        <div class="loading-text">{{ loadingState.getLoadingMessage(loadingState.getLoadingStates()[0]) || t('live.common.processing') }}</div>
       </div>
     </n-spin>
 
@@ -18,32 +18,32 @@
           :current-user-role="currentUserRole"
           :is-recording="recording.isRecording.value"
           :recording-status-label="recording.recordingStatusLabel.value"
-          :connection-state-label="connectionStateLabel.value"
-          :connection-error="connectionError.value"
+          :connection-state-label="connectionStateLabel"
+          :connection-error="connectionError"
         />
         <n-space>
-          <n-button v-if="connection.isConnected" type="error" @click="handleLeave">
+          <n-button v-if="connectionIsConnected" type="error" @click="handleLeave">
             {{ t('live.room.leave') }}
           </n-button>
         </n-space>
       </div>
 
-      <div :class="{'is-connected': connection.isConnected}" class="room-layout">
+      <div class="room-layout is-connected">
         <section class="video-panel">
           <video-panel
             ref="videoPanelRef"
-            :is-connected="connectionIsConnected.value"
-            :connecting="connectionConnecting.value"
-            :connection-state-label="connectionStateLabel.value"
+            :is-connected="connectionIsConnected"
+            :connecting="connectionConnecting"
+            :connection-state-label="connectionStateLabel"
             :remote-participants="remoteParticipants"
           />
 
           <media-controls
-            v-if="connection.isConnected"
-            :camera-enabled="cameraEnabled.value"
-            :microphone-enabled="microphoneEnabled.value"
+            v-if="connectionIsConnected"
+            :camera-enabled="cameraEnabled"
+            :microphone-enabled="microphoneEnabled"
             :is-recording="recording.isRecording.value"
-            :recording-loading="recordingLoading.value"
+            :recording-loading="recordingLoading"
             :current-user-role="currentUserRole"
             :can-record="recording.canRecord(roomInfo, currentUserRole)"
             @toggle-camera="handleToggleCamera"
@@ -52,11 +52,11 @@
           />
         </section>
 
-        <section :class="['chat-panel', {'chat-panel-connected': connection.isConnected}]">
+        <section class="chat-panel chat-panel-connected">
           <ChatPanel
               :can-send="true"
-              :extra="`${chat.chatOnlineCount} ${t('live.room.members')}`"
-              :fixed-footer="!!connection.isConnected"
+              :extra="`${chatOnlineCount} ${t('live.room.members')}`"
+              :fixed-footer="true"
               :loading="false"
               :messages="chatMessages"
               :placeholder="t('live.room.chatPlaceholder')"
@@ -64,6 +64,7 @@
               :sub-title="t('live.room.chatDescription')"
               :title="t('live.room.chatTitle')"
               @send="handleSendMessage"
+              style="height: 100%; flex: 1 1 auto; min-height: 0;"
           />
         </section>
       </div>
@@ -72,12 +73,12 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { NIcon, NSpin } from 'naive-ui'
 import { VideocamOutline } from '@vicons/ionicons5'
-import { RoomEvent, Track } from 'livekit-client'
+import { RoomEvent, Track, RemoteParticipant, RemoteTrackPublication } from 'livekit-client'
 import PageHeader from '@/components/common/PageHeader.vue'
 import ChatPanel from '@/components/common/ChatPanel.vue'
 import VideoPanel from './components/VideoPanel.vue'
@@ -133,25 +134,120 @@ const realtime = useLiveRealtime()
 
 // 连接锁：防止递归重试
 let isConnecting = false
+const remoteAudioElements = new Map<string, HTMLAudioElement>()
 
-// 在线人数
-const onlineCount = computed(() => {
-  // 这里可以根据连接状态和其他逻辑计算
-  return connection.room ? 1 : 0
-})
+const onlineCount = ref(0)
 
 // 确保传递给子组件的值类型正确
-const connectionStateLabel = computed(() => connection.connectionStateLabel || '')
-const connectionError = computed(() => connection.connectionError || null)
-const connectionIsConnected = computed(() => connection.isConnected)
-const connectionConnecting = computed(() => connection.connecting)
-const cameraEnabled = computed(() => media.cameraEnabled)
-const microphoneEnabled = computed(() => media.microphoneEnabled)
-const recordingLoading = computed(() => recording.recordingLoading)
+const connectionStateLabel = computed(() => connection.connectionStateLabel.value || '')
+const connectionError = computed(() => connection.connectionError.value || null)
+const connectionIsConnected = computed(() => connection.isConnected.value)
+const connectionConnecting = computed(() => connection.connecting.value)
+const cameraEnabled = computed(() => media.cameraEnabled.value)
+const microphoneEnabled = computed(() => media.microphoneEnabled.value)
+const recordingLoading = computed(() => recording.recordingLoading.value)
 const chatMessages = computed(() => {
   const msgs = (chat.messages as any)?.value ?? (chat.messages as any)
   return Array.isArray(msgs) ? msgs : []
 })
+const chatOnlineCount = computed(() => {
+  const count = (chat.chatOnlineCount as any)?.value ?? (chat.chatOnlineCount as any)
+  return typeof count === 'number' ? count : onlineCount.value
+})
+
+const getParticipantName = (participant: RemoteParticipant) => {
+  return participant.name || participant.identity
+}
+
+const updateOnlineCount = (targetRoom: import('livekit-client').Room | null) => {
+  if (!targetRoom) {
+    onlineCount.value = 0
+    return
+  }
+  const remoteCount = targetRoom.remoteParticipants ? targetRoom.remoteParticipants.size : 0
+  onlineCount.value = remoteCount + 1
+}
+
+const ensureParticipantSubscribed = (participant: RemoteParticipant) => {
+  participant.trackPublications.forEach((publication) => {
+    if (publication.isSubscribed) return
+    publication.setSubscribed(true)
+  })
+}
+
+const syncExistingParticipantTracks = (participant: RemoteParticipant) => {
+  const displayName = getParticipantName(participant)
+  const videoPublications = Array.from(participant.videoTrackPublications.values())
+  videoPublications.forEach((publication: RemoteTrackPublication) => {
+    if (publication.track && publication.track.kind === Track.Kind.Video && videoPanelRef.value) {
+      const existingIndex = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
+      if (existingIndex >= 0) {
+        remoteParticipants.value[existingIndex].videoTrack = publication.track
+        remoteParticipants.value[existingIndex].displayName = displayName
+      } else {
+        remoteParticipants.value.push({
+          participantId: participant.identity,
+          displayName,
+          videoTrack: publication.track,
+          audioTrack: null
+        })
+      }
+      nextTick(() => {
+        if (publication.track) {
+          videoPanelRef.value?.attachRemoteVideo(participant.identity, publication.track)
+        }
+      })
+    }
+  })
+
+  const audioPublications = Array.from(participant.audioTrackPublications.values())
+  audioPublications.forEach((publication: RemoteTrackPublication) => {
+    if (publication.track && publication.track.kind === Track.Kind.Audio) {
+      attachRemoteAudio(participant.identity, publication.track)
+      const existingIndex = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
+      if (existingIndex >= 0) {
+        remoteParticipants.value[existingIndex].audioTrack = publication.track
+        remoteParticipants.value[existingIndex].displayName = displayName
+      }
+    }
+  })
+}
+
+const attachRemoteAudio = (participantId: string, track: Track) => {
+  if (track.kind !== Track.Kind.Audio) return
+  const key = participantId
+  const existing = remoteAudioElements.get(key)
+  if (existing) {
+    existing.remove()
+    remoteAudioElements.delete(key)
+  }
+  const audioEl = track.attach() as HTMLAudioElement
+  audioEl.autoplay = true
+  audioEl.style.display = 'none'
+  document.body.appendChild(audioEl)
+  remoteAudioElements.set(key, audioEl)
+  audioEl.play().catch(() => {
+    // Autoplay might be blocked until user gesture.
+  })
+}
+
+const detachRemoteAudio = (participantId: string, track: Track) => {
+  if (track.kind !== Track.Kind.Audio) return
+  const key = participantId
+  const audioEl = remoteAudioElements.get(key)
+  if (audioEl) {
+    track.detach(audioEl)
+    audioEl.remove()
+    remoteAudioElements.delete(key)
+  }
+}
+
+const cleanupRemoteAudio = () => {
+  remoteAudioElements.forEach((audioEl) => {
+    audioEl.remove()
+  })
+  remoteAudioElements.clear()
+}
 
 const attachLocalVideoTrack = () => {
   const currentRoom = connection.room.value
@@ -175,6 +271,11 @@ watch(
   () => connection.room.value,
   (currentRoom) => {
     if (!currentRoom) return
+    updateOnlineCount(currentRoom)
+    currentRoom.remoteParticipants.forEach((participant) => {
+      ensureParticipantSubscribed(participant)
+      syncExistingParticipantTracks(participant)
+    })
 
     resourceManager.registerEventListener(currentRoom, RoomEvent.LocalTrackPublished, (publication: any) => {
       if (publication?.track?.kind === Track.Kind.Video) {
@@ -187,26 +288,163 @@ watch(
         videoPanelRef.value?.cleanupLocalVideo()
       }
     })
+
+    resourceManager.registerEventListener(currentRoom, RoomEvent.TrackSubscribed, (track: Track, _publication: RemoteTrackPublication, participant: RemoteParticipant) => {
+      updateOnlineCount(currentRoom)
+      if (track.kind === Track.Kind.Video && videoPanelRef.value) {
+        const displayName = getParticipantName(participant)
+        const existingIndex = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
+        if (existingIndex >= 0) {
+          remoteParticipants.value[existingIndex] = {
+            ...remoteParticipants.value[existingIndex],
+            participantId: participant.identity,
+            displayName,
+            videoTrack: track
+          }
+        } else {
+          remoteParticipants.value.push({
+            participantId: participant.identity,
+            displayName,
+            videoTrack: track,
+            audioTrack: null
+          })
+        }
+
+        nextTick(() => {
+          videoPanelRef.value?.attachRemoteVideo(participant.identity, track)
+        })
+      }
+
+      if (track.kind === Track.Kind.Audio) {
+        const displayName = getParticipantName(participant)
+        attachRemoteAudio(participant.identity, track)
+        const existingIndex = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
+        if (existingIndex >= 0) {
+          remoteParticipants.value[existingIndex] = {
+            ...remoteParticipants.value[existingIndex],
+            displayName,
+            audioTrack: track
+          }
+        }
+      }
+    })
+
+    resourceManager.registerEventListener(currentRoom, RoomEvent.TrackUnsubscribed, (track: Track, _publication: RemoteTrackPublication, participant: RemoteParticipant) => {
+      updateOnlineCount(currentRoom)
+      if (track.kind === Track.Kind.Video && videoPanelRef.value) {
+        const index = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
+        if (index >= 0) {
+          const existing = remoteParticipants.value[index]
+          if (existing.audioTrack) {
+            remoteParticipants.value[index] = {
+              ...existing,
+              videoTrack: null
+            }
+          } else {
+            remoteParticipants.value.splice(index, 1)
+          }
+        }
+
+        videoPanelRef.value.detachRemoteVideo(participant.identity, track)
+      }
+
+      if (track.kind === Track.Kind.Audio) {
+        detachRemoteAudio(participant.identity, track)
+        const index = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
+        if (index >= 0) {
+          const existing = remoteParticipants.value[index]
+          if (existing.videoTrack) {
+            remoteParticipants.value[index] = {
+              ...existing,
+              audioTrack: null
+            }
+          } else {
+            remoteParticipants.value.splice(index, 1)
+          }
+        }
+      }
+    })
+
+    // 处理参与者连接和断开
+    resourceManager.registerEventListener(currentRoom, RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
+      updateOnlineCount(currentRoom)
+      ensureParticipantSubscribed(participant)
+      // 当参与者连接时，检查是否已有视频轨道
+      const displayName = getParticipantName(participant)
+      const videoPublications = Array.from(participant.videoTrackPublications.values())
+      videoPublications.forEach((publication: RemoteTrackPublication) => {
+        if (publication.track && publication.track.kind === Track.Kind.Video && videoPanelRef.value) {
+          const existingIndex = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
+          if (existingIndex >= 0) {
+            remoteParticipants.value[existingIndex].videoTrack = publication.track
+            remoteParticipants.value[existingIndex].displayName = displayName
+          } else {
+            remoteParticipants.value.push({
+              participantId: participant.identity,
+              displayName,
+              videoTrack: publication.track,
+              audioTrack: null
+            })
+          }
+          nextTick(() => {
+            if (publication.track) {
+              videoPanelRef.value?.attachRemoteVideo(participant.identity, publication.track)
+            }
+          })
+        }
+      })
+
+      const audioPublications = Array.from(participant.audioTrackPublications.values())
+      audioPublications.forEach((publication: RemoteTrackPublication) => {
+        if (publication.track && publication.track.kind === Track.Kind.Audio) {
+          attachRemoteAudio(participant.identity, publication.track)
+          const existingIndex = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
+          if (existingIndex >= 0) {
+            remoteParticipants.value[existingIndex].audioTrack = publication.track
+            remoteParticipants.value[existingIndex].displayName = displayName
+          }
+        }
+      })
+    })
+
+    resourceManager.registerEventListener(currentRoom, RoomEvent.ParticipantDisconnected, (participant: RemoteParticipant) => {
+      updateOnlineCount(currentRoom)
+      // 从 remoteParticipants 数组中移除参与者
+      const index = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
+      if (index >= 0) {
+        remoteParticipants.value.splice(index, 1)
+      }
+
+      const audioEl = remoteAudioElements.get(participant.identity)
+      if (audioEl) {
+        audioEl.remove()
+        remoteAudioElements.delete(participant.identity)
+      }
+    })
   }
 )
 
 // 页面卸载检测
 const handlePageUnload = () => {
   if (connection.room.value) {
-    try {
-      connection.disconnect()
-    } catch (e) {
+    // 在页面卸载时进行同步清理，忽略可能的错误
+    connection.disconnect().catch(() => {
       // 忽略清理过程中的错误
-    }
+    })
   }
 }
 
 // 加载房间信息
 async function loadRoomInfo() {
-  const response = await liveApi.getLiveRoomById(roomId).then((res) => res, () => null)
-  if (response?.data) {
-    roomInfo.value = response.data
-  }
+  return liveApi.getLiveRoomById(roomId).then((res) => {
+    if (res?.data) {
+      roomInfo.value = res.data
+    }
+    return res
+  }, () => {
+    // 静默处理错误，不抛出异常
+    return null
+  })
 }
 
 // 初始化
@@ -233,21 +471,19 @@ onMounted(async () => {
     }
 
     isConnecting = true
-    loadingState.setLoading('connection', true, '正在连接直播间...')
+    loadingState.setLoading('connection', true, t('live.common.connectingRoom'))
 
-    try {
-      await retryMechanism.retry(
-        () => connection.connect(roomInfo.value, currentUserRole.value, token),
-        {
-          maxRetries: 3,
-          baseDelay: 2000,
-          retryCondition: (error) => retryMechanism.isRetryableError(error),
-          onRetry: (attempt, _error) => {
-            loadingState.setLoading('connection', true, `连接失败，正在重试 (${attempt}/3)...`)
-          }
+    return retryMechanism.retry(
+      () => connection.connect(roomInfo.value, currentUserRole.value, token),
+      {
+        maxRetries: 3,
+        baseDelay: 2000,
+        retryCondition: (error) => retryMechanism.isRetryableError(error),
+        onRetry: (attempt, _error) => {
+          loadingState.setLoading('connection', true, t('live.common.retryingConnection', { attempt, total: 3 }))
         }
-      )
-
+      }
+    ).then(() => {
       // 如果成功到达这里，说明连接成功
       loadingState.setLoading('connection', false)
 
@@ -257,18 +493,18 @@ onMounted(async () => {
       }
 
       // 媒体设置将在用户点击媒体控制按钮时进行
-    } catch (error) {
+    }, (error) => {
       loadingState.setLoading('connection', false)
-      errorHandler.handleError(error, '直播连接', {
+      errorHandler.handleError(error, t('live.common.connectionContext'), {
         allowRetry: true,
         onRetry: () => connectWithRetry(token)
       })
 
       // 连接失败时启用降级模式 - 启动消息轮询
       chat.startPolling(roomId)
-    } finally {
+    }).finally(() => {
       isConnecting = false
-    }
+    })
   }
 
   if (providedToken) {
@@ -289,6 +525,8 @@ onBeforeUnmount(() => {
     connection.disconnect()
   }
 
+  cleanupRemoteAudio()
+
   // 停止SSE连接
   realtime.disconnect()
 
@@ -298,16 +536,15 @@ onBeforeUnmount(() => {
 
 // 处理离开房间
 async function handleLeave() {
-  loadingState.setLoading('disconnect', true, '正在断开连接...')
+  loadingState.setLoading('disconnect', true, t('live.common.disconnecting'))
 
-  try {
-    await connection.disconnect()
-
+  return connection.disconnect().then(() => {
     // 清理视频面板资源
     if (videoPanelRef.value) {
       videoPanelRef.value.cleanupRemoteVideos()
       videoPanelRef.value.cleanupLocalVideo()
     }
+    cleanupRemoteAudio()
 
     // 清理所有资源
     resourceManager.cleanupAll()
@@ -316,10 +553,10 @@ async function handleLeave() {
     chat.startPolling(roomId)
 
     loadingState.setLoading('disconnect', false)
-  } catch (error) {
+  }, (error) => {
     loadingState.setLoading('disconnect', false)
-    errorHandler.handleError(error, '断开连接')
-  }
+    errorHandler.handleError(error, t('live.common.disconnectContext'))
+  })
 }
 
 // 处理发送消息
@@ -329,51 +566,48 @@ async function handleSendMessage(content: string) {
 
 // 处理切换摄像头
 async function handleToggleCamera() {
-  loadingState.setLoading('camera', true, '正在切换摄像头...')
+  loadingState.setLoading('camera', true, t('live.common.switchingCamera'))
 
-  try {
-    await media.toggleCamera()
+  return media.toggleCamera().then(() => {
     loadingState.setLoading('camera', false)
-  } catch (error) {
+  }, (error) => {
     loadingState.setLoading('camera', false)
-    errorHandler.handleError(error, '摄像头切换', {
+    errorHandler.handleError(error, t('live.common.cameraToggleContext'), {
       allowRetry: true,
       onRetry: handleToggleCamera
     })
-  }
+  })
 }
 
 // 处理切换麦克风
 async function handleToggleMicrophone() {
-  loadingState.setLoading('microphone', true, '正在切换麦克风...')
+  loadingState.setLoading('microphone', true, t('live.common.switchingMicrophone'))
 
-  try {
-    await media.toggleMicrophone()
+  return media.toggleMicrophone().then(() => {
     loadingState.setLoading('microphone', false)
-  } catch (error) {
+  }, (error) => {
     loadingState.setLoading('microphone', false)
-    errorHandler.handleError(error, '麦克风切换', {
+    errorHandler.handleError(error, t('live.common.microphoneToggleContext'), {
       allowRetry: true,
       onRetry: handleToggleMicrophone
     })
-  }
+  })
 }
 
 // 处理切换录制
 async function handleToggleRecording() {
-  const action = recording.isRecording ? '停止录制' : '开始录制'
-  loadingState.setLoading('recording', true, `正在${action}...`)
+  const action = recording.isRecording ? t('live.common.recordingStop') : t('live.common.recordingStart')
+  loadingState.setLoading('recording', true, t('live.common.recordingInProgress', { action }))
 
-  try {
-    await recording.toggleRecording(roomInfo.value, currentUserRole.value)
+  return recording.toggleRecording(roomInfo.value, currentUserRole.value).then(() => {
     loadingState.setLoading('recording', false)
-  } catch (error) {
+  }, (error) => {
     loadingState.setLoading('recording', false)
-    errorHandler.handleError(error, `录制${action}`, {
+    errorHandler.handleError(error, t('live.common.recordingContext', { action }), {
       allowRetry: true,
       onRetry: handleToggleRecording
     })
-  }
+  })
 }
 </script>
 
@@ -461,7 +695,6 @@ async function handleToggleRecording() {
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0;
     transition: flex 0.4s ease, width 0.4s ease;
     order: 2;
     height: 100%;
@@ -470,78 +703,6 @@ async function handleToggleRecording() {
     box-sizing: border-box;
     overflow: hidden;
     position: relative;
-
-    :deep(.chat-panel) {
-      height: 100% !important;
-      min-height: 0;
-      max-height: 100%;
-      overflow: hidden;
-      display: flex !important;
-      flex-direction: column !important;
-      position: relative !important;
-      box-sizing: border-box;
-    }
-
-    :deep(.chat-panel__header) {
-      flex-shrink: 0;
-      padding: 12px 16px;
-      position: relative;
-      z-index: 1;
-    }
-
-    :deep(.chat-panel__body) {
-      flex: 1 1 auto !important;
-      min-height: 0;
-      max-height: 100%;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      padding-bottom: 0;
-      margin-bottom: 0;
-    }
-
-    :deep(.chat-panel__messages) {
-      flex: 1 1 auto;
-      min-height: 0;
-      max-height: 100%;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding-bottom: 100px;
-      -webkit-overflow-scrolling: touch;
-      box-sizing: border-box;
-    }
-
-    :deep(.chat-panel__loading) {
-      flex: 1 1 auto;
-      min-height: 0;
-      max-height: 100%;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding-bottom: 100px;
-      -webkit-overflow-scrolling: touch;
-      box-sizing: border-box;
-    }
-
-    :deep(.chat-panel__footer) {
-      position: absolute !important;
-      bottom: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
-      width: 100% !important;
-      border-bottom-left-radius: 12px !important;
-      border-bottom-right-radius: 12px !important;
-      z-index: 100 !important;
-      background-color: var(--background-tertiary-color);
-      margin: 0 !important;
-      padding: 0 !important;
-      flex-shrink: 0;
-      box-sizing: border-box;
-    }
-
-    :deep(.chat-panel__footer-actions) {
-      flex-shrink: 0;
-    }
   }
 
   .room-layout.is-connected .chat-panel,
@@ -557,180 +718,13 @@ async function handleToggleRecording() {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-
-    :deep(.chat-panel) {
-      height: 100% !important;
-      min-height: 0 !important;
-      max-height: 100% !important;
-      overflow: hidden !important;
-      display: flex !important;
-      flex-direction: column !important;
-      position: relative !important;
-      box-sizing: border-box !important;
-    }
-
-    :deep(.chat-panel__header) {
-      flex-shrink: 0 !important;
-      padding: 12px 16px;
-      position: relative;
-      z-index: 1;
-    }
-
-    :deep(.chat-panel__body) {
-      flex: 1 1 auto !important;
-      min-height: 0 !important;
-      max-height: 100% !important;
-      overflow: hidden !important;
-      display: flex !important;
-      flex-direction: column !important;
-      position: relative !important;
-      padding-bottom: 0 !important;
-      margin-bottom: 0 !important;
-    }
-
-    :deep(.chat-panel__messages) {
-      flex: 1 1 auto !important;
-      min-height: 0 !important;
-      max-height: 100% !important;
-      overflow-y: auto !important;
-      overflow-x: hidden !important;
-      padding-bottom: 100px !important;
-      -webkit-overflow-scrolling: touch;
-      box-sizing: border-box !important;
-    }
-
-    :deep(.chat-panel__loading) {
-      flex: 1 1 auto !important;
-      min-height: 0 !important;
-      max-height: 100% !important;
-      overflow-y: auto !important;
-      overflow-x: hidden !important;
-      padding-bottom: 100px !important;
-      -webkit-overflow-scrolling: touch;
-      box-sizing: border-box !important;
-    }
-
-    :deep(.chat-panel) {
-      position: relative !important;
-    }
-
-    :deep(.chat-panel__footer) {
-      position: absolute !important;
-      bottom: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
-      width: 100% !important;
-      border-bottom-left-radius: 12px !important;
-      border-bottom-right-radius: 12px !important;
-      z-index: 1000 !important;
-      background-color: var(--background-tertiary-color) !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      flex-shrink: 0 !important;
-      box-sizing: border-box !important;
-    }
-
-    :deep(.chat-panel__footer--fixed) {
-      position: absolute !important;
-      bottom: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
-      width: 100% !important;
-      z-index: 1000 !important;
-    }
-
-    :deep(.chat-panel__footer-input-wrapper) {
-      position: relative !important;
-      flex-shrink: 0 !important;
-      padding: 12px 16px !important;
-      padding-bottom: 12px !important;
-      margin: 0 !important;
-      display: flex !important;
-      align-items: center !important;
-      gap: 8px !important;
-    }
-
-    :deep(.chat-panel__footer-actions) {
-      flex-shrink: 0 !important;
-      position: absolute !important;
-      right: 24px !important;
-      top: 50% !important;
-      transform: translateY(-50%) !important;
-      z-index: 1 !important;
-    }
   }
 }
 </style>
 
 <style lang="scss">
-// 全局样式，用于强制覆盖 ChatPanel 的 scoped 样式
-.chat-panel-connected .chat-panel {
-  height: 100% !important;
-  min-height: 0 !important;
-  max-height: 100% !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-  position: relative !important;
-  box-sizing: border-box !important;
-}
-
-.chat-panel-connected .chat-panel__body {
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  max-height: 100% !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-  position: relative !important;
-  padding-bottom: 0 !important;
-  margin-bottom: 0 !important;
-}
-
-.chat-panel-connected .chat-panel__messages,
-.chat-panel-connected .chat-panel__loading {
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  max-height: 100% !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  padding-bottom: 100px !important;
-  box-sizing: border-box !important;
-}
-
-.chat-panel-connected .chat-panel__footer {
-  position: absolute !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  width: 100% !important;
-  border-bottom-left-radius: 12px !important;
-  border-bottom-right-radius: 12px !important;
-  z-index: 1000 !important;
-  background-color: var(--background-tertiary-color) !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  flex-shrink: 0 !important;
-  box-sizing: border-box !important;
-}
-
-.chat-panel-connected .chat-panel__footer-input-wrapper {
-  position: relative !important;
-  flex-shrink: 0 !important;
-  padding: 12px 16px !important;
-  padding-bottom: 12px !important;
-  margin: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-}
-
-.chat-panel-connected .chat-panel__footer-actions {
-  flex-shrink: 0 !important;
-  position: absolute !important;
-  right: 24px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  z-index: 1 !important;
+// 确保聊天面板在直播房间中的正确显示
+.live-room-container .room-layout.is-connected .chat-panel.chat-panel-connected {
+  border-radius: 12px;
 }
 </style>

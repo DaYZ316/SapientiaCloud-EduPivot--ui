@@ -39,8 +39,7 @@
       </div>
     </main>
 
-    <footer v-if="canSend" :class="['chat-panel__footer', {'chat-panel__footer--fixed': fixedFooter}]"
-            :style="footerStyle">
+    <footer v-if="canSend" :class="['chat-panel__footer', {'chat-panel__footer--fixed': fixedFooter}]">
       <div class="chat-panel__footer-input-wrapper">
         <n-input
             v-model:value="inputValue"
@@ -121,22 +120,6 @@ const panelStyle = computed(() => {
   }
 })
 
-const footerStyle = computed(() => {
-  if (!props.fixedFooter) return {}
-  return {
-    position: 'absolute' as const,
-    bottom: '0',
-    left: '0',
-    right: '0',
-    width: '100%',
-    zIndex: '1000',
-    backgroundColor: 'var(--background-tertiary-color)',
-    margin: '0',
-    padding: '0',
-    borderTop: '1px solid var(--border-color)'
-  }
-})
-
 const bodyStyle = computed(() => {
   if (!props.fixedFooter) return {}
   return {
@@ -160,19 +143,43 @@ const messagesStyle = computed(() => {
     maxHeight: '100%',
     overflowY: 'auto' as const,
     overflowX: 'hidden' as const,
-    paddingBottom: '120px',
     boxSizing: 'border-box' as const
   }
 })
 
+// 自动滚动到底部
+const scrollToBottom = () => {
+  nextTick(() => {
+    if (!listRef.value) return
+    listRef.value.scrollTop = listRef.value.scrollHeight
+  })
+}
+
+// 监听消息变化，自动滚动到底部
 watch(
     () => props.messages.length,
-    () => {
-      nextTick(() => {
-        if (!listRef.value) return
-        listRef.value.scrollTop = listRef.value.scrollHeight
-      })
+    (newLength, oldLength) => {
+      // 只有当消息数量增加时才滚动到底部
+      if (newLength > oldLength) {
+        scrollToBottom()
+      }
     }
+)
+
+// 监听消息内容变化（用于实时消息更新）
+watch(
+    () => props.messages,
+    (newMessages, oldMessages) => {
+      if (newMessages && oldMessages && newMessages.length === oldMessages.length) {
+        // 消息数量相同但内容可能更新，检查最后一条消息
+        const lastNew = newMessages[newMessages.length - 1]
+        const lastOld = oldMessages[oldMessages.length - 1]
+        if (lastNew && lastOld && lastNew.id !== lastOld.id) {
+          scrollToBottom()
+        }
+      }
+    },
+    { deep: true }
 )
 
 function handleSend() {
@@ -189,15 +196,14 @@ function handleSend() {
 .chat-panel {
   display: flex;
   flex-direction: column;
-  height: 100% !important;
+  height: 100%;
   min-height: 0;
   max-height: 100%;
-  gap: 0;
   overflow: hidden;
   padding: 0;
-  padding-bottom: 0;
   box-sizing: border-box;
-  position: relative !important;
+  position: relative;
+  gap: 0;
 
   &__header {
     display: flex;
@@ -232,14 +238,12 @@ function handleSend() {
   }
 
   &__body {
-    flex: 1 1 0;
+    flex: 1 1 auto;
     min-height: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     position: relative;
-    padding-bottom: 0;
-    margin-bottom: 0;
   }
 
   &__loading {
@@ -260,7 +264,6 @@ function handleSend() {
     flex-direction: column;
     gap: 12px;
     padding: 12px 16px;
-    padding-bottom: 80px; // 预留输入框高度，确保最后一条消息可见
     -webkit-overflow-scrolling: touch;
     align-items: flex-start;
     justify-content: flex-start;
@@ -338,84 +341,18 @@ function handleSend() {
     padding: 16px;
     flex-shrink: 0;
     width: 100%;
-    margin-top: 0;
   }
 
   &__footer {
-    padding: 0 !important;
-    margin: 0 !important;
     border-top: 1px solid var(--border-color);
     background-color: var(--background-tertiary-color);
-    width: 100% !important;
     flex-shrink: 0;
+    margin-top: auto;
 
     &--fixed {
-      position: absolute !important;
-      bottom: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
-      width: 100% !important;
-      z-index: 1000 !important;
-      margin: 0 !important;
-      padding: 0 !important;
-    }
-  }
-
-  &.chat-panel-fixed-footer {
-    height: 100% !important;
-    min-height: 0 !important;
-    max-height: 100% !important;
-    overflow: hidden !important;
-    display: flex !important;
-    flex-direction: column !important;
-    position: relative !important;
-    box-sizing: border-box !important;
-
-    &__footer {
-      position: absolute !important;
-      bottom: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
-      width: 100% !important;
-      z-index: 1000 !important;
-      background-color: var(--background-tertiary-color) !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      flex-shrink: 0 !important;
-    }
-
-    &__footer--fixed {
-      position: absolute !important;
-      bottom: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
-      width: 100% !important;
-      z-index: 1000 !important;
-      margin: 0 !important;
-      padding: 0 !important;
-    }
-
-    &__body {
-      flex: 1 1 auto !important;
-      min-height: 0 !important;
-      max-height: 100% !important;
-      overflow: hidden !important;
-      display: flex !important;
-      flex-direction: column !important;
-      position: relative !important;
-      padding-bottom: 0 !important;
-      margin-bottom: 0 !important;
-    }
-
-    &__messages,
-    &__loading {
-      flex: 1 1 auto !important;
-      min-height: 0 !important;
-      max-height: 100% !important;
-      overflow-y: auto !important;
-      overflow-x: hidden !important;
-      padding-bottom: 120px !important;
-      box-sizing: border-box !important;
+      width: 100%;
+      border-bottom-left-radius: inherit;
+      border-bottom-right-radius: inherit;
     }
   }
 
@@ -424,7 +361,6 @@ function handleSend() {
     flex-shrink: 0;
     padding: 12px 16px;
     padding-bottom: 12px;
-    margin: 0 !important;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -449,141 +385,38 @@ function handleSend() {
     display: flex;
     align-items: center;
   }
-}
-</style>
 
-<style lang="scss">
-// 非 scoped 样式，用于在特定上下文中覆盖样式
-.chat-panel-connected .chat-panel {
-  height: 100% !important;
-  min-height: 0 !important;
-  max-height: 100% !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-  position: relative !important;
-  box-sizing: border-box !important;
-}
+  // 固定底部样式
+  &.chat-panel-fixed-footer {
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-sizing: border-box;
 
-.chat-panel-connected .chat-panel__body {
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  max-height: 100% !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-  position: relative !important;
-  padding-bottom: 0 !important;
-  margin-bottom: 0 !important;
-}
+    .chat-panel__body {
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: 100%;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
 
-.chat-panel-connected .chat-panel__messages,
-.chat-panel-connected .chat-panel__loading {
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  max-height: 100% !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  padding-bottom: 100px !important;
-  box-sizing: border-box !important;
-}
-
-.chat-panel-connected .chat-panel__footer {
-  position: absolute !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  width: 100% !important;
-  z-index: 100 !important;
-  background-color: var(--background-tertiary-color) !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  flex-shrink: 0 !important;
-  box-sizing: border-box !important;
-}
-
-/* 针对 fixedFooter prop 的全局样式 - 确保输入框固定在底部 */
-.chat-panel-fixed-footer {
-  height: 100% !important;
-  min-height: 0 !important;
-  max-height: 100% !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-  position: relative !important;
-  box-sizing: border-box !important;
-}
-
-.chat-panel-fixed-footer {
-  height: 100% !important;
-  min-height: 0 !important;
-  max-height: 100% !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-  position: relative !important;
-  box-sizing: border-box !important;
-}
-
-.chat-panel-fixed-footer .chat-panel__footer,
-.chat-panel__footer--fixed {
-  position: absolute !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  width: 100% !important;
-  z-index: 1000 !important;
-  background-color: var(--background-tertiary-color) !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border-top: 1px solid var(--border-color) !important;
-  flex-shrink: 0 !important;
-}
-
-.chat-panel-fixed-footer .chat-panel__body {
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  max-height: 100% !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-  position: relative !important;
-  padding-bottom: 0 !important;
-  margin-bottom: 0 !important;
-}
-
-.chat-panel-fixed-footer .chat-panel__messages,
-.chat-panel-fixed-footer .chat-panel__loading {
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  max-height: 100% !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  padding-bottom: 120px !important;
-  box-sizing: border-box !important;
-}
-
-.chat-panel-fixed-footer .chat-panel__body {
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  max-height: 100% !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-  position: relative !important;
-  padding-bottom: 0 !important;
-  margin-bottom: 0 !important;
-}
-
-.chat-panel-fixed-footer .chat-panel__messages,
-.chat-panel-fixed-footer .chat-panel__loading {
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  max-height: 100% !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  padding-bottom: 120px !important;
-  box-sizing: border-box !important;
+    .chat-panel__messages,
+    .chat-panel__loading {
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      box-sizing: border-box;
+    }
+  }
 }
 </style>
 

@@ -33,7 +33,7 @@
             autoplay
             playsinline
           />
-          <div class="video-label">{{ participant.participantId }}</div>
+          <div class="video-label">{{ participant.displayName || participant.participantId }}</div>
         </div>
       </div>
     </template>

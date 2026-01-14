@@ -87,7 +87,7 @@ export const useLiveConnection = (): LiveConnectionResult => {
             // 重试通知
             errorHandler.handleError(error, 'live_connection_retry', {
               showNotification: true,
-              customMessage: `连接失败，正在重试 (${attempt}/3)...`
+              customMessage: t('live.common.retryingConnection', { attempt, total: 3 })
             })
           }
         }

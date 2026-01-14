@@ -50,18 +50,17 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
   const toggleCamera = async (): Promise<void> => {
     const currentRoom = room.value
     if (!currentRoom) {
-      errorHandler.handleError({ name: 'ConnectionError', message: '未连接到房间' }, 'media_camera_toggle', {
+      errorHandler.handleError({ name: 'ConnectionError', message: t('live.room.notConnected') }, 'media_camera_toggle', {
         showNotification: true,
-        customMessage: t('live.room.value.notConnected')
+        customMessage: t('live.room.notConnected')
       })
       return
     }
 
     if (currentRoom.state !== ConnectionState.Connected) {
-      const stateText = getConnectionStateText(currentRoom.state)
-      errorHandler.handleError({ name: 'ConnectionError', message: `无法切换摄像头：${stateText}` }, 'media_camera_toggle', {
+      errorHandler.handleError({ name: 'ConnectionError', message: t('live.room.cannotToggleCamera') }, 'media_camera_toggle', {
         showNotification: true,
-        customMessage: t('live.room.value.cannotToggleCamera')
+        customMessage: t('live.room.cannotToggleCamera')
       })
       return
     }
@@ -69,7 +68,7 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
     // ✅ 关键：在用户手势中先启动音频上下文，解除自动播放限制
     safeAsyncCall(
       () => currentRoom.startAudio(),
-      '音频上下文启动失败'
+      t('live.media.audioContextStartFailed')
     ).catch(() => {
       // 即使startAudio失败，也要安全处理
     })
@@ -82,7 +81,7 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
         navigator.mediaDevices.enumerateDevices().then((devices) => {
           const hasVideoInput = devices.some(d => d.kind === 'videoinput')
           if (!hasVideoInput) {
-            const notFoundErr: any = new Error('未检测到摄像头设备，请检查设备连接或浏览器权限')
+            const notFoundErr: any = new Error(t('live.media.cameraNotFound'))
             notFoundErr.name = 'NotFoundError'
             throw notFoundErr
           }
@@ -97,7 +96,7 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
             // 禁用摄像头 - 使用安全包装器
             await safeAsyncCall(
               () => currentRoom.localParticipant.setCameraEnabled(false),
-              '禁用摄像头失败'
+              t('live.media.cameraDisableFailed')
             )
             cameraEnabled.value = false
           } else {
@@ -108,7 +107,7 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
               if (existingVideoTracks.length > 0) {
                 safeAsyncCall(
                   () => currentRoom.localParticipant.setCameraEnabled(false),
-                  '清理现有摄像头轨道失败'
+                  t('live.media.cameraCleanupFailed')
                 ).then(() => {
                   // 等待轨道完全停止
                   return new Promise(resolve => setTimeout(resolve, 300))
@@ -120,10 +119,10 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
               // 步骤2: 启用摄像头 - 使用安全包装器和超时保护
               const enablePromise = safeAsyncCall(
                 () => currentRoom.localParticipant.setCameraEnabled(true),
-                '启用摄像头失败'
+                t('live.media.cameraEnableFailed')
               )
               const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('摄像头启用超时，请检查设备连接')), 10000)
+                setTimeout(() => reject(new Error(t('live.media.cameraEnableTimeout'))), 10000)
               )
 
               await Promise.race([enablePromise, timeoutPromise])
@@ -135,7 +134,7 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
               // 步骤4: 验证轨道是否成功发布
               const videoTracks = Array.from(currentRoom.localParticipant.videoTrackPublications.values())
               if (videoTracks.length === 0) {
-                throw new Error('摄像头轨道发布失败')
+                throw new Error(t('live.media.cameraPublishFailed'))
               }
 
               // 步骤5: 额外等待确保轨道稳定
@@ -145,7 +144,7 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
               cameraEnabled.value = false
 
               // 增强错误信息，避免传递可能包含不可克隆对象的原始错误
-              const enhancedError = new Error(trackError?.message || '摄像头启用失败')
+              const enhancedError = new Error(trackError?.message || t('live.media.cameraEnableFailed'))
               enhancedError.name = trackError?.name || 'CameraError'
               throw enhancedError
             }
@@ -158,12 +157,12 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
       )
     } catch (error: any) {
       // 使用安全的错误创建函数，避免任何DataCloneError
-      const safeError = { name: 'MediaError', message: '媒体设备操作失败，请检查设备权限和连接状态' }
+      const safeError = { name: 'MediaError', message: t('live.media.operationFailed') }
 
       // 错误已通过errorHandler处理，这里不再输出
 
       // 简化的错误处理
-      const customMessage = error?.message || '摄像头启动失败，请检查设备连接和权限设置'
+      const customMessage = error?.message || t('live.media.cameraStartFailed')
 
       errorHandler.handleError(safeError, 'media_camera_toggle', {
         showNotification: true,
@@ -180,18 +179,17 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
   const toggleMicrophone = async (): Promise<void> => {
     const currentRoom = room.value
     if (!currentRoom) {
-      errorHandler.handleError({ name: 'ConnectionError', message: '未连接到房间' }, 'media_microphone_toggle', {
+      errorHandler.handleError({ name: 'ConnectionError', message: t('live.room.notConnected') }, 'media_microphone_toggle', {
         showNotification: true,
-        customMessage: t('live.room.value.notConnected')
+        customMessage: t('live.room.notConnected')
       })
       return
     }
 
     if (currentRoom.state !== ConnectionState.Connected) {
-      const stateText = getConnectionStateText(currentRoom.state)
-      errorHandler.handleError({ name: 'ConnectionError', message: `无法切换麦克风：${stateText}` }, 'media_microphone_toggle', {
+      errorHandler.handleError({ name: 'ConnectionError', message: t('live.room.cannotToggleMicrophone') }, 'media_microphone_toggle', {
         showNotification: true,
-        customMessage: t('live.room.value.cannotToggleMicrophone')
+        customMessage: t('live.room.cannotToggleMicrophone')
       })
       return
     }
@@ -200,7 +198,7 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
     try {
       await safeAsyncCall(
         () => currentRoom.startAudio(),
-        '音频上下文启动失败'
+        t('live.media.audioContextStartFailed')
       )
     } catch (error: any) {
       // 即使startAudio失败，也要安全处理
@@ -215,7 +213,7 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
             // 禁用麦克风
             await safeAsyncCall(
               () => currentRoom.localParticipant.setMicrophoneEnabled(false),
-              '禁用麦克风失败'
+              t('live.media.microphoneDisableFailed')
             )
             microphoneEnabled.value = false
           } else {
@@ -227,7 +225,7 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
                 try {
                   await safeAsyncCall(
                     () => currentRoom.localParticipant.setMicrophoneEnabled(false),
-                    '清理现有麦克风轨道失败'
+                    t('live.media.microphoneCleanupFailed')
                   )
                   // 等待轨道完全停止
                   await new Promise(resolve => setTimeout(resolve, 300))
@@ -239,7 +237,7 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
               // 启用麦克风
               await safeAsyncCall(
                 () => currentRoom.localParticipant.setMicrophoneEnabled(true),
-                '启用麦克风失败'
+                t('live.media.microphoneEnableFailed')
               )
               microphoneEnabled.value = true
 
@@ -250,7 +248,7 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
               microphoneEnabled.value = false
 
               // 增强错误信息，避免传递可能包含不可克隆对象的原始错误
-              const enhancedError = new Error('麦克风启用失败')
+              const enhancedError = new Error(t('live.media.microphoneEnableFailed'))
               enhancedError.name = trackError?.name || 'MicrophoneError'
               throw enhancedError
             }
@@ -263,12 +261,12 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
       )
     } catch (error: any) {
       // 使用安全的错误创建函数，避免任何DataCloneError
-      const safeError = { name: 'MediaError', message: '媒体设备操作失败，请检查设备权限和连接状态' }
+      const safeError = { name: 'MediaError', message: t('live.media.operationFailed') }
 
       // 错误已通过errorHandler处理，这里不再输出
 
       // 简化的错误处理
-      const customMessage = error?.message || '麦克风启动失败，请检查设备连接和权限设置'
+      const customMessage = error?.message || t('live.media.microphoneStartFailed')
 
       errorHandler.handleError(safeError, 'media_microphone_toggle', {
         showNotification: true,
@@ -291,7 +289,7 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
       // 先启用麦克风（通常更稳定）
       await safeAsyncCall(
         () => targetRoom.localParticipant.setMicrophoneEnabled(true),
-        '启用麦克风失败'
+        t('live.media.microphoneEnableFailed')
       )
       microphoneEnabled.value = true
 
@@ -310,7 +308,7 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
         try {
           await safeAsyncCall(
             () => targetRoom.localParticipant.setCameraEnabled(true),
-            '启用摄像头失败'
+            t('live.media.cameraEnableFailed')
           )
           cameraEnabled.value = true
           cameraSuccess = true
@@ -326,7 +324,7 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
         cameraEnabled.value = false
         errorHandler.handleError(new Error('Camera enable failed'), 'media_camera_enable', {
           showNotification: true,
-          customMessage: t('live.room.value.cameraEnableFailed') || '启用摄像头失败，请检查权限设置或设备是否可用'
+          customMessage: t('live.room.cameraEnableFailed')
         })
       }
 
@@ -340,7 +338,7 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
       // 使用统一的错误处理器
       errorHandler.handleError(error, 'media_setup', {
         showNotification: true,
-        customMessage: t('live.room.value.mediaSetupFailed') || '媒体设备设置失败'
+        customMessage: t('live.room.mediaSetupFailed')
       })
     }
   }
@@ -349,13 +347,13 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
   const getConnectionStateText = (state: ConnectionState): string => {
     switch (state) {
       case ConnectionState.Connecting:
-        return t('live.room.value.connecting') || '连接中'
+        return t('live.room.connecting')
       case ConnectionState.Reconnecting:
-        return t('live.room.value.reconnecting') || '重连中'
+        return t('live.room.reconnecting')
       case ConnectionState.Disconnected:
-        return t('live.room.value.disconnected') || '已断开'
+        return t('live.room.disconnected')
       default:
-        return t('live.room.value.connectFailed') || '连接失败'
+        return t('live.room.connectFailed')
     }
   }
 
@@ -367,23 +365,23 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
       // 检查连接状态
       const currentRoom = room.value
       if (!currentRoom) {
-        diagnostics.push('❌ 未连接到直播房间')
+        diagnostics.push(t('live.diagnostics.roomNotConnected'))
         return diagnostics.join('\n')
       }
 
       if (currentRoom.state !== ConnectionState.Connected) {
-        diagnostics.push(`❌ 房间连接状态：${getConnectionStateText(currentRoom.state)}`)
+        diagnostics.push(t('live.diagnostics.roomConnectionState', { state: getConnectionStateText(currentRoom.state) }))
         return diagnostics.join('\n')
       }
 
-      diagnostics.push('✅ 房间连接正常')
+      diagnostics.push(t('live.diagnostics.roomConnectionOk'))
 
       // 检查设备权限
       try {
         const permissionStatus = await navigator.permissions.query({ name: 'camera' as PermissionName })
-        diagnostics.push(`📷 摄像头权限状态：${permissionStatus.state}`)
+        diagnostics.push(t('live.diagnostics.cameraPermissionState', { state: permissionStatus.state }))
       } catch {
-        diagnostics.push('📷 无法检查摄像头权限状态')
+        diagnostics.push(t('live.diagnostics.cameraPermissionUnavailable'))
       }
 
       // 检查可用设备
@@ -391,35 +389,39 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
         try {
           const devices = await navigator.mediaDevices.enumerateDevices()
           const videoDevices = devices.filter(d => d.kind === 'videoinput')
-          diagnostics.push(`📹 检测到 ${videoDevices.length} 个摄像头设备`)
+          diagnostics.push(t('live.diagnostics.cameraDevicesDetected', { count: videoDevices.length }))
 
           if (videoDevices.length > 0) {
             videoDevices.forEach((device, index) => {
-              diagnostics.push(`  ${index + 1}. ${device.label || '未命名设备'} (${device.deviceId.slice(0, 8)}...)`)
+              diagnostics.push(t('live.diagnostics.deviceLabelLine', {
+                index: index + 1,
+                label: device.label || t('live.diagnostics.deviceLabelUnknown'),
+                id: device.deviceId.slice(0, 8)
+              }))
             })
           }
         } catch (error: any) {
-          diagnostics.push(`❌ 设备枚举失败：${error?.message || '未知错误'}`)
+          diagnostics.push(t('live.diagnostics.deviceEnumFailed', { error: error?.message || t('live.common.unknownError') }))
         }
       }
 
       // 检查现有轨道
       const existingVideoTracks = Array.from(currentRoom.localParticipant.videoTrackPublications.values())
-      diagnostics.push(`🎬 当前视频轨道数量：${existingVideoTracks.length}`)
+      diagnostics.push(t('live.diagnostics.currentVideoTracks', { count: existingVideoTracks.length }))
 
       // 最终建议
       if (diagnostics.some(d => d.includes('❌'))) {
-        diagnostics.push('\n🔧 建议检查：')
-        diagnostics.push('   • 浏览器摄像头权限设置')
-        diagnostics.push('   • 摄像头硬件连接')
-        diagnostics.push('   • 其他应用是否占用摄像头')
-        diagnostics.push('   • 尝试刷新页面或重启浏览器')
+        diagnostics.push(t('live.diagnostics.suggestTitle'))
+        diagnostics.push(t('live.diagnostics.suggestCameraPermission'))
+        diagnostics.push(t('live.diagnostics.suggestCameraHardware'))
+        diagnostics.push(t('live.diagnostics.suggestCameraOccupied'))
+        diagnostics.push(t('live.diagnostics.suggestRefresh'))
       } else {
-        diagnostics.push('\n✅ 系统状态正常，如仍有问题可能是临时故障')
+        diagnostics.push(t('live.diagnostics.ok'))
       }
 
     } catch (error: any) {
-      diagnostics.push(`❌ 诊断过程中出错：${error?.message || '未知错误'}`)
+      diagnostics.push(t('live.diagnostics.error', { error: error?.message || t('live.common.unknownError') }))
     }
 
     return diagnostics.join('\n')
@@ -433,23 +435,23 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
       // 检查连接状态
       const currentRoom = room.value
       if (!currentRoom) {
-        diagnostics.push('❌ 未连接到直播房间')
+        diagnostics.push(t('live.diagnostics.roomNotConnected'))
         return diagnostics.join('\n')
       }
 
       if (currentRoom.state !== ConnectionState.Connected) {
-        diagnostics.push(`❌ 房间连接状态：${getConnectionStateText(currentRoom.state)}`)
+        diagnostics.push(t('live.diagnostics.roomConnectionState', { state: getConnectionStateText(currentRoom.state) }))
         return diagnostics.join('\n')
       }
 
-      diagnostics.push('✅ 房间连接正常')
+      diagnostics.push(t('live.diagnostics.roomConnectionOk'))
 
       // 检查设备权限
       try {
         const permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName })
-        diagnostics.push(`🎤 麦克风权限状态：${permissionStatus.state}`)
+        diagnostics.push(t('live.diagnostics.microphonePermissionState', { state: permissionStatus.state }))
       } catch {
-        diagnostics.push('🎤 无法检查麦克风权限状态')
+        diagnostics.push(t('live.diagnostics.microphonePermissionUnavailable'))
       }
 
       // 检查可用设备
@@ -457,35 +459,39 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
         try {
           const devices = await navigator.mediaDevices.enumerateDevices()
           const audioDevices = devices.filter(d => d.kind === 'audioinput')
-          diagnostics.push(`🎙️ 检测到 ${audioDevices.length} 个麦克风设备`)
+          diagnostics.push(t('live.diagnostics.microphoneDevicesDetected', { count: audioDevices.length }))
 
           if (audioDevices.length > 0) {
             audioDevices.forEach((device, index) => {
-              diagnostics.push(`  ${index + 1}. ${device.label || '未命名设备'} (${device.deviceId.slice(0, 8)}...)`)
+              diagnostics.push(t('live.diagnostics.deviceLabelLine', {
+                index: index + 1,
+                label: device.label || t('live.diagnostics.deviceLabelUnknown'),
+                id: device.deviceId.slice(0, 8)
+              }))
             })
           }
         } catch (error: any) {
-          diagnostics.push(`❌ 设备枚举失败：${error?.message || '未知错误'}`)
+          diagnostics.push(t('live.diagnostics.deviceEnumFailed', { error: error?.message || t('live.common.unknownError') }))
         }
       }
 
       // 检查现有轨道
       const existingAudioTracks = Array.from(currentRoom.localParticipant.audioTrackPublications.values())
-      diagnostics.push(`🔊 当前音频轨道数量：${existingAudioTracks.length}`)
+      diagnostics.push(t('live.diagnostics.currentAudioTracks', { count: existingAudioTracks.length }))
 
       // 最终建议
       if (diagnostics.some(d => d.includes('❌'))) {
-        diagnostics.push('\n🔧 建议检查：')
-        diagnostics.push('   • 浏览器麦克风权限设置')
-        diagnostics.push('   • 麦克风硬件连接')
-        diagnostics.push('   • 其他应用是否占用麦克风')
-        diagnostics.push('   • 尝试刷新页面或重启浏览器')
+        diagnostics.push(t('live.diagnostics.suggestTitle'))
+        diagnostics.push(t('live.diagnostics.suggestMicrophonePermission'))
+        diagnostics.push(t('live.diagnostics.suggestMicrophoneHardware'))
+        diagnostics.push(t('live.diagnostics.suggestMicrophoneOccupied'))
+        diagnostics.push(t('live.diagnostics.suggestRefresh'))
       } else {
-        diagnostics.push('\n✅ 系统状态正常，如仍有问题可能是临时故障')
+        diagnostics.push(t('live.diagnostics.ok'))
       }
 
     } catch (error: any) {
-      diagnostics.push(`❌ 诊断过程中出错：${error?.message || '未知错误'}`)
+      diagnostics.push(t('live.diagnostics.error', { error: error?.message || t('live.common.unknownError') }))
     }
 
     return diagnostics.join('\n')

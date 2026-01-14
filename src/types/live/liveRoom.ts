@@ -143,6 +143,8 @@ export interface LiveRoomChatMessage {
 export interface RemoteParticipantMedia {
     /** 参与者ID */
     participantId: string
+    /** 参与者显示名 */
+    displayName?: string | null
     /** 视频轨道 */
     videoTrack: any | null
     /** 音频轨道 */

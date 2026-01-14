@@ -236,7 +236,8 @@ defineExpose({
   pagination,
   fetchData,
   refresh: fetchData,
-  reset
+  reset,
+  getCurrentPageData: () => dataList.value
 })
 
 watch(() => props.queryParams, () => {

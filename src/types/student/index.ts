@@ -18,12 +18,15 @@ export type {
     AnswerPayload,
     QuestionStudentAddDTO,
     QuestionStudentDTO,
+    QuestionStudentQueryDTO,
     QuestionStudentVO,
     PracticeQueryParams,
     QuestionStudentSubmitDTO,
     QuestionStudentResult,
     QuestionStudentListResult,
     PracticeListResult,
+    PracticeStatisticsVO,
+    PracticeStatisticsResult,
     QuestionStudent
 } from './practice'
 

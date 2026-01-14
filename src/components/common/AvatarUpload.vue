@@ -410,7 +410,7 @@ const uploadCroppedImage = async (blob: Blob) => {
   }
 
   const uploadResult = response.data
-  const avatarUrl = uploadResult.url || uploadResult.objectName
+  const avatarUrl = (uploadResult.url || uploadResult.objectName)?.split('?')[0]
 
   if (!avatarUrl) {
     emit('upload-error', new Error('avatar upload failed'))

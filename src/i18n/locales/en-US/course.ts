@@ -1072,5 +1072,71 @@ export default {
             FILL_BLANK: 'Fill in the Blank',
             SHORT_ANSWER: 'Short Answer'
         }
+    },
+
+    // ClassPractice 课堂练习
+    classPractice: {
+        // PracticeDetail.vue
+        unnamedQuestion: 'Unnamed Question',
+        startTime: 'Start Time',
+        endTime: 'End Time',
+        classroom: 'Classroom',
+        questionType: 'Question Type',
+        difficulty: 'Difficulty',
+        score: 'Score',
+        estimatedTime: 'Estimated Time',
+        pointUnit: 'pts',
+        minuteUnit: 'min',
+        notSet: 'Not Set',
+        unlimitedTime: 'Unlimited',
+        studentAnswers: 'Student Answers',
+        grade: 'Grade',
+        viewDetails: 'View Details',
+
+        // PracticeList.vue
+        start: 'Start',
+        end: 'End',
+        unnamedClassroom: 'Unnamed Classroom',
+
+        // PracticeStatisticsChart.vue
+        practiceStatistics: 'Practice Statistics',
+        noStatisticsData: 'No Statistics Data',
+        totalSubmissions: 'Total Submissions',
+        averageScore: 'Average Score',
+
+        // AnswerDetailModal.vue
+        studentAnswerDetails: 'Student Answer Details',
+        studentName: 'Student Name',
+        submissionTime: 'Submission Time',
+        answerScore: 'Score',
+        ungraded: 'Ungraded',
+        status: 'Status',
+        studentAnswer: 'Student Answer',
+        textAnswer: 'Text Answer',
+        choiceAnswer: 'Choice Answer',
+        fillBlankAnswer: 'Fill in the Blank Answer',
+        fillBlankPrefix: 'Blank',
+        gradingAndScoring: 'Grading and Scoring',
+        scoreLabel: 'Score',
+        previous: 'Previous',
+        next: 'Next',
+        modifyScore: 'Modify Score',
+        submitGrading: 'Submit Grading',
+        noAnswerContent: 'No Answer Content',
+        pleaseEnterScore: 'Please enter score',
+
+        // 表格列标题
+        tableColumns: {
+            studentName: 'Student Name',
+            score: 'Score',
+            status: 'Status',
+            submitTime: 'Submit Time',
+            reviewTime: 'Review Time',
+            actions: 'Actions'
+        },
+
+        // 空状态
+        selectPractice: 'Please select a classroom practice from the left to view details',
+        noPractice: 'No classroom practice available'
     }
 }

@@ -4,7 +4,7 @@
       <n-spin size="medium"/>
     </div>
     <div v-else-if="!classroomTree.length" class="empty-container">
-      <n-empty description="暂无课堂练习"/>
+      <n-empty :description="$t('course.classPractice.noPractice')"/>
     </div>
     <div v-else class="classroom-tree">
       <n-collapse v-model:value="expandedKeys" ghost class="practice-collapse">
@@ -22,23 +22,23 @@
                 @click="handlePracticeSelect(practice)"
             >
               <div class="practice-item__title">
-                <span class="title-text">{{ practice.questionTitle || '未命名题目' }}</span>
+                <span class="title-text">{{ practice.questionTitle || $t('course.classPractice.unnamedQuestion') }}</span>
                 <div class="practice-item__required">
                   <n-tag
                       :type="practice.isRequired === IsRequiredEnum.REQUIRED ? 'success' : 'default'"
                       size="small"
                       round
                   >
-                    {{ practice.isRequired === IsRequiredEnum.REQUIRED ? '必答' : '选答' }}
+                    {{ getIsRequiredLabel(practice.isRequired, isEn) }}
                   </n-tag>
                 </div>
               </div>
               <div class="practice-item__time">
                 <div class="practice-item__start-time">
-                  开始: {{ formatTime(practice.startTime) }}
+                  {{ $t('course.classPractice.start') }}: {{ formatTime(practice.startTime) }}
                 </div>
                 <div class="practice-item__end-time">
-                  截止: {{ formatTime(practice.endTime) }}
+                  {{ $t('course.classPractice.end') }}: {{ formatTime(practice.endTime) }}
                 </div>
               </div>
             </div>
@@ -50,11 +50,12 @@
 </template>
 
 <script lang="ts" setup>
-import {ref, watch} from 'vue'
+import {ref, watch, computed} from 'vue'
 import * as ClassroomPracticeApi from '@/api/classroom/classroomPractice'
 import type {ClassroomQuestionVO} from '@/types/classroom'
-import {IsRequiredEnum} from '@/enum/classroom/isRequiredEnum'
+import {IsRequiredEnum, getIsRequiredLabel} from '@/enum/classroom/isRequiredEnum'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
+import {useI18n} from 'vue-i18n'
 
 // 树形节点类型定义
 interface ClassroomTreeNode {
@@ -66,6 +67,10 @@ interface ClassroomTreeNode {
 }
 
 const {message} = getDiscreteApi()
+
+// 国际化
+const {locale, t: $t} = useI18n()
+const isEn = computed(() => locale.value === 'en-US')
 
 // 定义组件属性
 interface Props {
@@ -135,7 +140,7 @@ const loadPracticeList = async () => {
       treeData.push({
         id: classroomId,
         classroomId: classroomId,
-        classroomName: firstPractice.classroomName || '未命名课堂',
+        classroomName: firstPractice.classroomName || $t('course.classPractice.unnamedClassroom'),
         children: practices,
         expanded: true
       })
@@ -160,7 +165,7 @@ const handlePracticeSelect = (practice: ClassroomQuestionVO) => {
 }
 
 const formatTime = (time: string) => {
-  if (!time) return '未设置'
+  if (!time) return $t('course.classPractice.notSet')
   try {
     return new Date(time).toLocaleString('zh-CN', {
       year: 'numeric',

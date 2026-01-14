@@ -780,7 +780,7 @@ const submitPracticeAnswer = async (card: PracticeCard) => {
   payload.questionId = card.question.id;
   payload.answer = normalizeAnswer(card.question, answers.value[card.question.id] || null);
   submittingMap.value = {...submittingMap.value, [card.question.id]: true};
-  const res = await submitPractice(resolvedClassroomId.value, userStore.studentInfo?.id ?? null, payload);
+  const res = await submitPractice(resolvedClassroomId.value, userStore.studentInfo?.id ?? null, payload, card.practice.id, card.practice.courseId);
   const isSuccess = Boolean(res?.success);
   submittingMap.value = {...submittingMap.value, [card.question.id]: null};
 

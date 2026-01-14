@@ -26,8 +26,6 @@ export * from './taskDifficultyEnum';
 export * from './questionTypeEnum';
 // 题目状态枚举导出
 export * from './questionStatusEnum';
-// 答案正确性枚举导出
-export * from './answerCorrectnessEnum';
 // 题库类型枚举导出
 export * from './questionBankTypeEnum';
 // 题库难度枚举导出

@@ -5,7 +5,7 @@
         <div class="practice-detail-header">
           <div class="practice-detail-title">
             <span class="practice-number">{{ selectedPractice.publishOrder }}.</span>
-            {{ selectedPractice.questionTitle || '未命名题目' }}
+            {{ selectedPractice.questionTitle || $t('course.classPractice.unnamedQuestion') }}
           </div>
           <div class="practice-time-info">
             <n-space>
@@ -15,7 +15,7 @@
                     <CalendarOutline/>
                   </n-icon>
                 </template>
-                开始时间: {{ formatTime(selectedPractice.startTime) }}
+                {{ $t('course.classPractice.startTime') }}: {{ formatTime(selectedPractice.startTime) }}
               </n-text>
               <n-text depth="3">
                 <template #icon>
@@ -23,7 +23,7 @@
                     <CalendarOutline/>
                   </n-icon>
                 </template>
-                截止时间: {{ formatTime(selectedPractice.endTime) }}
+                {{ $t('course.classPractice.endTime') }}: {{ formatTime(selectedPractice.endTime) }}
               </n-text>
             </n-space>
           </div>
@@ -32,13 +32,13 @@
               size="small"
               round
           >
-            {{ selectedPractice.isRequired === IsRequiredEnum.REQUIRED ? '必答' : '选答' }}
+            {{ getIsRequiredLabel(selectedPractice.isRequired, isEn) }}
           </n-tag>
         </div>
       </template>
 
       <div v-if="selectedClassroomInfo" class="practice-classroom-info">
-        <n-text depth="3">课堂: {{ selectedClassroomInfo.courseName }}</n-text>
+        <n-text depth="3">{{ $t('course.classPractice.classroom') }}: {{ selectedClassroomInfo.courseName }}</n-text>
       </div>
 
       <!-- 题目详情 -->
@@ -50,19 +50,19 @@
         <div class="detail-header">
           <div class="detail-meta">
             <div class="meta-item">
-              <div class="meta-label">题目类型</div>
+              <div class="meta-label">{{ $t('course.classPractice.questionType') }}</div>
               <div class="meta-value">{{ getQuestionTypeText(questionDetail.questionType) }}</div>
             </div>
             <div class="meta-item">
-              <div class="meta-label">难度</div>
+              <div class="meta-label">{{ $t('course.classPractice.difficulty') }}</div>
               <div class="meta-value">{{ getDifficultyText(questionDetail.difficulty) }}</div>
             </div>
             <div class="meta-item">
-              <div class="meta-label">分数</div>
+              <div class="meta-label">{{ $t('course.classPractice.score') }}</div>
               <div class="meta-value">{{ formatScore(questionDetail.score) }}</div>
             </div>
             <div class="meta-item">
-              <div class="meta-label">预计时间</div>
+              <div class="meta-label">{{ $t('course.classPractice.estimatedTime') }}</div>
               <div class="meta-value">{{ formatEstimatedTime(questionDetail.estimatedTime) }}</div>
             </div>
           </div>
@@ -109,7 +109,7 @@
                       v-if="option.score !== null && option.score !== undefined"
                       class="option-score"
                   >
-                    {{ option.score }} 分
+                    {{ option.score }} {{ $t('course.classPractice.pointUnit') }}
                   </div>
                 </div>
                 <div
@@ -141,7 +141,7 @@
                     <div v-if="answer.answerContent" v-html="answer.answerContent"></div>
                   </div>
                   <div v-if="answer.score !== null && answer.score !== undefined" class="answer-score">
-                    {{ answer.score }} 分
+                    {{ answer.score }} {{ $t('course.classPractice.pointUnit') }}
                   </div>
                 </div>
                 <div v-if="answer.explanation" class="answer-explanation">
@@ -153,27 +153,71 @@
         </div>
       </div>
 
-      <!-- 旧的题目内容显示（向后兼容） -->
-      <div v-else class="practice-content">
-        <h3>题目内容</h3>
-        <div v-if="(selectedPractice.questionVO as QuestionVO)?.questionContent" v-html="(selectedPractice.questionVO as QuestionVO).questionContent"></div>
-        <div v-else class="no-content">暂无题目内容</div>
+      <!-- 练习统计图表 -->
+      <div class="practice-statistics-section">
+        <PracticeStatisticsChart
+          :statistics="practiceStatistics"
+          :loading="loadingStatistics"
+          @filter-change="handleFilterChange"
+        />
+      </div>
+
+      <!-- 学生提交记录 -->
+      <div class="student-submissions-section">
+        <n-card class="submissions-table-card" :bordered="false" embedded>
+          <template #header>
+            <div class="section-title">{{ $t('course.classPractice.studentAnswers') }}</div>
+          </template>
+          <PageTable
+            ref="pageTableRef"
+            :columns="submissionColumns"
+            :api-fn="fetchPracticeSubmissions"
+            :query-params="queryParams"
+            :auto-load="autoLoadTable"
+            :auto-search="true"
+            :show-size-picker="false"
+            :show-quick-jumper="false"
+            :page-sizes="[10, 20, 50]"
+            size="small"
+          />
+        </n-card>
       </div>
     </n-card>
 
     <n-card v-else class="practice-empty-card">
-      <n-empty description="请选择左侧的课堂练习查看详情"/>
+      <n-empty :description="$t('course.classPractice.selectPractice')"/>
     </n-card>
+
+    <!-- 答案详情弹窗 -->
+    <AnswerDetailModal
+      v-model:show="showAnswerDetail"
+      :answer-detail="currentAnswerDetail"
+      :question-score="questionDetail?.score"
+      :answer-list="answerList"
+      :current-index="currentAnswerIndex"
+      @graded="handleAnswerGraded"
+      @navigate="handleAnswerNavigate"
+    />
   </div>
 </template>
 
 <script lang="ts" setup>
 import { CalendarOutline } from '@vicons/ionicons5'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, h } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { ClassroomQuestionVO } from '@/types/classroom'
 import type { QuestionVO } from '@/types/course/question'
 import { IsRequiredEnum } from '@/enum/classroom/isRequiredEnum'
 import { getQuestionById } from '@/api/course/question'
+import { listPractice, getDefaultPracticeQuery } from '@/api/student/practice'
+import { getAnswerStatusLabel, AnswerStatusEnum } from '@/enum/student/answerStatusEnum'
+import { getPracticeStatistics } from '@/api/student/practice'
+import { getQuestionBankDifficultyLabel } from '@/enum/course/questionBankDifficultyEnum'
+import { getIsRequiredLabel } from '@/enum/classroom/isRequiredEnum'
+import { getQuestionTypeLabel } from '@/enum/course/questionTypeEnum'
+import PageTable from '@/components/common/PageTable.vue'
+import PracticeStatisticsChart from './PracticeStatisticsChart.vue'
+import AnswerDetailModal from './AnswerDetailModal.vue'
 
 // Props
 interface Props {
@@ -183,14 +227,164 @@ interface Props {
 
 const props = defineProps<Props>()
 
+// 国际化
+const { locale, t: $t } = useI18n()
+const isEn = computed(() => locale.value === 'en-US')
+
 // 响应式数据
 const fullQuestionDetail = ref<QuestionVO | null>(null)
 const loadingQuestion = ref(false)
+const practiceStatistics = ref<any>(null)
+const loadingStatistics = ref(false)
+const currentFilter = ref<number | null>(null)
+
+// PageTable引用
+const pageTableRef = ref()
+
+
+// 答案详情弹窗
+const showAnswerDetail = ref(false)
+const currentAnswerDetail = ref<any>(null)
+const currentAnswerIndex = ref<number>(-1)
+const answerList = ref<any[]>([])
+
+// 构建查询参数
+const queryParams = computed(() => {
+  const params = getDefaultPracticeQuery()
+  if (props.selectedPractice) {
+    params.practiceId = props.selectedPractice.id
+    params.classroomId = props.selectedPractice.classroomId
+    params.courseId = props.selectedPractice.courseId
+    params.questionId = props.selectedPractice.questionId
+  }
+  if (currentFilter.value !== null) {
+    params.isCorrect = currentFilter.value
+  }
+  return params
+})
+
+// 包装 API 函数以匹配 PageTable 期望的类型
+const fetchPracticeSubmissions = async (params: any) => {
+  return await listPractice(params) as any
+}
+
+// 处理统计图表过滤器变化
+const handleFilterChange = (isCorrect: number | null) => {
+  currentFilter.value = isCorrect
+}
+
+
+// 表格列定义
+const submissionColumns = [
+  {
+    title: $t('course.classPractice.tableColumns.studentName'),
+    key: 'studentRealName',
+    width: 120,
+    render: (row: any) => h('span', {
+      style: { color: 'var(--text-color)' }
+    }, row.studentRealName || '-')
+  },
+  {
+    title: $t('course.classPractice.tableColumns.score'),
+    key: 'score',
+    width: 80,
+    render: (row: any) => {
+      if (row.score !== null && row.score !== undefined) {
+        return h('span', {}, [
+          h('span', {
+            style: {
+              color: 'var(--color-primary)',
+              fontSize: '16px',
+              fontWeight: '700'
+             }
+          }, row.score.toString()),
+          h('span', {
+            style: { color: 'var(--text-color)' }
+          }, $t('course.classPractice.pointUnit'))
+        ])
+      }
+      return h('span', {
+        style: { color: 'var(--text-secondary-color)' }
+      }, '-')
+    }
+  },
+  {
+    title: $t('course.classPractice.tableColumns.status'),
+    key: 'isCorrect',
+    width: 80,
+    render: (row: any) => {
+      const statusType = getStatusType(row.isCorrect)
+      const statusLabel = getStatusLabel(row.isCorrect)
+
+      return h('n-tag', {
+        type: statusType,
+        size: 'small',
+        style: {
+          color: getStatusColor(statusType),
+          backgroundColor: 'transparent'
+        }
+      }, {
+        default: () => statusLabel
+      })
+    }
+  },
+  {
+    title: $t('course.classPractice.tableColumns.submitTime'),
+    key: 'createTime',
+    width: 160,
+    render: (row: any) => h('span', {
+      style: { color: 'var(--text-secondary-color)' }
+    }, formatTime(row.createTime || ''))
+  },
+  {
+    title: $t('course.classPractice.tableColumns.reviewTime'),
+    key: 'updateTime',
+    width: 160,
+    render: (row: any) => h('span', {
+      style: { color: 'var(--text-secondary-color)' }
+    }, (row.isCorrect === null || row.isCorrect === undefined || row.isCorrect === 3) ? '-' : (row.updateTime ? formatTime(row.updateTime) : '-'))
+  },
+  {
+    title: $t('course.classPractice.tableColumns.actions'),
+    key: 'actions',
+    width: 100,
+    render: (row: any, index: number) => h('button', {
+      class: 'n-button n-button--text action-btn',
+      onClick: () => handleViewAnswerDetail(row, index)
+    }, (row.isCorrect === null || row.isCorrect === undefined || row.isCorrect === AnswerStatusEnum.PENDING_REVIEW) ? $t('course.classPractice.grade') : $t('course.classPractice.viewDetails'))
+  }
+]
 
 // 计算属性
 const questionDetail = computed(() => {
   return fullQuestionDetail.value || (props.selectedPractice?.questionVO as QuestionVO | undefined)
 })
+
+// PageTable 是否自动加载
+const autoLoadTable = computed(() => {
+  return !!props.selectedPractice?.id
+})
+
+// 获取练习统计数据
+const loadPracticeStatistics = async (practiceId: string) => {
+  if (!practiceId) {
+    practiceStatistics.value = null
+    return
+  }
+
+  loadingStatistics.value = true
+  try {
+    const response = await getPracticeStatistics(practiceId)
+    practiceStatistics.value = (response.success || response.code === 200)
+      ? response.data
+      : null
+  } catch (error) {
+    practiceStatistics.value = null
+    console.error('获取练习统计数据失败:', error)
+  } finally {
+    loadingStatistics.value = false
+  }
+}
 
 // 获取完整题目详情
 const loadFullQuestionDetail = async () => {
@@ -211,13 +405,10 @@ const loadFullQuestionDetail = async () => {
   loadingQuestion.value = true
   try {
     const response = await getQuestionById(props.selectedPractice.questionId)
-    if (response.success || response.code === 200) {
-      fullQuestionDetail.value = response.data
-    } else {
-      fullQuestionDetail.value = props.selectedPractice.questionVO as QuestionVO || null
-    }
+    fullQuestionDetail.value = (response.success || response.code === 200)
+      ? response.data
+      : (props.selectedPractice.questionVO as QuestionVO || null)
   } catch (error) {
-    console.error('获取题目详情失败:', error)
     fullQuestionDetail.value = props.selectedPractice.questionVO as QuestionVO || null
   } finally {
     loadingQuestion.value = false
@@ -227,15 +418,52 @@ const loadFullQuestionDetail = async () => {
 // 监听 selectedPractice 变化
 watch(() => props.selectedPractice, (newPractice) => {
   if (newPractice) {
+    // 切换练习时重置过滤条件
+    currentFilter.value = null
     loadFullQuestionDetail()
+    loadPracticeStatistics(newPractice.id)
+    // PageTable 会通过 autoLoadTable 和 queryParams 的响应式变化自动重新加载
   } else {
     fullQuestionDetail.value = null
+    practiceStatistics.value = null
   }
 }, { immediate: true })
 
+// 查看答案详情
+const handleViewAnswerDetail = (row: any, index?: number) => {
+  currentAnswerDetail.value = row
+  currentAnswerIndex.value = index ?? -1
+
+  // 获取当前页面的所有数据作为答案列表
+  if (pageTableRef.value) {
+    answerList.value = pageTableRef.value.getCurrentPageData() || []
+  }
+
+  showAnswerDetail.value = true
+}
+
+// 处理答案批阅完成
+const handleAnswerGraded = (_gradedAnswer: any) => {
+  // 刷新表格数据
+  // PageTable 组件会自动重新加载数据
+}
+
+// 处理答案导航
+const handleAnswerNavigate = (index: number) => {
+  if (pageTableRef.value) {
+    const pageData = pageTableRef.value.getCurrentPageData()
+    if (pageData && pageData.length > index) {
+      currentAnswerDetail.value = pageData[index]
+      currentAnswerIndex.value = index
+      // 更新答案列表
+      answerList.value = pageData
+    }
+  }
+}
+
 // 方法
 const formatTime = (time: string) => {
-  if (!time) return '未设置'
+  if (!time) return $t('course.classPractice.notSet')
   try {
     return new Date(time).toLocaleString('zh-CN', {
       year: 'numeric',
@@ -252,43 +480,59 @@ const formatTime = (time: string) => {
 // 获取题目类型文本
 const getQuestionTypeText = (type?: number | null) => {
   if (type === null || type === undefined) {
-    return '未知'
+    return $t('common.unknown')
   }
-  const typeMap = {
-    0: '单选题',
-    1: '多选题',
-    2: '判断题',
-    3: '填空题',
-    4: '简答题'
-  }
-  return typeMap[type as keyof typeof typeMap] || '未知'
+  return getQuestionTypeLabel(type, isEn.value)
 }
 
 // 获取难度文本
 const getDifficultyText = (difficulty?: number | null) => {
   if (difficulty === null || difficulty === undefined || difficulty === 0) {
-    return '未知'
+    return $t('common.unknown')
   }
-  const difficultyMap = {
-    1: '简单',
-    2: '中等',
-    3: '困难'
-  }
-  return difficultyMap[difficulty as keyof typeof difficultyMap] || '未知'
+  return getQuestionBankDifficultyLabel(difficulty, isEn.value)
 }
 
 const formatScore = (score?: number | null) => {
   if (score === null || score === undefined) {
-    return '分数: '
+    return $t('course.classPractice.score') + ': '
   }
-  return `${score} 分`
+  return `${score} ${$t('course.classPractice.pointUnit')}`
 }
 
 const formatEstimatedTime = (time?: number | null) => {
   if (typeof time !== 'number' || time <= 0) {
-    return '不限时'
+    return $t('course.classPractice.unlimitedTime')
   }
-  return `${time} 分钟`
+  return `${time} ${$t('course.classPractice.minuteUnit')}`
+}
+
+// 获取状态类型
+const getStatusType = (isCorrect: number | null | undefined) => {
+  if (isCorrect === null || isCorrect === undefined) return 'info'
+  switch (isCorrect) {
+    case 1: return 'success'  // 正确
+    case 2: return 'warning'  // 半对
+    case 3: return 'info'     // 待批阅
+    default: return 'error'   // 错误或其他
+  }
+}
+
+// 获取状态标签
+const getStatusLabel = (isCorrect: number | null | undefined) => {
+  if (isCorrect === null || isCorrect === undefined) return getAnswerStatusLabel(3, isEn.value) // 待批阅
+  return getAnswerStatusLabel(isCorrect, isEn.value)
+}
+
+// 获取状态颜色
+const getStatusColor = (type: string) => {
+  const colorMap = {
+    success: 'var(--success-color)',
+    error: 'var(--error-color)',
+    warning: 'var(--warning-color)',
+    info: 'var(--info-color)'
+  }
+  return colorMap[type as keyof typeof colorMap] || 'var(--text-color)'
 }
 </script>
 
@@ -593,39 +837,141 @@ const formatEstimatedTime = (time?: number | null) => {
     }
   }
 
-  .practice-content {
-    padding: 16px;
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
-    background: var(--background-color);
+  .practice-statistics-section {
+    margin-bottom: 20px;
+  }
 
-    h3 {
-      margin: 0 0 16px 0;
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--text-color);
+  .student-submissions-section {
+    padding: 20px 0;
+    border-top: 1px solid var(--border-color);
+
+    .submissions-table-card {
+      background-color: var(--background-color);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      box-shadow: none;
+
+      :deep(.n-card__content) {
+        height: auto;
+        overflow-y: visible;
+        padding: 0 16px 16px 16px;
+      }
+
+      :deep(.n-card__header) {
+        padding: 16px 16px 0 16px;
+        border-bottom: none;
+        background: transparent;
+      }
+
+      // 给表格添加圆角
+      :deep(.n-data-table) {
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      // 覆盖PageTable的分页样式，使其居中
+      :deep(.pagination-container) {
+        justify-content: center !important;
+      }
     }
 
-    .no-content {
-      color: var(--text-secondary-color);
-      text-align: center;
-      padding: 40px 20px;
+    .submissions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .submission-item {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px;
+      background: var(--background-secondary-color);
+
+      .submission-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        gap: 12px;
+
+        .submission-time {
+          font-size: 13px;
+          color: var(--text-secondary-color);
+        }
+
+        .submission-score {
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--color-primary);
+        }
+      }
+
+      .submission-answer {
+        .answer-content {
+          font-size: 14px;
+          color: var(--text-color);
+          line-height: 1.5;
+
+          :deep(p) {
+            margin: 0;
+          }
+        }
+
+        .answer-options,
+        .answer-blanks {
+          margin-top: 8px;
+          padding: 8px;
+          background: var(--background-color);
+          border-radius: 4px;
+          border: 1px solid var(--border-color);
+        }
+      }
     }
   }
 
   .practice-empty-card {
     background-color: var(--background-color);
-    border: none;
-    box-shadow: none;
     height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: none;
     display: flex;
     align-items: center;
     justify-content: center;
 
     :deep(.n-card__content) {
-      padding: 0 40px 40px 40px;
+      height: 100%;
+      overflow-y: auto;
+      padding: 0 20px 20px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 2px;
+      }
+
+      &::-webkit-scrollbar-thumb:hover {
+        background: var(--text-secondary-color);
+      }
+    }
+
+    :deep(.n-card__header) {
+      display: none;
     }
   }
+
 }
 
 // 响应式设计

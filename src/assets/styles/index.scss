@@ -359,6 +359,7 @@ body {
   color: var(--text-color);
   background-color: transparent;
   border: none;
+  cursor: pointer;
   transition: color 0.18s ease, background-color 0.18s ease;
 
   &:focus {

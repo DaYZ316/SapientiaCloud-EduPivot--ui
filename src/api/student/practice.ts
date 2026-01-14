@@ -3,9 +3,12 @@ import type {
     AnswerPayload,
     PracticeListResult,
     PracticeQueryParams,
+    PracticeStatisticsResult,
+    PracticeStatisticsVO,
     QuestionStudent,
     QuestionStudentAddDTO,
     QuestionStudentDTO,
+    QuestionStudentQueryDTO,
     QuestionStudentListResult,
     QuestionStudentResult,
     QuestionStudentSubmitDTO,
@@ -19,6 +22,8 @@ export function getDefaultPracticeQuery(): PracticeQueryParams {
         classroomId: null,
         studentId: null,
         questionId: null,
+        practiceId: null,
+        courseId: null,
         status: null,
         startTime: null,
         endTime: null,
@@ -53,10 +58,30 @@ export function getDefaultQuestionStudentAddDTO(): QuestionStudentAddDTO {
         classroomId: null,
         studentId: null,
         questionId: null,
+        practiceId: null,
+        courseId: null,
         answer: null,
         isCorrect: null,
         score: null,
-        submitTime: null
+    }
+}
+
+// 获取默认学生课堂练习查询DTO
+export function getDefaultQuestionStudentQueryDTO(): QuestionStudentQueryDTO {
+    return {
+        classroomId: null,
+        studentId: null,
+        questionId: null,
+        practiceId: null,
+        courseId: null,
+        isCorrect: null,
+        startTime: null,
+        endTime: null,
+        pageNum: null,
+        pageSize: null,
+        orderByColumn: null,
+        isAsc: null,
+        reasonable: null
     }
 }
 
@@ -67,10 +92,24 @@ export function getDefaultQuestionStudentDTO(): QuestionStudentDTO {
         classroomId: null,
         studentId: null,
         questionId: null,
+        practiceId: null,
+        courseId: null,
         answer: null,
         isCorrect: null,
         score: null,
-        submitTime: null
+    }
+}
+
+// 获取默认练习统计VO
+export function getDefaultPracticeStatisticsVO(): PracticeStatisticsVO {
+    return {
+        practiceId: null,
+        totalQuestions: null,
+        correctCount: null,
+        incorrectCount: null,
+        partialCount: null,
+        pendingReviewCount: null,
+        averageScore: null
     }
 }
 
@@ -83,12 +122,16 @@ export function listMyPracticeByClassroom(classroomId: string): Promise<Question
 export function submitPractice(
     classroomId: string,
     studentId: string | null,
-    payload: QuestionStudentSubmitDTO
+    payload: QuestionStudentSubmitDTO,
+    practiceId?: string | null,
+    courseId?: string | null
 ): Promise<StudentBooleanResult> {
     const data = getDefaultQuestionStudentAddDTO()
     data.classroomId = classroomId
     data.studentId = studentId
     data.questionId = payload.questionId
+    data.practiceId = practiceId ?? null
+    data.courseId = courseId ?? null
     data.answer = payload.answer
     return addPractice(data)
 }
@@ -139,5 +182,20 @@ export function listPracticeByClassroomAndStudent(
     studentId: string
 ): Promise<QuestionStudentListResult> {
     return http.get<QuestionStudent[]>(`/student/practice/classroom/${classroomId}/student/${studentId}`)
+}
+
+// 根据练习ID查询练习作答记录
+export function listPracticeByPracticeId(practiceId: string): Promise<QuestionStudentListResult> {
+    return http.get<QuestionStudent[]>(`/student/practice/practice/${practiceId}`)
+}
+
+// 根据课程ID查询练习作答记录
+export function listPracticeByCourseId(courseId: string): Promise<QuestionStudentListResult> {
+    return http.get<QuestionStudent[]>(`/student/practice/course/${courseId}`)
+}
+
+// 获取练习统计信息
+export function getPracticeStatistics(practiceId: string): Promise<PracticeStatisticsResult> {
+    return http.get<PracticeStatisticsVO>(`/student/practice/statistics/${practiceId}`)
 }
 

@@ -1077,5 +1077,71 @@ export default {
             FILL_BLANK: '填空题',
             SHORT_ANSWER: '简答题'
         }
+    },
+
+    // ClassPractice 课堂练习
+    classPractice: {
+        // PracticeDetail.vue
+        unnamedQuestion: '未命名题目',
+        startTime: '开始时间',
+        endTime: '截止时间',
+        classroom: '课堂',
+        questionType: '题目类型',
+        difficulty: '难度',
+        score: '分数',
+        estimatedTime: '预计时间',
+        pointUnit: '分',
+        minuteUnit: '分钟',
+        notSet: '未设置',
+        unlimitedTime: '不限时',
+        studentAnswers: '学生回答',
+        grade: '批阅',
+        viewDetails: '查看详情',
+
+        // PracticeList.vue
+        start: '开始',
+        end: '截止',
+        unnamedClassroom: '未命名课堂',
+
+        // PracticeStatisticsChart.vue
+        practiceStatistics: '练习统计',
+        noStatisticsData: '暂无统计数据',
+        totalSubmissions: '提交总数',
+        averageScore: '平均分',
+
+        // AnswerDetailModal.vue
+        studentAnswerDetails: '学生答案详情',
+        studentName: '学生姓名',
+        submissionTime: '提交时间',
+        answerScore: '得分',
+        ungraded: '未评分',
+        status: '状态',
+        studentAnswer: '学生答案',
+        textAnswer: '文本答案',
+        choiceAnswer: '选择答案',
+        fillBlankAnswer: '填空答案',
+        fillBlankPrefix: '填空',
+        gradingAndScoring: '批阅给分',
+        scoreLabel: '得分',
+        previous: '上一个',
+        next: '下一个',
+        modifyScore: '修改得分',
+        submitGrading: '提交批阅',
+        noAnswerContent: '暂无答案内容',
+        pleaseEnterScore: '请输入得分',
+
+        // 表格列标题
+        tableColumns: {
+            studentName: '学生姓名',
+            score: '得分',
+            status: '状态',
+            submitTime: '提交时间',
+            reviewTime: '批阅时间',
+            actions: '操作'
+        },
+
+        // 空状态
+        selectPractice: '请选择左侧的课堂练习查看详情',
+        noPractice: '暂无课堂练习'
     }
 }

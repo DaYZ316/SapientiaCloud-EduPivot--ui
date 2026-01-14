@@ -25,14 +25,34 @@ export interface QuestionStudentAddDTO {
     studentId: string | null
     /** 题目ID */
     questionId: string | null
+    /** 练习ID */
+    practiceId: string | null
+    /** 课程ID */
+    courseId: string | null
     /** 作答内容 */
     answer?: AnswerPayload | null
     /** 是否正确 */
-    isCorrect?: boolean | null
+    isCorrect?: number | null
     /** 得分 */
     score?: number | null
-    /** 提交时间 */
-    submitTime?: string | null
+}
+
+/**
+ * 课堂练习作答查询DTO
+ */
+export interface QuestionStudentQueryDTO extends PageEntity {
+    /** 课堂记录ID */
+    classroomId?: string | null
+    /** 学生ID */
+    studentId?: string | null
+    /** 题目ID */
+    questionId?: string | null
+    /** 练习ID */
+    practiceId?: string | null
+    /** 课程ID */
+    courseId?: string | null
+    /** 是否正确（0-错误，1-正确，2-半对，3-待批阅） */
+    isCorrect?: number | null
 }
 
 /**
@@ -47,14 +67,16 @@ export interface QuestionStudentDTO {
     studentId: string | null
     /** 题目ID */
     questionId: string | null
+    /** 练习ID */
+    practiceId: string | null
+    /** 课程ID */
+    courseId: string | null
     /** 作答内容 */
     answer?: AnswerPayload | null
     /** 是否正确 */
-    isCorrect?: boolean | null
+    isCorrect?: number | null
     /** 得分 */
     score?: number | null
-    /** 提交时间 */
-    submitTime?: string | null
 }
 
 /**
@@ -67,16 +89,20 @@ export interface QuestionStudentVO {
     classroomId: string | null
     /** 学生ID */
     studentId: string | null
+    /** 学生真实姓名 */
+    studentRealName?: string | null
     /** 题目ID */
     questionId: string | null
+    /** 练习ID */
+    practiceId: string | null
+    /** 课程ID */
+    courseId: string | null
     /** 作答内容 */
     answer?: AnswerPayload | null
     /** 是否正确 */
-    isCorrect?: boolean | null
+    isCorrect?: number | null
     /** 得分 */
     score?: number | null
-    /** 提交时间 */
-    submitTime?: string | null
     /** 创建时间 */
     createTime?: string | null
     /** 更新时间 */
@@ -93,8 +119,14 @@ export interface PracticeQueryParams extends PageEntity {
     studentId?: string | null
     /** 题目ID */
     questionId?: string | null
+    /** 练习ID */
+    practiceId?: string | null
+    /** 课程ID */
+    courseId?: string | null
     /** 状态 */
     status?: string | null
+    /** 是否正确（0-错误，1-正确，2-半对，3-待批阅） */
+    isCorrect?: number | null
 }
 
 /**
@@ -135,6 +167,36 @@ export interface PracticeListResult {
     data: QuestionStudentVO[]
     code: number | null
     msg: string | null
+}
+
+/**
+ * 练习统计VO
+ */
+export interface PracticeStatisticsVO {
+    /** 练习ID */
+    practiceId: string | null
+    /** 题目总数 */
+    totalQuestions: number | null
+    /** 正确数量 */
+    correctCount: number | null
+    /** 错误数量 */
+    incorrectCount: number | null
+    /** 半对数量 */
+    partialCount: number | null
+    /** 待批阅数量 */
+    pendingReviewCount: number | null
+    /** 题目平均分 */
+    averageScore: number | null
+}
+
+/**
+ * 练习统计结果响应
+ */
+export interface PracticeStatisticsResult {
+    success: boolean | null
+    code: number | null
+    message: string | null
+    data: PracticeStatisticsVO | null
 }
 
 /**

@@ -4,7 +4,7 @@
     <CourseBreadcrumb
         v-if="courseInfo"
         :course-info="courseInfo"
-        :current-page="$t('course.navigation.questions')"
+        :current-page="t('course.navigation.questions')"
         :show-course-link="true"
     >
       <template #actions>
@@ -14,7 +14,7 @@
               <PlusOutlined/>
             </n-icon>
           </template>
-          {{ $t('common.add') }}
+          {{ t('common.add') }}
         </n-button>
       </template>
     </CourseBreadcrumb>
@@ -23,37 +23,37 @@
     <div class="search-section">
       <div>
         <n-form :model="searchForm" inline>
-          <n-form-item :label="$t('course.questionBank.bankName')">
+          <n-form-item :label="t('course.questionBank.bankName')">
             <n-input
                 v-model:value="searchForm.bankName"
-                :placeholder="$t('course.questionBank.bankNamePlaceholder')"
+                :placeholder="t('course.questionBank.bankNamePlaceholder')"
                 clearable
                 style="width: 200px"
             />
           </n-form-item>
-          <n-form-item :label="$t('course.questionBank.bankType')">
+          <n-form-item :label="t('course.questionBank.bankType')">
             <n-select
                 v-model:value="searchForm.bankType"
                 :options="bankTypeOptions"
-                :placeholder="$t('course.questionBank.bankTypePlaceholder')"
+                :placeholder="t('course.questionBank.bankTypePlaceholder')"
                 clearable
                 style="width: 180px"
             />
           </n-form-item>
-          <n-form-item :label="$t('course.questionBank.difficulty')">
+          <n-form-item :label="t('course.questionBank.difficulty')">
             <n-select
                 v-model:value="searchForm.difficulty"
                 :options="difficultyOptions"
-                :placeholder="$t('course.questionBank.difficultyPlaceholder')"
+                :placeholder="t('course.questionBank.difficultyPlaceholder')"
                 clearable
                 style="width: 180px"
             />
           </n-form-item>
-          <n-form-item :label="$t('course.questionBank.isPublic')">
+          <n-form-item :label="t('course.questionBank.isPublic')">
             <n-select
                 v-model:value="searchForm.isPublic"
                 :options="isPublicOptions"
-                :placeholder="$t('course.questionBank.isPublicPlaceholder')"
+                :placeholder="t('course.questionBank.isPublicPlaceholder')"
                 clearable
                 style="width: 180px"
             />
@@ -66,7 +66,7 @@
                     <SearchOutlined/>
                   </n-icon>
                 </template>
-                {{ $t('common.search') }}
+                {{ t('common.search') }}
               </n-button>
               <n-button @click="handleReset">
                 <template #icon>
@@ -74,7 +74,7 @@
                     <ReloadOutlined/>
                   </n-icon>
                 </template>
-                {{ $t('common.reset') }}
+                {{ t('common.reset') }}
               </n-button>
             </n-space>
           </n-form-item>
@@ -100,7 +100,7 @@
         </n-grid>
 
         <!-- 空状态 -->
-        <n-empty v-if="!loading && questionBankList.length === 0" :description="$t('course.questionBank.noData')">
+        <n-empty v-if="!loading && questionBankList.length === 0" :description="t('course.questionBank.noData')">
           <template #extra>
             <n-button type="primary" @click="handleAdd">
               <template #icon>
@@ -108,7 +108,7 @@
                   <PlusOutlined/>
                 </n-icon>
               </template>
-              {{ $t('course.questionBank.createFirst') }}
+              {{ t('course.questionBank.createFirst') }}
             </n-button>
           </template>
         </n-empty>
@@ -139,38 +139,38 @@
           label-placement="left"
           label-width="120px"
       >
-        <n-form-item :label="$t('course.questionBank.bankName')" path="bankName">
+        <n-form-item :label="t('course.questionBank.bankName')" path="bankName">
           <n-input
               v-model:value="formData.bankName"
-              :placeholder="$t('course.questionBank.bankNamePlaceholder')"
+              :placeholder="t('course.questionBank.bankNamePlaceholder')"
           />
         </n-form-item>
-        <n-form-item :label="$t('course.questionBank.bankDescription')" path="description">
+        <n-form-item :label="t('course.questionBank.bankDescription')" path="description">
           <n-input
               v-model:value="formData.description"
-              :placeholder="$t('course.questionBank.descriptionPlaceholder')"
+              :placeholder="t('course.questionBank.descriptionPlaceholder')"
               :rows="3"
               type="textarea"
           />
         </n-form-item>
-        <n-form-item :label="$t('course.questionBank.bankType')" path="bankType">
+        <n-form-item :label="t('course.questionBank.bankType')" path="bankType">
           <n-select
               v-model:value="formData.bankType"
               :options="bankTypeOptions"
-              :placeholder="$t('course.questionBank.bankTypePlaceholder')"
+              :placeholder="t('course.questionBank.bankTypePlaceholder')"
           />
         </n-form-item>
-        <n-form-item :label="$t('course.questionBank.difficulty')" path="difficulty">
+        <n-form-item :label="t('course.questionBank.difficulty')" path="difficulty">
           <n-select
               v-model:value="formData.difficulty"
               :options="difficultyOptions"
-              :placeholder="$t('course.questionBank.difficultyPlaceholder')"
+              :placeholder="t('course.questionBank.difficultyPlaceholder')"
           />
         </n-form-item>
-        <n-form-item :label="$t('course.questionBank.tags')" path="tags">
+        <n-form-item :label="t('course.questionBank.tags')" path="tags">
           <n-dynamic-tags v-model:value="formData.tags as string[]"/>
         </n-form-item>
-        <n-form-item :label="$t('course.questionBank.isPublic')" path="isPublic">
+        <n-form-item :label="t('course.questionBank.isPublic')" path="isPublic">
           <n-radio-group v-model:value="formData.isPublic">
             <n-radio
                 v-for="option in isPublicOptions"
@@ -184,8 +184,8 @@
       </n-form>
       <template #action>
         <n-space justify="space-between" style="width: 100%;">
-          <n-button @click="showModal = false">{{ $t('common.cancel') }}</n-button>
-          <n-button type="primary" @click="handleSubmit">{{ $t('common.confirm') }}</n-button>
+          <n-button @click="showModal = false">{{ t('common.cancel') }}</n-button>
+          <n-button type="primary" @click="handleSubmit">{{ t('common.confirm') }}</n-button>
         </n-space>
       </template>
     </n-modal>

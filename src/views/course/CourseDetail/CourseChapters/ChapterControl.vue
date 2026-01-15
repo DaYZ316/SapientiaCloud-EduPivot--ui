@@ -5,7 +5,7 @@
       <!-- 面包屑导航 -->
       <CourseBreadcrumb
           :course-info="courseInfo"
-          :current-page="$t('course.chapters.chapterManagement')"
+          :current-page="t('course.chapters.chapterManagement')"
       />
 
       <!-- 返回按钮 -->

@@ -5,7 +5,6 @@ import type {
     CourseRecordStudentVO,
     StudentSeatDeleteDTO
 } from '@/types/classroom'
-import type {TableDataResult} from '@/types/common/baseEntity'
 
 // 获取默认课程记录学生DTO
 export function getDefaultCourseRecordStudentDTO(): CourseRecordStudentDTO {
@@ -64,7 +63,7 @@ export function countStudentsByRecordId(recordId: string) {
 
 // 根据条件分页查询课程记录学生列表，支持按课程记录、学生、座位状态等条件筛选
 export function listCourseRecordStudent(params: CourseRecordStudentPageQueryDTO) {
-    return http.get<TableDataResult<CourseRecordStudentVO>>('/classroom/course-record-student/list', params)
+    return http.getTableData<CourseRecordStudentVO>('/classroom/course-record-student/list', params)
 }
 
 // 根据课程记录ID查询该课程记录的所有学生信息

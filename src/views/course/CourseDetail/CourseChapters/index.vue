@@ -3,7 +3,7 @@
     <!-- 面包屑导航 -->
     <CourseBreadcrumb
         :course-info="courseInfo"
-        :current-page="$t('course.navigation.chapters')"
+        :current-page="t('course.navigation.chapters')"
     />
 
     <div>

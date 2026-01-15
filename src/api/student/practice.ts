@@ -199,3 +199,11 @@ export function getPracticeStatistics(practiceId: string): Promise<PracticeStati
     return http.get<PracticeStatisticsVO>(`/student/practice/statistics/${practiceId}`)
 }
 
+// 根据练习ID和学生ID查询课堂练习作答记录
+export function listPracticeByPracticeAndStudent(
+    practiceId: string,
+    studentId: string
+): Promise<QuestionStudentListResult> {
+    return http.get<QuestionStudent[]>(`/student/practice/practice/${practiceId}/student/${studentId}`)
+}
+

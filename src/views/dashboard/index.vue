@@ -17,7 +17,7 @@
     </div>
     <!-- 分割线 -->
     <div class="bottom-divider" ref="dividerRef">
-      <span class="divider-text">{{ $t('dashboard.morePublicCourses') }}</span>
+        <span class="divider-text">{{ t('dashboard.morePublicCourses') }}</span>
     </div>
     <!-- 课程列表 -->
     <CourseList ref="courseListRef" />
@@ -26,6 +26,7 @@
 
 <script lang="ts" setup>
 import { ref, type ComponentPublicInstance } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Book3D from './Book3D.vue'
 import WelcomeCard from './WelcomeCard.vue'
 import StatisticsCard from './StatisticsCard.vue'
@@ -34,6 +35,8 @@ import NotificationCard from './NotificationCard.vue'
 import RecentActiveCourses from './RecentActiveCourses.vue'
 import CourseList from './CourseList.vue'
 import { useScrollLogic } from './useScroll'
+
+const { t } = useI18n()
 
 const courseListRef = ref<ComponentPublicInstance>()
 const dividerRef = ref<HTMLElement>()

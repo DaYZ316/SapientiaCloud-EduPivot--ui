@@ -2,6 +2,9 @@
  * 头像相关工具函数
  */
 import type {AvatarIdentityProps, AvatarSizeType} from '@/types/components/avatar'
+import * as THREE from 'three'
+import {createApp} from 'vue'
+import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
 
 // 头像颜色池（科技感配色）
 export const AVATAR_COLOR_PALETTE = [
@@ -69,5 +72,120 @@ export const normalizeAvatarSize = (size?: AvatarSizeType): number => {
 // 根据尺寸计算字体大小
 export const getAvatarFontSize = (size: number): string => {
     return `${Math.max(14, Math.round(size * 0.5))}px`
+}
+
+// 将 AvatarDisplay 组件渲染为 Three.js 纹理
+export const renderAvatarToTexture = async (
+    identity: AvatarIdentityProps,
+    size: number = 128
+): Promise<THREE.Texture> => {
+    return new Promise(async (resolve) => {
+        try {
+            // 创建 Vue 应用实例来获取组件生成的 SVG
+            const container = document.createElement('div')
+            container.style.position = 'absolute'
+            container.style.left = '-9999px'
+            container.style.top = '-9999px'
+            container.style.width = `${size}px`
+            container.style.height = `${size}px`
+            container.style.background = 'transparent'
+            document.body.appendChild(container)
+
+            // 创建 AvatarDisplay 组件实例
+            const app = createApp(AvatarDisplay, {
+                ...identity,
+                size,
+                round: true,
+                avatarClass: ''
+            })
+
+            // 挂载组件
+            const vm = app.mount(container)
+
+            // 等待组件初始化完成
+            await new Promise(resolve => setTimeout(resolve, 100))
+
+            // 从组件实例中获取生成的 SVG URL
+            const componentInstance = vm.$ as any
+            if (componentInstance && componentInstance.setupState && componentInstance.setupState.dicebearAvatarUrl) {
+                const svgUrl = componentInstance.setupState.dicebearAvatarUrl
+
+                if (svgUrl) {
+                    // 将 SVG URL 转换为 canvas
+                    const img = new Image()
+                    img.crossOrigin = 'anonymous'
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas')
+                        canvas.width = size
+                        canvas.height = size
+                        const ctx = canvas.getContext('2d')
+
+                        if (ctx) {
+                            // 清除背景
+                            ctx.clearRect(0, 0, size, size)
+                            // 绘制图像
+                            ctx.drawImage(img, 0, 0, size, size)
+
+                            // 创建 Three.js 纹理
+                            const texture = new THREE.CanvasTexture(canvas)
+                            texture.needsUpdate = true
+
+                            // 清理资源
+                            app.unmount()
+                            document.body.removeChild(container)
+
+                            resolve(texture)
+                            return
+                        }
+                    }
+                    img.onerror = () => {
+                        throw new Error('Failed to load SVG image')
+                    }
+                    img.src = svgUrl
+                } else {
+                    throw new Error('No SVG URL generated')
+                }
+            } else {
+                throw new Error('Cannot access component instance')
+            }
+        } catch (error) {
+            // 发生错误时使用后备方案
+            const fallbackTexture = createFallbackTexture(identity, size)
+            resolve(fallbackTexture)
+        }
+    })
+}
+
+// 创建后备纹理（使用纯色圆形和首字母）
+const createFallbackTexture = (identity: AvatarIdentityProps, size: number): THREE.Texture => {
+    const canvas = document.createElement('canvas')
+    canvas.width = size
+    canvas.height = size
+    const ctx = canvas.getContext('2d')
+
+    if (ctx) {
+        const displayName = resolveUserName(identity)
+        const color = getAvatarColor(displayName)
+        const initial = getAvatarInitial(displayName)
+
+        // 绘制圆形背景
+        ctx.fillStyle = color
+        ctx.beginPath()
+        ctx.arc(size / 2, size / 2, size / 2, 0, 2 * Math.PI)
+        ctx.fill()
+
+        // 绘制首字母
+        if (initial) {
+            ctx.fillStyle = '#FFFFFF'
+            ctx.font = `bold ${size * 0.4}px sans-serif`
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.fillText(initial, size / 2, size / 2)
+        }
+    }
+
+    const texture = new THREE.CanvasTexture(canvas)
+    texture.needsUpdate = true
+    return texture
 }
 

@@ -20,7 +20,8 @@ export default {
     courseChapters: 'Chapters',
     courseForum: 'Forum',
     courseStudents: 'Students',
-    courseClassroom: 'Classroom',
+    courseClassroom: 'Smart Classroom',
     courseTasks: 'Tasks',
-    courseQuestions: 'Question Bank'
+    courseQuestions: 'Question Bank',
+    coursePractice: 'Classroom Practice'
 } 

@@ -13,7 +13,7 @@
               <LibraryOutline/>
             </n-icon>
           </template>
-          {{ $t('course.navigation.chapters') }}
+          {{ t('course.navigation.chapters') }}
         </n-button>
 
         <n-button
@@ -27,7 +27,7 @@
               <ChatbubbleOutline/>
             </n-icon>
           </template>
-          {{ $t('course.navigation.forum') }}
+          {{ t('course.navigation.forum') }}
         </n-button>
 
         <n-button
@@ -41,21 +41,7 @@
               <PeopleOutline/>
             </n-icon>
           </template>
-          {{ $t('course.navigation.students') }}
-        </n-button>
-
-        <n-button
-            block
-            class="nav-button"
-            size="large"
-            @click="handleNavigation('classroom')"
-        >
-          <template #icon>
-            <n-icon>
-              <SchoolOutline/>
-            </n-icon>
-          </template>
-          {{ $t('course.navigation.classroom') }}
+          {{ t('course.navigation.students') }}
         </n-button>
 
         <n-button
@@ -69,7 +55,7 @@
               <CheckmarkCircleOutline/>
             </n-icon>
           </template>
-          {{ $t('course.navigation.tasks') }}
+          {{ t('course.navigation.tasks') }}
         </n-button>
 
         <n-button
@@ -83,7 +69,7 @@
               <HelpCircleOutline/>
             </n-icon>
           </template>
-          {{ $t('course.navigation.questions') }}
+          {{ t('course.navigation.questions') }}
         </n-button>
 
         <n-button
@@ -97,8 +83,23 @@
               <BookOutline/>
             </n-icon>
           </template>
-          {{ $t('course.navigation.practice') }}
+          {{ t('course.navigation.practice') }}
         </n-button>
+
+        <n-button
+            block
+            class="nav-button nav-button-wide"
+            size="large"
+            @click="handleNavigation('classroom')"
+        >
+          <template #icon>
+            <n-icon>
+              <SchoolOutline/>
+            </n-icon>
+          </template>
+          {{ t('course.navigation.classroom') }}
+        </n-button>
+
       </div>
     </n-card>
   </div>
@@ -106,6 +107,7 @@
 
 <script lang="ts" setup>
 import {useRouter} from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import {
   BookOutline,
   ChatbubbleOutline,
@@ -122,6 +124,9 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
+// 国际化
+const { t } = useI18n()
 
 // 路由
 const router = useRouter()

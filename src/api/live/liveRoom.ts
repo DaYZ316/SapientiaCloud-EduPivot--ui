@@ -8,7 +8,6 @@ import type {
     LiveRoomTokenVO,
     LiveRoomVO
 } from '@/types/live'
-import type {TableDataResult} from '@/types/common/baseEntity'
 
 /**
  * 获取默认直播房间创建 DTO
@@ -129,7 +128,7 @@ export function closeLiveRoom(id: string) {
  * 分页查询直播房间列表（listLiveRooms）
  */
 export function listLiveRooms(params: LiveRoomPageQueryDTO) {
-    return http.get<TableDataResult<LiveRoomVO>>('/live/live-room/list', params)
+    return http.getTableData<LiveRoomVO>('/live/live-room/list', params)
 }
 
 /**

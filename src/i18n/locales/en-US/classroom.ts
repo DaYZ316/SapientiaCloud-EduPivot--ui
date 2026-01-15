@@ -31,6 +31,11 @@ export default {
         statusPending: 'Pending review',
         scorePrefix: 'Score: ',
         submit: 'Submit',
+        submitSuccess: 'Submitted successfully',
+        submitFailed: 'Submission failed',
+        myAnswer: 'My Answer',
+        correctAnswer: 'Correct Answer',
+        explanation: 'Explanation',
         noMore: 'No more data',
         questionType: {
             single: 'Single Choice',

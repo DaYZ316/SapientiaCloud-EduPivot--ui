@@ -65,7 +65,7 @@ import LivePanel from './LivePanel.vue';
 import {useUserStore} from '@/store/modules/user';
 import {getGlobalApis} from '@/utils/naiveUIHelper';
 import {SpriteManager} from '@/views/classroom/composables/spriteManager';
-import {getAvatarColor, getAvatarInitial, resolveUserName} from '@/utils/avatarUtil';
+import {getAvatarColor, getAvatarInitial, resolveUserName, renderAvatarToTexture} from '@/utils/avatarUtil';
 import type {AvatarIdentityProps} from '@/types/components/avatar';
 import type {CourseRecordStudentDTO, CourseRecordStudentVO, CourseRecordVO} from '@/types/classroom';
 import type {ClassroomToolboxItem} from '@/views/classroom/composables/toolbox';
@@ -371,22 +371,24 @@ const confirmSeatSelection = async () => {
     }
   };
 
-  if (!avatarUrl || avatarUrl.trim() === '') {
-    applyTextureToSprite(fallbackTexture, false);
-    return true;
-  }
+  // 构建 AvatarIdentityProps
+  const avatarIdentity = {
+    avatarSrc: avatarUrl || null,
+    username: userInfo.username || null,
+    nickName: userInfo.nickName || null,
+    studentRealName: studentInfoFromStore?.realName || null,
+    teacherRealName: null,
+    fallbackSrc: null
+  };
 
-  const textureLoader = new THREE.TextureLoader();
-  textureLoader.load(
-      avatarUrl,
-      (texture) => {
-        applyTextureToSprite(texture);
-      },
-      undefined,
-      () => {
-        applyTextureToSprite(fallbackTexture, false);
-      }
-  );
+  try {
+    // 使用 AvatarDisplay 组件渲染纹理
+    const texture = await renderAvatarToTexture(avatarIdentity, 128);
+    applyTextureToSprite(texture);
+  } catch (error) {
+    // 渲染失败时使用后备纹理
+    applyTextureToSprite(fallbackTexture, false);
+  }
 
   return true;
 };
@@ -403,7 +405,27 @@ const openSeatConfirmModal = (context: SeatAssignmentContext) => {
     displayName: context.displayName
   };
   disposeFallbackTexture();
-  fallbackTextureRef.value = createAvatarFallbackTexture(context.displayName || '');
+
+  // 使用 AvatarDisplay 组件渲染预览纹理
+  const avatarIdentity = {
+    avatarSrc: context.avatarUrl || null,
+    username: null,
+    nickName: null,
+    studentRealName: context.displayName || null,
+    teacherRealName: null,
+    fallbackSrc: null
+  };
+
+  // 异步渲染纹理，但不等待结果，因为这是预览
+  renderAvatarToTexture(avatarIdentity, 128).then((texture) => {
+    if (fallbackTextureRef.value) {
+      fallbackTextureRef.value.dispose();
+    }
+    fallbackTextureRef.value = texture;
+  }).catch(() => {
+    // 失败时使用后备方案
+    fallbackTextureRef.value = createAvatarFallbackTexture(context.displayName || '');
+  });
 
   const seatTitle = context.seatLabel
       ? t('classroom.seatConfirm.titleWithSeat', {seatLabel: context.seatLabel})
@@ -465,8 +487,6 @@ const renderStudentSprites = async (students: CourseRecordStudentVO[]) => {
     return;
   }
 
-  const textureLoader = new THREE.TextureLoader();
-
   for (const student of students) {
     if (student.seatIndex === null || student.seatIndex === undefined) {
       continue;
@@ -474,25 +494,24 @@ const renderStudentSprites = async (students: CourseRecordStudentVO[]) => {
 
     const seatIndex = student.seatIndex;
     const studentId = student.studentId;
-    const avatarUrl = student.studentAvatar;
-    const displayName = student.studentName || student.studentCode || '';
 
-    // 如果有头像URL，加载头像纹理
-    if (avatarUrl && avatarUrl.trim() !== '') {
-      textureLoader.load(
-          avatarUrl,
-          (texture: Texture) => {
-            spriteManager.updateSpriteInfo(studentId, texture, seatIndex);
-          },
-          undefined,
-          () => {
-            // 加载失败，使用默认纹理
-            const fallbackTexture = createAvatarFallbackTexture(displayName);
-            spriteManager.updateSpriteInfo(studentId, fallbackTexture, seatIndex);
-          }
-      );
-    } else {
-      // 没有头像，使用默认纹理
+    // 构建 AvatarIdentityProps
+    const avatarIdentity = {
+      avatarSrc: student.studentAvatar || null,
+      username: student.studentCode || null,
+      nickName: null,
+      studentRealName: student.studentName || null,
+      teacherRealName: null,
+      fallbackSrc: null
+    };
+
+    try {
+      // 使用 AvatarDisplay 组件渲染纹理
+      const texture = await renderAvatarToTexture(avatarIdentity, 128);
+      spriteManager.updateSpriteInfo(studentId, texture, seatIndex);
+    } catch (error) {
+      // 渲染失败时使用后备纹理
+      const displayName = student.studentName || student.studentCode || '';
       const fallbackTexture = createAvatarFallbackTexture(displayName);
       spriteManager.updateSpriteInfo(studentId, fallbackTexture, seatIndex);
     }

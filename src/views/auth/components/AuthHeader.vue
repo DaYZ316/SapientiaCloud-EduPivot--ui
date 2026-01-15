@@ -94,6 +94,8 @@ watch(locale, () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    /* 固定 header 高度，避免内部图片尺寸影响布局 */
+    height: 80px;
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 36px;
@@ -142,28 +144,35 @@ watch(locale, () => {
     display: flex;
     align-items: center;
     gap: 12px;
+    position: relative;
   }
 
   &-logo {
-    height: 40px;
+    height: 96px;
+    /* 使用 transform 位移，不影响父容器高度布局 */
+    transform: translateY(8px);
     width: auto;
     object-fit: contain;
     display: block;
 
     @media (max-width: 992px) {
-      height: 36px;
+      height: 80px;
+      transform: translateY(6px);
     }
 
     @media (max-width: 768px) {
-      height: 32px;
+      height: 64px;
+      transform: translateY(4px);
     }
 
     @media (max-width: 640px) {
-      height: 28px;
+      height: 56px;
+      transform: translateY(2px);
     }
 
     @media (max-width: 480px) {
-      height: 24px;
+      height: 48px;
+      transform: translateY(0px);
     }
   }
 

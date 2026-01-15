@@ -112,6 +112,11 @@ export const getMenuOptions = (t: (key: string) => string, lastCourseName?: stri
                             key: 'CourseQuestions',
                             label: t('menu.courseQuestions'),
                             icon: renderIcon(LibraryOutline)
+                        },
+                        {
+                            key: 'CoursePractice',
+                            label: t('menu.coursePractice'),
+                            icon: renderIcon(DocumentTextOutline)
                         }
                     ]
                 }] : [])
@@ -209,7 +214,7 @@ export const menuRouteMap: Record<string, string> = {
     'CourseStudents': '/course/detail', // 课程学生
     'CourseClassroom': '/course/detail', // 课程课堂
     'CourseTasks': '/course/detail', // 课程任务
-    'CourseQuestions': '/course/detail' // 课程题库
+    'CourseQuestions': '/course/detail', // 课程题库
 }
 
 // 菜单展开配置映射
@@ -226,6 +231,7 @@ export const menuExpandMap: Record<string, string[]> = {
     'CourseClassroom': ['Course'], // 课程课堂页面展开课程菜单
     'CourseTasks': ['Course'], // 课程任务页面展开课程菜单
     'CourseQuestions': ['Course'], // 课程题库页面展开课程菜单
+    'CoursePractice': ['Course'], // 课程课堂练习页面展开课程菜单
     'Teacher': ['InfoManagement'],
     'Student': ['InfoManagement'],
     'User': ['system'],

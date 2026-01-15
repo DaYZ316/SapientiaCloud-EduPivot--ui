@@ -4,7 +4,7 @@
     <CourseBreadcrumb
         v-if="courseInfo"
         :course-info="courseInfo"
-        :current-page="$t('course.question.title')"
+        :current-page="t('course.question.title')"
         :show-course-link="true"
         :show-question-bank-option="true"
     >
@@ -22,7 +22,7 @@
                 <PlusOutlined/>
               </n-icon>
             </template>
-            {{ $t('common.add') }}
+            {{ t('common.add') }}
           </n-button>
         </n-space>
       </template>
@@ -32,28 +32,28 @@
     <div class="search-section">
       <div class="search-section-content">
         <n-form :model="searchForm" inline>
-          <n-form-item :label="$t('course.question.questionTitle')">
+          <n-form-item :label="t('course.question.questionTitle')">
             <n-input
                 v-model:value="searchForm.questionTitle"
-                :placeholder="$t('course.question.questionTitlePlaceholder')"
+                :placeholder="t('course.question.questionTitlePlaceholder')"
                 clearable
                 style="width: 200px"
             />
           </n-form-item>
-          <n-form-item :label="$t('course.question.questionType')">
+          <n-form-item :label="t('course.question.questionType')">
             <n-select
                 v-model:value="searchForm.questionType"
                 :options="questionTypeOptions"
-                :placeholder="$t('course.question.questionTypePlaceholder')"
+                :placeholder="t('course.question.questionTypePlaceholder')"
                 clearable
                 style="width: 180px"
             />
           </n-form-item>
-          <n-form-item :label="$t('course.question.difficulty')">
+          <n-form-item :label="t('course.question.difficulty')">
             <n-select
                 v-model:value="searchForm.difficulty"
                 :options="difficultyOptions"
-                :placeholder="$t('course.question.difficultyPlaceholder')"
+                :placeholder="t('course.question.difficultyPlaceholder')"
                 clearable
                 style="width: 180px"
             />
@@ -66,7 +66,7 @@
                     <SearchOutlined/>
                   </n-icon>
                 </template>
-                {{ $t('common.search') }}
+                {{ t('common.search') }}
               </n-button>
               <n-button @click="handleReset">
                 <template #icon>
@@ -74,13 +74,13 @@
                     <ReloadOutlined/>
                   </n-icon>
                 </template>
-                {{ $t('common.reset') }}
+                {{ t('common.reset') }}
               </n-button>
             </n-space>
           </n-form-item>
         </n-form>
         <button class="tianshu-question-button" @click="(e) => handleTianshuQuestion(e)">
-          {{ $t('course.question.tianshuQuestion') }}
+          {{ t('course.question.tianshuQuestion') }}
         </button>
       </div>
     </div>
@@ -114,7 +114,7 @@
                     <PlusOutlined/>
                   </n-icon>
                 </template>
-                {{ $t('course.question.createFirst') }}
+                {{ t('course.question.createFirst') }}
               </n-button>
             </template>
           </QuestionSidebar>
@@ -134,7 +134,7 @@
                     <PlusOutlined/>
                   </n-icon>
                 </template>
-                {{ $t('course.question.createFirst') }}
+                {{ t('course.question.createFirst') }}
               </n-button>
             </template>
           </n-empty>

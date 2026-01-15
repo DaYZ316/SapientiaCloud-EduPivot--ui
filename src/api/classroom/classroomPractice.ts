@@ -1,6 +1,5 @@
 import http from '@/utils/http'
 import type {ClassroomQuestionDTO, ClassroomQuestionPageQueryDTO, ClassroomQuestionVO} from '@/types/classroom'
-import type {TableDataResult} from '@/types/common/baseEntity'
 
 // 获取默认课堂练习DTO
 export function getDefaultClassroomQuestionDTO(): ClassroomQuestionDTO {
@@ -20,10 +19,10 @@ export function getDefaultClassroomQuestionDTO(): ClassroomQuestionDTO {
 // 获取默认课堂练习分页查询DTO
 export function getDefaultClassroomQuestionPageQueryDTO(): ClassroomQuestionPageQueryDTO {
     return {
-        courseId: null,
         classroomId: null,
-        startTime: null,
-        endTime: null,
+        courseId: null,
+        title: null,
+        isRequired: null,
         pageNum: 1,
         pageSize: 10,
         orderByColumn: null,
@@ -59,35 +58,7 @@ export function listByClassroomId(classroomId: string) {
 
 // 根据条件分页查询课堂内练习发布记录
 export function listClassroomPractice(params: ClassroomQuestionPageQueryDTO) {
-    const queryParams: Record<string, any> = {};
-    if (params.courseId !== null && params.courseId !== undefined) {
-        queryParams.courseId = params.courseId;
-    }
-    if (params.classroomId !== null && params.classroomId !== undefined) {
-        queryParams.classroomId = params.classroomId;
-    }
-    if (params.pageNum !== null && params.pageNum !== undefined) {
-        queryParams.pageNum = params.pageNum;
-    }
-    if (params.pageSize !== null && params.pageSize !== undefined) {
-        queryParams.pageSize = params.pageSize;
-    }
-    if (params.isAsc !== null && params.isAsc !== undefined) {
-        queryParams.isAsc = params.isAsc;
-    }
-    if (params.orderByColumn !== null && params.orderByColumn !== undefined) {
-        queryParams.orderByColumn = params.orderByColumn;
-    }
-    if (params.startTime !== null && params.startTime !== undefined) {
-        queryParams.startTime = params.startTime;
-    }
-    if (params.endTime !== null && params.endTime !== undefined) {
-        queryParams.endTime = params.endTime;
-    }
-    if (params.reasonable !== null && params.reasonable !== undefined) {
-        queryParams.reasonable = params.reasonable;
-    }
-    return http.get<TableDataResult<ClassroomQuestionVO>>('/classroom/classroom-practice/list', queryParams)
+    return http.getTableData<ClassroomQuestionVO>('/classroom/classroom-practice/list', params)
 }
 
 // 根据课程ID查询所有课堂练习

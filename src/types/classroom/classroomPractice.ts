@@ -61,9 +61,13 @@ export interface ClassroomQuestionVO {
  * 课堂练习分页查询DTO
  */
 export interface ClassroomQuestionPageQueryDTO extends PageEntity {
-    /** 课程ID */
-    courseId?: string | null
     /** 课堂记录ID */
     classroomId?: string | null
+    /** 课程ID */
+    courseId?: string | null
+    /** 题目标题（模糊匹配） */
+    title?: string | null
+    /** 是否必答（0-否，1-是） */
+    isRequired?: number | null
 }
 

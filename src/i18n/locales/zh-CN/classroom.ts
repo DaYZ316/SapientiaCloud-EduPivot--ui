@@ -31,6 +31,11 @@ export default {
         statusPending: '等待批阅',
         scorePrefix: '得分：',
         submit: '提交作答',
+        submitSuccess: '提交成功',
+        submitFailed: '提交失败',
+        myAnswer: '我的答案',
+        correctAnswer: '正确答案',
+        explanation: '解释',
         noMore: '没有更多了',
         questionType: {
             single: '单选题',

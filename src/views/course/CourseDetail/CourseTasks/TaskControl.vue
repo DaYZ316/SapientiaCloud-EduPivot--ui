@@ -5,7 +5,7 @@
       <!-- 面包屑导航 -->
       <CourseBreadcrumb
           :course-info="courseInfo"
-          :current-page="$t('course.tasks.taskManagement')"
+          :current-page="t('course.tasks.taskManagement')"
       />
 
       <!-- 返回按钮 -->

@@ -3,7 +3,7 @@
     :show="show"
     @update:show="$emit('update:show', $event)"
     preset="card"
-    :title="$t('course.classPractice.studentAnswerDetails')"
+    :title="t('course.classPractice.studentAnswerDetails')"
     size="huge"
     :bordered="false"
     :segmented="false"
@@ -13,19 +13,19 @@
     <div v-if="answerDetail" class="answer-detail-content">
       <div class="answer-info">
         <div class="info-item">
-          <span class="label">{{ $t('course.classPractice.studentName') }}：</span>
+          <span class="label">{{ t('course.classPractice.studentName') }}：</span>
           <span class="value">{{ answerDetail.studentRealName || '未知' }}</span>
         </div>
         <div class="info-item">
-          <span class="label">{{ $t('course.classPractice.submissionTime') }}：</span>
+          <span class="label">{{ t('course.classPractice.submissionTime') }}：</span>
           <span class="value">{{ formatTime(answerDetail.createTime || '') }}</span>
         </div>
         <div class="info-item">
-          <span class="label">{{ $t('course.classPractice.answerScore') }}：</span>
-          <span class="value">{{ answerDetail.score !== null && answerDetail.score !== undefined ? `${answerDetail.score} ${$t('course.classPractice.pointUnit')}` : $t('course.classPractice.ungraded') }}</span>
+          <span class="label">{{ t('course.classPractice.answerScore') }}：</span>
+          <span class="value">{{ answerDetail.score !== null && answerDetail.score !== undefined ? `${answerDetail.score} ${t('course.classPractice.pointUnit')}` : t('course.classPractice.ungraded') }}</span>
         </div>
         <div class="info-item">
-          <span class="label">{{ $t('course.classPractice.status') }}：</span>
+          <span class="label">{{ t('course.classPractice.status') }}：</span>
           <n-tag
             :type="getAnswerStatusType(answerDetail.score, props.questionScore)"
             size="small"
@@ -36,41 +36,41 @@
       </div>
 
       <div class="answer-content-section">
-        <h3>{{ $t('course.classPractice.studentAnswer') }}</h3>
+        <h3>{{ t('course.classPractice.studentAnswer') }}</h3>
         <div v-if="answerDetail.answer" class="answer-content">
           <div v-if="answerDetail.answer.content" class="content-item">
-            <div class="content-label">{{ $t('course.classPractice.textAnswer') }}：</div>
+            <div class="content-label">{{ t('course.classPractice.textAnswer') }}：</div>
             <div class="content-value" v-html="answerDetail.answer.content"></div>
           </div>
           <div v-if="answerDetail.answer.options && answerDetail.answer.options.length > 0" class="content-item">
-            <div class="content-label">{{ $t('course.classPractice.choiceAnswer') }}：</div>
+            <div class="content-label">{{ t('course.classPractice.choiceAnswer') }}：</div>
             <div class="content-value">{{ answerDetail.answer.options.join(', ') }}</div>
           </div>
           <div v-if="answerDetail.answer.blanks && answerDetail.answer.blanks.length > 0" class="content-item">
-            <div class="content-label">{{ $t('course.classPractice.fillBlankAnswer') }}：</div>
+            <div class="content-label">{{ t('course.classPractice.fillBlankAnswer') }}：</div>
             <div class="content-value">
               <div v-for="(blank, index) in answerDetail.answer.blanks" :key="index" class="blank-item">
-                {{ $t('course.classPractice.fillBlankPrefix') }} {{ Number(index) + 1 }}: {{ blank }}
+                {{ t('course.classPractice.fillBlankPrefix') }} {{ Number(index) + 1 }}: {{ blank }}
               </div>
             </div>
           </div>
         </div>
         <div v-else class="no-answer">
-          {{ $t('course.classPractice.noAnswerContent') }}
+          {{ t('course.classPractice.noAnswerContent') }}
         </div>
       </div>
 
       <div class="grading-section">
-        <h3>{{ $t('course.classPractice.gradingAndScoring') }}</h3>
+        <h3>{{ t('course.classPractice.gradingAndScoring') }}</h3>
         <n-form :model="gradingForm" :rules="gradingRules" ref="gradingFormRef">
           <n-space vertical size="large">
-            <n-form-item :label="$t('course.classPractice.scoreLabel')" path="score">
+            <n-form-item :label="t('course.classPractice.scoreLabel')" path="score">
               <n-input-number
                 v-model:value="gradingForm.score"
                 :min="0"
                 :max="props.questionScore ?? undefined"
                 :precision="1"
-                :placeholder="props.questionScore ? `${$t('course.classPractice.pleaseEnterScore')} (0-${props.questionScore})` : $t('course.classPractice.pleaseEnterScore')"
+                :placeholder="props.questionScore ? `${t('course.classPractice.pleaseEnterScore')} (0-${props.questionScore})` : t('course.classPractice.pleaseEnterScore')"
                 style="width: 200px"
               />
             </n-form-item>
@@ -81,16 +81,16 @@
                   <template #icon>
                     <n-icon><ChevronBackOutline /></n-icon>
                   </template>
-                  {{ $t('course.classPractice.previous') }}
+                  {{ t('course.classPractice.previous') }}
                 </n-button>
               </n-space>
 
               <n-text v-if="currentPosition" depth="3">{{ currentPosition }}</n-text>
 
               <n-space>
-                <n-button type="primary" @click="handleSubmitGrading" :disabled="!scoreChanged">{{ hasExistingScore ? $t('course.classPractice.modifyScore') : $t('course.classPractice.submitGrading') }}</n-button>
+                <n-button type="primary" @click="handleSubmitGrading" :disabled="!scoreChanged">{{ hasExistingScore ? t('course.classPractice.modifyScore') : t('course.classPractice.submitGrading') }}</n-button>
                 <n-button @click="handleNext" :disabled="!canGoNext">
-                  {{ $t('course.classPractice.next') }}
+                  {{ t('course.classPractice.next') }}
                   <template #icon>
                     <n-icon><ChevronForwardOutline /></n-icon>
                   </template>
@@ -125,7 +125,7 @@ interface Props {
 const props = defineProps<Props>()
 
 // 国际化
-const { locale, t: $t } = useI18n()
+const { locale, t: t } = useI18n()
 const isEn = computed(() => locale.value === 'en-US')
 
 const emits = defineEmits<{
@@ -148,7 +148,7 @@ const gradingRules = computed(() => {
         required: true,
         validator: (_rule: any, value: number | null) => {
           if (value === null || value === undefined) {
-            return new Error($t('course.classPractice.pleaseEnterScore'))
+            return new Error(t('course.classPractice.pleaseEnterScore'))
           }
           return true
         },
@@ -201,7 +201,7 @@ const currentPosition = computed(() => {
 
 // 格式化时间
 const formatTime = (time: string) => {
-  if (!time) return $t('course.classPractice.notSet')
+  if (!time) return t('course.classPractice.notSet')
   try {
     return new Date(time).toLocaleString('zh-CN', {
       year: 'numeric',

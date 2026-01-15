@@ -107,6 +107,11 @@
         z-index: -1;
       }
 
+      // 宽按钮样式（跨越两列）
+      &.nav-button-wide {
+        grid-column: span 2;
+      }
+
     }
   }
 }

@@ -1,7 +1,6 @@
 import http from '@/utils/http'
 import type {AxiosRequestConfig} from 'axios'
 import type {CourseRecordDTO, CourseRecordPageQueryDTO, CourseRecordVO} from '@/types/classroom'
-import type {TableDataResult} from '@/types/common/baseEntity'
 
 // 获取默认课程记录DTO
 export function getDefaultCourseRecordDTO(): CourseRecordDTO {
@@ -75,7 +74,7 @@ export function endCourseRecord(id: string) {
 
 // 根据条件分页查询课程记录列表，支持按课程、教师、状态等条件筛选
 export function listCourseRecord(params: CourseRecordPageQueryDTO) {
-    return http.get<TableDataResult<CourseRecordVO>>('/classroom/course-record/list', params)
+    return http.getTableData<CourseRecordVO>('/classroom/course-record/list', params)
 }
 
 // 根据教师ID查询该教师的所有教学记录

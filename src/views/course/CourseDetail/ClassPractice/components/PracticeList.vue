@@ -1,50 +1,50 @@
 <template>
-  <n-card class="practice-list-card">
+  <n-card ref="practiceListCardRef" class="practice-list-card" @scroll="handleScroll">
     <div v-if="loading" class="loading-container">
       <n-spin size="medium"/>
     </div>
-    <div v-else-if="!classroomTree.length" class="empty-container">
-      <n-empty :description="$t('course.classPractice.noPractice')"/>
+    <div v-else-if="!practiceList.length" class="empty-container">
+      <n-empty :description="t('course.classPractice.noPractice')"/>
     </div>
-    <div v-else class="classroom-tree">
-      <n-collapse v-model:value="expandedKeys" ghost class="practice-collapse">
-        <n-collapse-item
-            v-for="classroom in classroomTree"
-            :key="classroom.id"
-            :name="classroom.id"
-            :title="classroom.classroomName"
-        >
-          <div class="practice-list">
-            <div
-                v-for="practice in classroom.children"
-                :key="practice.id"
-                :class="['practice-item', {'is-active': practice.id === selectedPracticeId}]"
-                @click="handlePracticeSelect(practice)"
-            >
-              <div class="practice-item__title">
-                <span class="title-text">{{ practice.questionTitle || $t('course.classPractice.unnamedQuestion') }}</span>
-                <div class="practice-item__required">
-                  <n-tag
-                      :type="practice.isRequired === IsRequiredEnum.REQUIRED ? 'success' : 'default'"
-                      size="small"
-                      round
-                  >
-                    {{ getIsRequiredLabel(practice.isRequired, isEn) }}
-                  </n-tag>
-                </div>
-              </div>
-              <div class="practice-item__time">
-                <div class="practice-item__start-time">
-                  {{ $t('course.classPractice.start') }}: {{ formatTime(practice.startTime) }}
-                </div>
-                <div class="practice-item__end-time">
-                  {{ $t('course.classPractice.end') }}: {{ formatTime(practice.endTime) }}
-                </div>
-              </div>
-            </div>
+    <div v-else class="practice-list">
+      <div
+          v-for="practice in practiceList"
+          :key="practice.id"
+          :class="['practice-item', {'is-active': practice.id === selectedPracticeId}]"
+          @click="handlePracticeSelect(practice)"
+      >
+        <div class="practice-item__header">
+          <div class="practice-item__classroom">
+            <n-tag type="info" size="small">
+              {{ practice.classroomName || t('course.classPractice.unnamedClassroom') }}
+            </n-tag>
           </div>
-        </n-collapse-item>
-      </n-collapse>
+          <div class="practice-item__required">
+            <n-tag
+                :type="practice.isRequired === IsRequiredEnum.REQUIRED ? 'success' : 'default'"
+                size="small"
+                round
+            >
+              {{ getIsRequiredLabel(practice.isRequired, isEn) }}
+            </n-tag>
+          </div>
+        </div>
+        <div class="practice-item__title">
+          <span class="title-text">{{ practice.questionTitle || t('course.classPractice.unnamedQuestion') }}</span>
+        </div>
+        <div class="practice-item__time">
+          <div class="practice-item__start-time">
+            {{ t('course.classPractice.start') }}: {{ formatTime(practice.startTime) }}
+          </div>
+          <div class="practice-item__end-time">
+            {{ t('course.classPractice.end') }}: {{ formatTime(practice.endTime) }}
+          </div>
+        </div>
+      </div>
+      <!-- 加载更多提示 -->
+      <div v-if="loadingMore" class="loading-more">
+        <n-spin size="small"/>
+      </div>
     </div>
   </n-card>
 </template>
@@ -54,118 +54,86 @@ import {ref, watch, computed} from 'vue'
 import * as ClassroomPracticeApi from '@/api/classroom/classroomPractice'
 import type {ClassroomQuestionVO} from '@/types/classroom'
 import {IsRequiredEnum, getIsRequiredLabel} from '@/enum/classroom/isRequiredEnum'
-import {getDiscreteApi} from '@/utils/naiveUIHelper'
 import {useI18n} from 'vue-i18n'
 
-// 树形节点类型定义
-interface ClassroomTreeNode {
-  id: string
-  classroomId: string
-  classroomName: string
-  children: ClassroomQuestionVO[]
-  expanded?: boolean
-}
-
-const {message} = getDiscreteApi()
-
 // 国际化
-const {locale, t: $t} = useI18n()
+const {locale, t: t} = useI18n()
 const isEn = computed(() => locale.value === 'en-US')
 
 // 定义组件属性
 interface Props {
   courseId?: string
   selectedPracticeId?: string | null
+  searchQuery?: any
 }
 
 interface Emits {
-  (e: 'select', practice: ClassroomQuestionVO, classroomInfo?: any): void
+  (e: 'select', practice: ClassroomQuestionVO): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
   courseId: '',
-  selectedPracticeId: null
+  selectedPracticeId: null,
+  searchQuery: null
 })
 const emit = defineEmits<Emits>()
 
 // 响应式数据
 const loading = ref(false)
-const classroomTree = ref<ClassroomTreeNode[]>([])
-const expandedKeys = ref<string[]>([])
+const practiceList = ref<ClassroomQuestionVO[]>([])
+const loadingMore = ref(false)
+const hasMore = ref(true)
+const total = ref(0)
+
+// 工具函数
+const resolveList = (res: any): any[] => {
+  if (!res) return []
+  if (Array.isArray(res.data)) return res.data
+  if (Array.isArray(res.data?.data)) return res.data.data
+  if (Array.isArray(res)) return res
+  return []
+}
+
+const sortPracticesByStartTime = (practices: ClassroomQuestionVO[]) => {
+  practices.sort((a, b) => {
+    const timeA = new Date(a.startTime || '').getTime()
+    const timeB = new Date(b.startTime || '').getTime()
+    return timeB - timeA // 最新的在前面
+  })
+}
+
+const buildQueryParams = (pageNum: number) => ({
+  courseId: props.courseId,
+  classroomId: null,
+  pageNum,
+  pageSize: 10,
+  isAsc: 'desc' as const,
+  orderByColumn: 'classroom_id',
+  ...props.searchQuery
+})
 
 // 方法
 const loadPracticeList = async () => {
-  if (!props.courseId) {
-    return
-  }
+  if (!props.courseId) return
 
   loading.value = true
-  try {
-    // 使用分页查询接口，仅传入 courseId 进行过滤，不传入 classroomId
-    const queryParams = {
-      courseId: props.courseId,
-      classroomId: null, // 不传入 classroomId
-      pageNum: 1,
-      pageSize: 1000, // 获取所有记录
-      isAsc: 'desc' as const, // 按时间倒序
-      orderByColumn: 'startTime'
-    }
-    const response = await ClassroomPracticeApi.listClassroomPractice(queryParams)
+  const response = await ClassroomPracticeApi.listClassroomPractice(buildQueryParams(1))
 
-    const resolveList = (res: any): any[] => {
-      if (!res) return []
-      if (Array.isArray(res.data)) return res.data
-      if (Array.isArray(res.data?.data)) return res.data.data
-      if (Array.isArray(res)) return res
-      return []
-    }
+  const practices = resolveList(response)
+  sortPracticesByStartTime(practices)
 
-    const practiceList = resolveList(response)
-
-    // 按照 classroomId 分组数据
-    const groupedData = new Map<string, ClassroomQuestionVO[]>()
-
-    practiceList.forEach((practice: ClassroomQuestionVO) => {
-      const classroomId = practice.classroomId
-      if (!groupedData.has(classroomId)) {
-        groupedData.set(classroomId, [])
-      }
-      groupedData.get(classroomId)!.push(practice)
-    })
-
-    // 转换为树形结构
-    const treeData: ClassroomTreeNode[] = []
-    groupedData.forEach((practices, classroomId) => {
-      const firstPractice = practices[0]
-      treeData.push({
-        id: classroomId,
-        classroomId: classroomId,
-        classroomName: firstPractice.classroomName || $t('course.classPractice.unnamedClassroom'),
-        children: practices,
-        expanded: true
-      })
-    })
-
-    // 按 classroomName 排序
-    treeData.sort((a, b) => a.classroomName.localeCompare(b.classroomName))
-
-    classroomTree.value = treeData
-    expandedKeys.value = treeData.map(node => node.id)
-
-  } catch (error) {
-    console.error('加载课堂练习失败:', error)
-    message.error('加载课堂练习失败')
-  } finally {
-    loading.value = false
-  }
+  practiceList.value = practices
+  total.value = response.total || practices.length
+  hasMore.value = practices.length < total.value
+  loading.value = false
 }
 
 const handlePracticeSelect = (practice: ClassroomQuestionVO) => {
-  emit('select', practice, null)
+  emit('select', practice)
 }
 
 const formatTime = (time: string) => {
-  if (!time) return $t('course.classPractice.notSet')
+  if (!time) return t('course.classPractice.notSet')
   try {
     return new Date(time).toLocaleString('zh-CN', {
       year: 'numeric',
@@ -179,12 +147,53 @@ const formatTime = (time: string) => {
   }
 }
 
+// 加载更多练习
+const loadMorePractices = async () => {
+  if (!hasMore.value || loadingMore.value || !props.courseId) return
+
+  loadingMore.value = true
+  const currentPage = Math.ceil(practiceList.value.length / 10) + 1
+  const response = await ClassroomPracticeApi.listClassroomPractice(buildQueryParams(currentPage))
+
+  const newPractices = resolveList(response)
+
+  if (newPractices.length > 0) {
+    sortPracticesByStartTime(newPractices)
+    practiceList.value = [...practiceList.value, ...newPractices]
+    hasMore.value = practiceList.value.length < total.value
+  } else {
+    hasMore.value = false
+  }
+
+  loadingMore.value = false
+}
+
+// 滚动处理
+const handleScroll = (e: Event) => {
+  const target = e.target as HTMLElement
+  const scrollTop = target.scrollTop
+  const scrollHeight = target.scrollHeight
+  const clientHeight = target.clientHeight
+
+  // 当滚动到距离底部10px时加载更多
+  if (scrollHeight - scrollTop - clientHeight < 10) {
+    loadMorePractices()
+  }
+}
+
 // 监听 courseId 变化
 watch(() => props.courseId, (newCourseId) => {
   if (newCourseId) {
     loadPracticeList()
   }
 }, {immediate: true})
+
+// 监听搜索条件变化（移除自动搜索，由父组件手动触发）
+
+// 暴露方法给父组件调用
+defineExpose({
+  loadPracticeList
+})
 
 // 生命周期说明：使用 watch 的 { immediate: true } 处理初始加载
 </script>
@@ -198,35 +207,15 @@ watch(() => props.courseId, (newCourseId) => {
   border-radius: 12px;
   border: 1px solid var(--border-color);
   box-shadow: none;
-}
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 
-.classroom-tree {
-  height: 100%;
-
-  :deep(.n-collapse-item) {
-    .n-collapse-item__header {
-      .n-collapse-item__header-main {
-        color: var(--text-color);
-
-        .n-collapse-item__header-main__title {
-          color: var(--text-color);
-        }
-      }
-    }
-  }
-
-  :deep(.n-collapse-item--active) {
-    .n-collapse-item__header {
-      .n-collapse-item__header-main {
-        color: var(--color-primary);
-
-        .n-collapse-item__header-main__title {
-          color: var(--color-primary);
-        }
-      }
-    }
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
+
 
 .loading-container,
 .empty-container {
@@ -238,13 +227,13 @@ watch(() => props.courseId, (newCourseId) => {
 .practice-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .practice-item {
   padding: 12px 16px;
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: 8px;
   background-color: var(--background-color);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -261,27 +250,68 @@ watch(() => props.courseId, (newCourseId) => {
   }
 }
 
-.practice-item__title {
+.practice-item__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
 
+  .practice-item__classroom {
+    flex: 0 0 auto;
+    max-width: 180px;
+
+    :deep(.n-tag) {
+      max-width: 100%;
+      overflow: hidden;
+
+      span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: block;
+      }
+    }
+  }
+
+  .practice-item__required {
+    flex: 0 0 auto;
+  }
+}
+
+.practice-item__title {
+  margin-bottom: 8px;
+
   .title-text {
     font-weight: 500;
     color: var(--text-color);
+    display: block;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
 .practice-item__time {
   display: flex;
-  gap: 16px;
+  justify-content: space-between;
   font-size: 12px;
   color: var(--text-secondary-color);
 
-  .practice-item__start-time,
-  .practice-item__end-time {
-    flex: 1;
+  .practice-item__start-time {
+    flex: 0 0 auto;
   }
+
+  .practice-item__end-time {
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+}
+
+.loading-more {
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

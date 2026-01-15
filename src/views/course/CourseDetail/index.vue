@@ -222,6 +222,7 @@
                   :show-crop="true"
                   :size="120"
                   upload-dir="course-covers"
+                  @upload-success="handleCoverImageUploadSuccess"
               />
             </n-form-item>
 
@@ -531,6 +532,13 @@ const loadTeachersForForm = async () => {
 
 const handleTeacherSearch = (_query: string) => {
   // 已加载所有教师，无需额外处理
+}
+
+// 处理封面图片上传成功
+const handleCoverImageUploadSuccess = (imageUrl: string) => {
+  // 只取 URL 的 '?' 之前的部分给后端
+  const urlWithoutQuery = imageUrl.split('?')[0]
+  formData.value.coverImageUrl = urlWithoutQuery
 }
 
 // 教师选择器渲染函数

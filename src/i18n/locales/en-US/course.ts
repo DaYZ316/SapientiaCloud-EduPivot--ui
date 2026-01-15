@@ -400,7 +400,7 @@ export default {
         students: 'Students',
         forum: 'Forum',
         chapters: 'Chapters',
-        classroom: 'Classroom',
+        classroom: 'Smart Classroom',
         tasks: 'Tasks',
         questions: 'Question Bank',
         practice: 'Classroom Practice'
@@ -650,7 +650,7 @@ export default {
         forumDescription: 'Forum Description',
         selectForumToView: 'Please select a forum to view',
         chaptersDescription: 'Course chapters feature is under development, stay tuned!',
-        classroomDescription: 'Online classroom feature is under development, stay tuned!'
+        classroomDescription: 'Smart classroom feature is under development, stay tuned!'
     },
 
     // Chapter management
@@ -1133,6 +1133,18 @@ export default {
             submitTime: 'Submit Time',
             reviewTime: 'Review Time',
             actions: 'Actions'
+        },
+
+        // 搜索表单
+        searchForm: {
+            questionTitle: 'Question Title',
+            questionTitlePlaceholder: 'Please enter question title',
+            classroomId: 'Classroom',
+            classroomIdPlaceholder: 'Please select classroom',
+            isRequired: 'Required',
+            isRequiredPlaceholder: 'Please select if required',
+            timeRange: 'Question Start Time',
+            timeRangePlaceholder: 'Please select time range'
         },
 
         // 空状态

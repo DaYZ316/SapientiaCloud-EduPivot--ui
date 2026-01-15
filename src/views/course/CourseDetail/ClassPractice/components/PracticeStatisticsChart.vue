@@ -3,7 +3,7 @@
     <n-card class="chart-card" :bordered="false" embedded>
       <template #header>
         <div class="chart-header">
-          <span class="chart-title">{{ $t('course.classPractice.practiceStatistics') }}</span>
+          <span class="chart-title">{{ t('course.classPractice.practiceStatistics') }}</span>
         </div>
       </template>
 
@@ -11,7 +11,7 @@
         <n-spin size="medium" />
       </div>
       <div v-else-if="!statistics" class="empty-container">
-        <n-empty :description="$t('course.classPractice.noStatisticsData')" />
+        <n-empty :description="t('course.classPractice.noStatisticsData')" />
       </div>
       <div v-else class="chart-container">
         <div ref="chartRef" class="echarts-container"></div>
@@ -33,11 +33,11 @@
             <div class="summary-value pending">{{ statistics.pendingReviewCount || 0 }}</div>
           </div>
           <div class="summary-item">
-            <div class="summary-label">{{ $t('course.classPractice.totalSubmissions') }}</div>
+            <div class="summary-label">{{ t('course.classPractice.totalSubmissions') }}</div>
             <div class="summary-value">{{ statistics.totalQuestions || 0 }}</div>
           </div>
           <div class="summary-item">
-            <div class="summary-label">{{ $t('course.classPractice.averageScore') }}</div>
+            <div class="summary-label">{{ t('course.classPractice.averageScore') }}</div>
             <div class="summary-value average">{{ formatScore(statistics.averageScore) }}</div>
           </div>
         </div>
@@ -72,7 +72,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 
 // 国际化
-const { locale, t: $t } = useI18n()
+const { locale, t: t } = useI18n()
 const isEn = computed(() => locale.value === 'en-US')
 
 // 响应式数据
@@ -193,7 +193,7 @@ const initChart = () => {
     },
     series: [
       {
-        name: $t('course.classPractice.practiceStatistics'),
+        name: t('course.classPractice.practiceStatistics'),
         type: 'pie',
         radius: ['40%', '70%'],
         avoidLabelOverlap: false,

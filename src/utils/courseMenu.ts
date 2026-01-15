@@ -19,7 +19,7 @@ export class CourseMenuHandler {
      * @returns 是否处理了该菜单项
      */
     handleCourseMenuSelect(key: string): boolean {
-        const courseMenuKeys = ['CourseDetail', 'CourseOverview', 'CourseChapters', 'CourseForum', 'CourseStudents', 'CourseClassroom', 'CourseTasks', 'CourseQuestions']
+        const courseMenuKeys = ['CourseDetail', 'CourseOverview', 'CourseChapters', 'CourseForum', 'CourseStudents', 'CourseClassroom', 'CourseTasks', 'CourseQuestions', 'CoursePractice']
 
         if (!courseMenuKeys.includes(key)) {
             return false
@@ -57,6 +57,9 @@ export class CourseMenuHandler {
                 break
             case 'CourseQuestions':
                 this.router.push(`/course/detail/${lastCourse.courseId}/questions`)
+                break
+            case 'CoursePractice':
+                this.router.push(`/course/detail/${lastCourse.courseId}/practice`)
                 break
         }
 

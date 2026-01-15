@@ -407,7 +407,7 @@ export default {
         students: '学生',
         forum: '论坛',
         chapters: '章节',
-        classroom: '课堂',
+        classroom: '智慧课堂',
         tasks: '任务',
         questions: '题库',
         practice: '课堂练习'
@@ -1138,6 +1138,18 @@ export default {
             submitTime: '提交时间',
             reviewTime: '批阅时间',
             actions: '操作'
+        },
+
+        // 搜索表单
+        searchForm: {
+            questionTitle: '题目标题',
+            questionTitlePlaceholder: '请输入题目标题',
+            classroomId: '课堂',
+            classroomIdPlaceholder: '请选择课堂',
+            isRequired: '是否必答',
+            isRequiredPlaceholder: '请选择是否必答',
+            timeRange: '题目开始时间',
+            timeRangePlaceholder: '请选择时间范围'
         },
 
         // 空状态

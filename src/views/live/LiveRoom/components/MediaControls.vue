@@ -1,31 +1,37 @@
 <template>
-  <div class="media-controls">
-    <n-space>
+  <div :class="['media-controls', { 'media-controls-overlay': props.isOverlay }]">
+    <n-space align="center">
       <!-- 摄像头控制 -->
       <n-button
+        quaternary
+        size="small"
         :type="cameraEnabled ? 'default' : 'error'"
         @click="handleToggleCamera"
       >
         <template #icon>
           <n-icon :component="cameraEnabled ? VideocamOutline : VideocamOffOutline" />
         </template>
-        {{ cameraEnabled ? t('live.room.cameraOn') : t('live.room.cameraOff') }}
+        <span v-if="!props.iconOnly">{{ cameraEnabled ? t('live.room.cameraOn') : t('live.room.cameraOff') }}</span>
       </n-button>
 
       <!-- 麦克风控制 -->
       <n-button
+        quaternary
+        size="small"
         :type="microphoneEnabled ? 'default' : 'error'"
         @click="handleToggleMicrophone"
       >
         <template #icon>
           <n-icon :component="microphoneEnabled ? MicOutline : MicOffOutline" />
         </template>
-        {{ microphoneEnabled ? t('live.room.microphoneOn') : t('live.room.microphoneOff') }}
+        <span v-if="!props.iconOnly">{{ microphoneEnabled ? t('live.room.microphoneOn') : t('live.room.microphoneOff') }}</span>
       </n-button>
 
       <!-- 录制控制 -->
       <n-button
-        v-if="canShowRecording"
+        v-if="canShowRecording && props.showRecording"
+        quaternary
+        size="small"
         :disabled="!canRecord"
         :loading="recordingLoading"
         :type="isRecording ? 'error' : 'default'"
@@ -34,23 +40,37 @@
         <template #icon>
           <n-icon :component="isRecording ? StopCircleOutline : RadioButtonOnOutline" />
         </template>
-        {{ isRecording ? t('live.room.stopRecording') : t('live.room.startRecording') }}
+        <span v-if="!props.iconOnly">{{ isRecording ? t('live.room.stopRecording') : t('live.room.startRecording') }}</span>
       </n-button>
+
+      <div class="volume-control">
+        <n-icon :component="speakerVolume <= 0 ? VolumeMuteOutline : VolumeHighOutline" />
+        <n-slider
+          :value="speakerVolume"
+          :step="5"
+          :min="0"
+          :max="100"
+          style="width: 120px;"
+          @update:value="handleSpeakerVolume"
+        />
+      </div>
     </n-space>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue'
+import { computed, withDefaults } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { NButton, NSpace, NIcon } from 'naive-ui'
+import { NButton, NSpace, NIcon, NSlider } from 'naive-ui'
 import {
   MicOffOutline,
   MicOutline,
   RadioButtonOnOutline,
   StopCircleOutline,
   VideocamOffOutline,
-  VideocamOutline
+  VideocamOutline,
+  VolumeHighOutline,
+  VolumeMuteOutline
 } from '@vicons/ionicons5'
 import { LiveRoomRoleEnum } from '@/enum/live'
 
@@ -61,14 +81,23 @@ interface Props {
   recordingLoading: boolean
   currentUserRole: LiveRoomRoleEnum
   canRecord: boolean
+  speakerVolume: number
+  iconOnly?: boolean
+  isOverlay?: boolean
+  showRecording?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  iconOnly: false,
+  isOverlay: false,
+  showRecording: true
+})
 
 interface Emits {
   (e: 'toggle-camera'): void
   (e: 'toggle-microphone'): void
   (e: 'toggle-recording'): void
+  (e: 'update-speaker-volume', value: number): void
 }
 
 const emit = defineEmits<Emits>()
@@ -93,6 +122,10 @@ const handleToggleMicrophone = () => {
 const handleToggleRecording = () => {
   emit('toggle-recording')
 }
+
+const handleSpeakerVolume = (value: number) => {
+  emit('update-speaker-volume', value)
+}
 </script>
 
 <style lang="scss" scoped>
@@ -103,5 +136,27 @@ const handleToggleRecording = () => {
   padding-top: 16px;
   border-top: 1px solid var(--border-color);
   flex-shrink: 0;
+
+  &.media-controls-overlay {
+    margin-top: 0;
+    padding: 0;
+    border-top: none;
+    background: transparent;
+
+    :deep(.n-button) {
+      color: var(--text-color);
+    }
+
+    .volume-control {
+      padding-left: 0;
+    }
+  }
+
+  .volume-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 4px;
+  }
 }
 </style>

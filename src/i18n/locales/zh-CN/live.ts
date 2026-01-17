@@ -96,6 +96,23 @@ export default {
         microphoneEnableFailed: '启用麦克风失败',
         microphoneStartFailed: '麦克风启动失败，请检查设备连接和权限设置'
     },
+    network: {
+        latency: '延迟',
+        packetLoss: '丢包率',
+        bandwidth: '带宽',
+        reconnect: '重新连接',
+        offlineTitle: '网络离线',
+        disconnectedTitle: '与服务器断开连接',
+        reconnectedTitle: '已重新连接',
+        offlineMessage: '当前离线，请检查网络连接。',
+        disconnectedMessage: '与直播服务器的连接已断开，正在尝试重连。',
+        reconnectedMessage: '连接已恢复。',
+        excellent: '极好',
+        good: '良好',
+        fair: '一般',
+        poor: '较差',
+        offline: '离线'
+    },
     diagnostics: {
         roomNotConnected: '❌ 未连接到直播房间',
         roomConnectionState: '❌ 房间连接状态：{state}',

@@ -4,6 +4,7 @@ import type {
     LiveRoomMessageDTO,
     LiveRoomMessageVO,
     LiveRoomPageQueryDTO,
+    LiveRoomSessionDTO,
     LiveRoomTokenRequestDTO,
     LiveRoomTokenVO,
     LiveRoomVO
@@ -26,7 +27,8 @@ export function getDefaultLiveRoomCreateDTO(): Partial<LiveRoomCreateDTO> {
  */
 export function getDefaultLiveRoomTokenRequestDTO(): LiveRoomTokenRequestDTO {
     return {
-        role: null
+        role: null,
+        sessionId: null
     }
 }
 
@@ -38,6 +40,16 @@ export function getDefaultLiveRoomMessageDTO(): Partial<LiveRoomMessageDTO> {
     return {
         messageType: 'text',
         senderRole: null
+    }
+}
+
+/**
+ * 获取默认直播会话 DTO
+ */
+export function getDefaultLiveRoomSessionDTO(): LiveRoomSessionDTO {
+    return {
+        roomId: null,
+        sessionId: null
     }
 }
 
@@ -60,18 +72,10 @@ export function getDefaultLiveRoomPageQueryDTO(): Partial<LiveRoomPageQueryDTO> 
 }
 
 /**
- * 获取直播房间详情（getLiveRoomDetail）
- */
-export function getLiveRoomDetail(id: string) {
-    return http.get<LiveRoomVO>(`/live/live-room/${id}`)
-}
-
-/**
- * 兼容方法：根据直播房间ID获取详情
- * 与 getLiveRoomDetail 等价
+ * 根据直播房间ID获取详情
  */
 export function getLiveRoomById(id: string) {
-    return getLiveRoomDetail(id)
+    return http.get<LiveRoomVO>(`/live/live-room/${id}`)
 }
 
 /**
@@ -103,18 +107,10 @@ export function stopRecording(id: string) {
 }
 
 /**
- * 创建直播房间并返回房间信息（addLiveRoom）
- */
-export function addLiveRoom(data: LiveRoomCreateDTO) {
-    return http.post<LiveRoomVO>('/live/live-room/add', data)
-}
-
-/**
- * 兼容方法：创建直播房间并返回房间信息
- * 与 addLiveRoom 等价
+ * 创建直播房间并返回房间信息
  */
 export function createLiveRoom(data: LiveRoomCreateDTO) {
-    return addLiveRoom(data)
+    return http.post<LiveRoomVO>('/live/live-room/add', data)
 }
 
 /**
@@ -132,18 +128,24 @@ export function listLiveRooms(params: LiveRoomPageQueryDTO) {
 }
 
 /**
- * 根据房间ID与用户角色签发访问令牌（issueRoomToken）
+ * 根据房间ID与用户角色签发访问令牌
  */
-export function issueRoomToken(id: string, data: LiveRoomTokenRequestDTO) {
+export function issueLiveRoomToken(id: string, data: LiveRoomTokenRequestDTO) {
     return http.post<LiveRoomTokenVO>(`/live/live-room/token/${id}`, data)
 }
 
 /**
- * 兼容方法：根据房间ID与用户角色签发访问令牌
- * 与 issueRoomToken 等价
+ * 直播会话心跳
  */
-export function issueLiveRoomToken(id: string, data: LiveRoomTokenRequestDTO) {
-    return issueRoomToken(id, data)
+export function heartbeatLiveRoom(data: LiveRoomSessionDTO) {
+    return http.post<boolean>('/live/live-room/heartbeat', data)
+}
+
+/**
+ * 退出直播并释放会话
+ */
+export function leaveLiveRoom(data: LiveRoomSessionDTO) {
+    return http.post<boolean>('/live/live-room/leave', data)
 }
 
 /**

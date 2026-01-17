@@ -23,6 +23,9 @@ export interface LiveRealtimeResult {
   connectionState: Readonly<Ref<string>>
   reconnectAttempts: Readonly<Ref<number>>
   messages: Readonly<Ref<readonly LiveRealtimeMessage[]>>
+  // 成员列表（由 SSE 提供的在线成员/身份信息）
+  members: Readonly<Ref<readonly string[]>>
+  membersCount: Readonly<Ref<number>>
   connect: (classroomId: string | null, roomInfo?: LiveRealtimeMessage | null) => Promise<void>
   disconnect: () => void
   sendHeartbeat: () => void
@@ -45,6 +48,9 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
 
   // 消息历史
   const messages = ref<LiveRealtimeMessage[]>([])
+  // 成员列表（SSE 如果支持会返回成员数组或成员变更事件）
+  const members = ref<string[]>([])
+  const membersCount = ref<number>(0)
 
   // 心跳定时器和轮询定时器
   let heartbeatTimer: number | null = null
@@ -200,6 +206,38 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
       case 'chat_message':
         // 聊天消息由LiveKit WebRTC处理，这里仅作为备用
         break
+      case 'members':
+      case 'participants':
+        // 处理后端推送的成员信息，data.membersCount 是总人数，data.members 是 sessionId 列表
+        try {
+          const d = message.data
+          if (d) {
+            // 优先使用 membersCount（准确的在线人数）
+            if (typeof d.membersCount === 'number' && d.membersCount >= 0) {
+              membersCount.value = d.membersCount
+            }
+
+            // 处理成员列表（sessionId 数组）
+            if (Array.isArray(d.members)) {
+              // 将 sessionId 列表转换为字符串数组
+              members.value = d.members.map((m: any) => {
+                if (typeof m === 'string') return m
+                return String(m)
+              }).filter(Boolean)
+            } else if (Array.isArray(d.participants)) {
+              // 兼容 participants 字段
+              members.value = d.participants.map((p: any) => p.identity || p.id || '').filter(Boolean)
+            }
+
+            // 如果没有明确的 membersCount，使用 members 数组长度作为后备
+            if (typeof d.membersCount !== 'number' || d.membersCount < 0) {
+              membersCount.value = members.value.length
+            }
+          }
+        } catch (e) {
+          // ignore parse errors
+        }
+        break
       case 'heartbeat':
         // 忽略心跳消息
         break
@@ -303,6 +341,8 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
 
     // 数据
     messages: readonly(messages),
+    members: readonly(members),
+    membersCount: readonly(membersCount),
 
     // 方法
     connect,

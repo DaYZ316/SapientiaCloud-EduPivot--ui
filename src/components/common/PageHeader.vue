@@ -1,6 +1,6 @@
 <template>
   <div class="page-header">
-    <n-button class="back-button" quaternary type="text" @click="goBack">
+    <n-button class="back-button" quaternary :text="true" @click="goBack">
       <template #icon>
         <Icon :component="ArrowBackOutline"/>
       </template>

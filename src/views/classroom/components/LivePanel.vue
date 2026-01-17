@@ -97,7 +97,7 @@ import {
   getLatestLiveRoom,
   endLiveRoom,
   startLiveRoom,
-  issueRoomToken
+  issueLiveRoomToken
 } from '@/api/live/liveRoom';
 import { getStudentSeat } from '@/api/classroom/courseRecordStudent';
 import { getCourseById } from '@/api/course/course';
@@ -239,12 +239,14 @@ async function joinLive() {
   const role = isTeacher.value ? LiveRoomRoleEnum.TEACHER : LiveRoomRoleEnum.STUDENT;
   const tokenReq: any = { role };
 
-  await issueRoomToken(room.value.id, tokenReq).then((res: any) => {
-    let token = '';
+  await issueLiveRoomToken(room.value.id, tokenReq).then((res: any) => {
+    let token: string | null = null;
+    let sessionId: string | null = null;
     if (res?.token) {
       token = res.token;
     } else if (res?.data) {
-      token = typeof res.data === 'string' ? res.data : (res.data.token || '');
+      token = typeof res.data === 'string' ? res.data : (res.data.token || null);
+      sessionId = typeof res.data === 'object' ? (res.data.sessionId || null) : null;
     } else if (typeof res === 'string') {
       token = res;
     }
@@ -253,7 +255,7 @@ async function joinLive() {
       router.push({
         name: 'LiveRoom',
         params: { roomId: room.value.id },
-        query: { token }
+        query: { token, sessionId }
       });
     } else {
       errorHandler.handleError(new Error(t('live.panel.joinTokenFailed')), 'join_live_token', {
@@ -261,7 +263,7 @@ async function joinLive() {
         customMessage: t('live.panel.joinTokenFailed')
       });
     }
-  }).catch((error) => {
+  }).catch((error: any) => {
     errorHandler.handleError(error, 'join_live', {
       showNotification: true,
       customMessage: t('live.panel.joinFailed')

@@ -14,6 +14,7 @@ export interface ChatMessagesResult {
   // 方法
   loadHistoryMessages: (roomId: string) => Promise<void>
   sendMessage: (content: string, room: Room | null, roomId: string) => Promise<void>
+  addMessage: (message: LiveRoomChatMessage) => void
   setupRealtimeMessages: (room: Room) => void
   startPolling: (roomId: string) => void
   stopPolling: () => void
@@ -80,6 +81,15 @@ export const useChatMessages = () => {
         timestamp: new Date().toLocaleTimeString(),
         isOwn: false
       }]
+    }
+  }
+
+  // 添加消息到列表（用于SSE推送的消息）
+  const addMessage = (message: LiveRoomChatMessage): void => {
+    // 检查是否已经在消息列表中（避免重复添加）
+    const exists = messages.value.some(m => m.id === message.id)
+    if (!exists) {
+      messages.value.push(message)
     }
   }
 
@@ -258,6 +268,7 @@ export const useChatMessages = () => {
     // 方法
     loadHistoryMessages,
     sendMessage,
+    addMessage,
     setupRealtimeMessages,
     startPolling,
     stopPolling

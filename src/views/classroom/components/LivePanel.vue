@@ -311,7 +311,7 @@ async function subscribeSse() {
       throw new Error(t('live.sse.notLoggedIn'));
     }
 
-    const sseUrl = `/celestial-hub/live/subscribe?classroomId=${props.classroomId}`;
+    const sseUrl = `/live/live/subscribe?classroomId=${props.classroomId}`;
 
     eventSourceController = new AbortController();
 

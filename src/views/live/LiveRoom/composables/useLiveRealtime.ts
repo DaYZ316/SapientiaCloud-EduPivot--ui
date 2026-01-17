@@ -4,6 +4,7 @@ import { fetchEventSource } from '@microsoft/fetch-event-source'
 import { useUserStore } from '@/store'
 import { useResourceManager } from './useResourceManager'
 import { useLoadingState } from './useLoadingState'
+import * as liveApi from '@/api/live'
 
 export interface LiveRealtimeMessage {
   type: string
@@ -91,9 +92,16 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
       throw new Error(t('live.sse.notLoggedIn'))
       }
 
+      // 获取SSE token
+      const sseTokenResponse = await liveApi.getSseToken(currentClassroomId)
+      if (!sseTokenResponse?.data) {
+        throw new Error(t('live.sse.tokenError'))
+      }
+      const sseToken = sseTokenResponse.data
+
       // 建立SSE连接
       // 使用fetch-event-source支持Authorization header，避免EventSource的header限制
-      const sseUrl = `/celestial-hub/live/subscribe${currentClassroomId ? `?classroomId=${currentClassroomId}` : ''}`
+      const sseUrl = `/live/live/subscribe${currentClassroomId ? `?classroomId=${currentClassroomId}&token=${sseToken}` : `?token=${sseToken}`}`
 
       eventSourceController = new AbortController()
 
@@ -204,7 +212,7 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
         handleLiveStatusMessage(message)
         break
       case 'chat_message':
-        // 聊天消息由LiveKit WebRTC处理，这里仅作为备用
+        // 聊天消息由 useLiveRoom 处理，这里不做任何操作
         break
       case 'members':
       case 'participants':

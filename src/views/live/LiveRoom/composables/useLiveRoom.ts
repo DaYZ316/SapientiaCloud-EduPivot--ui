@@ -1,4 +1,4 @@
-import { computed, ref, type Ref, watch } from 'vue'
+import { computed, ref, type Ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import type { LiveRoomVO, RemoteParticipantMedia } from '@/types/live'
@@ -77,7 +77,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
   const roomId = roomIdProp ?? (route.params.roomId as string)
   const roomInfo = ref<LiveRoomVO | null>(null)
   const remoteParticipants = ref<RemoteParticipantMedia[]>([])
-  const onlineCount = ref(0)
+  const onlineCount = computed(() => connection.onlineCount.value)
   const isFullscreen = ref(false)
   const isChatCollapsed = ref(false)
   const unreadMessageCount = ref(0)
@@ -101,6 +101,18 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
 
   const unregisterVideoPanel = () => {
     videoPanelRef.value = null
+  }
+
+  const attachRemoteVideoWithRetry = (participantId: string, track: Track) => {
+    const panel = videoPanelRef.value?.value ?? videoPanelRef.value
+    if (!panel?.attachRemoteVideo) {
+      return
+    }
+    nextTick(() => {
+      panel.attachRemoteVideo(participantId, track)
+      setTimeout(() => panel.attachRemoteVideo(participantId, track), 300)
+      setTimeout(() => panel.attachRemoteVideo(participantId, track), 800)
+    })
   }
 
   // 初始化业务逻辑
@@ -135,12 +147,12 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
   })
   const chatOnlineCount = computed(() => {
     // 优先使用 SSE/后端提供的实时成员数（realtime.membersCount），其次使用 chat 组合函数提供的简化人数，最后回退到 RTC 的 onlineCount
-    const realtimeCount = (realtime as any)?.membersCount?.value ?? null
+    const realtimeCount = realtime.membersCount.value
     if (typeof realtimeCount === 'number' && realtimeCount >= 0) {
       return realtimeCount
     }
 
-    const countFromChat = (chat.chatOnlineCount as any)?.value ?? null
+    const countFromChat = chat.chatOnlineCount
     if (typeof countFromChat === 'number') {
       return countFromChat
     }
@@ -567,6 +579,46 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
   // 这样父组件可以在挂载后注册 panel 引用
   // registerVideoPanel(panelRef) / unregisterVideoPanel()
 
+  // 监听实时消息
+  watch(
+    () => realtime.messages.value,
+    (newMessages, oldMessages) => {
+      if (newMessages.length > oldMessages.length) {
+        // 处理新增的消息
+        const latestMessage = newMessages[newMessages.length - 1]
+        handleRealtimeMessage(latestMessage)
+      }
+    },
+    { deep: true }
+  )
+
+  // 处理实时消息
+  const handleRealtimeMessage = (message: any) => {
+    const eventType = message.event || message.type
+
+    switch (eventType) {
+      case 'chat_message':
+        // 处理SSE推送的聊天消息
+        if (message.data) {
+          const chatMessage = {
+            id: message.data.id || `${Date.now()}-${Math.random()}`,
+            sender: message.data.sender || t('live.room.unknown'),
+            content: message.data.content || '',
+            timestamp: message.data.sendTime ? new Date(message.data.sendTime).toLocaleTimeString() : new Date().toLocaleTimeString(),
+            isOwn: false // SSE推送的消息默认不是自己的
+          }
+
+          // 使用chat composable的addMessage方法添加消息
+          chat.addMessage(chatMessage)
+        }
+        break
+      case 'members':
+        // members事件由useLiveRealtime处理，这里不需要额外处理
+        break
+      // 可以在这里添加其他事件类型的处理
+    }
+  }
+
   // 同步参与者已有轨道（用于首次加入房间或重连）
   const syncExistingParticipantTracks = (participant: RemoteParticipant) => {
     try {
@@ -644,7 +696,12 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
       connection.updateOnlineCount(currentRoom)
 
       // 同步已有参与者轨道
+      console.log('Syncing existing participants:', currentRoom.remoteParticipants.size)
       currentRoom.remoteParticipants.forEach((participant) => {
+        console.log('Existing participant:', participant.identity, 'tracks:', {
+          video: participant.videoTrackPublications.size,
+          audio: participant.audioTrackPublications.size
+        })
         syncExistingParticipantTracks(participant)
       })
 
@@ -656,11 +713,21 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
 
       resourceManager.registerEventListener(currentRoom, RoomEvent.TrackSubscribed, (track: Track, _publication: RemoteTrackPublication, participant: RemoteParticipant) => {
         try {
+          console.log('TrackSubscribed event:', {
+            trackKind: track.kind,
+            participantId: participant.identity,
+            participantSid: participant.sid,
+            trackSid: track.sid
+          })
+
           const participantId = participant.identity
           const displayName = participantId
           const existingIndex = remoteParticipants.value.findIndex(p => p.participantId === participantId)
+
           if (track.kind === Track.Kind.Video) {
+            console.log('Processing video track for participant:', participantId)
             if (existingIndex >= 0) {
+              console.log('Updating existing participant video track')
               remoteParticipants.value[existingIndex] = {
                 ...remoteParticipants.value[existingIndex],
                 participantId,
@@ -668,6 +735,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
                 videoTrack: track
               }
             } else {
+              console.log('Adding new participant with video track')
               remoteParticipants.value.push({
                 participantId,
                 displayName,
@@ -676,8 +744,10 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
                 audioTrack: null
               })
             }
+            attachRemoteVideoWithRetry(participantId, track)
           }
           if (track.kind === Track.Kind.Audio) {
+            console.log('Processing audio track for participant:', participantId)
             if (existingIndex >= 0) {
               remoteParticipants.value[existingIndex] = {
                 ...remoteParticipants.value[existingIndex],
@@ -688,7 +758,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
             }
           }
         } catch (e) {
-          // ignore
+          console.error('Error in TrackSubscribed handler:', e)
         }
       })
 

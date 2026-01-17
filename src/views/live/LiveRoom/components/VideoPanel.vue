@@ -159,13 +159,13 @@ const shouldShowLocalAsMain = computed(() => {
   if (!isSpeakerLayout.value) {
     return false
   }
-  if (props.mainParticipantId === 'local') {
-    return true
-  }
-  if (props.mainParticipantId && props.mainParticipantId !== 'local') {
-    return !mainRemoteParticipant.value
-  }
-  return videoParticipants.value.length === 0
+  const result = props.mainParticipantId === 'local' || (!props.mainParticipantId && videoParticipants.value.length === 0)
+  console.log('VideoPanel: shouldShowLocalAsMain calculation', {
+    mainParticipantId: props.mainParticipantId,
+    videoParticipantsCount: videoParticipants.value.length,
+    result
+  })
+  return result
 })
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -184,6 +184,7 @@ const thumbnailParticipants = computed(() => {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const handleSelectMain = (participantId: string) => {
+  console.log('VideoPanel: handleSelectMain called with participantId:', participantId)
   emit('select-main', participantId)
 }
 
@@ -249,7 +250,11 @@ const remoteVideoRefs = ref<Map<string, HTMLVideoElement>>(new Map())
 const setRemoteVideoRef = (el: HTMLVideoElement | null, participantId: string) => {
   if (el) {
     remoteVideoRefs.value.set(participantId, el)
-    // Attach logic is provided externally (event/provide/inject)
+    // Attach immediately if the track already exists but the element was created later.
+    const participant = props.remoteParticipants.find(p => p.participantId === participantId)
+    if (participant?.videoTrack) {
+      attachToElement(participant.videoTrack, el)
+    }
     return
   }
   remoteVideoRefs.value.delete(participantId)
@@ -318,19 +323,28 @@ const attachRemoteVideo = (participantId: string, track: Track | any) => {
 }
 
   // 当 props.remoteParticipants 更新时，自动附加/分离轨道
-  watch(() => props.remoteParticipants, (newList) => {
+  watch(() => props.remoteParticipants, (newList, oldList) => {
+    console.log('VideoPanel: remoteParticipants updated', {
+      oldCount: oldList?.length || 0,
+      newCount: newList?.length || 0,
+      newParticipants: newList?.map(p => ({
+        id: p.participantId,
+        hasVideo: !!p.videoTrack,
+        hasAudio: !!p.audioTrack
+      }))
+    })
+
     // attach newly arrived video tracks
     newList.forEach((p: any) => {
       if (p && p.participantId && p.videoTrack) {
         const el = remoteVideoRefs.value.get(p.participantId)
         if (el) {
           try {
-            p.videoTrack.attach(el)
-            // 尝试播放视频（若浏览器拒绝则忽略）
-            el.play?.().catch(() => {})
+            attachToElement(p.videoTrack, el)
           } catch (e) {
-            // ignore attach errors
+            console.error('VideoPanel: Failed to attach video track for participant:', p.participantId, e)
           }
+        } else {
         }
       }
     })

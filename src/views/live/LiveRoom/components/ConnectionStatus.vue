@@ -25,6 +25,9 @@
     <n-text v-if="connectionError" :depth="3" style="color: var(--error-color);">
       {{ connectionError }}
     </n-text>
+
+    <!-- 网络质量指示器 -->
+    <network-quality-indicator />
   </div>
 </template>
 
@@ -33,6 +36,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { NText } from 'naive-ui'
 import { getLiveRoomRoleLabel, getLiveRoomStatusLabel, LiveRoomRoleEnum, LiveRoomStatusEnum } from '@/enum/live'
+import NetworkQualityIndicator from './NetworkQualityIndicator.vue'
 
 interface Props {
   roomStatus: LiveRoomStatusEnum | null

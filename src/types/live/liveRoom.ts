@@ -27,6 +27,8 @@ export interface LiveRoomCreateDTO {
 export interface LiveRoomTokenRequestDTO {
     /** 用户角色(0=学生,1=老师,2=助教) */
     role: LiveRoomUserRoleEnum | null
+    /** 直播会话ID */
+    sessionId?: string | null
 }
 
 /**
@@ -89,6 +91,20 @@ export interface LiveRoomTokenVO {
     expireAt?: string | null
     /** LiveKit 房间名称 */
     roomName?: string | null
+    /** 直播会话ID */
+    sessionId?: string | null
+    /** 心跳间隔(秒) */
+    heartbeatIntervalSeconds?: number | null
+}
+
+/**
+ * 直播会话心跳/退出 DTO
+ */
+export interface LiveRoomSessionDTO {
+    /** 直播房间ID */
+    roomId: string | null
+    /** 直播会话ID */
+    sessionId: string | null
 }
 
 /**
@@ -145,6 +161,8 @@ export interface RemoteParticipantMedia {
     participantId: string
     /** 参与者显示名 */
     displayName?: string | null
+    /** 参与者角色 */
+    role?: string | null
     /** 视频轨道 */
     videoTrack: any | null
     /** 音频轨道 */

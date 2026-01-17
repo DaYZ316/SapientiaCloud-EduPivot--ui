@@ -23,6 +23,9 @@ export interface LiveRealtimeResult {
   connectionState: Readonly<Ref<string>>
   reconnectAttempts: Readonly<Ref<number>>
   messages: Readonly<Ref<readonly LiveRealtimeMessage[]>>
+  // 成员列表（由 SSE 提供的在线成员/身份信息）
+  members: Readonly<Ref<readonly string[]>>
+  membersCount: Readonly<Ref<number>>
   connect: (classroomId: string | null, roomInfo?: LiveRealtimeMessage | null) => Promise<void>
   disconnect: () => void
   sendHeartbeat: () => void
@@ -45,6 +48,9 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
 
   // 消息历史
   const messages = ref<LiveRealtimeMessage[]>([])
+  // 成员列表（SSE 如果支持会返回成员数组或成员变更事件）
+  const members = ref<string[]>([])
+  const membersCount = ref<number>(0)
 
   // 心跳定时器和轮询定时器
   let heartbeatTimer: number | null = null
@@ -200,6 +206,29 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
       case 'chat_message':
         // 聊天消息由LiveKit WebRTC处理，这里仅作为备用
         break
+      case 'members':
+      case 'participants':
+        // 期望 message.data.members 是一个字符串 id 列表或包含身份信息的对象数组
+        try {
+          const d = message.data
+          if (d) {
+            if (Array.isArray(d.members)) {
+              // 支持直接字符串 id 数组或包含 identity 字段的对象数组
+              members.value = d.members.map((m: any) => {
+                if (typeof m === 'string') return m
+                if (m && typeof m.identity === 'string') return m.identity
+                if (m && typeof m.id === 'string') return m.id
+                return ''
+              }).filter(Boolean)
+            } else if (Array.isArray(d.participants)) {
+              members.value = d.participants.map((p: any) => p.identity || p.id || '').filter(Boolean)
+            }
+            membersCount.value = members.value.length
+          }
+        } catch (e) {
+          // ignore parse errors
+        }
+        break
       case 'heartbeat':
         // 忽略心跳消息
         break
@@ -303,6 +332,8 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
 
     // 数据
     messages: readonly(messages),
+    members: readonly(members),
+    membersCount: readonly(membersCount),
 
     // 方法
     connect,

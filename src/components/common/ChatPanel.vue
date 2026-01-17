@@ -1,5 +1,5 @@
 <template>
-  <div :class="['chat-panel', {'chat-panel-fixed-footer': fixedFooter}]" :style="panelStyle">
+  <div v-if="!isCollapsed" :class="['chat-panel', {'chat-panel-fixed-footer': fixedFooter, 'chat-panel-collapsed': isCollapsed}]" :style="panelStyle">
     <header v-if="showHeader" class="chat-panel__header">
       <div class="chat-panel__titles">
         <h3 class="chat-panel__title">{{ title }}</h3>
@@ -9,6 +9,17 @@
       </div>
       <div v-if="extra" class="chat-panel__extra">
         {{ extra }}
+      </div>
+      <div class="chat-panel__actions">
+        <n-button
+          text
+          size="small"
+          @click="$emit('toggle-collapse')"
+        >
+          <template #icon>
+            <n-icon :component="isCollapsed ? ChevronForwardOutline : ChevronBackOutline" />
+          </template>
+        </n-button>
       </div>
     </header>
 
@@ -61,11 +72,56 @@
       </div>
     </footer>
   </div>
+
+  <!-- 折叠状态显示 -->
+  <div v-else class="chat-panel-collapsed">
+    <div class="chat-panel-collapsed__header">
+      <n-icon size="20">
+        <ChatbubblesOutline />
+      </n-icon>
+      <span v-if="unreadCount && unreadCount > 0" class="chat-panel-collapsed__badge">{{ unreadCount }}</span>
+    </div>
+    <div class="chat-panel-collapsed__content">
+      <div class="chat-panel-collapsed__item">
+        <n-icon size="16">
+          <PeopleOutline />
+        </n-icon>
+        <span class="chat-panel-collapsed__text">{{ extra }}</span>
+      </div>
+      <div v-if="unreadCount && unreadCount > 0" class="chat-panel-collapsed__item">
+        <n-icon size="16">
+          <NotificationsOutline />
+        </n-icon>
+        <span class="chat-panel-collapsed__text">{{ unreadCount }}条未读</span>
+      </div>
+    </div>
+    <div class="chat-panel-collapsed__footer">
+      <n-button
+        text
+        size="small"
+        @click="$emit('toggle-collapse')"
+      >
+        <template #icon>
+          <n-icon>
+            <ChevronForwardOutline />
+          </n-icon>
+        </template>
+      </n-button>
+    </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
 import {computed, nextTick, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
+import { NIcon, NButton } from 'naive-ui'
+import {
+  ChevronForwardOutline,
+  ChevronBackOutline,
+  ChatbubblesOutline,
+  PeopleOutline,
+  NotificationsOutline
+} from '@vicons/ionicons5'
 
 interface ChatMessage {
   id: string
@@ -85,10 +141,13 @@ interface Props {
   canSend?: boolean
   placeholder?: string
   fixedFooter?: boolean
+  isCollapsed?: boolean
+  unreadCount?: number
 }
 
 interface Emits {
   (e: 'send', content: string): void
+  (e: 'toggle-collapse'): void
 }
 
 const props = defineProps<Props>()
@@ -235,6 +294,12 @@ function handleSend() {
   &__extra {
     font-size: 12px;
     color: var(--text-color-3);
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
   &__body {
@@ -416,6 +481,84 @@ function handleSend() {
       overflow-x: hidden;
       box-sizing: border-box;
     }
+  }
+}
+
+// 折叠状态样式
+.chat-panel-collapsed {
+  width: 80px;
+  min-width: 80px;
+  max-width: 80px;
+  background: var(--background-tertiary-color);
+  border-radius: 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 8px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  position: relative;
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-color-2);
+    position: relative;
+
+    .chat-panel-collapsed__badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: var(--error-color);
+      color: white;
+      border-radius: 10px;
+      padding: 2px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      min-width: 16px;
+      text-align: center;
+      line-height: 1;
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    width: 100%;
+  }
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-color-3);
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.2;
+
+    svg {
+      opacity: 0.7;
+    }
+  }
+
+  &__text {
+    font-size: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 60px;
+  }
+
+  &__footer {
+    margin-top: auto;
+    padding-top: 8px;
   }
 }
 </style>

@@ -140,6 +140,56 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
               // 步骤5: 额外等待确保轨道稳定
               await new Promise(resolve => setTimeout(resolve, 300))
 
+              // 步骤6: 手动触发视频附加
+              console.log('useMediaDevices: 摄像头启用成功，触发视频附加')
+              try {
+                // 获取第一个视频轨道
+                const firstVideoTrack = videoTracks[0]?.track
+                if (!firstVideoTrack) {
+                  console.log('useMediaDevices: 未找到视频轨道，跳过附加')
+                  return
+                }
+
+                // 查找 useLiveRoom 的上下文并触发附加
+                const vueInstances: any[] = []
+                function findVueInstances(node: any) {
+                  if (node.__vue__) {
+                    vueInstances.push(node.__vue__)
+                  }
+                  if (node.children) {
+                    Array.from(node.children).forEach(findVueInstances)
+                  }
+                }
+                findVueInstances(document.body)
+
+                vueInstances.forEach((vm: any) => {
+                  if (vm.$?.data?.videoPanelRef || vm.$?.refs?.videoPanelRef) {
+                    const videoPanel = vm.$?.data?.videoPanelRef || vm.$?.refs?.videoPanelRef
+                    if (videoPanel?.attachLocalVideo) {
+                      console.log('useMediaDevices: 手动附加本地视频到 VideoPanel')
+                      videoPanel.attachLocalVideo(firstVideoTrack)
+                    }
+                  }
+                })
+
+                // 也尝试直接附加到 DOM 元素
+                const localVideos = document.querySelectorAll('.video-panel .local-video video')
+                Array.from(localVideos).forEach((video) => {
+                  try {
+                    const videoEl = video as HTMLVideoElement
+                    if (firstVideoTrack && typeof firstVideoTrack.attach === 'function') {
+                      firstVideoTrack.attach(videoEl)
+                      videoEl.muted = true
+                      videoEl.play?.().catch(() => {})
+                    }
+                  } catch (e) {
+                    console.log('useMediaDevices: 直接附加失败:', e)
+                  }
+                })
+              } catch (attachError) {
+                console.log('useMediaDevices: 手动附加出错:', attachError)
+              }
+
             } catch (trackError: any) {
               cameraEnabled.value = false
 

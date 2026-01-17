@@ -15,12 +15,14 @@ export interface LiveConnectionResult {
   connecting: Readonly<Ref<boolean>>
   connectionState: Readonly<Ref<string>>
   connectionError: Readonly<Ref<string | null>>
+  sessionId: Readonly<Ref<string | null>>
+  heartbeatIntervalSeconds: Readonly<Ref<number | null>>
 
   // 计算属性
   connectionStateLabel: ComputedRef<string>
 
   // 方法
-  connect: (roomInfo: any, currentUserRole: any, token?: string) => Promise<void>
+  connect: (roomInfo: import('@/types/live').LiveRoomVO | null, currentUserRole: import('@/enum/live').LiveRoomRoleEnum, token?: string, sessionId?: string | null) => Promise<void>
   disconnect: () => Promise<void>
   updateOnlineCount: (targetRoom: Room | null) => void
 }
@@ -39,6 +41,8 @@ export const useLiveConnection = (): LiveConnectionResult => {
   const connecting = ref<boolean>(false)
   const connectionState = ref<string>('disconnected')
   const connectionError = ref<string | null>(null)
+  const sessionId = ref<string | null>(null)
+  const heartbeatIntervalSeconds = ref<number | null>(null)
   const onlineCount = ref<number>(0)
 
   const livekitServerUrl = computed(() => {
@@ -66,7 +70,7 @@ export const useLiveConnection = (): LiveConnectionResult => {
 
 
   // 连接到直播房间（带重试机制）
-  const connect = async (roomInfo: LiveRoomVO | null, currentUserRole: LiveRoomRoleEnum, providedToken?: string): Promise<void> => {
+  const connect = async (roomInfo: LiveRoomVO | null, currentUserRole: LiveRoomRoleEnum, providedToken?: string, providedSessionId?: string | null): Promise<void> => {
     if (!roomInfo || connecting.value || isConnected.value) return
 
     connecting.value = true
@@ -76,7 +80,7 @@ export const useLiveConnection = (): LiveConnectionResult => {
     // 使用重试机制执行连接
     try {
       await retryMechanism.retry(
-        () => performConnection(roomInfo, currentUserRole, providedToken),
+        () => performConnection(roomInfo, currentUserRole, providedToken, providedSessionId),
         {
           maxRetries: 3,
           baseDelay: 2000,
@@ -101,7 +105,7 @@ export const useLiveConnection = (): LiveConnectionResult => {
       errorHandler.handleError(error, 'live_connection', {
         showNotification: true,
         allowRetry: retryMechanism.isRetryableError(error),
-        onRetry: () => connect(roomInfo, currentUserRole, providedToken)
+        onRetry: () => connect(roomInfo, currentUserRole, providedToken, providedSessionId)
       })
 
       throw error
@@ -109,7 +113,7 @@ export const useLiveConnection = (): LiveConnectionResult => {
   }
 
   // 执行实际的连接逻辑
-  const performConnection = async (roomInfo: LiveRoomVO, currentUserRole: LiveRoomRoleEnum, providedToken?: string): Promise<void> => {
+  const performConnection = async (roomInfo: LiveRoomVO, currentUserRole: LiveRoomRoleEnum, providedToken?: string, providedSessionId?: string | null): Promise<void> => {
     // 检查房间状态
     if (roomInfo.status === LiveRoomStatusEnum.ENDED || roomInfo.status === LiveRoomStatusEnum.CLOSED) {
       throw new Error(t('live.room.roomEnded'))
@@ -126,7 +130,8 @@ export const useLiveConnection = (): LiveConnectionResult => {
 
     if (!token) {
       const tokenDTO: LiveRoomTokenRequestDTO = {
-        role: currentUserRole
+        role: currentUserRole,
+        sessionId: providedSessionId ?? sessionId.value ?? null
       }
 
       const tokenResponse = await retryMechanism.retry(
@@ -143,12 +148,18 @@ export const useLiveConnection = (): LiveConnectionResult => {
         } else {
           token = tokenResponse.data.token || null
           returnedRoomName = tokenResponse.data.roomName || null
+          sessionId.value = tokenResponse.data.sessionId || null
+          heartbeatIntervalSeconds.value = tokenResponse.data.heartbeatIntervalSeconds ?? null
         }
       }
     }
 
     if (!token) {
       throw new Error(t('live.room.tokenError'))
+    }
+
+    if (providedSessionId && !sessionId.value) {
+      sessionId.value = providedSessionId
     }
 
     // 创建Room实例
@@ -287,6 +298,8 @@ export const useLiveConnection = (): LiveConnectionResult => {
     connecting: readonly(connecting),
     connectionState: readonly(connectionState),
     connectionError: readonly(connectionError),
+    sessionId: readonly(sessionId),
+    heartbeatIntervalSeconds: readonly(heartbeatIntervalSeconds),
 
     // 计算属性
     connectionStateLabel,

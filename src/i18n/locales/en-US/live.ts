@@ -96,6 +96,23 @@ export default {
         microphoneEnableFailed: 'Failed to enable microphone',
         microphoneStartFailed: 'Failed to start microphone. Please check device connection and permissions'
     },
+    network: {
+        latency: 'Latency',
+        packetLoss: 'Packet loss',
+        bandwidth: 'Bandwidth',
+        reconnect: 'Reconnect',
+        offlineTitle: 'Network offline',
+        disconnectedTitle: 'Disconnected from server',
+        reconnectedTitle: 'Reconnected',
+        offlineMessage: 'You are offline. Please check your network connection.',
+        disconnectedMessage: 'Connection to live server lost. Attempting to reconnect.',
+        reconnectedMessage: 'Connection restored.',
+        excellent: 'Excellent',
+        good: 'Good',
+        fair: 'Fair',
+        poor: 'Poor',
+        offline: 'Offline'
+    },
     diagnostics: {
         roomNotConnected: '❌ Not connected to the live room',
         roomConnectionState: '❌ Room connection state: {state}',

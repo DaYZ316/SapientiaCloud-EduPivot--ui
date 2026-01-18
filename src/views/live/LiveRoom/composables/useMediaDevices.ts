@@ -141,12 +141,10 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
               await new Promise(resolve => setTimeout(resolve, 300))
 
               // 步骤6: 手动触发视频附加
-              console.log('useMediaDevices: 摄像头启用成功，触发视频附加')
               try {
                 // 获取第一个视频轨道
                 const firstVideoTrack = videoTracks[0]?.track
                 if (!firstVideoTrack) {
-                  console.log('useMediaDevices: 未找到视频轨道，跳过附加')
                   return
                 }
 
@@ -166,7 +164,6 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
                   if (vm.$?.data?.videoPanelRef || vm.$?.refs?.videoPanelRef) {
                     const videoPanel = vm.$?.data?.videoPanelRef || vm.$?.refs?.videoPanelRef
                     if (videoPanel?.attachLocalVideo) {
-                      console.log('useMediaDevices: 手动附加本地视频到 VideoPanel')
                       videoPanel.attachLocalVideo(firstVideoTrack)
                     }
                   }
@@ -183,11 +180,9 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
                       videoEl.play?.().catch(() => {})
                     }
                   } catch (e) {
-                    console.log('useMediaDevices: 直接附加失败:', e)
                   }
                 })
               } catch (attachError) {
-                console.log('useMediaDevices: 手动附加出错:', attachError)
               }
 
             } catch (trackError: any) {

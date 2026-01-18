@@ -197,7 +197,6 @@ const remoteVideoRefs = ref<Map<string, HTMLVideoElement>>(new Map())
   const setLocalVideoRef = (el: HTMLVideoElement | null) => {
     if (el) {
       localVideoRefs.value.add(el)
-      console.log('本地视频元素已注册:', el, '当前轨道:', lastLocalVideoTrack.value)
       if (lastLocalVideoTrack.value) {
         attachToElement(lastLocalVideoTrack.value, el)
       } else {
@@ -222,7 +221,6 @@ const remoteVideoRefs = ref<Map<string, HTMLVideoElement>>(new Map())
                   const videoPubs = Array.from(room.localParticipant.videoTrackPublications.values())
                   videoPubs.forEach((pub: any) => {
                     if (pub.track && pub.track.kind === 'video') {
-                      console.log('找到现有轨道，附加到新元素:', pub.track)
                       attachToElement(pub.track, el)
                     }
                   })
@@ -314,6 +312,9 @@ const attachRemoteVideo = (participantId: string, track: Track | any) => {
 // 附加远程音频轨道（LiveKit音频轨道通常自动处理，此处提供空实现以保持接口一致性）
 const attachRemoteAudio = (participantId: string, track: Track | any) => {
   // LiveKit音频轨道自动处理，无需手动附加到DOM元素
+  // 引用参数以避免 TypeScript 的未使用变量错误
+  void participantId
+  void track
 }
 
   // 当 props.remoteParticipants 更新时，自动附加/分离轨道

@@ -218,5 +218,10 @@ export default {
         stop: 'End Live',
         startSuccess: 'Live started',
         startFailed: 'Failed to start live'
+    },
+    pip: {
+        title: 'Live streaming...',
+        restore: 'Restore',
+        end: 'End'
     }
 }

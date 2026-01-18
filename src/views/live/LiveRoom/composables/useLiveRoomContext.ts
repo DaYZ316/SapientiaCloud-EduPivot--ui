@@ -29,6 +29,7 @@ export interface LiveRoomContext {
   recordingLoading: any
   chatMessages: any
   chatOnlineCount: any
+  activeVideoCount: any
   speakerVolumeValue: any
   canShowRecording: any
   activeMainParticipantId: any

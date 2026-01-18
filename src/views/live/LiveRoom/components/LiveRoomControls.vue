@@ -8,6 +8,8 @@
       :recording-status-label="context.recording.recordingStatusLabel.value"
       :connection-state-label="context.connectionStateLabel.value"
       :connection-error="context.connectionError.value"
+      :show-leave-button="context.connectionIsConnected.value"
+      @leave="context.handleLeave()"
     />
   <n-space>
     <!-- 离开按钮已移至聊天面板上方 -->

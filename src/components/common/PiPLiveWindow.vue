@@ -1,0 +1,287 @@
+<template>
+  <div v-if="isVisible" class="pip-live-window">
+    <!-- 直播视频 -->
+    <video
+      ref="videoRef"
+      class="pip-video"
+      autoplay
+      muted
+      playsinline
+    />
+
+    <!-- 控制栏 -->
+    <div class="pip-controls">
+      <div class="pip-info">
+        <span class="pip-label">{{ t('live.pip.title') }}</span>
+        <span class="pip-room">{{ roomId ? `房间: ${roomId}` : '' }}</span>
+      </div>
+
+      <div class="pip-actions">
+        <n-button
+          size="tiny"
+          @click="restoreToFullscreen"
+        >
+          {{ t('live.pip.restore') }}
+        </n-button>
+
+        <n-button
+          size="tiny"
+          type="error"
+          @click="endLive"
+        >
+          {{ t('live.pip.end') }}
+        </n-button>
+      </div>
+    </div>
+
+    <!-- 拖拽手柄 -->
+    <div class="pip-drag-handle" @mousedown="startDrag">
+      <n-icon size="16">
+        <MenuOutline />
+      </n-icon>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { NButton, NIcon } from 'naive-ui'
+import { MenuOutline } from '@vicons/ionicons5'
+import { useLivePiPStore } from '@/store'
+import { useRouter } from 'vue-router'
+
+const { t } = useI18n()
+const router = useRouter()
+const livePiPStore = useLivePiPStore()
+
+// Props
+interface Props {
+  roomId?: string
+  isVisible?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  roomId: undefined,
+  isVisible: false
+})
+
+// Refs
+const videoRef = ref<HTMLVideoElement | null>(null)
+const isDragging = ref<boolean>(false)
+const dragOffset = ref({ x: 0, y: 0 })
+
+// 计算属性
+const isVisible = computed(() => props.isVisible && livePiPStore.isInPiPMode)
+
+// 方法
+/**
+ * 恢复到全屏直播
+ */
+const restoreToFullscreen = (): void => {
+  if (props.roomId) {
+    // 退出画中画模式
+    livePiPStore.exitPiPMode()
+
+    // 导航到直播页面
+    router.push(`/live/room/${props.roomId}`)
+  }
+}
+
+/**
+ * 结束直播
+ */
+const endLive = (): void => {
+  // 强制断开直播连接
+  livePiPStore.forceDisconnect()
+
+  // 导航到首页
+  router.push('/dashboard')
+}
+
+/**
+ * 开始拖拽
+ */
+const startDrag = (event: MouseEvent): void => {
+  isDragging.value = true
+  const pipWindow = videoRef.value?.parentElement
+  if (pipWindow) {
+    const rect = pipWindow.getBoundingClientRect()
+    dragOffset.value = {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top
+    }
+
+    document.addEventListener('mousemove', onDrag)
+    document.addEventListener('mouseup', stopDrag)
+  }
+}
+
+/**
+ * 拖拽过程
+ */
+const onDrag = (event: MouseEvent): void => {
+  if (!isDragging.value) return
+
+  const pipWindow = videoRef.value?.parentElement
+  if (pipWindow) {
+    const newX = event.clientX - dragOffset.value.x
+    const newY = event.clientY - dragOffset.value.y
+
+    // 限制在视窗范围内
+    const maxX = window.innerWidth - pipWindow.offsetWidth
+    const maxY = window.innerHeight - pipWindow.offsetHeight
+
+    pipWindow.style.left = `${Math.max(0, Math.min(newX, maxX))}px`
+    pipWindow.style.top = `${Math.max(0, Math.min(newY, maxY))}px`
+  }
+}
+
+/**
+ * 停止拖拽
+ */
+const stopDrag = (): void => {
+  isDragging.value = false
+  document.removeEventListener('mousemove', onDrag)
+  document.removeEventListener('mouseup', stopDrag)
+}
+
+// 生命周期
+onMounted(() => {
+  // 设置视频源
+  nextTick(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const activeSession = (livePiPStore.activeSession as any).value
+    if (videoRef.value && activeSession && activeSession.videoStream) {
+      videoRef.value.srcObject = activeSession.videoStream
+    }
+  })
+})
+
+onUnmounted(() => {
+  if (isDragging.value) {
+    stopDrag()
+  }
+})
+
+// 监听会话变化
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+watch(() => (livePiPStore.activeSession as any).value, (newSession) => {
+  if (videoRef.value && newSession && newSession.videoStream) {
+    videoRef.value.srcObject = newSession.videoStream
+  }
+}, { immediate: true })
+</script>
+
+<style lang="scss" scoped>
+@use '@/assets/styles/index.scss' as *;
+
+.pip-live-window {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 320px;
+  height: 240px;
+  background: var(--background-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 2px solid var(--border-color);
+  z-index: 9999;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  .pip-video {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: var(--background-color);
+    border-radius: 8px 8px 0 0;
+  }
+
+  .pip-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--background-secondary-color);
+    border-top: 1px solid var(--border-color);
+    gap: 12px;
+
+    .pip-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+      flex: 1;
+
+      .pip-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-color);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .pip-room {
+        font-size: 10px;
+        color: var(--text-color-3);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .pip-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+  }
+
+  .pip-drag-handle {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: move;
+    color: var(--text-color);
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 1;
+      background: rgba(0, 0, 0, 0.8);
+    }
+  }
+
+  &:hover .pip-drag-handle {
+    opacity: 0.7;
+  }
+}
+
+// 响应式调整
+@media (max-width: 768px) {
+  .pip-live-window {
+    width: 280px;
+    height: 200px;
+    top: 10px;
+    right: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pip-live-window {
+    width: 240px;
+    height: 160px;
+  }
+}
+</style>

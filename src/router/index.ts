@@ -1,6 +1,6 @@
 import type {RouteRecordRaw} from 'vue-router'
 import {createRouter, createWebHistory} from 'vue-router'
-import {useLoadingBarStore, useTransitionStore, useUserStore} from '@/store'
+import {useLoadingBarStore, useTransitionStore, useUserStore, useLivePiPStore} from '@/store'
 import {TitleUtil} from '@/utils'
 
 /**
@@ -434,6 +434,22 @@ router.beforeEach(async (to, from, next) => {
         }
         // 拦截所有其他跳转，重定向到信息填写选择页面
         next('/info/select')
+        return
+    }
+
+    // 直播画中画模式检测
+    const livePiPStore = useLivePiPStore()
+    const isLeavingLiveAction = to.name === 'LiveRoom' || to.path.includes('/live/room/')
+
+    // 如果当前有活跃直播且不是返回直播页面，则进入画中画模式
+    if (livePiPStore.hasActiveLive && !isLeavingLiveAction && hasFromPath) {
+        // 允许路由跳转，但保持直播在画中画模式
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const session = (livePiPStore.activeSession as any).value
+        if (session) {
+            livePiPStore.enterPiPMode(session)
+        }
+        next()
         return
     }
 

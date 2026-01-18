@@ -13,22 +13,38 @@
       <!-- 页面内容 -->
       <Main/>
     </div>
+
+    <!-- 画中画直播窗口 -->
+    <PiPLiveWindow
+      :room-id="pipRoomId"
+      :is-visible="isPiPVisible"
+    />
   </div>
 </template>
 
 <script lang="ts" setup>
 import {computed, onMounted, onUnmounted} from 'vue'
 import {useRoute} from 'vue-router'
-import {useMenuStore, useThemeStore} from '@/store'
+import {useMenuStore, useThemeStore, useLivePiPStore} from '@/store'
 import Sider from './Sider.vue'
 import Header from './Header.vue'
 import Main from './Main.vue'
+import PiPLiveWindow from '@/components/common/PiPLiveWindow.vue'
 
 const route = useRoute()
 const themeStore = useThemeStore()
 const menuStore = useMenuStore()
+const livePiPStore = useLivePiPStore()
 
 const isDashboardPage = computed(() => route.name === 'Dashboard')
+
+// 画中画相关
+const isPiPVisible = computed(() => livePiPStore.isInPiPMode)
+const pipRoomId = computed(() => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const session = (livePiPStore.activeSession as any).value
+  return session ? session.roomId : null
+})
 
 const checkScreenSize = () => {
   if (window.innerWidth < 768) {

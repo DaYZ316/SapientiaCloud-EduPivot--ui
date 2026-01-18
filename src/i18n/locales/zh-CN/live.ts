@@ -224,5 +224,10 @@ export default {
         stop: '结束直播',
         startSuccess: '直播已开启',
         startFailed: '开启直播失败'
+    },
+    pip: {
+        title: '正在直播中...',
+        restore: '恢复',
+        end: '结束'
     }
 }

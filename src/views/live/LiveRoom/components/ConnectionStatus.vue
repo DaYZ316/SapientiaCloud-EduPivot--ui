@@ -28,6 +28,11 @@
 
     <!-- 网络质量指示器 -->
     <network-quality-indicator />
+
+    <!-- 离开直播按钮 -->
+    <n-button class="leave-button" v-if="showLeaveButton" type="error" size="small" @click="$emit('leave')">
+      {{ t('live.room.leave') }}
+    </n-button>
   </div>
 </template>
 
@@ -46,9 +51,12 @@ interface Props {
   recordingStatusLabel: string | null
   connectionStateLabel: string
   connectionError: string | null
+  showLeaveButton?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  showLeaveButton: false
+})
 
 const { t } = useI18n()
 
@@ -71,6 +79,10 @@ const currentUserRoleLabel = computed(() => getLiveRoomRoleLabel(props.currentUs
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.leave-button {
+  margin-left: auto;
 }
 
 .status-chip,

@@ -183,3 +183,10 @@ export function getSseToken(classroomId?: string | null) {
     return http.post<string>('/live/sse-token', null, { params: { classroomId } })
 }
 
+/**
+ * 获取房间在线成员数量
+ */
+export function getRoomMemberCount(roomId: string) {
+    return http.get<number>(`/live/live-room/${roomId}/members/count`)
+}
+

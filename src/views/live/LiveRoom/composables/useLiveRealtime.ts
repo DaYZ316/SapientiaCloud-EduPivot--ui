@@ -29,7 +29,6 @@ export interface LiveRealtimeResult {
   membersCount: Readonly<Ref<number>>
   connect: (classroomId: string | null, roomInfo?: LiveRealtimeMessage | null) => Promise<void>
   disconnect: () => void
-  sendHeartbeat: () => void
 }
 
 export const useLiveRealtime = (): LiveRealtimeResult => {
@@ -53,8 +52,7 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
   const members = ref<string[]>([])
   const membersCount = ref<number>(0)
 
-  // 心跳定时器和轮询定时器
-  let heartbeatTimer: number | null = null
+  // 轮询定时器
   let pollingTimer: number | null = null
 
   // 连接到SSE服务器
@@ -101,7 +99,7 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
 
       // 建立SSE连接
       // 使用fetch-event-source支持Authorization header，避免EventSource的header限制
-      const sseUrl = `/live/live/subscribe${currentClassroomId ? `?classroomId=${currentClassroomId}&token=${sseToken}` : `?token=${sseToken}`}`
+      const sseUrl = `/live/subscribe${currentClassroomId ? `?classroomId=${currentClassroomId}&token=${sseToken}` : `?token=${sseToken}`}`
 
       eventSourceController = new AbortController()
 
@@ -125,7 +123,6 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
               isConnected.value = true
               connectionState.value = 'connected'
               reconnectAttempts.value = 0
-              startHeartbeat()
             } else {
               // 尝试读取错误响应体
               try {
@@ -174,8 +171,7 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
     isConnected.value = false
     connectionState.value = 'disconnected'
 
-    // 停止心跳和轮询
-    stopHeartbeat()
+    // 停止轮询
     stopPolling()
 
     // 清理所有资源
@@ -246,9 +242,6 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
           // ignore parse errors
         }
         break
-      case 'heartbeat':
-        // 忽略心跳消息
-        break
       default:
         // 未知消息类型，静默处理
         break
@@ -277,31 +270,6 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
     }
   }
 
-  // 启动心跳
-  const startHeartbeat = (): void => {
-    stopHeartbeat()
-    const timer = setInterval(() => {
-      sendHeartbeat()
-    }, 30000) // 每30秒发送一次心跳
-
-    // 注册定时器资源
-    resourceManager.registerTimer(timer)
-    heartbeatTimer = timer
-  }
-
-  // 停止心跳
-  const stopHeartbeat = (): void => {
-    if (heartbeatTimer) {
-      clearInterval(heartbeatTimer)
-      heartbeatTimer = null
-    }
-  }
-
-  // 发送心跳
-  const sendHeartbeat = (): void => {
-    // SSE是单向的，心跳主要用于检测连接状态
-    // 如果连接断开，会通过onerror事件处理
-  }
 
   // 轮询获取实时消息（SSE失败时的备用方案）
   const startPolling = (): void => {
@@ -354,7 +322,6 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
 
     // 方法
     connect,
-    disconnect,
-    sendHeartbeat
+    disconnect
   }
 }

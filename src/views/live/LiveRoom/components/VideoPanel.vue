@@ -41,7 +41,7 @@
           </div>
         </div>
 
-        <div class="speaker-thumbs">
+        <div v-if="hasThumbnails" class="speaker-thumbs">
           <div
             v-if="shouldShowLocalThumbnail"
             class="video-item thumb-video local-video"
@@ -160,11 +160,6 @@ const shouldShowLocalAsMain = computed(() => {
     return false
   }
   const result = props.mainParticipantId === 'local' || (!props.mainParticipantId && videoParticipants.value.length === 0)
-  console.log('VideoPanel: shouldShowLocalAsMain calculation', {
-    mainParticipantId: props.mainParticipantId,
-    videoParticipantsCount: videoParticipants.value.length,
-    result
-  })
   return result
 })
 
@@ -182,9 +177,12 @@ const thumbnailParticipants = computed(() => {
   return videoParticipants.value.filter(participant => participant.participantId !== mainId)
 })
 
+const hasThumbnails = computed(() => {
+  return shouldShowLocalThumbnail.value || thumbnailParticipants.value.length > 0
+})
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const handleSelectMain = (participantId: string) => {
-  console.log('VideoPanel: handleSelectMain called with participantId:', participantId)
   emit('select-main', participantId)
 }
 
@@ -199,10 +197,8 @@ const remoteVideoRefs = ref<Map<string, HTMLVideoElement>>(new Map())
       localVideoRefs.value.add(el)
       console.log('本地视频元素已注册:', el, '当前轨道:', lastLocalVideoTrack.value)
       if (lastLocalVideoTrack.value) {
-        console.log('立即附加现有轨道到新元素')
         attachToElement(lastLocalVideoTrack.value, el)
       } else {
-        console.log('没有现有轨道，等待轨道到达')
         // 如果没有轨道，尝试查找页面上的 LiveKit 轨道并附加
         nextTick(() => {
           try {
@@ -232,7 +228,6 @@ const remoteVideoRefs = ref<Map<string, HTMLVideoElement>>(new Map())
               }
             })
           } catch (e) {
-            console.log('查找现有轨道时出错:', e)
           }
         })
       }
@@ -264,46 +259,38 @@ const setRemoteVideoRef = (el: HTMLVideoElement | null, participantId: string) =
 const attachToElement = (trackOrStream: any, el: HTMLVideoElement | null) => {
   if (!el || !trackOrStream) return
 
-  try {
-    // 优先使用 LiveKit 的 attach 接口
-    if (typeof trackOrStream.attach === 'function') {
-      trackOrStream.attach(el)
-      el.play?.().catch(() => {})
-      return
-    }
+  // 优先使用 LiveKit 的 attach 接口
+  if (typeof trackOrStream.attach === 'function') {
+    trackOrStream.attach(el)
+    el.play?.()
+    return
+  }
 
-    // 如果已经是 MediaStream，直接设置 srcObject
-    if (trackOrStream instanceof MediaStream) {
-      el.srcObject = trackOrStream
-      el.play?.().catch(() => {})
-      return
-    }
+  // 如果已经是 MediaStream，直接设置 srcObject
+  if (trackOrStream instanceof MediaStream) {
+    el.srcObject = trackOrStream
+    el.play?.()
+    return
+  }
 
-    // 如果是单独的 MediaStreamTrack，包装成 MediaStream
-    if (typeof trackOrStream.kind === 'string' && typeof (trackOrStream as any).label === 'string') {
-      try {
-        const ms = new MediaStream([trackOrStream])
-        el.srcObject = ms
-        el.play?.().catch(() => {})
-        return
-      } catch (e) {
-        // 忽略构造失败，继续尝试其他字段
-      }
-    }
+  // 如果是单独的 MediaStreamTrack，包装成 MediaStream
+  if (typeof trackOrStream.kind === 'string' && typeof (trackOrStream as any).label === 'string') {
+    const ms = new MediaStream([trackOrStream])
+    el.srcObject = ms
+    el.play?.()
+    return
+  }
 
-    // 有些实现会把 stream 放在 mediaStream/stream 字段中
-    if (trackOrStream.mediaStream instanceof MediaStream) {
-      el.srcObject = trackOrStream.mediaStream
-      el.play?.().catch(() => {})
-      return
-    }
-    if (trackOrStream.stream instanceof MediaStream) {
-      el.srcObject = trackOrStream.stream
-      el.play?.().catch(() => {})
-      return
-    }
-  } catch (e) {
-    // 忽略 attach 错误以保持鲁棒性
+  // 有些实现会把 stream 放在 mediaStream/stream 字段中
+  if (trackOrStream.mediaStream instanceof MediaStream) {
+    el.srcObject = trackOrStream.mediaStream
+    el.play?.()
+    return
+  }
+  if (trackOrStream.stream instanceof MediaStream) {
+    el.srcObject = trackOrStream.stream
+    el.play?.()
+    return
   }
 }
 
@@ -323,27 +310,14 @@ const attachRemoteVideo = (participantId: string, track: Track | any) => {
 }
 
   // 当 props.remoteParticipants 更新时，自动附加/分离轨道
-  watch(() => props.remoteParticipants, (newList, oldList) => {
-    console.log('VideoPanel: remoteParticipants updated', {
-      oldCount: oldList?.length || 0,
-      newCount: newList?.length || 0,
-      newParticipants: newList?.map(p => ({
-        id: p.participantId,
-        hasVideo: !!p.videoTrack,
-        hasAudio: !!p.audioTrack
-      }))
-    })
+  watch(() => props.remoteParticipants, (newList) => {
 
     // attach newly arrived video tracks
     newList.forEach((p: any) => {
       if (p && p.participantId && p.videoTrack) {
         const el = remoteVideoRefs.value.get(p.participantId)
         if (el) {
-          try {
-            attachToElement(p.videoTrack, el)
-          } catch (e) {
-            console.error('VideoPanel: Failed to attach video track for participant:', p.participantId, e)
-          }
+          attachToElement(p.videoTrack, el)
         } else {
         }
       }
@@ -353,9 +327,31 @@ const attachRemoteVideo = (participantId: string, track: Track | any) => {
   // 监听本地视频轨道变化，强制附加
   watch(() => lastLocalVideoTrack.value, (newTrack) => {
     if (newTrack) {
-      console.log('检测到新的本地视频轨道，立即附加:', newTrack)
       localVideoRefs.value.forEach((videoEl) => {
         attachToElement(newTrack, videoEl)
+      })
+    }
+  })
+
+  // 监听主要参与者变化，重新附加轨道
+  watch(() => props.mainParticipantId, (newMainId, oldMainId) => {
+    if (newMainId !== oldMainId) {
+
+      // 强制重新附加所有本地视频轨道
+      if (lastLocalVideoTrack.value) {
+        localVideoRefs.value.forEach((videoEl) => {
+          attachToElement(lastLocalVideoTrack.value, videoEl)
+        })
+      }
+
+      // 重新附加所有远程视频轨道，确保布局切换后轨道正确显示
+      props.remoteParticipants.forEach((participant) => {
+        if (participant?.videoTrack) {
+          const videoEl = remoteVideoRefs.value.get(participant.participantId)
+          if (videoEl) {
+            attachToElement(participant.videoTrack, videoEl)
+          }
+        }
       })
     }
   })
@@ -363,6 +359,7 @@ const attachRemoteVideo = (participantId: string, track: Track | any) => {
 // 确保变量被使用（模板中使用）
 void shouldShowLocalThumbnail
 void thumbnailParticipants
+void hasThumbnails
 void handleSelectMain
 void setRemoteVideoRef
 void setLocalVideoRef
@@ -397,23 +394,15 @@ const cleanupLocalVideo = () => {
 // 在挂载时尝试将已存在的远程轨道附加到已挂载的视频元素（防止顺序问题导致无法附加）
 onMounted(() => {
   nextTick(() => {
-    try {
-      props.remoteParticipants.forEach((p: any) => {
-        if (p && p.participantId && p.videoTrack) {
-          const el = remoteVideoRefs.value.get(p.participantId)
-          if (el) {
-            try {
-              p.videoTrack.attach(el)
-              el.play?.().catch(() => {})
-            } catch (e) {
-              // ignore attach errors
-            }
-          }
+    props.remoteParticipants.forEach((p: any) => {
+      if (p && p.participantId && p.videoTrack) {
+        const el = remoteVideoRefs.value.get(p.participantId)
+        if (el) {
+          p.videoTrack.attach(el)
+          el.play?.()
         }
-      })
-    } catch (e) {
-      // ignore
-    }
+      }
+    })
   })
 })
 
@@ -544,6 +533,8 @@ defineExpose({
 
 .video-item.main-video {
   flex: 1;
+  width: 100%;
+  height: 100%;
   aspect-ratio: auto;
   min-height: 0;
 }

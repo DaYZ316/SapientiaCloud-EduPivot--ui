@@ -41,6 +41,7 @@ export interface LiveRoomResult {
   recordingLoading: Ref<boolean>
   chatMessages: Ref<any[]>
   chatOnlineCount: Ref<number>
+  activeVideoCount: Ref<number>
   speakerVolumeValue: Ref<number>
   canShowRecording: Ref<boolean>
   activeMainParticipantId: Ref<string | null>
@@ -77,7 +78,27 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
   const roomId = roomIdProp ?? (route.params.roomId as string)
   const roomInfo = ref<LiveRoomVO | null>(null)
   const remoteParticipants = ref<RemoteParticipantMedia[]>([])
-  const onlineCount = computed(() => connection.onlineCount.value)
+  // 后端报告的在线人数（通过API和SSE获取）
+  const backendMemberCount = ref<number>(0)
+
+  // 在线人数：优先使用后端数据，其次使用LiveKit计算
+  const onlineCount = computed(() => {
+    // 优先使用后端报告的成员数
+    if (backendMemberCount.value > 0) {
+      return backendMemberCount.value
+    }
+
+    // 其次使用SSE/后端提供的实时成员数
+    const realtimeCount = realtime.membersCount.value
+    if (typeof realtimeCount === 'number' && realtimeCount >= 0) {
+      return realtimeCount
+    }
+
+    // 回退到LiveKit计算（用于兼容性）
+    if (!connection.room.value) return 0
+    const participantTotal = connection.room.value.remoteParticipants ? connection.room.value.remoteParticipants.size : 0
+    return participantTotal + (connection.isConnected.value ? 1 : 0)
+  })
   const isFullscreen = ref(false)
   const isChatCollapsed = ref(false)
   const unreadMessageCount = ref(0)
@@ -146,18 +167,26 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     return Array.isArray(msgs) ? msgs : []
   })
   const chatOnlineCount = computed(() => {
-    // 优先使用 SSE/后端提供的实时成员数（realtime.membersCount），其次使用 chat 组合函数提供的简化人数，最后回退到 RTC 的 onlineCount
+    // 优先使用后端报告的成员数，与直播上方人数保持一致
+    if (backendMemberCount.value > 0) {
+      return backendMemberCount.value
+    }
+
+    // 其次使用SSE推送的实时成员数
     const realtimeCount = realtime.membersCount.value
     if (typeof realtimeCount === 'number' && realtimeCount >= 0) {
       return realtimeCount
     }
 
-    const countFromChat = chat.chatOnlineCount
-    if (typeof countFromChat === 'number') {
-      return countFromChat
-    }
-
+    // 回退到LiveKit计算（用于兼容性）
     return onlineCount.value
+  })
+
+  // 活跃视频数量（用于布局优化）
+  const activeVideoCount = computed(() => {
+    const remoteVideoCount = remoteParticipants.value.filter(p => p.videoTrack).length
+    const localVideoEnabled = media.cameraEnabled.value
+    return remoteVideoCount + (localVideoEnabled ? 1 : 0)
   })
   const speakerVolumeValue = computed(() => speakerVolume.value ?? 100)
   const canShowRecording = computed(() => {
@@ -263,160 +292,87 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
       })
       // 连接成功后尝试附加本地视频轨道（如果存在）
       const tryAttachLocalVideo = async (forceDirectAttach = false) => {
-        try {
-          const currentRoom = connection.room.value
-          if (!currentRoom) {
-            console.log('tryAttachLocalVideo: 房间不存在')
-            return
-          }
+        const currentRoom = connection.room.value
+        if (!currentRoom) {
+          return
+        }
 
-          // 尝试从 localParticipant 的视频 publication 中找到 track（兼容多种命名）
-          const localParticipant: any = (currentRoom as any).localParticipant
-          if (!localParticipant) {
-            console.log('tryAttachLocalVideo: 本地参与者不存在')
-            return
-          }
+        // 尝试从 localParticipant 的视频 publication 中找到 track（兼容多种命名）
+        const localParticipant: any = (currentRoom as any).localParticipant
+        if (!localParticipant) {
+          return
+        }
 
-          // 收集可能的 publication/track 容器，兼容不同 livekit-client 版本 API
-          const pubs: any[] = []
-          try {
-            if (localParticipant.videoTrackPublications && typeof localParticipant.videoTrackPublications.values === 'function') {
-              pubs.push(...Array.from(localParticipant.videoTrackPublications.values()))
-            }
-          } catch (e) {}
-          try {
-            if (typeof localParticipant.getTrackPublications === 'function') {
-              const mp = localParticipant.getTrackPublications()
-              if (mp && typeof mp.values === 'function') pubs.push(...Array.from(mp.values()))
-            }
-          } catch (e) {}
-          try {
-            if (localParticipant.videoTracks && typeof localParticipant.videoTracks.values === 'function') {
-              pubs.push(...Array.from(localParticipant.videoTracks.values()))
-            }
-          } catch (e) {}
+        // 收集可能的 publication/track 容器，兼容不同 livekit-client 版本 API
+        const pubs: any[] = []
+        if (localParticipant.videoTrackPublications && typeof localParticipant.videoTrackPublications.values === 'function') {
+          pubs.push(...Array.from(localParticipant.videoTrackPublications.values()))
+        }
+        if (typeof localParticipant.getTrackPublications === 'function') {
+          const mp = localParticipant.getTrackPublications()
+          if (mp && typeof mp.values === 'function') pubs.push(...Array.from(mp.values()))
+        }
+        if (localParticipant.videoTracks && typeof localParticipant.videoTracks.values === 'function') {
+          pubs.push(...Array.from(localParticipant.videoTracks.values()))
+        }
 
-          console.log('tryAttachLocalVideo: 找到', pubs.length, '个轨道发布')
-
-          // 有些实现直接把 track 放在集合里，有些放在 publication.track 中，逐一检查
-          for (const pub of pubs) {
-            const track = pub && (pub.track || pub)
-            if (!track) continue
-            try {
-              if (track.kind === Track.Kind.Video) {
-                console.log('tryAttachLocalVideo: 找到视频轨道，尝试附加:', track)
-
-                // 支持 panel 是 ref 或 直接对象
-                if (videoPanelRef.value) {
-                  const panel = videoPanelRef.value?.value ?? videoPanelRef.value
-                  console.log('tryAttachLocalVideo: 附加到 VideoPanel')
-                  panel?.attachLocalVideo?.(track)
-                  return
-                }
-
-                // 回退：如果 panel 未注册，尝试直接附加到页面上的本地 video 元素（避免时序导致无法 attach）
-                try {
-                  const els = Array.from(document.querySelectorAll('.video-panel .local-video video')) as HTMLVideoElement[]
-                  console.log('tryAttachLocalVideo: VideoPanel 未注册，尝试直接附加到', els.length, '个元素')
-
-                  for (const el of els) {
-                    if (!el) continue
-                    try {
-                      console.log('tryAttachLocalVideo: 附加到元素:', el)
-
-                      // LiveKit track 支持 attach
-                      if (typeof (track as any).attach === 'function') {
-                        (track as any).attach(el)
-                        console.log('tryAttachLocalVideo: LiveKit attach 成功')
-                      } else if (track instanceof MediaStream) {
-                        el.srcObject = track
-                        console.log('tryAttachLocalVideo: MediaStream attach 成功')
-                      } else if (typeof (track as any).kind === 'string') {
-                        try {
-                          const ms = new MediaStream([track as any])
-                          el.srcObject = ms
-                          console.log('tryAttachLocalVideo: 新建 MediaStream attach 成功')
-                        } catch (e) {
-                          console.log('tryAttachLocalVideo: 新建 MediaStream 失败:', e)
-                        }
-                      } else if ((track as any).mediaStream instanceof MediaStream) {
-                        el.srcObject = (track as any).mediaStream
-                        console.log('tryAttachLocalVideo: mediaStream 属性 attach 成功')
-                      } else if ((track as any).stream instanceof MediaStream) {
-                        el.srcObject = (track as any).stream
-                        console.log('tryAttachLocalVideo: stream 属性 attach 成功')
-                      }
-
-                      // 解除 autoplay 限制并尝试播放
-                      el.muted = true
-                      el.play?.().catch((e) => {
-                        console.log('tryAttachLocalVideo: 播放失败:', e)
-                      })
-                      console.log('tryAttachLocalVideo: 附加完成')
-                      return
-                    } catch (e) {
-                      console.log('tryAttachLocalVideo: 单个元素附加失败:', e)
-                    }
-                  }
-                } catch (e) {
-                  console.log('tryAttachLocalVideo: DOM 附加错误:', e)
-                }
-              }
-            } catch (e) {
-              console.log('tryAttachLocalVideo: 单个轨道错误:', e)
-            }
-          }
-
-          console.log('tryAttachLocalVideo: 未找到合适的视频轨道')
-
-          // 如果 forceDirectAttach 为 true 或者没有找到 LiveKit 轨道，尝试直接 getUserMedia
-          if (forceDirectAttach || pubs.length === 0) {
-            console.log('tryAttachLocalVideo: 尝试直接 getUserMedia 回退方案')
-            try {
-              const stream = await navigator.mediaDevices.getUserMedia({
-                video: true,
-                audio: false
-              })
-
-              const els = Array.from(document.querySelectorAll('.video-panel .local-video video')) as HTMLVideoElement[]
-              console.log('tryAttachLocalVideo: 直接附加到', els.length, '个元素')
-
-              els.forEach(el => {
-                if (el) {
-                  el.srcObject = stream
-                  el.muted = true
-                  el.play?.().catch(e => console.log('tryAttachLocalVideo: 播放失败:', e))
-                }
-              })
-
-              console.log('tryAttachLocalVideo: 直接 getUserMedia 附加成功')
+        // 有些实现直接把 track 放在集合里，有些放在 publication.track 中，逐一检查
+        for (const pub of pubs) {
+          const track = pub && (pub.track || pub)
+          if (!track) continue
+          if (track.kind === Track.Kind.Video) {
+            // 支持 panel 是 ref 或 直接对象
+            if (videoPanelRef.value) {
+              const panel = videoPanelRef.value?.value ?? videoPanelRef.value
+              panel?.attachLocalVideo?.(track)
               return
-            } catch (directError) {
-              console.log('tryAttachLocalVideo: 直接 getUserMedia 也失败:', directError)
+            }
+
+            // 回退：如果 panel 未注册，尝试直接附加到页面上的本地 video 元素（避免时序导致无法 attach）
+            const els = Array.from(document.querySelectorAll('.video-panel .local-video video')) as HTMLVideoElement[]
+
+            for (const el of els) {
+              if (!el) continue
+              // LiveKit track 支持 attach
+              if (typeof (track as any).attach === 'function') {
+                (track as any).attach(el)
+              } else if (track instanceof MediaStream) {
+                el.srcObject = track
+              } else if (typeof (track as any).kind === 'string') {
+                const ms = new MediaStream([track as any])
+                el.srcObject = ms
+              } else if ((track as any).mediaStream instanceof MediaStream) {
+                el.srcObject = (track as any).mediaStream
+              } else if ((track as any).stream instanceof MediaStream) {
+                el.srcObject = (track as any).stream
+              }
+
+              // 解除 autoplay 限制并尝试播放
+              el.muted = true
+              el.play?.()
+              return
             }
           }
-        } catch (e) {
-          console.log('tryAttachLocalVideo: 整体错误:', e)
+        }
 
-          // 如果整体出错，也尝试直接 getUserMedia 回退
-          try {
-            console.log('tryAttachLocalVideo: 因错误尝试直接 getUserMedia 回退')
-            const stream = await navigator.mediaDevices.getUserMedia({
-              video: true,
-              audio: false
-            })
+        // 如果 forceDirectAttach 为 true 或者没有找到 LiveKit 轨道，尝试直接 getUserMedia
+        if (forceDirectAttach || pubs.length === 0) {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
+          })
 
-            const els = Array.from(document.querySelectorAll('.video-panel .local-video video')) as HTMLVideoElement[]
-            els.forEach(el => {
-              if (el) {
-                el.srcObject = stream
-                el.muted = true
-                el.play?.().catch(e => console.log('tryAttachLocalVideo: 回退播放失败:', e))
-              }
-            })
-          } catch (fallbackError) {
-            console.log('tryAttachLocalVideo: 回退方案也失败:', fallbackError)
-          }
+          const els = Array.from(document.querySelectorAll('.video-panel .local-video video')) as HTMLVideoElement[]
+
+          els.forEach(el => {
+            if (el) {
+              el.srcObject = stream
+              el.muted = true
+              el.play?.()
+            }
+          })
+
+          return
         }
         return
       }
@@ -447,13 +403,11 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
 
       // 额外的延迟附加，确保组件完全挂载
       setTimeout(async () => {
-        console.log('执行延迟附加本地视频...')
         await tryAttachLocalVideo()
       }, 2000)
 
       // 如果LiveKit附加失败，使用直接getUserMedia作为回退方案
       setTimeout(async () => {
-        console.log('检查LiveKit附加是否成功...')
         const videoElements = document.querySelectorAll('.video-panel .local-video video')
         let hasVideo = false
 
@@ -465,26 +419,17 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
         })
 
         if (!hasVideo) {
-          console.log('LiveKit附加失败，使用直接getUserMedia回退方案...')
-          try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-              video: true,
-              audio: false
-            })
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
+          })
 
-            Array.from(videoElements).forEach((video) => {
-              const videoEl = video as HTMLVideoElement
-              videoEl.srcObject = stream
-              videoEl.muted = true
-              videoEl.play().catch((e: any) => console.log('回退播放失败:', e))
-            })
-
-            console.log('✅ 回退方案成功：直接getUserMedia附加完成')
-          } catch (error) {
-            console.log('❌ 回退方案也失败:', error)
-          }
-        } else {
-          console.log('✅ LiveKit附加成功，无需回退')
+          Array.from(videoElements).forEach((video) => {
+            const videoEl = video as HTMLVideoElement
+            videoEl.srcObject = stream
+            videoEl.muted = true
+            videoEl.play()
+          })
         }
       }, 5000)
     }
@@ -613,7 +558,10 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
         }
         break
       case 'members':
-        // members事件由useLiveRealtime处理，这里不需要额外处理
+        // 更新后端报告的成员数量
+        if (message.data && typeof message.data.membersCount === 'number') {
+          backendMemberCount.value = message.data.membersCount
+        }
         break
       // 可以在这里添加其他事件类型的处理
     }
@@ -621,70 +569,62 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
 
   // 同步参与者已有轨道（用于首次加入房间或重连）
   const syncExistingParticipantTracks = (participant: RemoteParticipant) => {
-    try {
-      const displayName = (participant.identity) || participant.sid
-      const participantRole = (() => {
-        try {
-          if (participant.metadata) {
-            const meta = JSON.parse(participant.metadata)
-            return meta.role || null
-          }
-        } catch (e) {
-          // ignore
-        }
-        return null
-      })()
+    const displayName = (participant.identity) || participant.sid
+    const participantRole = (() => {
+      if (participant.metadata) {
+        const meta = JSON.parse(participant.metadata)
+        return meta.role || null
+      }
+      return null
+    })()
 
-      const videoPubs = Array.from(participant.videoTrackPublications.values()) as RemoteTrackPublication[]
-      videoPubs.forEach((pub) => {
-        if (pub.track && pub.track.kind === Track.Kind.Video) {
-          const existingIndex = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
-          if (existingIndex >= 0) {
-            remoteParticipants.value[existingIndex] = {
-              ...remoteParticipants.value[existingIndex],
-              participantId: participant.identity,
-              displayName,
-              role: participantRole,
-              videoTrack: pub.track,
-            }
-          } else {
-            remoteParticipants.value.push({
-              participantId: participant.identity,
-              displayName,
-              role: participantRole,
-              videoTrack: pub.track,
-              audioTrack: null
-            })
+    const videoPubs = Array.from(participant.videoTrackPublications.values()) as RemoteTrackPublication[]
+    videoPubs.forEach((pub) => {
+      if (pub.track && pub.track.kind === Track.Kind.Video) {
+        const existingIndex = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
+        if (existingIndex >= 0) {
+          remoteParticipants.value[existingIndex] = {
+            ...remoteParticipants.value[existingIndex],
+            participantId: participant.identity,
+            displayName,
+            role: participantRole,
+            videoTrack: pub.track,
           }
+        } else {
+          remoteParticipants.value.push({
+            participantId: participant.identity,
+            displayName,
+            role: participantRole,
+            videoTrack: pub.track,
+            audioTrack: null
+          })
         }
-      })
+      }
+    })
 
-      const audioPubs = Array.from(participant.audioTrackPublications.values()) as RemoteTrackPublication[]
-      audioPubs.forEach((pub) => {
-        if (pub.track && pub.track.kind === Track.Kind.Audio) {
-          const existingIndex = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
-          if (existingIndex >= 0) {
-            remoteParticipants.value[existingIndex] = {
-              ...remoteParticipants.value[existingIndex],
-              participantId: participant.identity,
-              displayName,
-              role: participantRole,
-              audioTrack: pub.track
-            }
-          } else {
-            remoteParticipants.value.push({
-              participantId: participant.identity,
-              displayName,
-              role: participantRole,
-              videoTrack: null,
-              audioTrack: pub.track
-            })
+    const audioPubs = Array.from(participant.audioTrackPublications.values()) as RemoteTrackPublication[]
+    audioPubs.forEach((pub) => {
+      if (pub.track && pub.track.kind === Track.Kind.Audio) {
+        const existingIndex = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
+        if (existingIndex >= 0) {
+          remoteParticipants.value[existingIndex] = {
+            ...remoteParticipants.value[existingIndex],
+            participantId: participant.identity,
+            displayName,
+            role: participantRole,
+            audioTrack: pub.track
           }
+        } else {
+          remoteParticipants.value.push({
+            participantId: participant.identity,
+            displayName,
+            role: participantRole,
+            videoTrack: null,
+            audioTrack: pub.track
+          })
         }
-      })
-    } catch (e) {
-      // ignore
-    }
+      }
+    })
   }
 
   // 监听 LiveKit Room 的参与者与轨道事件，保持 remoteParticipants 同步
@@ -693,72 +633,56 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     (currentRoom) => {
       if (!currentRoom) return
 
-      connection.updateOnlineCount(currentRoom)
+      // 房间连接成功时，主动从后端获取在线人数（确保数据同步）
+      if (roomId) {
+        liveApi.getRoomMemberCount(roomId).then(result => {
+          backendMemberCount.value = result.data
+        })
+      }
 
       // 同步已有参与者轨道
-      console.log('Syncing existing participants:', currentRoom.remoteParticipants.size)
       currentRoom.remoteParticipants.forEach((participant) => {
-        console.log('Existing participant:', participant.identity, 'tracks:', {
-          video: participant.videoTrackPublications.size,
-          audio: participant.audioTrackPublications.size
-        })
         syncExistingParticipantTracks(participant)
       })
 
       // 订阅事件
       resourceManager.registerEventListener(currentRoom, RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
-        connection.updateOnlineCount(currentRoom)
         syncExistingParticipantTracks(participant)
       })
 
       resourceManager.registerEventListener(currentRoom, RoomEvent.TrackSubscribed, (track: Track, _publication: RemoteTrackPublication, participant: RemoteParticipant) => {
-        try {
-          console.log('TrackSubscribed event:', {
-            trackKind: track.kind,
-            participantId: participant.identity,
-            participantSid: participant.sid,
-            trackSid: track.sid
-          })
+        const participantId = participant.identity
+        const displayName = participantId
+        const existingIndex = remoteParticipants.value.findIndex(p => p.participantId === participantId)
 
-          const participantId = participant.identity
-          const displayName = participantId
-          const existingIndex = remoteParticipants.value.findIndex(p => p.participantId === participantId)
-
-          if (track.kind === Track.Kind.Video) {
-            console.log('Processing video track for participant:', participantId)
-            if (existingIndex >= 0) {
-              console.log('Updating existing participant video track')
-              remoteParticipants.value[existingIndex] = {
-                ...remoteParticipants.value[existingIndex],
-                participantId,
-                displayName,
-                videoTrack: track
-              }
-            } else {
-              console.log('Adding new participant with video track')
-              remoteParticipants.value.push({
-                participantId,
-                displayName,
-                role: null,
-                videoTrack: track,
-                audioTrack: null
-              })
+        if (track.kind === Track.Kind.Video) {
+          if (existingIndex >= 0) {
+            remoteParticipants.value[existingIndex] = {
+              ...remoteParticipants.value[existingIndex],
+              participantId,
+              displayName,
+              videoTrack: track
             }
-            attachRemoteVideoWithRetry(participantId, track)
+          } else {
+            remoteParticipants.value.push({
+              participantId,
+              displayName,
+              role: null,
+              videoTrack: track,
+              audioTrack: null
+            })
           }
-          if (track.kind === Track.Kind.Audio) {
-            console.log('Processing audio track for participant:', participantId)
-            if (existingIndex >= 0) {
-              remoteParticipants.value[existingIndex] = {
-                ...remoteParticipants.value[existingIndex],
-                participantId,
-                displayName,
-                audioTrack: track
-              }
+          attachRemoteVideoWithRetry(participantId, track)
+        }
+        if (track.kind === Track.Kind.Audio) {
+          if (existingIndex >= 0) {
+            remoteParticipants.value[existingIndex] = {
+              ...remoteParticipants.value[existingIndex],
+              participantId,
+              displayName,
+              audioTrack: track
             }
           }
-        } catch (e) {
-          console.error('Error in TrackSubscribed handler:', e)
         }
       })
 
@@ -783,7 +707,6 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
       })
 
       resourceManager.registerEventListener(currentRoom, RoomEvent.ParticipantDisconnected, (participant: RemoteParticipant) => {
-        connection.updateOnlineCount(currentRoom)
         const index = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
         if (index >= 0) remoteParticipants.value.splice(index, 1)
       })
@@ -828,6 +751,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     recordingLoading,
     chatMessages,
     chatOnlineCount,
+    activeVideoCount,
     speakerVolumeValue,
     canShowRecording,
     activeMainParticipantId,

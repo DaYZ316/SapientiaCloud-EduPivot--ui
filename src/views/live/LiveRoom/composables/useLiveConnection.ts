@@ -17,7 +17,6 @@ export interface LiveConnectionResult {
   connectionError: Readonly<Ref<string | null>>
   sessionId: Readonly<Ref<string | null>>
   heartbeatIntervalSeconds: Readonly<Ref<number | null>>
-  onlineCount: Readonly<Ref<number>>
 
   // 计算属性
   connectionStateLabel: ComputedRef<string>
@@ -25,7 +24,6 @@ export interface LiveConnectionResult {
   // 方法
   connect: (roomInfo: import('@/types/live').LiveRoomVO | null, currentUserRole: import('@/enum/live').LiveRoomRoleEnum, token?: string, sessionId?: string | null) => Promise<void>
   disconnect: () => Promise<void>
-  updateOnlineCount: (targetRoom: Room | null) => void
 }
 
 export const useLiveConnection = (): LiveConnectionResult => {
@@ -44,7 +42,6 @@ export const useLiveConnection = (): LiveConnectionResult => {
   const connectionError = ref<string | null>(null)
   const sessionId = ref<string | null>(null)
   const heartbeatIntervalSeconds = ref<number | null>(null)
-  const onlineCount = ref<number>(0)
   const currentRoomId = ref<string | null>(null)
 
   // 心跳定时器
@@ -213,7 +210,6 @@ export const useLiveConnection = (): LiveConnectionResult => {
     connectionState.value = 'connected'
     connecting.value = false
     connectionError.value = null
-    updateOnlineCount(newRoom)
 
     // 启动心跳机制
     startHeartbeat(roomInfo.id)
@@ -244,19 +240,9 @@ export const useLiveConnection = (): LiveConnectionResult => {
       isConnected.value = false
       connectionState.value = 'disconnected'
       connectionError.value = null
-      updateOnlineCount(null)
     }
   }
 
-  // 更新在线人数
-  const updateOnlineCount = (targetRoom: Room | null): void => {
-    if (!targetRoom) {
-      onlineCount.value = 0
-      return
-    }
-    const participantTotal = targetRoom.remoteParticipants ? targetRoom.remoteParticipants.size : 0
-    onlineCount.value = participantTotal + (isConnected.value ? 1 : 0)
-  }
 
   // 启动心跳
   const startHeartbeat = (roomId: string): void => {
@@ -264,27 +250,20 @@ export const useLiveConnection = (): LiveConnectionResult => {
 
     const intervalSeconds = heartbeatIntervalSeconds.value
     if (!intervalSeconds || intervalSeconds <= 0) {
-      console.warn('Heartbeat interval not configured, using default 30 seconds')
       // 默认30秒
     }
     const intervalMs = (intervalSeconds || 30) * 1000
 
     const sendHeartbeat = async () => {
-      try {
-        if (!isConnected.value || !sessionId.value || !roomId) {
-          return // 如果未连接或缺少必要信息，跳过心跳
-        }
-
-        const heartbeatData = liveApi.getDefaultLiveRoomSessionDTO()
-        heartbeatData.roomId = roomId
-        heartbeatData.sessionId = sessionId.value
-
-        await liveApi.heartbeatLiveRoom(heartbeatData)
-      } catch (error: any) {
-        // 心跳失败不应该中断用户体验，只记录错误
-        console.warn('Heartbeat failed:', error.message)
-        // 不抛出错误，避免影响用户体验
+      if (!isConnected.value || !sessionId.value || !roomId) {
+        return // 如果未连接或缺少必要信息，跳过心跳
       }
+
+      const heartbeatData = liveApi.getDefaultLiveRoomSessionDTO()
+      heartbeatData.roomId = roomId
+      heartbeatData.sessionId = sessionId.value
+
+      await liveApi.heartbeatLiveRoom(heartbeatData)
     }
 
     // 立即发送一次心跳以确保members事件被发送
@@ -311,14 +290,12 @@ export const useLiveConnection = (): LiveConnectionResult => {
     resourceManager.registerEventListener(targetRoom, RoomEvent.Connected, () => {
       isConnected.value = true
       connectionState.value = 'connected'
-      updateOnlineCount(targetRoom)
     })
 
     resourceManager.registerEventListener(targetRoom, RoomEvent.Disconnected, () => {
       connectionState.value = 'disconnected'
       isConnected.value = false
       stopHeartbeat() // 断开连接时停止心跳
-      updateOnlineCount(null)
     })
 
     resourceManager.registerEventListener(targetRoom, RoomEvent.Reconnecting, () => {
@@ -328,21 +305,13 @@ export const useLiveConnection = (): LiveConnectionResult => {
     resourceManager.registerEventListener(targetRoom, RoomEvent.Reconnected, () => {
       connectionState.value = 'connected'
       isConnected.value = true
-      updateOnlineCount(targetRoom)
       // 重新连接后重新启动心跳
       if (currentRoomId.value) {
         startHeartbeat(currentRoomId.value)
       }
     })
 
-    // 参与者变化
-    resourceManager.registerEventListener(targetRoom, RoomEvent.ParticipantConnected, () => {
-      updateOnlineCount(targetRoom)
-    })
-
-    resourceManager.registerEventListener(targetRoom, RoomEvent.ParticipantDisconnected, () => {
-      updateOnlineCount(targetRoom)
-    })
+    // 参与者变化 - 由useLiveRoom处理
 
     // 轨道订阅事件 - 不在这里处理，由useLiveRoom处理
     // 移除空的TrackSubscribed/TrackUnsubscribed监听器，避免与useLiveRoom冲突
@@ -357,14 +326,12 @@ export const useLiveConnection = (): LiveConnectionResult => {
     connectionError: readonly(connectionError),
     sessionId: readonly(sessionId),
     heartbeatIntervalSeconds: readonly(heartbeatIntervalSeconds),
-    onlineCount: readonly(onlineCount),
 
     // 计算属性
     connectionStateLabel,
 
     // 方法
     connect,
-    disconnect,
-    updateOnlineCount
+    disconnect
   }
 }

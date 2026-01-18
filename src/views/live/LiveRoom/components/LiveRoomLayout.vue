@@ -1,9 +1,29 @@
 <template>
-  <div :class="['room-layout', {'is-connected': context.connectionIsConnected.value, 'chat-collapsed': context.isChatCollapsed.value}]">
+  <div :class="['room-layout', {
+    'is-connected': context.connectionIsConnected.value,
+    'chat-collapsed': context.isChatCollapsed.value,
+    'single-video': isSingleVideo,
+    'chat-collapsed-with-video': isChatCollapsedWithVideo
+  }]">
     <!-- 网络状态提示 -->
     <network-status />
 
     <section class="video-panel">
+      <!-- 顶部状态栏 -->
+      <div class="video-panel-header">
+        <connection-status
+          :room-status="context.roomInfo.value?.status || null"
+          :online-count="context.onlineCount.value"
+          :current-user-role="context.currentUserRole.value"
+          :is-recording="context.recording.isRecording.value"
+          :recording-status-label="context.recording.recordingStatusLabel.value"
+          :connection-state-label="context.connectionStateLabel.value"
+          :connection-error="context.connectionError.value"
+          :show-leave-button="context.connectionIsConnected.value"
+          @leave="context.handleLeave()"
+        />
+      </div>
+
       <div class="video-panel-content">
         <video-panel
           ref="videoPanelRef"
@@ -35,30 +55,28 @@
           @update-speaker-volume="handleSpeakerVolumeChange"
         />
 
-        <div class="layout-toggle">
+        <!-- 布局控制按钮 -->
+        <div class="layout-controls">
+          <!-- 布局切换按钮 -->
           <n-button quaternary size="small" @click="handleToggleLayoutMode">
             <template #icon>
               <n-icon :component="context.layoutMode.value === 'grid' ? PersonOutline : GridOutline" />
             </template>
           </n-button>
-        </div>
-
-        <div class="fullscreen-button">
+          <!-- 全屏按钮 -->
           <n-button quaternary size="small" @click="handleToggleFullscreen">
             <template #icon>
               <n-icon :component="context.isFullscreen.value ? ContractOutline : ExpandOutline" />
             </template>
           </n-button>
         </div>
+
       </div>
 
     </section>
 
     <section v-show="!context.isFullscreen.value || !context.isChatCollapsed.value" :class="['chat-panel', {'chat-panel-connected': context.connectionIsConnected.value, 'chat-panel-collapsed': context.isChatCollapsed.value}]">
       <div class="chat-panel-top">
-        <n-button v-if="context.connectionIsConnected.value" type="error" @click="context.handleLeave()" size="small">
-          {{ t('live.room.leave') }}
-        </n-button>
       </div>
 
       <ChatPanel
@@ -99,6 +117,10 @@ const { t } = useI18n()
 const context = useLiveRoomContext()
 
 const speakerVolumeValue = computed(() => context.speakerVolume.value ?? 100)
+
+// 布局优化计算
+const isSingleVideo = computed(() => context.activeVideoCount.value <= 1)
+const isChatCollapsedWithVideo = computed(() => context.isChatCollapsed.value && context.activeVideoCount.value > 0)
 const handleSelectMain = (participantId: string) => {
   context.handleSelectMain(participantId)
 }
@@ -161,6 +183,7 @@ onUnmounted(() => {
   box-sizing: border-box;
 }
 
+
 .room-layout .video-panel {
   /* 增大视频面板占比，让左侧视频更大 */
   flex: 1.6 1 0%;
@@ -169,6 +192,16 @@ onUnmounted(() => {
   flex-direction: column;
   height: 100%;
   position: relative;
+
+  /* 单视频时占满左侧空间 */
+  .room-layout.single-video & {
+    flex: 1 1 0%;
+  }
+
+  /* 聊天室折叠且有视频时，进一步放大 */
+  .room-layout.chat-collapsed-with-video & {
+    flex: 1 1 0%;
+  }
 }
 
 .room-layout .chat-panel {
@@ -199,6 +232,12 @@ onUnmounted(() => {
   opacity: 1;
 }
 
+.layout-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .chat-panel-top {
   padding: 8px 12px;
   display: flex;
@@ -211,6 +250,11 @@ onUnmounted(() => {
 .room-layout .chat-panel.chat-panel-collapsed {
   width: 80px;
   min-width: 80px;
+}
+
+/* When chat is collapsed and has video, hide chat completely for full video experience */
+.room-layout.chat-collapsed-with-video .chat-panel {
+  display: none;
 }
 
 /* Fullscreen: hide chat completely when in fullscreen and chat-collapsed is true */

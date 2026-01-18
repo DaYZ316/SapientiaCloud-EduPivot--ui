@@ -86,7 +86,6 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { NButton, NSpin } from 'naive-ui';
 import { CloseOutline } from '@vicons/ionicons5';
-import { fetchEventSource } from '@microsoft/fetch-event-source';
 import LiveRoomCreateForm from '@/views/live/components/LiveRoomCreateForm.vue';
 import { LiveRoomRoleEnum } from '@/enum/live/liveRoomRoleEnum';
 import { LiveRoomStatusEnum } from '@/enum/live/liveRoomStatusEnum';
@@ -131,9 +130,10 @@ const startingLoading = computed(() => Boolean(starting.value));
 watch(() => props.show, async (val) => {
   if (val) {
     await loadRoom();
-    subscribeSse();
+    // 移除SSE连接，改用定期更新
+    startStatusPolling();
   } else {
-    unsubscribeSse();
+    stopStatusPolling();
   }
 });
 
@@ -300,88 +300,28 @@ function getStatusLabel(status: number | null | undefined) {
   return t('classroom.liveStatus.notStarted');
 }
 
-let eventSourceController: AbortController | null = null;
-async function subscribeSse() {
-  if (!props.classroomId) return;
-  unsubscribeSse();
+// 状态轮询定时器
+let statusPollingTimer: number | null = null;
 
-  try {
-    const jwtToken = userStore.token;
-    if (!jwtToken) {
-      throw new Error(t('live.sse.notLoggedIn'));
+function startStatusPolling() {
+  stopStatusPolling();
+  // 每10秒检查一次房间状态
+  statusPollingTimer = window.setInterval(async () => {
+    if (props.classroomId) {
+      await loadRoom();
     }
-
-    const sseUrl = `/live/live/subscribe?classroomId=${props.classroomId}`;
-
-    eventSourceController = new AbortController();
-
-    await fetchEventSource(sseUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${jwtToken}`,
-        'Accept': 'text/event-stream'
-      },
-      signal: eventSourceController.signal,
-      openWhenHidden: true,
-      credentials: 'include',
-      onopen: async (response) => {
-        if (response.ok) {
-          console.log('LivePanel SSE连接建立成功');
-        } else {
-          console.error('LivePanel SSE连接失败:', response.status, response.statusText);
-        }
-      },
-      onmessage: (evt) => {
-        try {
-          const data = JSON.parse(evt.data);
-          const hasRoomName = typeof data?.roomName === 'string' && data.roomName.trim().length > 0;
-          if (!data || !data.id || !hasRoomName) {
-            const currentHasRoomName = typeof room.value?.roomName === 'string' && room.value.roomName.trim().length > 0;
-            if (!currentHasRoomName) {
-              room.value = null;
-              courseInfo.value = null;
-            }
-            return;
-          }
-          room.value = data;
-          const status = data && (data.status || data.status === 0) ? Number(data.status) : null;
-          if (status === LiveRoomStatusEnum.LIVE) {
-            const { message } = getGlobalApis();
-            if (message) message.success(t('live.sse.liveStarted'));
-          } else if (status === LiveRoomStatusEnum.ENDED) {
-            const { message } = getGlobalApis();
-            if (message) message.info(t('live.sse.liveEnded'));
-          } else if (status === LiveRoomStatusEnum.CLOSED) {
-            const { message } = getGlobalApis();
-            if (message) message.info(t('live.sse.liveClosed'));
-          }
-        } catch (e) {
-        }
-      },
-      onerror: (error) => {
-        console.error('LivePanel SSE连接错误:', error);
-      }
-    });
-  } catch (error) {
-    errorHandler.handleError(error, 'sse_subscribe', {
-      showNotification: true,
-      customMessage: t('live.sse.subscribeFailed')
-    });
-  }
+  }, 10000);
 }
 
-function unsubscribeSse() {
-  if (eventSourceController) {
-    try {
-      eventSourceController.abort();
-    } catch (e) {
-    }
-    eventSourceController = null;
+function stopStatusPolling() {
+  if (statusPollingTimer) {
+    clearInterval(statusPollingTimer);
+    statusPollingTimer = null;
   }
 }
 
 onBeforeUnmount(() => {
-  unsubscribeSse();
+  stopStatusPolling();
 });
 </script>
 

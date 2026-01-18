@@ -173,7 +173,12 @@ export const useChatMessages = () => {
 
   // 设置实时消息监听
   const setupRealtimeMessages = (room: Room): void => {
-    room.on(RoomEvent.DataReceived, (data: Uint8Array) => {
+    // 防止重复绑定导致消息重复处理
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const roomAny = room as any
+    if (roomAny.__chat_handler_attached) return
+
+    const handler = (data: Uint8Array) => {
       try {
         const text = new TextDecoder().decode(data)
         const payload = JSON.parse(text)
@@ -196,7 +201,12 @@ export const useChatMessages = () => {
       } catch (error) {
         // 处理实时消息失败
       }
-    })
+    }
+
+    room.on(RoomEvent.DataReceived, handler)
+    roomAny.__chat_handler_attached = true
+    // 记录引用以便必要时移除（例如在 disconnect/cleanup 中）
+    roomAny.__chat_handler = handler
   }
 
   // 启动轮询（用于未连接时的消息获取）

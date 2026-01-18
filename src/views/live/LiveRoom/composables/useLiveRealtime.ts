@@ -145,6 +145,14 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
           }
         },
         onerror: (_error) => {
+          // 发生错误时中止当前 SSE 连接，确保不会与轮询并发
+          try {
+            eventSourceController?.abort()
+            eventSourceController = null
+          } catch (e) {
+            // ignore
+          }
+
           isConnected.value = false
           connectionState.value = 'disconnected'
 
@@ -277,11 +285,9 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
 
     const pollMessages = async () => {
       try {
-        // 在轮询模式下，我们保持连接状态为已连接
-        // 但不实际获取消息，因为没有相应的API
-
-        isConnected.value = true
-        connectionState.value = 'connected'
+        // 在轮询模式下，标记为 polling 状态（不是实时连接）
+        isConnected.value = false
+        connectionState.value = 'polling'
 
         // 可以在这里添加心跳检查或其他状态检查
         // 例如：检查房间是否仍然活跃

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { extractMediaStreamFromTrack } from '@/views/live/LiveRoom/composables/mediaHelpers'
 
 /**
  * 直播画中画状态接口
@@ -98,7 +99,47 @@ export const useLivePiPStore = defineStore('livePiP', () => {
       return
     }
 
-    // 使用浏览器原生PiP API
+    // 在创建 PiP 窗口前，若没有 videoStream，尝试从 activeSession.connection 中提取
+    if (activeSession.value && !activeSession.value.videoStream) {
+      try {
+        const session: any = activeSession.value
+        const room = session.connection
+        const participantId = session.participantId
+        let videoStream: MediaStream | null = null
+
+        const tryExtractFromParticipant = (participant: any) => {
+          if (!participant) return null
+          const pubs: any[] = Array.from(participant.videoTrackPublications?.values?.() ?? [])
+          for (const pub of pubs) {
+            const track = pub && (pub.track || pub)
+            const ms = extractMediaStreamFromTrack(track)
+            if (ms) return ms
+          }
+          return null
+        }
+
+        if (participantId === 'local') {
+          const localParticipant: any = room.localParticipant
+          videoStream = tryExtractFromParticipant(localParticipant)
+        } else {
+          const remoteParticipant = (room.remoteParticipants && room.remoteParticipants.get && room.remoteParticipants.get(participantId)) ||
+                                    Array.from(room.remoteParticipants ? room.remoteParticipants.values() : []).find((p: any) => p.identity === participantId)
+          videoStream = tryExtractFromParticipant(remoteParticipant)
+        }
+
+        if (videoStream) {
+          // 更新 store 中的 activeSession 引用
+          activeSession.value = {
+            ...activeSession.value,
+            videoStream
+          }
+        }
+      } catch (e) {
+        // ignore extraction errors, 将降级处理交给后续逻辑
+      }
+    }
+
+    // 使用浏览器原生PiP API（如果已准备好 MediaStream）
     if (isPiPSupported.value && activeSession.value?.videoStream) {
       // 获取视频元素
       const videoElement = findVideoElement()

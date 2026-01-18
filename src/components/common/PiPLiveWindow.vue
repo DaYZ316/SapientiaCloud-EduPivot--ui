@@ -50,6 +50,7 @@ import { NButton, NIcon } from 'naive-ui'
 import { MenuOutline } from '@vicons/ionicons5'
 import { useLivePiPStore } from '@/store'
 import { useRouter } from 'vue-router'
+import { attachTrackToVideoElement } from '@/views/live/LiveRoom/composables/mediaHelpers'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -152,8 +153,67 @@ onMounted(() => {
   nextTick(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const activeSession = (livePiPStore.activeSession as any).value
-    if (videoRef.value && activeSession && activeSession.videoStream) {
-      videoRef.value.srcObject = activeSession.videoStream
+    if (videoRef.value && activeSession) {
+      if (activeSession.videoStream) {
+        videoRef.value.srcObject = activeSession.videoStream
+      } else if (activeSession.connection && activeSession.participantId) {
+        // 尝试从 connection 中找到对应 participant 的 video track 并 attach
+        try {
+          const room = activeSession.connection as any
+          const participantId = activeSession.participantId
+          let attached = false
+
+          if (participantId === 'local') {
+            const localParticipant: any = room.localParticipant
+            const pubs: any[] = []
+            if (localParticipant.videoTrackPublications && typeof localParticipant.videoTrackPublications.values === 'function') {
+              pubs.push(...Array.from(localParticipant.videoTrackPublications.values()))
+            }
+            if (typeof localParticipant.getTrackPublications === 'function') {
+              const mp = localParticipant.getTrackPublications()
+              if (mp && typeof mp.values === 'function') pubs.push(...Array.from(mp.values()))
+            }
+            if (localParticipant.videoTracks && typeof localParticipant.videoTracks.values === 'function') {
+              pubs.push(...Array.from(localParticipant.videoTracks.values()))
+            }
+
+            for (const pub of pubs) {
+              const track = pub && (pub.track || pub)
+              if (!track) continue
+              attached = attachTrackToVideoElement(track, videoRef.value)
+              if (attached) break
+            }
+          } else {
+            const remoteParticipant = (room.remoteParticipants && room.remoteParticipants.get && room.remoteParticipants.get(participantId)) ||
+                                      Array.from(room.remoteParticipants ? room.remoteParticipants.values() : []).find((p: any) => p.identity === participantId)
+            if (remoteParticipant) {
+              const videoPubs: any[] = Array.from(remoteParticipant.videoTrackPublications?.values?.() ?? [])
+              for (const pub of videoPubs) {
+                const track = pub && (pub.track || pub)
+                if (!track) continue
+                attached = attachTrackToVideoElement(track, videoRef.value)
+                if (attached) break
+              }
+            }
+          }
+
+          // 如果还未 attach，但能从 track 构造 MediaStream，则设置 srcObject
+          if (!attached) {
+            // 尝试再次寻找任何可用的 track 以构建 MediaStream
+            const allVideos = document.querySelectorAll('.video-panel .local-video video, .video-panel video')
+            if (allVideos && allVideos.length > 0) {
+              for (const v of Array.from(allVideos) as HTMLVideoElement[]) {
+                if (v.srcObject) {
+                  videoRef.value.srcObject = v.srcObject
+                  break
+                }
+              }
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
     }
   })
 })

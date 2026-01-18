@@ -59,10 +59,22 @@ const enterPiPIfConnected = () => {
   if (!providerRef.value?.connection?.isConnected?.value || !providerRef.value?.connection?.room?.value) {
     return
   }
+  const existingVideo = livePiPStore.findVideoElement?.()
+  let videoStream = existingVideo?.srcObject instanceof MediaStream ? existingVideo.srcObject : null
+
+  // 如果找到视频流，克隆一份以避免页面跳转时被清理
+  if (videoStream) {
+    try {
+      videoStream = videoStream.clone()
+    } catch (e) {
+      console.warn('PiP: 无法克隆视频流，将使用原始流', e)
+    }
+  }
+
   const session = {
     roomId: route.params.roomId as string,
     connection: providerRef.value.connection.room.value,
-    videoStream: null,
+    videoStream,
     participantId: providerRef.value.activeMainParticipantId?.value || ''
   }
   livePiPStore.enterPiPMode(session)
@@ -101,7 +113,9 @@ onMounted(async () => {
 
 onUnmounted(() => {
   // 组件卸载时清理 provider 中的资源（断开连接、停止轮询等）
-  providerRef.value?.cleanup?.()
+  if (!livePiPStore.isInPiPMode) {
+    providerRef.value?.cleanup?.()
+  }
 
   // 清理事件监听器
   window.removeEventListener('beforeunload', handleBeforeUnload)

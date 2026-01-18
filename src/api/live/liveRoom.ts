@@ -113,12 +113,6 @@ export function createLiveRoom(data: LiveRoomCreateDTO) {
     return http.post<LiveRoomVO>('/live/live-room/add', data)
 }
 
-/**
- * 根据房间ID关闭直播房间（closeLiveRoom）
- */
-export function closeLiveRoom(id: string) {
-    return http.post<boolean>(`/live/live-room/close/${id}`)
-}
 
 /**
  * 分页查询直播房间列表（listLiveRooms）

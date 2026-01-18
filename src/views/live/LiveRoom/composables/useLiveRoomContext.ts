@@ -33,6 +33,7 @@ export interface LiveRoomContext {
   speakerVolumeValue: any
   canShowRecording: any
   activeMainParticipantId: any
+  localVideoTrack: any
 
   // 加载状态
   loadingState: any

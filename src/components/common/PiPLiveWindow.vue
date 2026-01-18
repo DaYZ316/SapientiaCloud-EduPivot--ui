@@ -2,12 +2,23 @@
   <div v-if="isVisible" class="pip-live-window">
     <!-- 直播视频 -->
     <video
+      v-if="hasVideoStream"
       ref="videoRef"
       class="pip-video"
       autoplay
       muted
       playsinline
     />
+
+    <!-- 占位符 - 当没有视频流时显示 -->
+    <div v-else class="pip-placeholder">
+      <div class="pip-placeholder-icon">
+        <n-icon size="48" color="var(--text-color-3)">
+          <VideocamOffOutline />
+        </n-icon>
+      </div>
+      <div class="pip-placeholder-text">{{ t('live.pip.noVideo') }}</div>
+    </div>
 
     <!-- 控制栏 -->
     <div class="pip-controls">
@@ -47,14 +58,16 @@
 import { computed, ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { NButton, NIcon } from 'naive-ui'
-import { MenuOutline } from '@vicons/ionicons5'
+import { MenuOutline, VideocamOffOutline } from '@vicons/ionicons5'
 import { useLivePiPStore } from '@/store'
 import { useRouter } from 'vue-router'
 import { attachTrackToVideoElement } from '@/views/live/LiveRoom/composables/mediaHelpers'
+import { storeToRefs } from 'pinia'
 
 const { t } = useI18n()
 const router = useRouter()
 const livePiPStore = useLivePiPStore()
+const { activeSession } = storeToRefs(livePiPStore)
 
 // Props
 interface Props {
@@ -74,6 +87,10 @@ const dragOffset = ref({ x: 0, y: 0 })
 
 // 计算属性
 const isVisible = computed(() => props.isVisible && livePiPStore.isInPiPMode)
+const hasVideoStream = computed(() => {
+  const session = activeSession.value
+  return session && (session.videoStream || (session.connection && session.participantId))
+})
 
 // 方法
 /**
@@ -151,16 +168,15 @@ const stopDrag = (): void => {
 onMounted(() => {
   // 设置视频源
   nextTick(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const activeSession = (livePiPStore.activeSession as any).value
-    if (videoRef.value && activeSession) {
-      if (activeSession.videoStream) {
-      videoRef.value.srcObject = activeSession.videoStream
-      } else if (activeSession.connection && activeSession.participantId) {
+    const session = activeSession.value
+    if (videoRef.value && session) {
+      if (session.videoStream) {
+        videoRef.value.srcObject = session.videoStream
+      } else if (session.connection && session.participantId) {
         // 尝试从 connection 中找到对应 participant 的 video track 并 attach
         try {
-          const room = activeSession.connection as any
-          const participantId = activeSession.participantId
+          const room = session.connection as any
+          const participantId = session.participantId
           let attached = false
 
           if (participantId === 'local') {
@@ -197,18 +213,10 @@ onMounted(() => {
             }
           }
 
-          // 如果还未 attach，但能从 track 构造 MediaStream，则设置 srcObject
+          // 注意：在PiP模式下，不应该从DOM中查找视频元素，因为页面已经跳转
+          // 如果还未 attach，保持当前状态，等待后续的TrackSubscribed事件或session更新
           if (!attached) {
-            // 尝试再次寻找任何可用的 track 以构建 MediaStream
-            const allVideos = document.querySelectorAll('.video-panel .local-video video, .video-panel video')
-            if (allVideos && allVideos.length > 0) {
-              for (const v of Array.from(allVideos) as HTMLVideoElement[]) {
-                if (v.srcObject) {
-                  videoRef.value.srcObject = v.srcObject
-                  break
-                }
-              }
-            }
+            console.warn('PiP: 无法从LiveKit连接中获取视频流，等待后续更新')
           }
         } catch (e) {
           // ignore
@@ -225,15 +233,17 @@ onUnmounted(() => {
 })
 
 // 监听会话变化
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-watch(() => (livePiPStore.activeSession as any).value, (newSession) => {
-  if (videoRef.value && newSession) {
-    if (newSession.videoStream) {
-      videoRef.value.srcObject = newSession.videoStream
-    } else if (newSession.connection && newSession.participantId) {
-      // 如果没有预设的videoStream，尝试实时提取
-      tryAttachVideoFromConnection(newSession)
-    }
+watch(activeSession, (newSession) => {
+  if (!videoRef.value || !newSession) return
+
+  if (newSession.videoStream) {
+    videoRef.value.srcObject = newSession.videoStream
+    return
+  }
+
+  if (newSession.connection && newSession.participantId) {
+    // ???????videoStream???????
+    tryAttachVideoFromConnection(newSession)
   }
 }, { immediate: true })
 
@@ -280,17 +290,10 @@ const tryAttachVideoFromConnection = (session: any) => {
       }
     }
 
-    // 如果还未 attach，尝试从页面上的视频元素复制流
+    // 注意：在PiP模式下，不应该从DOM中查找视频元素，因为页面已经跳转
+    // 如果还未 attach，保持当前状态，等待后续的TrackSubscribed事件或session更新
     if (!attached) {
-      const allVideos = document.querySelectorAll('.video-panel .local-video video, .video-panel video')
-      if (allVideos && allVideos.length > 0) {
-        for (const v of Array.from(allVideos) as HTMLVideoElement[]) {
-          if (v.srcObject) {
-            videoRef.value.srcObject = v.srcObject
-            break
-          }
-        }
-      }
+      console.warn('PiP: 无法从LiveKit连接中实时获取视频流，等待后续更新')
     }
   } catch (e) {
     console.warn('PiP: 实时提取视频失败', e)
@@ -323,6 +326,28 @@ const tryAttachVideoFromConnection = (session: any) => {
     object-fit: contain;
     background: var(--background-color);
     border-radius: 8px 8px 0 0;
+  }
+
+  .pip-placeholder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--background-color);
+    border-radius: 8px 8px 0 0;
+    gap: 12px;
+
+    .pip-placeholder-icon {
+      opacity: 0.6;
+    }
+
+    .pip-placeholder-text {
+      font-size: 12px;
+      color: var(--text-color-3);
+      text-align: center;
+      padding: 0 16px;
+    }
   }
 
   .pip-controls {

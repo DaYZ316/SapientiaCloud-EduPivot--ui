@@ -263,7 +263,11 @@ export const useLiveConnection = (): LiveConnectionResult => {
       heartbeatData.roomId = roomId
       heartbeatData.sessionId = sessionId.value
 
-      await liveApi.heartbeatLiveRoom(heartbeatData)
+      try {
+        await liveApi.heartbeatLiveRoom(heartbeatData)
+      } catch (error) {
+        // 忽略心跳失败，避免未处理的 Promise 错误
+      }
     }
 
     // 立即发送一次心跳以确保members事件被发送

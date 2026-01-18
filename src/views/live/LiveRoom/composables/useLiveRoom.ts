@@ -47,6 +47,7 @@ export interface LiveRoomResult {
   speakerVolumeValue: Ref<number>
   canShowRecording: Ref<boolean>
   activeMainParticipantId: Ref<string | null>
+  localVideoTrack: Ref<any | null>
 
   // 加载状态
   loadingState: any
@@ -178,7 +179,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
   const recordingLoading = computed(() => recording.recordingLoading.value)
   const chatMessages = computed(() => {
     // 确保返回数组类型
-    const msgs = chat.messages
+    const msgs = chat.messages.value
     return Array.isArray(msgs) ? msgs : []
   })
   const chatOnlineCount = computed(() => {
@@ -207,6 +208,16 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
   const canShowRecording = computed(() => {
     return currentUserRole.value === LiveRoomRoleEnum.TEACHER ||
            currentUserRole.value === LiveRoomRoleEnum.ASSISTANT
+  })
+
+  const localVideoTrack = computed(() => {
+    // 依赖摄像头状态以触发重新计算
+    void media.cameraEnabled.value
+    const currentRoom = connection.room.value
+    if (!currentRoom?.localParticipant) return null
+    const pubs = Array.from(currentRoom.localParticipant.videoTrackPublications.values())
+    const pub = pubs.find(p => p.track && p.track.kind === Track.Kind.Video)
+    return pub?.track ?? null
   })
 
   const activeMainParticipantId = computed(() => {
@@ -324,11 +335,16 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
   const handleLeave = async (): Promise<void> => {
     loadingState.setLoading('disconnect', true, t('live.common.disconnecting'))
 
+    const currentRoom = connection.room.value
+    if (currentRoom) {
+      chat.teardownRealtimeMessages(currentRoom)
+    }
+
     await connection.disconnect()
 
     // 断开由 connection.disconnect() 负责资源清理，避免重复调用
-    // 启动聊天轮询以保证离开后的消息仍可见
-    chat.startPolling(roomId)
+    // 离开直播后停止聊天轮询
+    chat.stopPolling()
 
     const currentSessionId = sessionId.value
     if (currentSessionId) {
@@ -469,8 +485,12 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     const displayName = (participant.identity) || participant.sid
     const participantRole = (() => {
       if (participant.metadata) {
-        const meta = JSON.parse(participant.metadata)
-        return meta.role || null
+        try {
+          const meta = JSON.parse(participant.metadata)
+          return meta.role || null
+        } catch (e) {
+          return null
+        }
       }
       return null
     })()
@@ -621,6 +641,10 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
 
   // 清理资源
   const cleanup = (): void => {
+    const currentRoom = connection.room.value
+    if (currentRoom) {
+      chat.teardownRealtimeMessages(currentRoom)
+    }
     realtime.disconnect()
     chat.stopPolling()
     firstTeacherParticipantId.value = null
@@ -662,6 +686,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     speakerVolumeValue,
     canShowRecording,
     activeMainParticipantId,
+    localVideoTrack,
 
     // 方法
     initialize,

@@ -16,6 +16,7 @@ export interface ChatMessagesResult {
   sendMessage: (content: string, room: Room | null, roomId: string) => Promise<void>
   addMessage: (message: LiveRoomChatMessage) => void
   setupRealtimeMessages: (room: Room) => void
+  teardownRealtimeMessages: (room: Room) => void
   startPolling: (roomId: string) => void
   stopPolling: () => void
 }
@@ -209,6 +210,19 @@ export const useChatMessages = () => {
     roomAny.__chat_handler = handler
   }
 
+  const teardownRealtimeMessages = (room: Room): void => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const roomAny = room as any
+    if (!roomAny.__chat_handler_attached || !roomAny.__chat_handler) return
+    try {
+      room.off(RoomEvent.DataReceived, roomAny.__chat_handler)
+    } catch (e) {
+      // ignore removal errors
+    }
+    roomAny.__chat_handler_attached = false
+    roomAny.__chat_handler = null
+  }
+
   // 启动轮询（用于未连接时的消息获取）
   const startPolling = (roomId: string): void => {
     stopPolling()
@@ -280,6 +294,7 @@ export const useChatMessages = () => {
     sendMessage,
     addMessage,
     setupRealtimeMessages,
+    teardownRealtimeMessages,
     startPolling,
     stopPolling
   }

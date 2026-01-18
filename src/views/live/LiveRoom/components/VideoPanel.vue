@@ -106,6 +106,15 @@
         <div class="placeholder-text">{{ t('live.room.notConnected') }}</div>
       </div>
     </template>
+    <div class="remote-audio">
+      <audio
+        v-for="participant in audioParticipants"
+        :key="participant.participantId"
+        :ref="(el) => setRemoteAudioRef(el as HTMLAudioElement | null, participant.participantId)"
+        autoplay
+        playsinline
+      />
+    </div>
   </section>
 </template>
 
@@ -124,11 +133,15 @@ interface Props {
   remoteParticipants: RemoteParticipantMedia[]
   layoutMode?: string
   mainParticipantId?: string | null
+  speakerVolume?: number
+  localVideoTrack?: any | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
   layoutMode: 'speaker',
-  mainParticipantId: null
+  mainParticipantId: null,
+  speakerVolume: 100,
+  localVideoTrack: null
 })
 
 interface Emits {
@@ -144,6 +157,10 @@ const isConnectedComputed = computed(() => props.isConnected)
 
 const videoParticipants = computed(() => {
   return props.remoteParticipants.filter(participant => participant.videoTrack)
+})
+
+const audioParticipants = computed(() => {
+  return props.remoteParticipants.filter(participant => participant.audioTrack)
 })
 
 const isSpeakerLayout = computed(() => props.layoutMode === 'speaker')
@@ -192,12 +209,12 @@ const handleSelectMain = (participantId: string) => {
 const localVideoRefs = ref<Set<HTMLVideoElement>>(new Set())
 const lastLocalVideoTrack = ref<any>(null)
 const remoteVideoRefs = ref<Map<string, HTMLVideoElement>>(new Map())
+const remoteAudioRefs = ref<Map<string, HTMLAudioElement>>(new Map())
 
   // 设置本地视频元素引用（支持多个实例）
   const setLocalVideoRef = (el: HTMLVideoElement | null) => {
     if (el) {
       localVideoRefs.value.add(el)
-      console.log('本地视频元素已注册:', el, '当前轨道:', lastLocalVideoTrack.value)
       if (lastLocalVideoTrack.value) {
         attachToElement(lastLocalVideoTrack.value, el)
       } else {
@@ -222,7 +239,6 @@ const remoteVideoRefs = ref<Map<string, HTMLVideoElement>>(new Map())
                   const videoPubs = Array.from(room.localParticipant.videoTrackPublications.values())
                   videoPubs.forEach((pub: any) => {
                     if (pub.track && pub.track.kind === 'video') {
-                      console.log('找到现有轨道，附加到新元素:', pub.track)
                       attachToElement(pub.track, el)
                     }
                   })
@@ -258,7 +274,20 @@ const setRemoteVideoRef = (el: HTMLVideoElement | null, participantId: string) =
 }
 
 // 通用的附加逻辑：支持 LiveKit Track、MediaStream、MediaStreamTrack 以及常见封装
-const attachToElement = (trackOrStream: any, el: HTMLVideoElement | null) => {
+const setRemoteAudioRef = (el: HTMLAudioElement | null, participantId: string) => {
+  if (el) {
+    remoteAudioRefs.value.set(participantId, el)
+    const participant = props.remoteParticipants.find(p => p.participantId === participantId)
+    if (participant?.audioTrack) {
+      attachToElement(participant.audioTrack, el)
+      applySpeakerVolume(props.speakerVolume)
+    }
+    return
+  }
+  remoteAudioRefs.value.delete(participantId)
+}
+
+const attachToElement = (trackOrStream: any, el: HTMLMediaElement | null) => {
   if (!el || !trackOrStream) return
 
   // 优先使用 LiveKit 的 attach 接口
@@ -313,7 +342,19 @@ const attachRemoteVideo = (participantId: string, track: Track | any) => {
 
 // 附加远程音频轨道（LiveKit音频轨道通常自动处理，此处提供空实现以保持接口一致性）
 const attachRemoteAudio = (participantId: string, track: Track | any) => {
-  // LiveKit音频轨道自动处理，无需手动附加到DOM元素
+  const audioEl = remoteAudioRefs.value.get(participantId)
+  if (audioEl) {
+    attachToElement(track, audioEl)
+    applySpeakerVolume(props.speakerVolume)
+  }
+}
+
+const applySpeakerVolume = (value = 100) => {
+  const normalized = Math.max(0, Math.min(1, value / 100))
+  remoteAudioRefs.value.forEach((audioEl) => {
+    audioEl.volume = normalized
+    audioEl.muted = normalized <= 0
+  })
 }
 
   // 当 props.remoteParticipants 更新时，自动附加/分离轨道
@@ -326,6 +367,17 @@ const attachRemoteAudio = (participantId: string, track: Track | any) => {
         if (el) {
           attachToElement(p.videoTrack, el)
         } else {
+        }
+      }
+    })
+
+    // attach newly arrived audio tracks
+    newList.forEach((p: any) => {
+      if (p && p.participantId && p.audioTrack) {
+        const el = remoteAudioRefs.value.get(p.participantId)
+        if (el) {
+          attachToElement(p.audioTrack, el)
+          applySpeakerVolume(props.speakerVolume)
         }
       }
     })
@@ -363,13 +415,26 @@ const attachRemoteAudio = (participantId: string, track: Track | any) => {
     }
   })
 
-// 确保变量被使用（模板中使用）
+  watch(() => props.speakerVolume, (value) => {
+    applySpeakerVolume(value ?? 100)
+  }, { immediate: true })
+
+  watch(() => props.localVideoTrack, (track) => {
+    if (track) {
+      lastLocalVideoTrack.value = track
+      localVideoRefs.value.forEach((videoEl) => {
+        attachToElement(track, videoEl)
+      })
+    }
+  }, { immediate: true })
+
 void shouldShowLocalThumbnail
 void thumbnailParticipants
 void hasThumbnails
 void handleSelectMain
 void setRemoteVideoRef
 void setLocalVideoRef
+void setRemoteAudioRef
 
 // 分离远程视频轨道
 const detachRemoteVideo = (participantId: string, track: Track) => {
@@ -388,6 +453,13 @@ const cleanupRemoteVideos = () => {
     videoEl.srcObject = null
   })
   remoteVideoRefs.value.clear()
+}
+
+const cleanupRemoteAudios = () => {
+  remoteAudioRefs.value.forEach((audioEl) => {
+    audioEl.srcObject = null
+  })
+  remoteAudioRefs.value.clear()
 }
 
 // 清理本地视频
@@ -410,6 +482,16 @@ onMounted(() => {
         }
       }
     })
+    props.remoteParticipants.forEach((p: any) => {
+      if (p && p.participantId && p.audioTrack) {
+        const el = remoteAudioRefs.value.get(p.participantId)
+        if (el) {
+          p.audioTrack.attach(el)
+          el.play?.()
+          applySpeakerVolume(props.speakerVolume)
+        }
+      }
+    })
   })
 })
 
@@ -420,6 +502,7 @@ defineExpose({
   attachRemoteAudio,
   detachRemoteVideo,
   cleanupRemoteVideos,
+  cleanupRemoteAudios,
   cleanupLocalVideo
 })
 </script>
@@ -441,6 +524,13 @@ defineExpose({
   overflow: hidden;
   height: 100%;
   position: relative;
+
+  .remote-audio {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
 
   .connecting-state {
     display: flex;

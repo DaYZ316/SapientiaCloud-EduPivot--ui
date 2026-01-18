@@ -18,14 +18,19 @@ import Icon from '@/components/common/Icon.vue'
 
 interface Props {
   title?: string
+  onBack?: () => void
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const {t} = useI18n()
 const router = useRouter()
 
 function goBack() {
+  if (props.onBack) {
+    props.onBack()
+    return
+  }
   router.back()
 }
 </script>

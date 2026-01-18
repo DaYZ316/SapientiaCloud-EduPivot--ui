@@ -33,6 +33,8 @@
           :remote-participants="context.remoteParticipants.value"
           :layout-mode="context.layoutMode.value"
           :main-participant-id="context.activeMainParticipantId.value"
+          :speaker-volume="speakerVolumeValue"
+          :local-video-track="context.localVideoTrack.value"
           @select-main="handleSelectMain"
         />
       </div>

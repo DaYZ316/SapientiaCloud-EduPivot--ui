@@ -14,7 +14,7 @@ const classroomTypeModelPathMap: Record<ClassroomTypeEnum, string> = {
 };
 
 const deskTypeModelPathMap: Record<ClassroomTypeEnum, string> = {
-  [ClassroomTypeEnum.SMALL]: `${DESK_MODEL_BASE_PATH}/deskChairMiddle.gltf`,
+  [ClassroomTypeEnum.SMALL]: `${DESK_MODEL_BASE_PATH}/deskChairMini.gltf`,
   [ClassroomTypeEnum.MIDDLE]: `${DESK_MODEL_BASE_PATH}/deskChairMiddle.gltf`,
   [ClassroomTypeEnum.LARGE]: `${DESK_MODEL_BASE_PATH}/deskChairPro.gltf`,
   [ClassroomTypeEnum.EXTRA_LARGE]: `${DESK_MODEL_BASE_PATH}/deskChairUltra.gltf`

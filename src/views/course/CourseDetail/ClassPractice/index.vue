@@ -55,7 +55,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, reactive, ref} from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import {useRoute} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {useTitle} from '@/utils/titleUtil'
@@ -82,7 +82,7 @@ const selectedClassroomInfo = ref<any>(null)
 const practiceListRef = ref<any>(null)
 
 // 搜索表单
-const searchForm = reactive<ClassroomQuestionPageQueryDTO>(ClassroomPracticeApi.getDefaultClassroomQuestionPageQueryDTO())
+const searchForm = ref<ClassroomQuestionPageQueryDTO>(ClassroomPracticeApi.getDefaultClassroomQuestionPageQueryDTO())
 
 // 计算属性
 const courseId = computed(() => route.params.courseId as string)

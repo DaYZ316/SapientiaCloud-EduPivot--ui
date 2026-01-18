@@ -367,7 +367,11 @@ export default {
     // Student grade distribution chart
     studentGrade: {
         title: 'Student Grade Distribution',
+        individualTitle: 'Student Score Chart',
+        scoreAxis: 'Score',
+        studentName: 'Student Name',
         studentCount: 'Student Count',
+        scoreUnit: 'Score',
         ranges: {
             fail: 'Fail (0-59)',
             pass: 'Pass (60-69)',

@@ -31,16 +31,14 @@ import {useCourseStore} from '@/store/modules/course'
 import {useCourseBorderColor} from '../composables/useCourseBorderColor'
 import {useCourseStudentData} from '../composables/useCourseStudentData'
 
-// 定义成绩分布数据项类型
-interface GradeDistributionDataItem {
-  /** 成绩区间 */
-  range: string
-  /** 学生数量 */
-  count: number
-  /** 颜色（可选） */
-  itemStyle?: {
-    color?: string
-  }
+// 定义学生积分数据项类型
+interface StudentScoreDataItem {
+  /** 学生姓名 */
+  name: string
+  /** 积分 */
+  grade: number
+  /** 学生ID */
+  id: string
 }
 
 // 定义组件属性
@@ -48,7 +46,7 @@ interface Props {
   /** 课程ID */
   courseId?: string
   /** 数据源（可选，如果提供则使用提供的数据，否则从API加载） */
-  data?: GradeDistributionDataItem[]
+  data?: StudentScoreDataItem[]
   /** 是否加载中 */
   loading?: boolean
   /** 课程类型 */
@@ -83,48 +81,31 @@ const themeStore = useThemeStore()
 // 使用课程边框颜色composable
 const {borderColor} = useCourseBorderColor(props.courseType)
 
-// 计算成绩分布数据
-const gradeData = computed(() => {
+// 计算学生成绩数据（用于水平条形图）
+const studentGradeData = computed<StudentScoreDataItem[]>(() => {
   if (props.data.length > 0) {
-    return props.data
+    // 如果提供了数据，假设是学生成绩数据格式
+    return props.data as StudentScoreDataItem[]
   }
 
   if (students.value.length === 0) {
     return []
   }
 
-  // 定义成绩区间
-  const gradeRanges = [
-    {min: 0, max: 59, label: t('course.studentGrade.ranges.fail')},
-    {min: 60, max: 69, label: t('course.studentGrade.ranges.pass')},
-    {min: 70, max: 79, label: t('course.studentGrade.ranges.good')},
-    {min: 80, max: 89, label: t('course.studentGrade.ranges.veryGood')},
-    {min: 90, max: 100, label: t('course.studentGrade.ranges.excellent')}
-  ]
-
-  // 统计各成绩区间人数
-  const rangeCount = gradeRanges.map(range => ({
-    range: range.label,
-    count: 0
-  }))
-
-  students.value.forEach(student => {
-    if (student.grade !== null && student.grade !== undefined) {
-      const grade = student.grade
-      const rangeIndex = gradeRanges.findIndex(range => grade >= range.min && grade <= range.max)
-      if (rangeIndex !== -1) {
-        rangeCount[rangeIndex].count++
-      }
-    }
-  })
-
-  // 过滤掉人数为0的区间
-  return rangeCount.filter(item => item.count > 0)
+  // 过滤有成绩的学生并按成绩排序
+  return students.value
+    .filter(student => student.grade !== null && student.grade !== undefined)
+    .map(student => ({
+      name: student.realName || t('common.unknown'),
+      grade: student.grade!,
+      id: student.studentId
+    }))
+    .sort((a, b) => b.grade - a.grade) // 按成绩降序排列
 })
 
 // 判断是否有数据
 const hasData = computed(() => {
-  return gradeData.value.length > 0
+  return studentGradeData.value.length > 0
 })
 
 // 获取图表配置
@@ -135,31 +116,30 @@ function getChartOption(): EChartsOption {
   const backgroundColor = isDark ? 'rgba(31, 31, 31, 0.8)' : 'rgba(255, 255, 255, 0.8)'
 
   // 使用计算的数据
-  const chartData = gradeData.value
+  const chartData = studentGradeData.value
 
   // 定义成绩等级对应的颜色（从低到高：红色->橙色->黄色->绿色->蓝色）
   const gradeColors = [
     '#ff4757', // 不及格 - 红色
-    '#ffa502', // 及格 - 橙色  
+    '#ffa502', // 及格 - 橙色
     '#ffd32a', // 良好 - 黄色
     '#2ed573', // 优秀 - 绿色
     '#3742fa'  // 卓越 - 蓝色
   ]
 
-  // 根据成绩区间获取对应颜色
-  function getGradeColor(rangeLabel: string): string {
-    if (rangeLabel.includes('不及格') || rangeLabel.includes('Fail')) return gradeColors[0]
-    if (rangeLabel.includes('及格') || rangeLabel.includes('Pass')) return gradeColors[1]
-    if (rangeLabel.includes('良好') || rangeLabel.includes('Good')) return gradeColors[2]
-    if (rangeLabel.includes('优秀') || rangeLabel.includes('Very Good')) return gradeColors[3]
-    if (rangeLabel.includes('卓越') || rangeLabel.includes('Excellent')) return gradeColors[4]
-    return gradeColors[0] // 默认颜色
+  // 根据积分获取对应颜色（积分越高颜色越好）
+  function getGradeColor(score: number): string {
+    if (score < 100) return gradeColors[0] // 低积分 - 红色
+    if (score < 200) return gradeColors[1] // 中低积分 - 橙色
+    if (score < 500) return gradeColors[2] // 中等积分 - 黄色
+    if (score < 1000) return gradeColors[3] // 高积分 - 绿色
+    return gradeColors[4] // 极高积分 - 蓝色
   }
 
   return {
     backgroundColor: 'transparent',
     title: {
-      text: t('course.studentGrade.title'),
+      text: t('course.studentGrade.individualTitle'),
       left: 'center',
       textStyle: {
         fontSize: 16,
@@ -176,36 +156,19 @@ function getChartOption(): EChartsOption {
       },
       formatter: (params: any) => {
         const param = params[0]
-        const percentage = chartData.length > 0
-            ? ((param.value / chartData.reduce((sum, item) => sum + item.count, 0)) * 100).toFixed(1)
-            : '0'
-        return `${param.name}: ${param.value}人 (${percentage}%)`
+        return `${param.name}: ${param.value}${t('course.studentGrade.scoreUnit')}`
       }
     },
     grid: {
-      left: '3%',
-      right: '4%',
-      bottom: '3%',
-      top: '20%',
+      left: '8%',
+      right: '6%',
+      bottom: '6%',
+      top: '12%',
       containLabel: true
     },
     xAxis: {
-      type: 'category',
-      data: chartData.map(item => item.range),
-      axisLine: {
-        lineStyle: {
-          color: isDark ? '#666' : '#ddd'
-        }
-      },
-      axisLabel: {
-        color: isDark ? '#ccc' : '#666',
-        fontSize: 12,
-        rotate: chartData.length > 4 ? 45 : 0
-      }
-    },
-    yAxis: {
       type: 'value',
-      name: t('course.studentGrade.studentCount'),
+      name: t('course.studentGrade.scoreAxis'),
       nameTextStyle: {
         color: isDark ? '#ccc' : '#666'
       },
@@ -224,92 +187,55 @@ function getChartOption(): EChartsOption {
           color: isDark ? '#333' : '#f0f0f0'
         }
       },
-      minInterval: 1,
       min: 0
+    },
+    yAxis: {
+      type: 'category',
+      data: chartData.map(item => item.name),
+      axisLine: {
+        lineStyle: {
+          color: isDark ? '#666' : '#ddd'
+        }
+      },
+      axisLabel: {
+        color: isDark ? '#ccc' : '#666',
+        fontSize: 12,
+        interval: 0, // 显示所有标签
+        formatter: (value: string) => {
+          // 如果名字太长，截断显示
+          return value.length > 8 ? value.substring(0, 8) + '...' : value
+        }
+      },
+      splitLine: {
+        show: false
+      }
     },
     series: [
       {
-        name: t('course.studentGrade.title'),
+        name: t('course.studentGrade.individualTitle'),
         type: 'bar',
-        data: chartData.map((item, index) => {
-          const baseColor = getGradeColor(item.range)
-          // 为不同柱子创建不同的渐变方式
-          const gradientConfigs = [
-            // 不及格 - 垂直渐变
-            {
-              type: 'linear' as const,
-              x: 0,
-              y: 0,
-              x2: 0,
-              y2: 1,
-              colorStops: [
-                {offset: 0, color: primaryColor},
-                {offset: 1, color: baseColor}
-              ]
-            },
-            // 及格 - 水平渐变
-            {
-              type: 'linear' as const,
-              x: 0,
-              y: 0,
-              x2: 1,
-              y2: 0,
-              colorStops: [
-                {offset: 0, color: primaryColor},
-                {offset: 1, color: baseColor}
-              ]
-            },
-            // 良好 - 对角渐变
-            {
-              type: 'linear' as const,
-              x: 0,
-              y: 0,
-              x2: 1,
-              y2: 1,
-              colorStops: [
-                {offset: 0, color: primaryColor},
-                {offset: 1, color: baseColor}
-              ]
-            },
-            // 优秀 - 径向渐变
-            {
-              type: 'radial' as const,
-              x: 0.5,
-              y: 0.5,
-              r: 0.8,
-              colorStops: [
-                {offset: 0, color: primaryColor},
-                {offset: 1, color: baseColor}
-              ]
-            },
-            // 卓越 - 反向对角渐变
-            {
-              type: 'linear' as const,
-              x: 1,
-              y: 0,
-              x2: 0,
-              y2: 1,
-              colorStops: [
-                {offset: 0, color: primaryColor},
-                {offset: 1, color: baseColor}
-              ]
-            }
-          ]
+        data: chartData.map((item) => {
+          const baseColor = getGradeColor(item.grade)
 
           return {
-            value: item.count,
+            value: item.grade,
             itemStyle: {
-              color: gradientConfigs[index] || gradientConfigs[0],
-              borderRadius: [6, 6, 0, 0]
+              color: {
+                type: 'linear' as const,
+                x: 0,
+                y: 0,
+                x2: 1,
+                y2: 0,
+                colorStops: [
+                  {offset: 0, color: primaryColor},
+                  {offset: 1, color: baseColor}
+                ]
+              },
+              borderRadius: [0, 4, 4, 0]
             }
           }
         }),
-        barWidth: '60%',
-        emphasis: {
-          itemStyle: {
-            // 悬停时无特殊效果
-          }
-        }
+        barWidth: '70%'
       }
     ]
   }

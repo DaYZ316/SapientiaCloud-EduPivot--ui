@@ -150,29 +150,25 @@ watch(locale, () => {
   &-logo {
     height: 96px;
     /* 使用 transform 位移，不影响父容器高度布局 */
-    transform: translateY(8px);
     width: auto;
     object-fit: contain;
     display: block;
+    transform: translateY(-4px);
 
     @media (max-width: 992px) {
       height: 80px;
-      transform: translateY(6px);
     }
 
     @media (max-width: 768px) {
       height: 64px;
-      transform: translateY(4px);
     }
 
     @media (max-width: 640px) {
       height: 56px;
-      transform: translateY(2px);
     }
 
     @media (max-width: 480px) {
       height: 48px;
-      transform: translateY(0px);
     }
   }
 

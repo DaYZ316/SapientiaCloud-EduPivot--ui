@@ -65,7 +65,7 @@ import LivePanel from './LivePanel.vue';
 import {useUserStore} from '@/store/modules/user';
 import {getGlobalApis} from '@/utils/naiveUIHelper';
 import {SpriteManager} from '@/views/classroom/composables/spriteManager';
-import {getAvatarColor, getAvatarInitial, resolveUserName, renderAvatarToTexture} from '@/utils/avatarUtil';
+import {resolveUserName, renderAvatarToTexture} from '@/utils/avatarUtil';
 import type {AvatarIdentityProps} from '@/types/components/avatar';
 import type {CourseRecordStudentDTO, CourseRecordStudentVO, CourseRecordVO} from '@/types/classroom';
 import type {ClassroomToolboxItem} from '@/views/classroom/composables/toolbox';
@@ -247,26 +247,6 @@ const getIdentityName = (info: Record<string, any> | null | undefined): string =
   return resolveUserName(identity);
 };
 
-const createAvatarFallbackTexture = (displayName: string): THREE.CanvasTexture => {
-  const canvas = document.createElement('canvas');
-  canvas.width = 128;
-  canvas.height = 128;
-  const context = canvas.getContext('2d');
-  const initials = getAvatarInitial(displayName);
-  if (context) {
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = getAvatarColor(displayName);
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    if (initials) {
-      context.fillStyle = '#FFFFFF';
-      context.font = 'bold 64px sans-serif';
-      context.textAlign = 'center';
-      context.textBaseline = 'middle';
-      context.fillText(initials, canvas.width / 2, canvas.height / 2);
-    }
-  }
-  return new THREE.CanvasTexture(canvas);
-};
 
 const disposeFallbackTexture = () => {
   if (fallbackTextureRef.value) {
@@ -306,7 +286,6 @@ const confirmSeatSelection = async () => {
   }
   const seatIndex = pendingSeatContext.value.seatIndex;
   const avatarUrl = pendingSeatContext.value.avatarUrl;
-  const fallbackTexture = fallbackTextureRef.value || createAvatarFallbackTexture(pendingSeatContext.value.displayName || '');
 
   // 计算座位排和列索引（从座位索引转换为排和列）
   // locationX: 排索引, locationY: 列索引, locationZ: 默认0
@@ -381,14 +360,9 @@ const confirmSeatSelection = async () => {
     fallbackSrc: null
   };
 
-  try {
-    // 使用 AvatarDisplay 组件渲染纹理
-    const texture = await renderAvatarToTexture(avatarIdentity, 128);
-    applyTextureToSprite(texture);
-  } catch (error) {
-    // 渲染失败时使用后备纹理
-    applyTextureToSprite(fallbackTexture, false);
-  }
+  // 使用 AvatarDisplay 组件渲染纹理
+  const texture = await renderAvatarToTexture(avatarIdentity, 128);
+  applyTextureToSprite(texture);
 
   return true;
 };
@@ -422,9 +396,6 @@ const openSeatConfirmModal = (context: SeatAssignmentContext) => {
       fallbackTextureRef.value.dispose();
     }
     fallbackTextureRef.value = texture;
-  }).catch(() => {
-    // 失败时使用后备方案
-    fallbackTextureRef.value = createAvatarFallbackTexture(context.displayName || '');
   });
 
   const seatTitle = context.seatLabel
@@ -505,16 +476,9 @@ const renderStudentSprites = async (students: CourseRecordStudentVO[]) => {
       fallbackSrc: null
     };
 
-    try {
-      // 使用 AvatarDisplay 组件渲染纹理
-      const texture = await renderAvatarToTexture(avatarIdentity, 128);
-      spriteManager.updateSpriteInfo(studentId, texture, seatIndex);
-    } catch (error) {
-      // 渲染失败时使用后备纹理
-      const displayName = student.studentName || student.studentCode || '';
-      const fallbackTexture = createAvatarFallbackTexture(displayName);
-      spriteManager.updateSpriteInfo(studentId, fallbackTexture, seatIndex);
-    }
+    // 使用 AvatarDisplay 组件渲染纹理
+    const texture = await renderAvatarToTexture(avatarIdentity, 128);
+    spriteManager.updateSpriteInfo(studentId, texture, seatIndex);
   }
 };
 
@@ -1269,8 +1233,16 @@ const initThree = () => {
           }
         };
 
-        const defaultTexture = createAvatarFallbackTexture('');
-        initializeSpriteManager(defaultTexture);
+        const defaultAvatarIdentity = {
+          avatarSrc: null,
+          username: null,
+          nickName: null,
+          studentRealName: null,
+          teacherRealName: null
+        };
+        renderAvatarToTexture(defaultAvatarIdentity, 128).then((defaultTexture) => {
+          initializeSpriteManager(defaultTexture);
+        });
 
         // 精灵管理器初始化完成后，立即获取学生座位信息并渲染精灵
         // 这样桌椅模型加载完成后，占用的座位上会立即显示学生头像

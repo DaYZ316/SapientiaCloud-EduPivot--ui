@@ -27,9 +27,18 @@ export interface SeatLayoutResult {
       classroomXLength: number | null,
       classroomZLength: number | null
   ) => void;
+  getExtraLargeTotalSeats: (rows: number, cols: number) => number;
 }
 
+// 计算超大型教室的总座位数
+export const getExtraLargeTotalSeats = (rows: number, cols: number): number => {
+  const rowNum = rows;
+  const colNum = cols;
+  return rowNum * colNum + rowNum * (rowNum - 1);
+};
+
 export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLayoutResult => {
+
   const classroomType = computed(() => courseRecord.value?.classroomType ?? null);
 
   const enabled = computed(() => {
@@ -86,6 +95,9 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
     } else if (type === ClassroomTypeEnum.LARGE) {
       maxSeats = 40; // 大型教室最多40张（桌椅更大所以数量少了）
       count = rowCount.value * (columnCount.value/4);
+    } else if (type === ClassroomTypeEnum.EXTRA_LARGE) {
+      maxSeats = 250; // 超大型教室最多250张
+      count = getExtraLargeTotalSeats(rowCount.value, columnCount.value);
     } else {
       maxSeats = 50; // 默认值
     }
@@ -112,22 +124,22 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
     const halfDepth = depth / 2; // 5米（深度10米时）
 
     // 左右方向：教室宽6米，右边1米用于摆放架子，剩余5米均匀分布座位
-    const shelfWidth = 0.6; // 右边架子宽度0.6米
+    const shelfWidth = 0.8; // 右边架子宽度0.6米
     const availableWidth = width - shelfWidth; // 5米
-    const leftBound = -halfWidth + shelfWidth + 1; // -3米（左边界）
+    const leftBound = -halfWidth + shelfWidth; // -3米（左边界）
 
     // 计算列索引（0-based）
     const columnIndex = instanceId % actualColumns;
     // 3张座位均匀分布在5米内，间距 = 5 / (3+1) = 1.25米
     const spacing = availableWidth / (actualColumns + 1);
-    position.x = leftBound + spacing * (columnIndex + 1);
+    position.x = leftBound + spacing * (columnIndex + 1) - 0.4; // 整体向左移动0.4米
 
     // 前后方向：第一排距离前墙3米，每排间隔2米
     const frontWallZ = halfDepth; // 前墙z坐标（5米）
     const firstRowOffset = 5; // 第一排距离前墙4.6米
     const rowSpacing = 1.8; // 每排间隔1.8米
     const rowIndex = Math.floor(instanceId / actualColumns);
-    position.z = frontWallZ - firstRowOffset - rowIndex * rowSpacing - 0.8;
+    position.z = frontWallZ - firstRowOffset - rowIndex * rowSpacing + 1.8;
 
     // 上下方向：座位高度0.5米
     position.y = 0.5;
@@ -211,60 +223,46 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
       _classroomXLength: number | null
   ): THREE.Vector3 => {
     // Parameters from user: outer diameter 30m, inner diameter 10m, angle span 142°
-    const outerRadius = 60 / 2; // 15
-    const innerRadius = 20 / 2; // 5
-    const angleSpanDeg = 142;
-    const angleSpan = (angleSpanDeg * Math.PI) / 180;
-
-    // number of radial rows and a base seats-per-outer-ring
-    const rows = Math.max(1, rowCount.value || 1);
-    const outerSeatCount = Math.max(1, columnCount.value || 1);
+    const outerRadius = 29.6; // 15
+    const innerRadius = 11.8; // 5
+    const angleSpanDeg =120;
+    const angleStart=(180-(180-angleSpanDeg)/2) * Math.PI / 180;
+    let angleSpan=(angleSpanDeg * Math.PI) / 180 / 13;
+    const angleMedium=angleStart-angleSpan*7;
 
     // compute radii for each ring
+    //（计算半径方向的差值）
     const radii: number[] = [];
-    for (let r = 0; r < rows; r++) {
-      if (rows === 1) {
-        radii.push((innerRadius + outerRadius) / 2);
-      } else {
-        const t = r / (rows - 1);
-        radii.push(innerRadius + t * (outerRadius - innerRadius));
-      }
+    for (let r = 0; r < 10; r++) {
+      const t = r / 9;
+      radii.push(innerRadius + t * (outerRadius - innerRadius));
     }
 
-    // compute seats per ring proportional to circumference
-    const seatsPerRing: number[] = radii.map((radius) => {
-      const factor = radius / outerRadius;
-      const seats = Math.max(1, Math.round(outerSeatCount * factor));
-      return seats;
-    });
-
-    // find which ring this instanceId belongs to (instances ordered ring0..ringN)
-    let remaining = instanceId;
+    let remaining = instanceId+1;
+    let count = columnCount.value;
     let ring = 0;
-    while (ring < seatsPerRing.length && remaining >= seatsPerRing[ring]) {
-      remaining -= seatsPerRing[ring];
+    while(remaining>count){
+      remaining-=count;
+      count+=2
       ring++;
     }
-    if (ring >= seatsPerRing.length) {
-      // clamp to last ring
-      ring = seatsPerRing.length - 1;
-      remaining = seatsPerRing[ring] - 1;
+
+    const radius=radii[ring];
+    let angle=angleStart;
+    angleSpan=(angleSpanDeg * Math.PI) / 180 / (count+1)
+    remaining-=0.5
+    if(remaining<=count/2){
+      angle=angleStart-(angleSpan*remaining)
+    }else{
+      remaining-=count/2
+      angle=angleMedium-(angleSpan*remaining)
     }
 
-    const seatsInThisRing = seatsPerRing[ring];
-    const idxInRing = remaining;
-
-    // Angular placement: centered at forward (Z axis), symmetric
-    const startAngle = -angleSpan / 2;
-    const step = seatsInThisRing > 0 ? angleSpan / seatsInThisRing : angleSpan;
-    const angle = startAngle + (idxInRing + 0.5) * step;
-
-    const radius = radii[ring];
     // convert polar to cartesian (x right, z forward)
-    position.x = Math.sin(angle) * radius;
-    position.z = -Math.cos(angle) * radius + 8;
+    position.x = Math.cos(angle) * radius;
+    position.z = -Math.sin(angle) * radius+10;
     // small height offset per ring for perspective
-    position.y = 1.8 + ring * 0.5;
+    position.y = 1.8 + ring * 0.6;
 
     return position;
   };
@@ -301,8 +299,8 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
   ): THREE.Vector3 => {
     if (classroomType.value === ClassroomTypeEnum.SMALL) {
       calculateSeatPosition(seatIndex, position, classroomXLength, classroomZLength);
-      position.x -= 0.8;
-      position.y += 0.7;
+      position.x += 0.4;
+      position.y += 1.3;
       return position;
     }
     if (classroomType.value === ClassroomTypeEnum.MIDDLE) {
@@ -363,6 +361,7 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
     rowCount,
     columnCount,
     instanceCount,
+    getExtraLargeTotalSeats,
     calculateSeatPosition,
     calculateActualSeatPosition,
     fillSpritePositions

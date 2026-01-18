@@ -374,7 +374,11 @@ export default {
     // 学生成绩分布图表
     studentGrade: {
         title: '学生成绩分布',
+        individualTitle: '学生积分图表',
+        scoreAxis: '积分',
+        studentName: '学生姓名',
         studentCount: '学生人数',
+        scoreUnit: '积分',
         ranges: {
             fail: '不及格(0-59)',
             pass: '及格(60-69)',

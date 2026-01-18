@@ -3,8 +3,8 @@
  */
 import type {AvatarIdentityProps, AvatarSizeType} from '@/types/components/avatar'
 import * as THREE from 'three'
-import {createApp} from 'vue'
-import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
+import {createAvatar} from '@dicebear/core'
+import * as avatarCollection from '@dicebear/collection'
 
 // 头像颜色池（科技感配色）
 export const AVATAR_COLOR_PALETTE = [
@@ -81,36 +81,90 @@ export const renderAvatarToTexture = async (
 ): Promise<THREE.Texture> => {
     return new Promise(async (resolve) => {
         try {
-            // 创建 Vue 应用实例来获取组件生成的 SVG
-            const container = document.createElement('div')
-            container.style.position = 'absolute'
-            container.style.left = '-9999px'
-            container.style.top = '-9999px'
-            container.style.width = `${size}px`
-            container.style.height = `${size}px`
-            container.style.background = 'transparent'
-            document.body.appendChild(container)
+            // 优先使用传入的头像源
+            if (identity.avatarSrc) {
+                const img = new Image()
+                img.crossOrigin = 'anonymous'
+                img.onload = () => {
+                    const canvas = document.createElement('canvas')
+                    canvas.width = size
+                    canvas.height = size
+                    const ctx = canvas.getContext('2d')
 
-            // 创建 AvatarDisplay 组件实例
-            const app = createApp(AvatarDisplay, {
-                ...identity,
-                size,
-                round: true,
-                avatarClass: ''
-            })
+                    if (ctx) {
+                        // 清除背景
+                        ctx.clearRect(0, 0, size, size)
+                        // 绘制圆形背景
+                        ctx.fillStyle = '#ffffff'
+                        ctx.beginPath()
+                        ctx.arc(size / 2, size / 2, size / 2, 0, 2 * Math.PI)
+                        ctx.fill()
+                        // 绘制图像
+                        ctx.save()
+                        ctx.beginPath()
+                        ctx.arc(size / 2, size / 2, size / 2, 0, 2 * Math.PI)
+                        ctx.clip()
+                        ctx.drawImage(img, 0, 0, size, size)
+                        ctx.restore()
 
-            // 挂载组件
-            const vm = app.mount(container)
+                        // 创建 Three.js 纹理
+                        const texture = new THREE.CanvasTexture(canvas)
+                        texture.needsUpdate = true
+                        resolve(texture)
+                        return
+                    }
+                }
+                img.onerror = () => {
+                    // 头像加载失败，使用 DiceBear 头像
+                    generateDicebearAvatar()
+                }
+                img.src = identity.avatarSrc
+            } else {
+                // 没有头像源，直接使用 DiceBear 头像
+                generateDicebearAvatar()
+            }
 
-            // 等待组件初始化完成
-            await new Promise(resolve => setTimeout(resolve, 100))
+            // 生成 DiceBear 头像
+            function generateDicebearAvatar() {
+                try {
+                    const userName = resolveUserName(identity)
+                    if (!userName) {
+                        throw new Error('No username available')
+                    }
 
-            // 从组件实例中获取生成的 SVG URL
-            const componentInstance = vm.$ as any
-            if (componentInstance && componentInstance.setupState && componentInstance.setupState.dicebearAvatarUrl) {
-                const svgUrl = componentInstance.setupState.dicebearAvatarUrl
+                    // 根据用户名生成稳定的渐变颜色组合
+                    const [color1, color2, color3] = getGradientColors(userName)
+                    const gradientId = `gradient-${userName.replace(/[^a-zA-Z0-9]/g, '')}-${size}`
 
-                if (svgUrl) {
+                    const avatar = createAvatar(avatarCollection.bottts, {
+                        seed: userName,
+                        size: size
+                    })
+
+                    // 获取 SVG 字符串并添加渐变背景和动画
+                    const svgString = avatar.toString()
+
+                    // 创建渐变定义
+                    const gradientDef = `
+                        <defs>
+                            <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:${color1};stop-opacity:1"/>
+                                <stop offset="50%" style="stop-color:${color2};stop-opacity:1"/>
+                                <stop offset="100%" style="stop-color:${color3};stop-opacity:1"/>
+                            </linearGradient>
+                        </defs>
+                        <rect width="100%" height="100%" fill="url(#${gradientId})"/>
+                    `
+
+                    // 在 SVG 开头添加渐变背景
+                    const svgWithBackground = svgString.replace(
+                        /<svg([^>]*)>/,
+                        `<svg$1>${gradientDef}`
+                    )
+
+                    // 转换为 data URI
+                    const svgUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgWithBackground)}`
+
                     // 将 SVG URL 转换为 canvas
                     const img = new Image()
                     img.crossOrigin = 'anonymous'
@@ -130,23 +184,19 @@ export const renderAvatarToTexture = async (
                             const texture = new THREE.CanvasTexture(canvas)
                             texture.needsUpdate = true
 
-                            // 清理资源
-                            app.unmount()
-                            document.body.removeChild(container)
-
                             resolve(texture)
                             return
                         }
                     }
                     img.onerror = () => {
-                        throw new Error('Failed to load SVG image')
+                        throw new Error('Failed to load DiceBear SVG image')
                     }
                     img.src = svgUrl
-                } else {
-                    throw new Error('No SVG URL generated')
+                } catch (error) {
+                    // 发生错误时使用后备方案
+                    const fallbackTexture = createFallbackTexture(identity, size)
+                    resolve(fallbackTexture)
                 }
-            } else {
-                throw new Error('Cannot access component instance')
             }
         } catch (error) {
             // 发生错误时使用后备方案

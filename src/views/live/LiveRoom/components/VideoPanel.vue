@@ -168,7 +168,8 @@ const shouldShowLocalThumbnail = computed(() => {
   if (!isSpeakerLayout.value) {
     return false
   }
-  return !shouldShowLocalAsMain.value
+  // 只有当本地不是主视频且有远程视频参与者时，才在缩略图中显示本地视频
+  return !shouldShowLocalAsMain.value && videoParticipants.value.length > 0
 })
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -178,7 +179,8 @@ const thumbnailParticipants = computed(() => {
 })
 
 const hasThumbnails = computed(() => {
-  return shouldShowLocalThumbnail.value || thumbnailParticipants.value.length > 0
+  // 只有在有多个视频源时才显示缩略图区域
+  return videoParticipants.value.length > 0 && (shouldShowLocalThumbnail.value || thumbnailParticipants.value.length > 0)
 })
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -309,6 +311,11 @@ const attachRemoteVideo = (participantId: string, track: Track | any) => {
   }
 }
 
+// 附加远程音频轨道（LiveKit音频轨道通常自动处理，此处提供空实现以保持接口一致性）
+const attachRemoteAudio = (participantId: string, track: Track | any) => {
+  // LiveKit音频轨道自动处理，无需手动附加到DOM元素
+}
+
   // 当 props.remoteParticipants 更新时，自动附加/分离轨道
   watch(() => props.remoteParticipants, (newList) => {
 
@@ -410,6 +417,7 @@ onMounted(() => {
 defineExpose({
   attachLocalVideo,
   attachRemoteVideo,
+  attachRemoteAudio,
   detachRemoteVideo,
   cleanupRemoteVideos,
   cleanupLocalVideo
@@ -486,6 +494,7 @@ defineExpose({
   gap: 16px;
   flex: 1;
   min-height: 0;
+  align-items: flex-start;
 }
 
 .speaker-main {
@@ -496,7 +505,7 @@ defineExpose({
 }
 
 .speaker-thumbs {
-  width: 240px;
+  width: 280px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -510,12 +519,13 @@ defineExpose({
   border-radius: 8px;
   overflow: hidden;
   aspect-ratio: 16 / 9;
-  min-height: 200px;
+  min-height: 180px;
+  max-height: none;
 
   video {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     background: var(--background-color);
   }
 
@@ -537,10 +547,14 @@ defineExpose({
   height: 100%;
   aspect-ratio: auto;
   min-height: 0;
+  max-height: none;
 }
 
 .video-item.thumb-video {
   cursor: pointer;
+  min-height: 140px;
+  max-height: 200px;
+  flex-shrink: 0;
 }
 
 // 连接状态的样式

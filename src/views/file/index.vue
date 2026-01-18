@@ -194,7 +194,7 @@
           <div v-else class="preview-content">
             <!-- PDF 预览 -->
             <VueOfficePdf
-                v-if="fileType === 'pdf'"
+                v-if="fileType === 'pdf' && fileInfo.url"
                 :src="fileInfo.url"
                 :style="pdfStyle"
                 @error="handlePdfError"
@@ -203,7 +203,7 @@
 
             <!-- Word 文档预览 -->
             <VueOfficeDocx
-                v-else-if="fileType === 'docx'"
+                v-else-if="fileType === 'docx' && fileInfo.url"
                 :src="fileInfo.url"
                 :style="docxStyle"
                 @error="handleDocxError"
@@ -212,7 +212,7 @@
 
             <!-- Excel 预览 -->
             <VueOfficeExcel
-                v-else-if="fileType === 'excel'"
+                v-else-if="fileType === 'excel' && fileInfo.url"
                 :src="fileInfo.url"
                 :style="excelStyle"
                 @error="handleExcelError"
@@ -221,7 +221,7 @@
 
             <!-- PowerPoint 预览 -->
             <VueOfficePptx
-                v-else-if="fileType === 'pptx'"
+                v-else-if="fileType === 'pptx' && fileInfo.url"
                 :src="fileInfo.url"
                 :style="pptxStyle"
                 @error="handlePptxError"
@@ -229,7 +229,7 @@
             />
 
             <!-- 图片预览 -->
-            <div v-else-if="fileType === 'image'" class="image-preview">
+            <div v-else-if="fileType === 'image' && fileInfo.url" class="image-preview">
               <img
                   :alt="fileInfo.fileName"
                   :src="fileInfo.url"
@@ -240,7 +240,7 @@
             </div>
 
             <!-- 视频预览 -->
-            <div v-else-if="fileType === 'video'" class="video-preview">
+            <div v-else-if="fileType === 'video' && fileInfo.url" class="video-preview">
               <video
                   :controls="true"
                   :src="fileInfo.url"
@@ -253,7 +253,7 @@
             </div>
 
             <!-- 音频预览 -->
-            <div v-else-if="fileType === 'audio'" class="audio-preview">
+            <div v-else-if="fileType === 'audio' && fileInfo.url" class="audio-preview">
               <audio
                   :controls="true"
                   :src="fileInfo.url"
@@ -266,7 +266,7 @@
             </div>
 
             <!-- 文本预览 -->
-            <div v-else-if="fileType === 'text'" class="text-preview">
+            <div v-else-if="fileType === 'text' && fileInfo.url" class="text-preview">
               <pre :style="textStyle">{{ textContent }}</pre>
             </div>
           </div>

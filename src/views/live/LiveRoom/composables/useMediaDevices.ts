@@ -335,53 +335,14 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
       return
     }
 
+    // 摄像头和麦克风都保持关闭状态，由用户手动控制
+    // 不进行任何自动媒体设置
+
     try {
-      // 先启用麦克风（通常更稳定）
-      await safeAsyncCall(
-        () => targetRoom.localParticipant.setMicrophoneEnabled(true),
-        t('live.media.microphoneEnableFailed')
-      )
-      microphoneEnabled.value = true
-
-      // 等待一小段时间再启用摄像头
-      await new Promise(resolve => setTimeout(resolve, 300))
-
-      // 启用摄像头，添加重试机制
-      let cameraRetries = 3
-      let cameraSuccess = false
-
-      while (cameraRetries > 0 && !cameraSuccess) {
-        if (targetRoom.state !== ConnectionState.Connected) {
-          break
-        }
-
-        try {
-          await safeAsyncCall(
-            () => targetRoom.localParticipant.setCameraEnabled(true),
-            t('live.media.cameraEnableFailed')
-          )
-          cameraEnabled.value = true
-          cameraSuccess = true
-        } catch (error) {
-          cameraRetries--
-          if (cameraRetries > 0) {
-            await new Promise(resolve => setTimeout(resolve, 1000))
-          }
-        }
-      }
-
-      if (!cameraSuccess) {
-        cameraEnabled.value = false
-        errorHandler.handleError(new Error('Camera enable failed'), 'media_camera_enable', {
-          showNotification: true,
-          customMessage: t('live.room.cameraEnableFailed')
-        })
-      }
-
-      // 等待轨道发布
+      // 等待连接稳定
       await new Promise(resolve => setTimeout(resolve, 500))
-
     } catch (error) {
+      // 重置状态以确保一致性
       microphoneEnabled.value = false
       cameraEnabled.value = false
 

@@ -9,7 +9,12 @@ export interface ResourceManagerResult {
   getResourceCount: () => number
 }
 
-export const useResourceManager = (): ResourceManagerResult => {
+export interface ResourceManagerOptions {
+  autoCleanup?: boolean
+}
+
+export const useResourceManager = (options: ResourceManagerOptions = {}): ResourceManagerResult => {
+  const autoCleanup = options.autoCleanup !== false
   // 资源存储
   const resources = ref<Map<any, () => void>>(new Map())
   const timers = ref<Set<number>>(new Set())
@@ -162,7 +167,9 @@ export const useResourceManager = (): ResourceManagerResult => {
 
   // 组件卸载时自动清理
   onBeforeUnmount(() => {
-    cleanupAll()
+    if (autoCleanup) {
+      cleanupAll()
+    }
   })
 
   return {

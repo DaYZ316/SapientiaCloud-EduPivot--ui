@@ -48,7 +48,9 @@
   // 画中画相关（更稳健）
   const isPiPVisible = computed(() => {
     const v = unwrapStoreField((livePiPStore as any).isInPiPMode)
-    return !!v
+    const visible = !!v
+    console.log('AppLayout isPiPVisible:', visible, 'isInPiPMode:', v)
+    return visible
   })
   
   const pipRoomId = computed(() => {

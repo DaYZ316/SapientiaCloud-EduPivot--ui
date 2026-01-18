@@ -11,6 +11,7 @@ interface LivePiPSession {
   connection: any // LiveKit Room实例
   videoStream: MediaStream | null // 视频流
   participantId: string // 参与者ID
+  sessionId?: string | null // 会话ID，用于退出时清理状态
 }
 
 /**
@@ -52,12 +53,15 @@ export const useLivePiPStore = defineStore('livePiP', () => {
    * 进入画中画模式
    */
   const enterPiPMode = (session: LivePiPSession): void => {
+    console.log('enterPiPMode called with session:', session)
     if (!session || !session.connection) {
+      console.log('Invalid session, returning')
       return
     }
 
     activeSession.value = session
     isInPiPMode.value = true
+    console.log('PiP mode entered, isInPiPMode:', isInPiPMode.value)
 
     // 创建画中画窗口
     createPiPWindow()
@@ -129,10 +133,24 @@ export const useLivePiPStore = defineStore('livePiP', () => {
   /**
    * 强制断开直播连接
    */
-  const forceDisconnect = (): void => {
+  const forceDisconnect = async (): Promise<void> => {
     if (activeSession.value?.connection && typeof (activeSession.value.connection.disconnect) === 'function') {
       // 断开LiveKit连接
       activeSession.value.connection.disconnect()
+    }
+
+    // 通知后端用户离开直播间
+    if (activeSession.value?.roomId && activeSession.value?.sessionId) {
+      try {
+        // 动态导入 API，避免循环依赖
+        const liveApi = await import('@/api/live')
+        const payload = liveApi.getDefaultLiveRoomSessionDTO()
+        payload.roomId = activeSession.value.roomId
+        payload.sessionId = activeSession.value.sessionId
+        await liveApi.leaveLiveRoom(payload)
+      } catch (error) {
+        console.warn('PiP: 退出直播时通知后端失败', error)
+      }
     }
 
     // 清理所有状态

@@ -12,14 +12,12 @@
       </n-card>
     </live-room-provider>
 
-    <!-- 瀛︾敓淇℃伅妗?-->
     <student-info-popup
       :position="popupPosition"
       :seat-index="currentSeatIndex"
       :show="showStudentInfo"
       :student="currentStudent"
     />
-    <!-- 鎸囬拡閿佸畾鎻愮ず -->
     <n-alert
       v-if="showPointerLockHint"
       :title="t('classroom.pointerLockHintTitle')"
@@ -55,12 +53,76 @@ const props = defineProps<{ roomIdProp?: string | null; tokenProp?: string | nul
 // provider 的引用，用于调用 expose 出来的方法（initialize / cleanup）
 const providerRef = ref<any>(null)
 
+const extractStreamFromTrack = (trackCandidate: any): MediaStream | null => {
+  if (!trackCandidate) return null
+  if (trackCandidate instanceof MediaStream) return trackCandidate
+  if (trackCandidate.mediaStream instanceof MediaStream) return trackCandidate.mediaStream
+  if (trackCandidate.stream instanceof MediaStream) return trackCandidate.stream
+  try {
+    return new MediaStream([trackCandidate as any])
+  } catch (e) {
+    return null
+  }
+}
+
+const extractVideoStreamFromRoom = (room: any, participantId: string): MediaStream | null => {
+  try {
+    if (participantId === 'local') {
+      const localParticipant: any = room.localParticipant
+      const pubs: any[] = Array.from(localParticipant?.videoTrackPublications?.values?.() ?? [])
+      for (const pub of pubs) {
+        const track = pub && (pub.track || pub)
+        const stream = extractStreamFromTrack(track)
+        if (stream) return stream
+      }
+      return null
+    }
+
+    const remoteParticipant = (room.remoteParticipants && room.remoteParticipants.get && room.remoteParticipants.get(participantId)) ||
+      Array.from(room.remoteParticipants ? room.remoteParticipants.values() : []).find((p: any) => p.identity === participantId)
+    if (!remoteParticipant) return null
+
+    const pubs: any[] = Array.from(remoteParticipant.videoTrackPublications?.values?.() ?? [])
+    for (const pub of pubs) {
+      const track = pub && (pub.track || pub)
+      const stream = extractStreamFromTrack(track)
+      if (stream) return stream
+    }
+  } catch (e) {
+    return null
+  }
+  return null
+}
+
+const resolvePiPParticipantId = (room: any, preferredId?: string | null): string => {
+  if (preferredId) return preferredId
+
+  const remoteWithVideo = (Array.from(room.remoteParticipants ? room.remoteParticipants.values() : []) as any[]).find((p: any) => {
+    const pubs = Array.from(p.videoTrackPublications?.values?.() ?? [])
+    return pubs.some((pub: any) => (pub.track || pub)?.kind === 'video')
+  })
+  if (remoteWithVideo?.identity) return remoteWithVideo.identity
+
+  const localPubs = Array.from(room.localParticipant?.videoTrackPublications?.values?.() ?? [])
+  if (localPubs.length > 0) return 'local'
+
+  const firstRemote = (Array.from(room.remoteParticipants ? room.remoteParticipants.values() : []) as any[])[0]
+  return firstRemote?.identity || 'local'
+}
+
 const enterPiPIfConnected = () => {
   if (!providerRef.value?.connection?.isConnected?.value || !providerRef.value?.connection?.room?.value) {
     return
   }
+
+  const room = providerRef.value.connection.room.value
+  const participantId = resolvePiPParticipantId(room, providerRef.value.activeMainParticipantId?.value)
+
   const existingVideo = livePiPStore.findVideoElement?.()
   let videoStream = existingVideo?.srcObject instanceof MediaStream ? existingVideo.srcObject : null
+  if (!videoStream && participantId) {
+    videoStream = extractVideoStreamFromRoom(room, participantId)
+  }
 
   // 如果找到视频流，克隆一份以避免页面跳转时被清理
   if (videoStream) {
@@ -73,10 +135,12 @@ const enterPiPIfConnected = () => {
 
   const session = {
     roomId: route.params.roomId as string,
-    connection: providerRef.value.connection.room.value,
+    connection: room,
     videoStream,
-    participantId: providerRef.value.activeMainParticipantId?.value || ''
+    participantId,
+    sessionId: providerRef.value.sessionId?.value ?? null
   }
+  console.log('Entering PiP mode with session:', session)
   livePiPStore.enterPiPMode(session)
 }
 
@@ -86,12 +150,8 @@ const handleBeforeUnload = (_event: BeforeUnloadEvent) => {
   enterPiPIfConnected()
 }
 
-const handleVisibilityChange = () => {
-  if (document.hidden) {
-    // 页面变为不可见时进入画中画模式
-    enterPiPIfConnected()
-  }
-}
+// 移除 visibilitychange 监听，因为浏览器最小化时不应该进入画中画模式
+// 只有在真正离开页面时才进入画中画模式（由 beforeunload 和 beforeRouteLeave 处理）
 
 onBeforeRouteLeave((_to, _from, next) => {
   // 通过页面返回或左侧导航离开直播时进入画中画
@@ -108,21 +168,17 @@ onMounted(async () => {
 
   // 添加页面事件监听器
   window.addEventListener('beforeunload', handleBeforeUnload)
-  document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 
 onUnmounted(() => {
-  // 组件卸载时清理 provider 中的资源（断开连接、停止轮询等）
   if (!livePiPStore.isInPiPMode) {
     providerRef.value?.cleanup?.()
   }
 
   // 清理事件监听器
   window.removeEventListener('beforeunload', handleBeforeUnload)
-  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 
-// 3D 鏁欏鐩稿叧鐘舵€?(淇濈暀鍘熸湁3D鍔熻兘)
 const showStudentInfo = ref(false)
 const showPointerLockHint = ref(false)
 const popupPosition = ref({ x: 0, y: 0 })

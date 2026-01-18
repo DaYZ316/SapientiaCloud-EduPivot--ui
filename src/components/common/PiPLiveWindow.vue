@@ -86,10 +86,16 @@ const isDragging = ref<boolean>(false)
 const dragOffset = ref({ x: 0, y: 0 })
 
 // 计算属性
-const isVisible = computed(() => props.isVisible && livePiPStore.isInPiPMode)
+const isVisible = computed(() => {
+  const visible = props.isVisible && livePiPStore.isInPiPMode
+  console.log('PiP isVisible:', visible, 'props.isVisible:', props.isVisible, 'isInPiPMode:', livePiPStore.isInPiPMode)
+  return visible
+})
 const hasVideoStream = computed(() => {
   const session = activeSession.value
-  return session && (session.videoStream || (session.connection && session.participantId))
+  const hasStream = session && (session.videoStream || (session.connection && session.participantId))
+  console.log('PiP hasVideoStream:', hasStream, 'session:', session)
+  return hasStream
 })
 
 // 方法

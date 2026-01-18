@@ -289,8 +289,9 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
             maxRetries: 3,
             baseDelay: 2000,
             retryCondition: (error) => retryMechanism.isRetryableError(error),
-            onRetry: (attempt, _error) => {
-              loadingState.setLoading('connection', true, t('live.common.retryingConnection', { attempt, total: 3 }))
+            onRetry: (_attempt, _error) => {
+              // 重试时不更新loading文本，避免显示错误提示给用户
+              // 保持loading状态，但不改变文本
             }
           }
         )
@@ -644,6 +645,9 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     const currentRoom = connection.room.value
     if (currentRoom) {
       chat.teardownRealtimeMessages(currentRoom)
+    }
+    if (connection.isConnected.value || connection.room.value) {
+      void connection.disconnect()
     }
     realtime.disconnect()
     chat.stopPolling()

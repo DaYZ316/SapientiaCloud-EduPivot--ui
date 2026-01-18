@@ -31,7 +31,7 @@ export const useLiveConnection = (): LiveConnectionResult => {
 
   // 集成健壮性工具
   const errorHandler = useErrorHandler()
-  const resourceManager = useResourceManager()
+  const resourceManager = useResourceManager({ autoCleanup: false })
   const retryMechanism = useRetryMechanism()
 
   // 状态
@@ -88,13 +88,10 @@ export const useLiveConnection = (): LiveConnectionResult => {
           baseDelay: 2000,
           maxDelay: 10000,
           retryCondition: (error) => retryMechanism.isRetryableError(error),
-          onRetry: (error, attempt) => {
+          onRetry: (_error, _attempt) => {
             connectionState.value = 'reconnecting'
-            // 重试通知
-            errorHandler.handleError(error, 'live_connection_retry', {
-              showNotification: true,
-              customMessage: t('live.common.retryingConnection', { attempt, total: 3 })
-            })
+            // 重试时不显示通知，避免用户误会为系统出错
+            // 只在最终失败时才显示错误
           }
         }
       )

@@ -2,9 +2,12 @@ import { ref, readonly, onBeforeUnmount, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { fetchEventSource } from '@microsoft/fetch-event-source'
 import { useUserStore } from '@/store'
+import { apiConfig } from '@/utils/http'
 import { useResourceManager } from './useResourceManager'
 import { useLoadingState } from './useLoadingState'
 import * as liveApi from '@/api/live'
+
+class SseFatalError extends Error {}
 
 export interface LiveRealtimeMessage {
   type: string
@@ -99,7 +102,9 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
 
       // 建立SSE连接
       // 使用fetch-event-source支持Authorization header，避免EventSource的header限制
-      const sseUrl = `/live/subscribe${currentClassroomId ? `?classroomId=${currentClassroomId}&token=${sseToken}` : `?token=${sseToken}`}`
+      const baseURL = apiConfig.getBaseUrl()
+      const ssePath = `/live/live/subscribe${currentClassroomId ? `?classroomId=${currentClassroomId}&token=${sseToken}` : `?token=${sseToken}`}`
+      const sseUrl = `${baseURL}${ssePath}`
 
       eventSourceController = new AbortController()
 
@@ -109,7 +114,7 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
         eventSourceController = null
       })
 
-      await fetchEventSource(sseUrl, {
+      fetchEventSource(sseUrl, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${jwtToken}`,
@@ -130,7 +135,7 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
               } catch (e) {
                 // 无法读取错误详情
               }
-              throw new Error(t('live.sse.connectFailed', {
+              throw new SseFatalError(t('live.sse.connectFailed', {
                 status: response.status,
                 statusText: response.statusText
               }))
@@ -144,7 +149,7 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
             // JSON解析失败，静默处理
           }
         },
-        onerror: (_error) => {
+        onerror: (error) => {
           // 发生错误时中止当前 SSE 连接，确保不会与轮询并发
           try {
             eventSourceController?.abort()
@@ -158,7 +163,10 @@ export const useLiveRealtime = (): LiveRealtimeResult => {
 
           // 如果SSE失败，立即启用轮询作为备用方案
           startPolling()
+          throw error instanceof SseFatalError ? error : new SseFatalError('SSE error')
         }
+      }).catch((_error) => {
+        // ä¸ä½¿ç”¨è‡ªåŠ¨é‡è¯•ï¼Œè¿™é‡ŒåªæŠ‘åˆ¶Promiseçš„æœªå¤„ç†é”™è¯¯
       })
 
     } catch (error: any) {

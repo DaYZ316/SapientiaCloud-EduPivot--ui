@@ -118,8 +118,9 @@ watch(() => liveRoom.connectionIsConnected?.value, (connected) => {
       roomId: (props.roomIdProp ?? (liveRoom.roomInfo?.value?.id ?? '')) as string,
       connection: room,
       videoStream,
-      participantId
-    } as any)
+      participantId,
+      sessionId: liveRoomAny.sessionId?.value ?? null
+    })
   } else if (!connected) {
     // 清理活动会话
     livePiPStore.setActiveSession(null)

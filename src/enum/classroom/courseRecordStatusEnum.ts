@@ -1,14 +1,15 @@
 /**
  * 课程记录状态枚举
+ * 状态由系统根据 startTime 和 overTime 实时计算
  */
 export enum CourseRecordStatusEnum {
-    /** 未开始 */
-    NOT_STARTED = 0,
-    /** 进行中 */
+    /** 课前准备 */
+    PREPARING = 0,
+    /** 上课中 */
     IN_PROGRESS = 1,
-    /** 已结束 */
+    /** 下课 */
     ENDED = 2,
-    /** 取消 */
+    /** 已取消 */
     CANCELLED = 3
 }
 
@@ -16,9 +17,9 @@ export enum CourseRecordStatusEnum {
  * 课程记录状态枚举中文标签
  */
 export const courseRecordStatusLabelMap = {
-    [CourseRecordStatusEnum.NOT_STARTED]: '未开始',
-    [CourseRecordStatusEnum.IN_PROGRESS]: '进行中',
-    [CourseRecordStatusEnum.ENDED]: '已结束',
+    [CourseRecordStatusEnum.PREPARING]: '课前准备',
+    [CourseRecordStatusEnum.IN_PROGRESS]: '上课中',
+    [CourseRecordStatusEnum.ENDED]: '下课',
     [CourseRecordStatusEnum.CANCELLED]: '已取消'
 };
 
@@ -26,7 +27,7 @@ export const courseRecordStatusLabelMap = {
  * 课程记录状态枚举英文标签
  */
 export const courseRecordStatusEnLabelMap = {
-    [CourseRecordStatusEnum.NOT_STARTED]: 'Not Started',
+    [CourseRecordStatusEnum.PREPARING]: 'Preparing',
     [CourseRecordStatusEnum.IN_PROGRESS]: 'In Progress',
     [CourseRecordStatusEnum.ENDED]: 'Ended',
     [CourseRecordStatusEnum.CANCELLED]: 'Cancelled'
@@ -36,9 +37,9 @@ export const courseRecordStatusEnLabelMap = {
  * 课程记录状态枚举选项数组（中文）
  */
 export const courseRecordStatusOptions = [
-    {label: '未开始', value: CourseRecordStatusEnum.NOT_STARTED},
-    {label: '进行中', value: CourseRecordStatusEnum.IN_PROGRESS},
-    {label: '已结束', value: CourseRecordStatusEnum.ENDED},
+    {label: '课前准备', value: CourseRecordStatusEnum.PREPARING},
+    {label: '上课中', value: CourseRecordStatusEnum.IN_PROGRESS},
+    {label: '下课', value: CourseRecordStatusEnum.ENDED},
     {label: '已取消', value: CourseRecordStatusEnum.CANCELLED}
 ];
 
@@ -46,7 +47,7 @@ export const courseRecordStatusOptions = [
  * 课程记录状态枚举选项数组（英文）
  */
 export const courseRecordStatusEnOptions = [
-    {label: 'Not Started', value: CourseRecordStatusEnum.NOT_STARTED},
+    {label: 'Preparing', value: CourseRecordStatusEnum.PREPARING},
     {label: 'In Progress', value: CourseRecordStatusEnum.IN_PROGRESS},
     {label: 'Ended', value: CourseRecordStatusEnum.ENDED},
     {label: 'Cancelled', value: CourseRecordStatusEnum.CANCELLED}
@@ -71,6 +72,6 @@ export function getCourseRecordStatusLabel(value: CourseRecordStatusEnum | numbe
     const numValue = (typeof value === 'string') ? parseInt(value, 10) : value;
     const enumValue = numValue as CourseRecordStatusEnum;
     const map = isEn ? courseRecordStatusEnLabelMap : courseRecordStatusLabelMap;
-    return map[enumValue] || map[CourseRecordStatusEnum.NOT_STARTED];
+    return map[enumValue] || map[CourseRecordStatusEnum.PREPARING];
 }
 

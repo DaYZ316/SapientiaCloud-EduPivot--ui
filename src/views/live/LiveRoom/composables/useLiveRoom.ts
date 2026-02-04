@@ -15,7 +15,7 @@ import { useResourceManager } from './useResourceManager'
 import { useLoadingState } from './useLoadingState'
 import { useRetryMechanism } from './useRetryMechanism'
 import * as liveApi from '@/api/live'
-import { RoomEvent, Track, type RemoteParticipant, type RemoteTrackPublication } from 'livekit-client'
+import { RoomEvent, Track, type Room, type RemoteParticipant, type RemoteTrackPublication } from 'livekit-client'
 
 export interface LiveRoomResult {
   // 状态
@@ -57,6 +57,7 @@ export interface LiveRoomResult {
 
   // 方法
   initialize: () => Promise<void>
+  restoreSession: (existingRoom: Room, existingSessionId: string | null, roomId: string) => Promise<void>
   handleLeave: () => Promise<void>
   handleSendMessage: (content: string) => Promise<void>
   handleToggleCamera: () => Promise<void>
@@ -259,6 +260,38 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     }
   }
 
+  // 恢复会话（从 PiP 恢复时使用）
+  const restoreSession = async (existingRoom: Room, existingSessionId: string | null, existingRoomId: string): Promise<void> => {
+    // 加载房间信息
+    await loadRoomInfo()
+    // 设置 sessionId
+    sessionId.value = existingSessionId
+
+    // 启动SSE实时连接
+    await realtime.connect(existingRoomId, null)
+
+    // 恢复 LiveKit 连接
+    connection.restoreConnection(existingRoom, existingSessionId, existingRoomId)
+
+    // 设置聊天监听
+    if (existingRoom) {
+      chat.setupRealtimeMessages(existingRoom)
+      chat.teardownSseListener()
+    }
+
+    // 同步已有参与者轨道
+    existingRoom.remoteParticipants.forEach((participant: RemoteParticipant) => {
+      syncExistingParticipantTracks(participant)
+    })
+
+    // 获取在线人数
+    if (existingRoomId) {
+      liveApi.getRoomMemberCount(existingRoomId).then(result => {
+        backendMemberCount.value = result.data
+      })
+    }
+  }
+
   // 初始化
   const initialize = async (): Promise<void> => {
     await loadRoomInfo()
@@ -298,10 +331,10 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
 
         loadingState.setLoading('connection', false)
 
-        // 设置实时消息监听并停止轮询（已连接则使用实时）
+        // 设置实时消息监听并停止 SSE（已连接则使用 WebRTC DataChannel）
         if (connection.room.value) {
           chat.setupRealtimeMessages(connection.room.value)
-          chat.stopPolling()
+          chat.teardownSseListener()
         }
 
         const latestSessionId = sessionId.value
@@ -311,15 +344,15 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
 
         // 摄像头默认关闭，不需要尝试附加本地视频轨道
         // 只有当用户手动开启摄像头时，才会在 toggleCamera() 中处理视频附加
-      } catch (error: any) {
+        } catch (error: any) {
         loadingState.setLoading('connection', false)
         errorHandler.handleError(error, t('live.common.connectionContext'), {
           allowRetry: true,
           onRetry: () => connectWithRetry(token)
         })
 
-        // 连接失败时启用降级模式 - 启动消息轮询
-        chat.startPolling(roomId)
+        // 连接失败时启用降级模式 - 启动 SSE 监听
+        chat.setupSseListener(roomId, undefined)
       }
     }
 
@@ -344,8 +377,8 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     await connection.disconnect()
 
     // 断开由 connection.disconnect() 负责资源清理，避免重复调用
-    // 离开直播后停止聊天轮询
-    chat.stopPolling()
+    // 离开直播后停止 SSE 监听
+    chat.teardownSseListener()
 
     const currentSessionId = sessionId.value
     if (currentSessionId) {
@@ -650,7 +683,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
       void connection.disconnect()
     }
     realtime.disconnect()
-    chat.stopPolling()
+    chat.teardownSseListener()
     firstTeacherParticipantId.value = null
   }
 
@@ -694,6 +727,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
 
     // 方法
     initialize,
+    restoreSession,
     handleLeave,
     handleSendMessage,
     handleToggleCamera,

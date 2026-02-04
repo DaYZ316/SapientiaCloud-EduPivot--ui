@@ -54,43 +54,70 @@ const props = defineProps<{ roomIdProp?: string | null; tokenProp?: string | nul
 const providerRef = ref<any>(null)
 
 const extractStreamFromTrack = (trackCandidate: any): MediaStream | null => {
-  if (!trackCandidate) return null
-  if (trackCandidate instanceof MediaStream) return trackCandidate
-  if (trackCandidate.mediaStream instanceof MediaStream) return trackCandidate.mediaStream
-  if (trackCandidate.stream instanceof MediaStream) return trackCandidate.stream
-  try {
-    return new MediaStream([trackCandidate as any])
-  } catch (e) {
+  if (!trackCandidate) {
     return null
   }
+
+  // 如果已经是 MediaStream
+  if (trackCandidate instanceof MediaStream) {
+    return trackCandidate
+  }
+
+  // 检查 mediaStream 属性
+  if (trackCandidate.mediaStream instanceof MediaStream) {
+    return trackCandidate.mediaStream
+  }
+
+  // 检查 stream 属性
+  if (trackCandidate.stream instanceof MediaStream) {
+    return trackCandidate.stream
+  }
+
+  // 尝试从 MediaStreamTrack 创建
+  if (trackCandidate.kind === 'video' || trackCandidate.id) {
+    const stream = new MediaStream([trackCandidate as any])
+    return stream
+  }
+
+  return null
 }
 
 const extractVideoStreamFromRoom = (room: any, participantId: string): MediaStream | null => {
-  try {
-    if (participantId === 'local') {
-      const localParticipant: any = room.localParticipant
-      const pubs: any[] = Array.from(localParticipant?.videoTrackPublications?.values?.() ?? [])
-      for (const pub of pubs) {
-        const track = pub && (pub.track || pub)
-        const stream = extractStreamFromTrack(track)
-        if (stream) return stream
-      }
+  if (!room) {
+    return null
+  }
+
+  if (participantId === 'local') {
+    const localParticipant: any = room.localParticipant
+    if (!localParticipant) {
       return null
     }
 
-    const remoteParticipant = (room.remoteParticipants && room.remoteParticipants.get && room.remoteParticipants.get(participantId)) ||
-      Array.from(room.remoteParticipants ? room.remoteParticipants.values() : []).find((p: any) => p.identity === participantId)
-    if (!remoteParticipant) return null
+    const pubs: any[] = Array.from(localParticipant?.videoTrackPublications?.values?.() ?? [])
 
-    const pubs: any[] = Array.from(remoteParticipant.videoTrackPublications?.values?.() ?? [])
     for (const pub of pubs) {
       const track = pub && (pub.track || pub)
       const stream = extractStreamFromTrack(track)
       if (stream) return stream
     }
-  } catch (e) {
     return null
   }
+
+  const remoteParticipant = (room.remoteParticipants && room.remoteParticipants.get && room.remoteParticipants.get(participantId)) ||
+    Array.from(room.remoteParticipants ? room.remoteParticipants.values() : []).find((p: any) => p.identity === participantId)
+
+  if (!remoteParticipant) {
+    return null
+  }
+
+  const pubs: any[] = Array.from(remoteParticipant.videoTrackPublications?.values?.() ?? [])
+
+  for (const pub of pubs) {
+    const track = pub && (pub.track || pub)
+    const stream = extractStreamFromTrack(track)
+    if (stream) return stream
+  }
+
   return null
 }
 
@@ -118,19 +145,18 @@ const enterPiPIfConnected = () => {
   const room = providerRef.value.connection.room.value
   const participantId = resolvePiPParticipantId(room, providerRef.value.activeMainParticipantId?.value)
 
+  // 1. 首先尝试从当前页面的视频元素获取
   const existingVideo = livePiPStore.findVideoElement?.()
   let videoStream = existingVideo?.srcObject instanceof MediaStream ? existingVideo.srcObject : null
+
+  // 2. 如果没有，尝试从 room 中提取
   if (!videoStream && participantId) {
     videoStream = extractVideoStreamFromRoom(room, participantId)
   }
 
-  // 如果找到视频流，克隆一份以避免页面跳转时被清理
+  // 3. 如果找到视频流，克隆一份以避免页面跳转时被清理
   if (videoStream) {
-    try {
-      videoStream = videoStream.clone()
-    } catch (e) {
-      console.warn('PiP: 无法克隆视频流，将使用原始流', e)
-    }
+    videoStream = videoStream.clone()
   }
 
   const session = {
@@ -140,7 +166,7 @@ const enterPiPIfConnected = () => {
     participantId,
     sessionId: providerRef.value.sessionId?.value ?? null
   }
-  console.log('Entering PiP mode with session:', session)
+
   livePiPStore.enterPiPMode(session)
 }
 
@@ -163,6 +189,21 @@ onBeforeRouteLeave((_to, _from, next) => {
 import { nextTick } from 'vue'
 onMounted(async () => {
   await nextTick()
+
+  // 如果刚刚从 PiP 恢复，使用 store 中已有的连接
+  if (livePiPStore.justRestoredFromPiP && livePiPStore.activeSession) {
+    const session = livePiPStore.activeSession
+    if (session.connection) {
+      // 恢复会话：加载 roomInfo、连接 SSE、同步参与者等
+      await providerRef.value?.restoreSession?.(
+        session.connection,
+        session.sessionId ?? null,
+        session.roomId
+      )
+    }
+    return
+  }
+
   // 在微任务后再触发 LiveRoom 的初始化逻辑（加载房间、连接 SSE/RTC 等）
   providerRef.value?.initialize?.()
 
@@ -186,13 +227,9 @@ const currentSeatIndex = ref<number | null>(null)
 const currentStudent = ref<any>(null)
 </script>
 
-<style scoped>
-.live-room-container {
-  position: relative;
-}
-</style>
+<style lang="scss" scoped>
+@use '@/assets/styles/index.scss' as *;
 
-<style scoped>
 .live-room-container {
   position: relative;
 }

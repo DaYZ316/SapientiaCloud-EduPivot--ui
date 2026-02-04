@@ -25,34 +25,44 @@ const extractStreamFromTrack = (trackCandidate: any): MediaStream | null => {
   if (trackCandidate instanceof MediaStream) return trackCandidate
   if (trackCandidate.mediaStream && trackCandidate.mediaStream instanceof MediaStream) return trackCandidate.mediaStream
   if (trackCandidate.stream && trackCandidate.stream instanceof MediaStream) return trackCandidate.stream
-  try {
-    // 有些 LiveKit track 可以直接作为 MediaStreamTrack 使用
-    return new MediaStream([trackCandidate as any])
-  } catch (e) {
-    return null
-  }
+  // 有些 LiveKit track 可以直接作为 MediaStreamTrack 使用
+  return new MediaStream([trackCandidate as any])
 }
 
 // 提取当前主讲者的视频流
 const extractCurrentVideoStream = (room: any, participantId: string): MediaStream | null => {
   let videoStream: MediaStream | null = null
 
-  try {
-    if (participantId === 'local') {
-      const localParticipant: any = room.localParticipant
-      const pubs: any[] = []
-      if (localParticipant.videoTrackPublications && typeof localParticipant.videoTrackPublications.values === 'function') {
-        pubs.push(...Array.from(localParticipant.videoTrackPublications.values()))
-      }
-      if (typeof localParticipant.getTrackPublications === 'function') {
-        const mp = localParticipant.getTrackPublications()
-        if (mp && typeof mp.values === 'function') pubs.push(...Array.from(mp.values()))
-      }
-      if (localParticipant.videoTracks && typeof localParticipant.videoTracks.values === 'function') {
-        pubs.push(...Array.from(localParticipant.videoTracks.values()))
-      }
+  if (participantId === 'local') {
+    const localParticipant: any = room.localParticipant
+    const pubs: any[] = []
+    if (localParticipant.videoTrackPublications && typeof localParticipant.videoTrackPublications.values === 'function') {
+      pubs.push(...Array.from(localParticipant.videoTrackPublications.values()))
+    }
+    if (typeof localParticipant.getTrackPublications === 'function') {
+      const mp = localParticipant.getTrackPublications()
+      if (mp && typeof mp.values === 'function') pubs.push(...Array.from(mp.values()))
+    }
+    if (localParticipant.videoTracks && typeof localParticipant.videoTracks.values === 'function') {
+      pubs.push(...Array.from(localParticipant.videoTracks.values()))
+    }
 
-      for (const pub of pubs) {
+    for (const pub of pubs) {
+      const track = pub && (((pub as any).track) || (pub as any))
+      if (!track) continue
+      const stream = extractStreamFromTrack(track)
+      if (stream) {
+        videoStream = stream
+        break
+      }
+    }
+  } else {
+    // 远端参与者
+    const remoteParticipant = (room.remoteParticipants && room.remoteParticipants.get && room.remoteParticipants.get(participantId)) ||
+                              Array.from(room.remoteParticipants ? room.remoteParticipants.values() : []).find((p: any) => p.identity === participantId)
+    if (remoteParticipant) {
+      const videoPubs = Array.from(remoteParticipant.videoTrackPublications?.values?.() ?? [])
+      for (const pub of videoPubs) {
         const track = pub && (((pub as any).track) || (pub as any))
         if (!track) continue
         const stream = extractStreamFromTrack(track)
@@ -61,26 +71,7 @@ const extractCurrentVideoStream = (room: any, participantId: string): MediaStrea
           break
         }
       }
-    } else {
-      // 远端参与者
-      const remoteParticipant = (room.remoteParticipants && room.remoteParticipants.get && room.remoteParticipants.get(participantId)) ||
-                                Array.from(room.remoteParticipants ? room.remoteParticipants.values() : []).find((p: any) => p.identity === participantId)
-      if (remoteParticipant) {
-        const videoPubs = Array.from(remoteParticipant.videoTrackPublications?.values?.() ?? [])
-        for (const pub of videoPubs) {
-          const track = pub && (((pub as any).track) || (pub as any))
-          if (!track) continue
-          const stream = extractStreamFromTrack(track)
-          if (stream) {
-            videoStream = stream
-            break
-          }
-        }
-      }
     }
-  } catch (e) {
-    // 若提取失败，保持 videoStream 为 null，PiP 会降级处理
-    videoStream = null
   }
 
   return videoStream
@@ -106,7 +97,7 @@ const updateActiveSessionVideoStream = () => {
 }
 
 // 当LiveKit连接建立时，注册活动会话到 livePiPStore 以便路由守卫使用
-watch(() => liveRoom.connectionIsConnected?.value, (connected) => {
+watch(() => liveRoom.connectionIsConnected?.value, (connected, prevConnected) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const liveRoomAny = liveRoom as any
   if (connected && liveRoomAny.connection?.room?.value) {
@@ -121,7 +112,12 @@ watch(() => liveRoom.connectionIsConnected?.value, (connected) => {
       participantId,
       sessionId: liveRoomAny.sessionId?.value ?? null
     })
-  } else if (!connected) {
+
+    // 只有在从断开状态变为连接状态时，才清除标志
+    if (prevConnected === false && livePiPStore.justRestoredFromPiP) {
+      livePiPStore.clearRestoredFromPiPFlag()
+    }
+  } else if (!connected && prevConnected !== undefined) {
     // 清理活动会话
     livePiPStore.setActiveSession(null)
   }

@@ -11,13 +11,17 @@
     />
 
     <!-- 占位符 - 当没有视频流时显示 -->
-    <div v-else class="pip-placeholder">
+    <div v-if="!hasVideoStream" class="pip-placeholder">
       <div class="pip-placeholder-icon">
         <n-icon size="48" color="var(--text-color-3)">
           <VideocamOffOutline />
         </n-icon>
       </div>
       <div class="pip-placeholder-text">{{ t('live.pip.noVideo') }}</div>
+      <!-- 重试按钮 -->
+      <n-button v-if="retryCount < 3" size="small" @click="retryAttachVideo">
+        {{ t('live.pip.retry') }} ({{ 3 - retryCount }})
+      </n-button>
     </div>
 
     <!-- 控制栏 -->
@@ -62,12 +66,19 @@ import { MenuOutline, VideocamOffOutline } from '@vicons/ionicons5'
 import { useLivePiPStore } from '@/store'
 import { useRouter } from 'vue-router'
 import { attachTrackToVideoElement } from '@/views/live/LiveRoom/composables/mediaHelpers'
-import { storeToRefs } from 'pinia'
 
 const { t } = useI18n()
 const router = useRouter()
 const livePiPStore = useLivePiPStore()
-const { activeSession } = storeToRefs(livePiPStore)
+
+// 直接从 store 获取，确保获取最新值
+const getActiveSession = (): any => {
+  return (livePiPStore as any).activeSession
+}
+
+const getIsInPiPMode = (): boolean => {
+  return (livePiPStore as any).isInPiPMode || false
+}
 
 // Props
 interface Props {
@@ -84,19 +95,31 @@ const props = withDefaults(defineProps<Props>(), {
 const videoRef = ref<HTMLVideoElement | null>(null)
 const isDragging = ref<boolean>(false)
 const dragOffset = ref({ x: 0, y: 0 })
+const retryCount = ref<number>(0)
 
 // 计算属性
 const isVisible = computed(() => {
-  const visible = props.isVisible && livePiPStore.isInPiPMode
-  console.log('PiP isVisible:', visible, 'props.isVisible:', props.isVisible, 'isInPiPMode:', livePiPStore.isInPiPMode)
+  const visible = props.isVisible && getIsInPiPMode()
+  console.log('PiP isVisible:', visible, 'props.isVisible:', props.isVisible, 'isInPiPMode:', getIsInPiPMode())
   return visible
 })
 const hasVideoStream = computed(() => {
-  const session = activeSession.value
+  const session = getActiveSession()
   const hasStream = session && (session.videoStream || (session.connection && session.participantId))
   console.log('PiP hasVideoStream:', hasStream, 'session:', session)
   return hasStream
 })
+
+// 重试绑定视频
+const retryAttachVideo = (): void => {
+  if (retryCount.value >= 3) {
+    return
+  }
+  retryCount.value++
+  console.log(`PiP: 重试绑定视频 (${retryCount.value}/3)`)
+  // 触发一次 attach
+  tryAttachVideo()
+}
 
 // 方法
 /**
@@ -118,9 +141,6 @@ const restoreToFullscreen = (): void => {
 const endLive = (): void => {
   // 强制断开直播连接
   livePiPStore.forceDisconnect()
-
-  // 导航到首页
-  router.push('/dashboard')
 }
 
 /**
@@ -170,65 +190,119 @@ const stopDrag = (): void => {
   document.removeEventListener('mouseup', stopDrag)
 }
 
-// 生命周期
-onMounted(() => {
-  // 设置视频源
-  nextTick(() => {
-    const session = activeSession.value
-    if (videoRef.value && session) {
-      if (session.videoStream) {
-        videoRef.value.srcObject = session.videoStream
-      } else if (session.connection && session.participantId) {
-        // 尝试从 connection 中找到对应 participant 的 video track 并 attach
-        try {
-          const room = session.connection as any
-          const participantId = session.participantId
-          let attached = false
+// 尝试从 session 中绑定视频到 video 元素
+const tryAttachVideo = (): void => {
+  console.log('PiP: tryAttachVideo 被调用')
+  console.log('PiP: videoRef:', !!videoRef.value)
+  console.log('PiP: hasVideoStream:', hasVideoStream.value)
+  
+  const session = getActiveSession()
+  console.log('PiP: activeSession:', session)
+  console.log('PiP: isInPiPMode:', getIsInPiPMode())
 
-          if (participantId === 'local') {
-            const localParticipant: any = room.localParticipant
-            const pubs: any[] = []
-            if (localParticipant.videoTrackPublications && typeof localParticipant.videoTrackPublications.values === 'function') {
-              pubs.push(...Array.from(localParticipant.videoTrackPublications.values()))
-            }
-            if (typeof localParticipant.getTrackPublications === 'function') {
-              const mp = localParticipant.getTrackPublications()
-              if (mp && typeof mp.values === 'function') pubs.push(...Array.from(mp.values()))
-            }
-            if (localParticipant.videoTracks && typeof localParticipant.videoTracks.values === 'function') {
-              pubs.push(...Array.from(localParticipant.videoTracks.values()))
-            }
+  // 如果没有活跃会话，无需绑定
+  if (!session) {
+    console.log('PiP: 没有活跃会话，跳过绑定')
+    return
+  }
 
-            for (const pub of pubs) {
-              const track = pub && (pub.track || pub)
-              if (!track) continue
-              attached = attachTrackToVideoElement(track, videoRef.value)
-              if (attached) break
-            }
-          } else {
-            const remoteParticipant = (room.remoteParticipants && room.remoteParticipants.get && room.remoteParticipants.get(participantId)) ||
-                                      Array.from(room.remoteParticipants ? room.remoteParticipants.values() : []).find((p: any) => p.identity === participantId)
-            if (remoteParticipant) {
-              const videoPubs: any[] = Array.from(remoteParticipant.videoTrackPublications?.values?.() ?? [])
-              for (const pub of videoPubs) {
-                const track = pub && (pub.track || pub)
-                if (!track) continue
-                attached = attachTrackToVideoElement(track, videoRef.value)
-                if (attached) break
-              }
-            }
+  // 如果 videoRef 还没准备好，等待下一帧
+  if (!videoRef.value) {
+    console.log('PiP: videoRef 未准备好，等待后重试')
+    nextTick(() => {
+      if (videoRef.value) {
+        doAttachVideo()
+      }
+    })
+    return
+  }
+
+  doAttachVideo()
+}
+
+// 实际执行视频绑定
+const doAttachVideo = (): void => {
+  const session = getActiveSession()
+  if (!session || !videoRef.value) {
+    console.log('PiP: 无法绑定视频，session 或 videoRef 为 null')
+    return
+  }
+
+  console.log('PiP: 开始绑定视频')
+
+  // 优先使用已保存的视频流
+  if (session.videoStream) {
+    console.log('PiP: 使用已保存的视频流')
+    try {
+      videoRef.value.srcObject = session.videoStream
+      videoRef.value.muted = true
+      videoRef.value.play().catch(() => {})
+      console.log('PiP: 视频流绑定成功')
+      return
+    } catch (e) {
+      console.warn('PiP: 设置视频流失败', e)
+    }
+  }
+
+  // 如果没有视频流，尝试从 connection 中获取
+  if (session.connection && session.participantId) {
+    console.log('PiP: 尝试从 connection 获取视频流')
+    try {
+      const room = session.connection as any
+      const participantId = session.participantId
+      let attached = false
+
+      if (participantId === 'local') {
+        const localParticipant: any = room.localParticipant
+        const pubs: any[] = []
+        if (localParticipant?.videoTrackPublications && typeof localParticipant.videoTrackPublications.values === 'function') {
+          pubs.push(...Array.from(localParticipant.videoTrackPublications.values()))
+        }
+        if (typeof localParticipant?.getTrackPublications === 'function') {
+          const mp = localParticipant.getTrackPublications()
+          if (mp && typeof mp.values === 'function') pubs.push(...Array.from(mp.values()))
+        }
+        if (localParticipant?.videoTracks && typeof localParticipant.videoTracks.values === 'function') {
+          pubs.push(...Array.from(localParticipant.videoTracks.values()))
+        }
+
+        for (const pub of pubs) {
+          const track = pub && (pub.track || pub)
+          if (!track) continue
+          attached = attachTrackToVideoElement(track, videoRef.value)
+          if (attached) break
+        }
+      } else {
+        const remoteParticipant = (room.remoteParticipants && room.remoteParticipants.get && room.remoteParticipants.get(participantId)) ||
+                                  Array.from(room.remoteParticipants ? room.remoteParticipants.values() : []).find((p: any) => p.identity === participantId)
+        if (remoteParticipant) {
+          const videoPubs: any[] = Array.from(remoteParticipant.videoTrackPublications?.values?.() ?? [])
+          for (const pub of videoPubs) {
+            const track = pub && (pub.track || pub)
+            if (!track) continue
+            attached = attachTrackToVideoElement(track, videoRef.value)
+            if (attached) break
           }
-
-          // 注意：在PiP模式下，不应该从DOM中查找视频元素，因为页面已经跳转
-          // 如果还未 attach，保持当前状态，等待后续的TrackSubscribed事件或session更新
-          if (!attached) {
-            console.warn('PiP: 无法从LiveKit连接中获取视频流，等待后续更新')
-          }
-        } catch (e) {
-          // ignore
         }
       }
+
+      if (attached) {
+        console.log('PiP: 成功从 connection 获取并绑定视频流')
+      } else {
+        console.warn('PiP: 无法从 connection 获取视频流')
+      }
+    } catch (e) {
+      console.warn('PiP: 从 connection 获取视频流失败', e)
     }
+  }
+}
+
+// 生命周期
+onMounted(() => {
+  console.log('PiP: 组件挂载')
+  // 延迟执行，确保 DOM 就绪
+  nextTick(() => {
+    tryAttachVideo()
   })
 })
 
@@ -238,73 +312,16 @@ onUnmounted(() => {
   }
 })
 
-// 监听会话变化
-watch(activeSession, (newSession) => {
-  if (!videoRef.value || !newSession) return
-
-  if (newSession.videoStream) {
-    videoRef.value.srcObject = newSession.videoStream
-    return
-  }
-
-  if (newSession.connection && newSession.participantId) {
-    // ???????videoStream???????
-    tryAttachVideoFromConnection(newSession)
+// 监听 hasVideoStream 变化，尝试绑定视频
+watch(hasVideoStream, (newVal) => {
+  console.log('PiP: hasVideoStream 变化:', newVal)
+  if (newVal) {
+    nextTick(() => {
+      tryAttachVideo()
+    })
   }
 }, { immediate: true })
 
-// 尝试从connection实时提取视频
-const tryAttachVideoFromConnection = (session: any) => {
-  if (!videoRef.value || !session?.connection || !session?.participantId) return
-
-  try {
-    const room = session.connection as any
-    const participantId = session.participantId
-    let attached = false
-
-    if (participantId === 'local') {
-      const localParticipant: any = room.localParticipant
-      const pubs: any[] = []
-      if (localParticipant.videoTrackPublications && typeof localParticipant.videoTrackPublications.values === 'function') {
-        pubs.push(...Array.from(localParticipant.videoTrackPublications.values()))
-      }
-      if (typeof localParticipant.getTrackPublications === 'function') {
-        const mp = localParticipant.getTrackPublications()
-        if (mp && typeof mp.values === 'function') pubs.push(...Array.from(mp.values()))
-      }
-      if (localParticipant.videoTracks && typeof localParticipant.videoTracks.values === 'function') {
-        pubs.push(...Array.from(localParticipant.videoTracks.values()))
-      }
-
-      for (const pub of pubs) {
-        const track = pub && (pub.track || pub)
-        if (!track) continue
-        attached = attachTrackToVideoElement(track, videoRef.value)
-        if (attached) break
-      }
-    } else {
-      const remoteParticipant = (room.remoteParticipants && room.remoteParticipants.get && room.remoteParticipants.get(participantId)) ||
-                                Array.from(room.remoteParticipants ? room.remoteParticipants.values() : []).find((p: any) => p.identity === participantId)
-      if (remoteParticipant) {
-        const videoPubs: any[] = Array.from(remoteParticipant.videoTrackPublications?.values?.() ?? [])
-        for (const pub of videoPubs) {
-          const track = pub && (pub.track || pub)
-          if (!track) continue
-          attached = attachTrackToVideoElement(track, videoRef.value)
-          if (attached) break
-        }
-      }
-    }
-
-    // 注意：在PiP模式下，不应该从DOM中查找视频元素，因为页面已经跳转
-    // 如果还未 attach，保持当前状态，等待后续的TrackSubscribed事件或session更新
-    if (!attached) {
-      console.warn('PiP: 无法从LiveKit连接中实时获取视频流，等待后续更新')
-    }
-  } catch (e) {
-    console.warn('PiP: 实时提取视频失败', e)
-  }
-}
 </script>
 
 <style lang="scss" scoped>

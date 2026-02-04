@@ -24,6 +24,7 @@ export interface LiveConnectionResult {
   // 方法
   connect: (roomInfo: import('@/types/live').LiveRoomVO | null, currentUserRole: import('@/enum/live').LiveRoomRoleEnum, token?: string, sessionId?: string | null) => Promise<void>
   disconnect: () => Promise<void>
+  restoreConnection: (existingRoom: Room, existingSessionId: string | null, roomId: string) => void
 }
 
 export const useLiveConnection = (): LiveConnectionResult => {
@@ -318,6 +319,22 @@ export const useLiveConnection = (): LiveConnectionResult => {
     // 移除空的TrackSubscribed/TrackUnsubscribed监听器，避免与useLiveRoom冲突
   }
 
+  // 恢复已存在的连接（从 PiP 恢复时使用）
+  const restoreConnection = (existingRoom: Room, existingSessionId: string | null, roomId: string): void => {
+    // 注册资源管理
+    resourceManager.registerResource(existingRoom)
+
+    // 绑定事件
+    bindRoomEvents(existingRoom)
+
+    // 设置状态
+    room.value = existingRoom
+    currentRoomId.value = roomId
+    isConnected.value = true
+    connectionState.value = 'connected'
+    sessionId.value = existingSessionId
+  }
+
   return {
     // 状态
     room,
@@ -333,6 +350,7 @@ export const useLiveConnection = (): LiveConnectionResult => {
 
     // 方法
     connect,
-    disconnect
+    disconnect,
+    restoreConnection
   }
 }

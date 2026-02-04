@@ -1,10 +1,12 @@
-import { ref, computed, readonly } from 'vue'
+import { ref, computed, readonly, onBeforeUnmount } from 'vue'
 import { Room, RoomEvent } from 'livekit-client'
 import { useI18n } from 'vue-i18n'
+import { fetchEventSource } from '@microsoft/fetch-event-source'
 import * as liveApi from '@/api/live'
 import type { LiveRoomChatMessage } from '@/types/live'
 import { useUserStore } from '@/store'
 import { LiveRoomRoleEnum } from '@/enum/live/liveRoomRoleEnum'
+import { apiConfig } from '@/utils/http'
 
 export interface ChatMessagesResult {
   // 状态
@@ -17,8 +19,8 @@ export interface ChatMessagesResult {
   addMessage: (message: LiveRoomChatMessage) => void
   setupRealtimeMessages: (room: Room) => void
   teardownRealtimeMessages: (room: Room) => void
-  startPolling: (roomId: string) => void
-  stopPolling: () => void
+  setupSseListener: (roomId: string, classroomId?: string) => Promise<void>
+  teardownSseListener: () => void
 }
 
 export const useChatMessages = () => {
@@ -27,8 +29,10 @@ export const useChatMessages = () => {
 
   // 状态
   const messages = ref<LiveRoomChatMessage[]>([])
-  const pollingTimer = ref<number | null>(null)
-  const lastMessageTime = ref<string | null>(null)
+
+  // SSE 连接相关状态
+  let sseController: AbortController | null = null
+  const sseIsConnected = ref<boolean>(false)
 
   // 在线人数（简化计算）
   const chatOnlineCount = computed(() => Math.max(messages.value.length > 0 ? 2 : 1, 1))
@@ -57,12 +61,6 @@ export const useChatMessages = () => {
             isOwn
           }
         })
-
-      // 记录最后一条消息的时间
-      if (mapped.length > 0 && history.length > 0) {
-        const lastMessage = history[history.length - 1]
-        lastMessageTime.value = lastMessage.sendTime || null
-      }
 
       messages.value = mapped.length > 0 ? mapped : [
         {
@@ -127,7 +125,7 @@ export const useChatMessages = () => {
         )
       }
 
-      // 发送到后端
+      // 发送到后端（后端会通过 SSE 广播给其他用户）
       const senderRole = userStore.teacherInfo
         ? LiveRoomRoleEnum.TEACHER
         : (userStore.roles?.some((r: any) => r.roleKey === 'ASSISTANT') ? LiveRoomRoleEnum.ASSISTANT : LiveRoomRoleEnum.STUDENT)
@@ -140,14 +138,9 @@ export const useChatMessages = () => {
 
       const response = await liveApi.appendLiveRoomMessage(roomId, messageDTO)
 
-      // 如果后端返回了消息数据，使用后端时间更新 lastMessageTime，并替换本地临时消息
+      // 如果后端返回了消息数据，替换本地临时消息
       if (response?.data) {
         const serverMsg: any = response.data
-
-        // 更新 lastMessageTime，保证轮询能检测到之后的消息
-        if (serverMsg.sendTime) {
-          lastMessageTime.value = serverMsg.sendTime
-        }
 
         // 将本地临时消息替换为服务端版本，避免重复与 id 不一致
         const lastIdx = messages.value.length - 1
@@ -223,66 +216,98 @@ export const useChatMessages = () => {
     roomAny.__chat_handler = null
   }
 
-  // 启动轮询（用于未连接时的消息获取）
-  const startPolling = (roomId: string): void => {
-    stopPolling()
-    pollingTimer.value = setInterval(() => {
-      pollNewMessages(roomId)
-    }, 2000)
-  }
+  // 设置 SSE 监听聊天消息
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const setupSseListener = async (_roomId: string, classroomId?: string): Promise<void> => {
+    // 如果已经连接，先断开
+    teardownSseListener()
 
-  // 停止轮询
-  const stopPolling = (): void => {
-    if (pollingTimer.value) {
-      clearInterval(pollingTimer.value)
-      pollingTimer.value = null
-    }
-  }
-
-  // 轮询新消息
-  const pollNewMessages = async (roomId: string): Promise<void> => {
     try {
-      const response = await liveApi.listLiveRoomMessages(roomId, 50)
-      if (!response?.data || response.data.length === 0) return
-
-      const history = response.data
-      const currentUserId = userStore.userInfo?.id
-      const currentUserNickName = userStore.userInfo?.nickName
-
-      if (lastMessageTime.value) {
-        const newMessages = history.filter((item: any) => {
-          if (!item.sendTime) return false
-          return new Date(item.sendTime) > new Date(lastMessageTime.value!)
-        })
-
-        if (newMessages.length === 0) return
-
-        const mapped = newMessages.map((item: any) => {
-          const senderName = item.senderName || t('live.room.unknown')
-          const isOwn = senderName === currentUserNickName || (item as any).senderId === currentUserId
-          return {
-            id: item.id || `${Date.now()}-${Math.random()}`,
-            sender: senderName,
-            content: item.content,
-            timestamp: item.sendTime ? new Date(item.sendTime).toLocaleTimeString() : '',
-            isOwn
-          }
-        })
-
-        // 避免重复添加
-        const existingIds = new Set(messages.value.map(msg => msg.id))
-        const uniqueNewMessages = mapped.filter(msg => !existingIds.has(msg.id))
-
-        if (uniqueNewMessages.length > 0) {
-          messages.value.push(...uniqueNewMessages)
-          const lastNewMessage = newMessages[newMessages.length - 1]
-          lastMessageTime.value = lastNewMessage.sendTime || null
-        }
+      const jwtToken = userStore.token
+      if (!jwtToken) {
+        return
       }
+
+      // 获取 SSE token
+      const sseTokenResponse = await liveApi.getSseToken(classroomId)
+      if (!sseTokenResponse?.data) {
+        return
+      }
+      const sseToken = sseTokenResponse.data
+
+      // 建立 SSE 连接
+      const baseURL = apiConfig.getBaseUrl()
+      const ssePath = `/live/live/subscribe${classroomId ? `?classroomId=${classroomId}&token=${sseToken}` : `?token=${sseToken}`}`
+      const sseUrl = `${baseURL}${ssePath}`
+
+      sseController = new AbortController()
+
+      await fetchEventSource(sseUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${jwtToken}`,
+          'Accept': 'text/event-stream'
+        },
+        signal: sseController.signal,
+        openWhenHidden: true,
+        credentials: 'include',
+        onopen: async (response) => {
+          if (response.ok) {
+            sseIsConnected.value = true
+          }
+        },
+        onmessage: (event) => {
+          try {
+            const data = JSON.parse(event.data)
+
+            // 只处理聊天消息事件
+            if (data.event !== 'chat_message' || !data.data) {
+              return
+            }
+
+            const payload = data.data
+            const currentUserNickName = userStore.userInfo?.nickName
+            const senderName = payload.sender || t('live.room.unknown')
+            const isOwn = senderName === currentUserNickName
+
+            // 检查是否已经在消息列表中
+            const exists = messages.value.some(m => m.id === payload.id)
+            if (!exists) {
+              messages.value.push({
+                id: payload.id || `${Date.now()}`,
+                sender: senderName,
+                content: payload.content,
+                timestamp: payload.sendTime ? new Date(payload.sendTime).toLocaleTimeString() : new Date().toLocaleTimeString(),
+                isOwn
+              })
+            }
+          } catch (error) {
+            // 解析 SSE 消息失败，静默处理
+          }
+        },
+        onerror: (_error) => {
+          sseIsConnected.value = false
+          teardownSseListener()
+        }
+      })
     } catch (error) {
-      // 轮询消息失败
+      sseIsConnected.value = false
     }
   }
+
+  // 断开 SSE 连接
+  const teardownSseListener = (): void => {
+    if (sseController) {
+      sseController.abort()
+      sseController = null
+    }
+    sseIsConnected.value = false
+  }
+
+  // 组件卸载时自动断开 SSE
+  onBeforeUnmount(() => {
+    teardownSseListener()
+  })
 
   return {
     // 状态
@@ -295,7 +320,7 @@ export const useChatMessages = () => {
     addMessage,
     setupRealtimeMessages,
     teardownRealtimeMessages,
-    startPolling,
-    stopPolling
+    setupSseListener,
+    teardownSseListener
   }
 }

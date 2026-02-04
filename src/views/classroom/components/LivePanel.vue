@@ -102,12 +102,14 @@ import { getStudentSeat } from '@/api/classroom/courseRecordStudent';
 import { getCourseById } from '@/api/course/course';
 import type { LiveRoomVO } from '@/types/live';
 import type { CourseVO } from '@/types/course';
+import { useLivePiPStore } from '@/store';
 
 const props = defineProps<{ show: boolean; classroomId: string | null; courseId?: string | null }>();
 const emit = defineEmits<{ close: [] }>();
 const { t } = useI18n();
 const router = useRouter();
 const userStore = useUserStore();
+const livePiPStore = useLivePiPStore();
 
 const loading = ref<boolean | null>(null);
 const ending = ref<boolean | null>(null);
@@ -205,6 +207,14 @@ async function endLive() {
 
 async function joinLive() {
   if (!room.value || !room.value.id || joining.value) return;
+
+  // 如果已经有小窗，直接恢复全屏直播（使用已有的连接）
+  if (livePiPStore.isInPiPMode) {
+    livePiPStore.exitPiPMode()
+    router.push(`/live/room/${room.value.id}`)
+    return
+  }
+
   joining.value = true;
 
   if (!isTeacher.value) {

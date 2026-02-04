@@ -228,6 +228,8 @@ export default {
     pip: {
         title: '正在直播中...',
         restore: '恢复',
-        end: '结束'
+        end: '结束',
+        noVideo: '暂无视频',
+        retry: '重试'
     }
 }

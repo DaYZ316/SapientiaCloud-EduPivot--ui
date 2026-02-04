@@ -222,6 +222,8 @@ export default {
     pip: {
         title: 'Live streaming...',
         restore: 'Restore',
-        end: 'End'
+        end: 'End',
+        noVideo: 'No video',
+        retry: 'Retry'
     }
 }

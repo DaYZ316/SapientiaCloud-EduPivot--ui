@@ -4,17 +4,6 @@ import { extractMediaStreamFromTrack } from '@/views/live/LiveRoom/composables/m
 import { RoomEvent } from 'livekit-client'
 
 /**
- * 直播画中画状态接口
- */
-interface LivePiPSession {
-  roomId: string
-  connection: any // LiveKit Room实例
-  videoStream: MediaStream | null // 视频流
-  participantId: string // 参与者ID
-  sessionId?: string | null // 会话ID，用于退出时清理状态
-}
-
-/**
  * 画中画窗口状态接口
  */
 interface PiPWindowState {
@@ -29,7 +18,9 @@ interface PiPWindowState {
 export const useLivePiPStore = defineStore('livePiP', () => {
   // 状态
   const isInPiPMode = ref<boolean>(false)
-  const activeSession = ref<LivePiPSession | null>(null)
+  const activeSession = ref<any>(null)
+  // 标记是否刚刚从 PiP 恢复，用于防止直播页面重复初始化
+  const justRestoredFromPiP = ref<boolean>(false)
   const pipWindow = ref<PiPWindowState>({
     isOpen: false,
     windowRef: null,
@@ -52,62 +43,47 @@ export const useLivePiPStore = defineStore('livePiP', () => {
   /**
    * 进入画中画模式
    */
-  const enterPiPMode = (session: LivePiPSession): void => {
-    console.log('enterPiPMode called with session:', session)
+  const enterPiPMode = (session: any): void => {
     if (!session || !session.connection) {
-      console.log('Invalid session, returning')
       return
     }
 
     activeSession.value = session
     isInPiPMode.value = true
-    console.log('PiP mode entered, isInPiPMode:', isInPiPMode.value)
 
     // 创建画中画窗口
     createPiPWindow()
 
     // 如果当前没有 videoStream，订阅 Room 的 TrackSubscribed 事件，当目标参与者发布 video 时填充 activeSession.videoStream
-    try {
-      if (!activeSession.value?.videoStream && activeSession.value?.connection) {
-        const room = activeSession.value.connection as any
-        const participantId = activeSession.value.participantId
+    if (!activeSession.value?.videoStream && activeSession.value?.connection) {
+      const room = activeSession.value.connection as any
+      const participantId = activeSession.value.participantId
 
-        // 移除已有的监听器（保险）
-        if (pipListenerRoom && trackSubscribedHandler && typeof pipListenerRoom.off === 'function') {
-          try { pipListenerRoom.off(RoomEvent.TrackSubscribed, trackSubscribedHandler) } catch (e) {}
-        }
+      // 移除已有的监听器（保险）
+      if (pipListenerRoom && trackSubscribedHandler && typeof pipListenerRoom.off === 'function') {
+        pipListenerRoom.off(RoomEvent.TrackSubscribed, trackSubscribedHandler)
+      }
 
-        trackSubscribedHandler = (track: any, _pub: any, participant: any) => {
-          try {
-            const pId = participant?.identity
-            // 仅处理目标 participant 的 video 轨道
-            if (participantId !== 'local' && pId !== participantId) return
-            if (participantId === 'local' && participant !== room.localParticipant && pId !== room.localParticipant?.identity) return
-            if (!track || (track.kind && track.kind !== 'video')) return
+      trackSubscribedHandler = (track: any, _pub: any, participant: any) => {
+        const pId = participant?.identity
+        // 仅处理目标 participant 的 video 轨道
+        if (participantId !== 'local' && pId !== participantId) return
+        if (participantId === 'local' && participant !== room.localParticipant && pId !== room.localParticipant?.identity) return
+        if (!track || (track.kind && track.kind !== 'video')) return
 
-            const ms = extractMediaStreamFromTrack(track)
-            if (ms) {
-              if (activeSession.value) activeSession.value = { ...(activeSession.value as LivePiPSession), videoStream: ms }
-            } else {
-              try {
-                const cloned = new MediaStream([track as any])
-                if (activeSession.value) activeSession.value = { ...(activeSession.value as LivePiPSession), videoStream: cloned }
-              } catch (e) {
-                // ignore
-              }
-            }
-          } catch (e) {
-            // ignore
-          }
-        }
-
-        if (room && typeof room.on === 'function') {
-          room.on(RoomEvent.TrackSubscribed, trackSubscribedHandler)
-          pipListenerRoom = room
+        const ms = extractMediaStreamFromTrack(track)
+        if (ms) {
+          if (activeSession.value) activeSession.value = { ...activeSession.value, videoStream: ms }
+        } else {
+          const cloned = new MediaStream([track as any])
+          if (activeSession.value) activeSession.value = { ...activeSession.value, videoStream: cloned }
         }
       }
-    } catch (e) {
-      // ignore subscription errors
+
+      if (room && typeof room.on === 'function') {
+        room.on(RoomEvent.TrackSubscribed, trackSubscribedHandler)
+        pipListenerRoom = room
+      }
     }
   }
 
@@ -118,15 +94,23 @@ export const useLivePiPStore = defineStore('livePiP', () => {
     // 关闭画中画窗口
     closePiPWindow()
 
-    // 清理状态
-    activeSession.value = null
+    // 标记刚刚从 PiP 恢复，防止直播页面重复初始化
+    // 注意：这里保留 activeSession，以便直播页面可以复用现有的连接
+    justRestoredFromPiP.value = true
     isInPiPMode.value = false
+  }
+
+  /**
+   * 清除从 PiP 恢复的标记
+   */
+  const clearRestoredFromPiPFlag = (): void => {
+    justRestoredFromPiP.value = false
   }
 
   /**
    * 仅设置活动会话（不打开 PiP 窗口），用于路由守卫或初始化时注册会话
    */
-  const setActiveSession = (session: LivePiPSession | null): void => {
+  const setActiveSession = (session: any): void => {
     activeSession.value = session
   }
 
@@ -141,20 +125,20 @@ export const useLivePiPStore = defineStore('livePiP', () => {
 
     // 通知后端用户离开直播间
     if (activeSession.value?.roomId && activeSession.value?.sessionId) {
-      try {
-        // 动态导入 API，避免循环依赖
-        const liveApi = await import('@/api/live')
-        const payload = liveApi.getDefaultLiveRoomSessionDTO()
-        payload.roomId = activeSession.value.roomId
-        payload.sessionId = activeSession.value.sessionId
-        await liveApi.leaveLiveRoom(payload)
-      } catch (error) {
-        console.warn('PiP: 退出直播时通知后端失败', error)
-      }
+      const liveApi = await import('@/api/live')
+      const payload = liveApi.getDefaultLiveRoomSessionDTO()
+      payload.roomId = activeSession.value.roomId
+      payload.sessionId = activeSession.value.sessionId
+      await liveApi.leaveLiveRoom(payload)
     }
 
-    // 清理所有状态
-    exitPiPMode()
+    // 关闭 PiP 窗口
+    closePiPWindow()
+
+    // 完全清理所有状态
+    activeSession.value = null
+    justRestoredFromPiP.value = false
+    isInPiPMode.value = false
   }
 
   /**
@@ -167,41 +151,37 @@ export const useLivePiPStore = defineStore('livePiP', () => {
 
     // 在创建 PiP 窗口前，若没有 videoStream，尝试从 activeSession.connection 中提取
     if (activeSession.value && !activeSession.value.videoStream) {
-      try {
-        const session: any = activeSession.value
-        const room = session.connection
-        const participantId = session.participantId
-        let videoStream: MediaStream | null = null
+      const session: any = activeSession.value
+      const room = session.connection
+      const participantId = session.participantId
+      let videoStream: MediaStream | null = null
 
-        const tryExtractFromParticipant = (participant: any) => {
-          if (!participant) return null
-          const pubs: any[] = Array.from(participant.videoTrackPublications?.values?.() ?? [])
-          for (const pub of pubs) {
-            const track = pub && (pub.track || pub)
-            const ms = extractMediaStreamFromTrack(track)
-            if (ms) return ms
-          }
-          return null
+      const tryExtractFromParticipant = (participant: any) => {
+        if (!participant) return null
+        const pubs: any[] = Array.from(participant.videoTrackPublications?.values?.() ?? [])
+        for (const pub of pubs) {
+          const track = pub && (pub.track || pub)
+          const ms = extractMediaStreamFromTrack(track)
+          if (ms) return ms
         }
+        return null
+      }
 
-        if (participantId === 'local') {
-          const localParticipant: any = room.localParticipant
-          videoStream = tryExtractFromParticipant(localParticipant)
-        } else {
-          const remoteParticipant = (room.remoteParticipants && room.remoteParticipants.get && room.remoteParticipants.get(participantId)) ||
-                                    Array.from(room.remoteParticipants ? room.remoteParticipants.values() : []).find((p: any) => p.identity === participantId)
-          videoStream = tryExtractFromParticipant(remoteParticipant)
-        }
+      if (participantId === 'local') {
+        const localParticipant: any = room.localParticipant
+        videoStream = tryExtractFromParticipant(localParticipant)
+      } else {
+        const remoteParticipant = (room.remoteParticipants && room.remoteParticipants.get && room.remoteParticipants.get(participantId)) ||
+                                  Array.from(room.remoteParticipants ? room.remoteParticipants.values() : []).find((p: any) => p.identity === participantId)
+        videoStream = tryExtractFromParticipant(remoteParticipant)
+      }
 
-        if (videoStream) {
-          // 更新 store 中的 activeSession 引用
-          activeSession.value = {
-            ...activeSession.value,
-            videoStream
-          }
+      if (videoStream) {
+        // 更新 store 中的 activeSession 引用
+        activeSession.value = {
+          ...activeSession.value,
+          videoStream
         }
-      } catch (e) {
-        // ignore extraction errors, 将降级处理交给后续逻辑
       }
     }
 
@@ -220,24 +200,16 @@ export const useLivePiPStore = defineStore('livePiP', () => {
 
     if (pipWindow.value.windowRef) {
       // 关闭自定义窗口（历史兼容），尽管现在不再使用 window.open
-      try { pipWindow.value.windowRef.close() } catch (e) {}
+      pipWindow.value.windowRef.close()
     } else if (pipWindow.value.videoElement) {
       // 页面内 video 元素清理（不再使用原生 PiP）
-      try {
-        pipWindow.value.videoElement.pause?.()
-        pipWindow.value.videoElement.srcObject = null
-      } catch (e) {
-        // ignore
-      }
+      pipWindow.value.videoElement.pause?.()
+      pipWindow.value.videoElement.srcObject = null
     }
 
     // 移除对 Room 的 TrackSubscribed 监听（如果有）
-    try {
-      if (pipListenerRoom && trackSubscribedHandler && typeof pipListenerRoom.off === 'function') {
-        pipListenerRoom.off(RoomEvent.TrackSubscribed, trackSubscribedHandler)
-      }
-    } catch (e) {
-      // ignore
+    if (pipListenerRoom && trackSubscribedHandler && typeof pipListenerRoom.off === 'function') {
+      pipListenerRoom.off(RoomEvent.TrackSubscribed, trackSubscribedHandler)
     }
     pipListenerRoom = null
     trackSubscribedHandler = null
@@ -246,7 +218,7 @@ export const useLivePiPStore = defineStore('livePiP', () => {
       isOpen: false,
       windowRef: null,
       videoElement: null
-    }
+    } as PiPWindowState
   }
 
   /**
@@ -257,7 +229,7 @@ export const useLivePiPStore = defineStore('livePiP', () => {
       isOpen: true,
       windowRef: null,
       videoElement: null
-    }
+    } as PiPWindowState
   }
 
   /**
@@ -289,6 +261,7 @@ export const useLivePiPStore = defineStore('livePiP', () => {
     // 状态
     isInPiPMode,
     activeSession,
+    justRestoredFromPiP,
     pipWindow,
 
     // 计算属性
@@ -301,7 +274,8 @@ export const useLivePiPStore = defineStore('livePiP', () => {
     forceDisconnect,
     createPiPWindow,
     closePiPWindow,
-    findVideoElement
-    ,setActiveSession
+    findVideoElement,
+    setActiveSession,
+    clearRestoredFromPiPFlag
   }
 })

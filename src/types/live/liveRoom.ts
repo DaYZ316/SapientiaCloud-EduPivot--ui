@@ -167,6 +167,10 @@ export interface RemoteParticipantMedia {
     videoTrack: any | null
     /** 音频轨道 */
     audioTrack: any | null
+    /** 是否正在说话 */
+    isSpeaking?: boolean
+    /** 音量级别 (0.0 - 1.0) */
+    volumeLevel?: number
 }
 
 

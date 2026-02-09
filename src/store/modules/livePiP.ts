@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { extractMediaStreamFromTrack } from '@/views/live/LiveRoom/composables/mediaHelpers'
 import { RoomEvent } from 'livekit-client'
+import { useSpeakingDetectorStore } from '@/stores/speakingDetector'
 
 /**
  * 画中画窗口状态接口
@@ -118,6 +119,10 @@ export const useLivePiPStore = defineStore('livePiP', () => {
    * 强制断开直播连接
    */
   const forceDisconnect = async (): Promise<void> => {
+    // 先清理 detector（会断开检测并清空 store）
+    const detectorStore = useSpeakingDetectorStore()
+    detectorStore.destroy()
+
     if (activeSession.value?.connection && typeof (activeSession.value.connection.disconnect) === 'function') {
       // 断开LiveKit连接
       activeSession.value.connection.disconnect()

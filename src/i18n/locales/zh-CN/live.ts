@@ -213,6 +213,10 @@ export default {
         noPermissionToRecord: '您没有权限控制录制',
         notLiveForStudent: '当前未开播'
         ,
+        layoutModeSpeaker: '已切换到演讲者模式',
+        layoutModeGrid: '已切换到网格模式',
+        speakingIndicator: '说话指示器',
+        speaking: '正在说话',
         cannotToggleCamera: '无法切换摄像头（当前未连接或状态不允许）',
         cameraToggleFailed: '切换摄像头失败',
         cannotToggleMicrophone: '无法切换麦克风（当前未连接或状态不允许）',
@@ -223,7 +227,8 @@ export default {
         start: '开启直播',
         stop: '结束直播',
         startSuccess: '直播已开启',
-        startFailed: '开启直播失败'
+        startFailed: '开启直播失败',
+        mediaLimitReached: '同时开启摄像头或麦克风的人数已达上限（{max}人），请等待其他成员关闭设备后再试'
     },
     pip: {
         title: '正在直播中...',

@@ -9,6 +9,7 @@ import type {
     LiveRoomTokenVO,
     LiveRoomVO
 } from '@/types/live'
+import { defaultServerConfig } from '@/config/server'
 
 /**
  * 获取默认直播房间创建 DTO
@@ -140,6 +141,51 @@ export function heartbeatLiveRoom(data: LiveRoomSessionDTO) {
  */
 export function leaveLiveRoom(data: LiveRoomSessionDTO) {
     return http.post<boolean>('/live/live-room/leave', data)
+}
+
+/**
+ * 页面关闭场景的离会兜底上报：
+ * - 优先使用 fetch(keepalive) 携带 Authorization
+ * - 降级为 sendBeacon（若后端支持 cookie 认证）
+ */
+export function leaveLiveRoomOnPageUnload(data: LiveRoomSessionDTO): void {
+    if (!data?.roomId || !data?.sessionId) {
+        return
+    }
+
+    const endpoint = `${defaultServerConfig.prefix}/live/live-room/leave`
+    const payload = JSON.stringify(data)
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+
+    try {
+        if (typeof fetch === 'function') {
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json'
+            }
+            if (token) {
+                headers.Authorization = `Bearer ${token}`
+            }
+            void fetch(endpoint, {
+                method: 'POST',
+                headers,
+                body: payload,
+                keepalive: true,
+                credentials: 'include'
+            })
+            return
+        }
+    } catch {
+        // fallback to beacon below
+    }
+
+    try {
+        if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+            const blob = new Blob([payload], { type: 'application/json' })
+            navigator.sendBeacon(endpoint, blob)
+        }
+    } catch {
+        // ignore
+    }
 }
 
 /**

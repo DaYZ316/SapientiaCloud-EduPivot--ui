@@ -1,4 +1,4 @@
-import { inject } from 'vue'
+import { inject, type ComputedRef } from 'vue'
 
 // 依赖注入的key
 export const LiveRoomInjectionKey = Symbol('LiveRoom')
@@ -34,6 +34,12 @@ export interface LiveRoomContext {
   canShowRecording: any
   activeMainParticipantId: any
   localVideoTrack: any
+  localParticipantIdentity: any
+
+  // 说话指示器状态
+  speakingStates: Map<string, { isSpeaking: boolean; volumeLevel: number }>
+  activeSpeaker: { participantId: string; volumeLevel: number; lastSpeakingAt: number } | null
+  sortedSpeakingIds: ComputedRef<string[]>
 
   // 加载状态
   loadingState: any

@@ -207,6 +207,10 @@ export default {
         noPermissionToRecord: 'You do not have permission to control recording',
         notLiveForStudent: 'Live not started'
         ,
+        layoutModeSpeaker: 'Switched to speaker mode',
+        layoutModeGrid: 'Switched to grid mode',
+        speakingIndicator: 'Speaking Indicator',
+        speaking: 'Speaking',
         cannotToggleCamera: 'Cannot toggle camera (not connected or invalid state)',
         cameraToggleFailed: 'Failed to toggle camera',
         cannotToggleMicrophone: 'Cannot toggle microphone (not connected or invalid state)',
@@ -217,7 +221,8 @@ export default {
         start: 'Start Live',
         stop: 'End Live',
         startSuccess: 'Live started',
-        startFailed: 'Failed to start live'
+        startFailed: 'Failed to start live',
+        mediaLimitReached: 'The maximum number of participants with camera or microphone enabled has been reached ({max} people). Please wait for others to close their devices and try again.'
     },
     pip: {
         title: 'Live streaming...',

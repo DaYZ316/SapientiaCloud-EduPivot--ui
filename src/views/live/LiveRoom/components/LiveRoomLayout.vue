@@ -35,6 +35,9 @@
           :main-participant-id="context.activeMainParticipantId.value"
           :speaker-volume="speakerVolumeValue"
           :local-video-track="context.localVideoTrack.value"
+          :speaking-states="context.speakingStates"
+          :sorted-speaking-ids="context.sortedSpeakingIds"
+          :local-participant-identity="context.localParticipantIdentity.value"
           @select-main="handleSelectMain"
         />
       </div>
@@ -60,17 +63,29 @@
         <!-- 布局控制按钮 -->
         <div class="layout-controls">
           <!-- 布局切换按钮 -->
-          <n-button quaternary size="small" @click="handleToggleLayoutMode">
-            <template #icon>
-              <n-icon :component="context.layoutMode.value === 'grid' ? PersonOutline : GridOutline" />
+          <n-tooltip trigger="hover">
+            <template #trigger>
+              <n-button quaternary size="small" @click="handleToggleLayoutMode">
+                <template #icon>
+                  <n-icon :component="context.layoutMode.value === 'grid' ? PersonOutline : GridOutline" />
+                </template>
+              </n-button>
             </template>
-          </n-button>
+            {{ context.layoutMode.value === 'grid' ? '切换到演讲者模式' : '切换到网格模式' }}
+            <span class="tooltip-shortcut">(Ctrl+Shift+L)</span>
+          </n-tooltip>
           <!-- 全屏按钮 -->
-          <n-button quaternary size="small" @click="handleToggleFullscreen">
-            <template #icon>
-              <n-icon :component="context.isFullscreen.value ? ContractOutline : ExpandOutline" />
+          <n-tooltip trigger="hover">
+            <template #trigger>
+              <n-button quaternary size="small" @click="handleToggleFullscreen">
+                <template #icon>
+                  <n-icon :component="context.isFullscreen.value ? ContractOutline : ExpandOutline" />
+                </template>
+              </n-button>
             </template>
-          </n-button>
+            {{ context.isFullscreen.value ? '退出全屏' : '全屏显示' }}
+            <span class="tooltip-shortcut">(F)</span>
+          </n-tooltip>
         </div>
 
       </div>
@@ -105,7 +120,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { NButton, NIcon } from 'naive-ui'
+import { NButton, NIcon, NTooltip } from 'naive-ui'
 import { ContractOutline, ExpandOutline, GridOutline, PersonOutline } from '@vicons/ionicons5'
 import ChatPanel from '@/components/common/ChatPanel.vue'
 import VideoPanel from './VideoPanel.vue'
@@ -158,16 +173,39 @@ const handleSendMessage = (content: string) => {
 const handleToggleChatCollapse = () => {
   context.handleToggleChatCollapse()
 }
+
+// 布局切换快捷键处理
+const handleKeydown = (event: KeyboardEvent) => {
+  // Ctrl+Shift+L: 切换布局模式
+  if (event.ctrlKey && event.shiftKey && event.key === 'L') {
+    event.preventDefault()
+    handleToggleLayoutMode()
+  }
+  // F: 全屏切换
+  if (event.key === 'F' && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+    // 避免与浏览器默认全屏冲突，只在输入框外触发
+    if (!(event.target as HTMLElement)?.matches('input, textarea')) {
+      event.preventDefault()
+      handleToggleFullscreen()
+    }
+  }
+}
+
 // 引用 VideoPanel 的组件实例（同名 ref 在模板上）
 const videoPanelRef = ref<any>(null)
 
 onMounted(() => {
   // 将 videoPanelRef 注册到 liveRoom context（useLiveRoom 中会处理附加逻辑）
   context.registerVideoPanel?.(videoPanelRef)
+  
+  // 添加键盘快捷键监听
+  window.addEventListener('keydown', handleKeydown)
 })
 
 onUnmounted(() => {
   context.unregisterVideoPanel?.()
+  // 移除键盘快捷键监听
+  window.removeEventListener('keydown', handleKeydown)
 })
 </script>
 
@@ -215,6 +253,11 @@ onUnmounted(() => {
   flex-direction: column;
   height: 100%;
   box-sizing: border-box;
+  /* 添加聊天面板折叠动画 */
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s ease;
 }
 
 /* 将 video-overlay 放到底部，默认隐藏，hover 时显示 */
@@ -240,6 +283,19 @@ onUnmounted(() => {
   align-items: center;
 }
 
+.layout-controls .n-button {
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: var(--background-color-3);
+    transform: scale(1.05);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
 .chat-panel-top {
   padding: 8px 12px;
   display: flex;
@@ -257,6 +313,16 @@ onUnmounted(() => {
 /* When chat is collapsed and has video, hide chat completely for full video experience */
 .room-layout.chat-collapsed-with-video .chat-panel {
   display: none;
+}
+
+/* Tooltip 快捷键样式 */
+.tooltip-shortcut {
+  margin-left: 8px;
+  padding: 2px 6px;
+  background: var(--background-color-2);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text-color-3);
 }
 
 /* Fullscreen: hide chat completely when in fullscreen and chat-collapsed is true */

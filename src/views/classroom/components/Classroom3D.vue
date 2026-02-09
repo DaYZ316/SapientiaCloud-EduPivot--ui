@@ -73,6 +73,7 @@ import {SeatStatusEnum} from '@/enum/classroom/seatStatusEnum';
 import type {SeatAssignmentContext} from '@/types/components/seatConfirmModal';
 import {useTransitionStore} from '@/store/modules/transition';
 import {runViewTransition} from '@/utils/themeAnimation';
+import {useLiveSpeakingStore} from '@/stores/liveSpeaking';
 import {
   classroomXLenghtRef,
   classroomYLenghtRef,
@@ -177,6 +178,89 @@ const showPointerHintTemporarily = () => {
   }, 5000);
 };
 const spriteManager = new SpriteManager();
+const speakingStore = useLiveSpeakingStore();
+const activeSpeakingSeats = new Set<number>();
+
+const resolveSeatIndexByStudentId = (studentId: string): number | null => {
+  let seatIndex = spriteManager.getPositionIndexByUserId(studentId);
+  if (seatIndex !== null) {
+    return seatIndex;
+  }
+
+  const numericId = Number(studentId);
+  if (!Number.isNaN(numericId)) {
+    seatIndex = spriteManager.getPositionIndexByUserId(numericId);
+    if (seatIndex !== null) {
+      return seatIndex;
+    }
+  }
+
+  return null;
+};
+
+const resolveSpeakingStudentId = (
+    participantId: string,
+    state: { studentId?: string | null }
+): string | null => {
+  const mappedStudentId = speakingStore.participantStudentMap.get(participantId);
+  if (mappedStudentId) {
+    return String(mappedStudentId);
+  }
+
+  if (state.studentId) {
+    return String(state.studentId);
+  }
+
+  if (participantId === 'local') {
+    const localStudentId = userStore.studentInfo?.id;
+    if (localStudentId) {
+      return String(localStudentId);
+    }
+  }
+
+  if (/^\d+$/.test(participantId)) {
+    return participantId;
+  }
+
+  return null;
+};
+
+const syncSpeakingIndicatorsFromStore = () => {
+  if (!spriteManager.isInitialized) {
+    return;
+  }
+
+  const nextSpeakingSeats = new Set<number>();
+
+  speakingStore.speakingStates.forEach((state, participantId) => {
+    if (!state.isSpeaking) {
+      return;
+    }
+
+    const studentId = resolveSpeakingStudentId(participantId, state);
+    if (!studentId) {
+      return;
+    }
+
+    const seatIndex = resolveSeatIndexByStudentId(String(studentId));
+    if (seatIndex !== null) {
+      nextSpeakingSeats.add(seatIndex);
+    }
+  });
+
+  activeSpeakingSeats.forEach((seatIndex) => {
+    if (!nextSpeakingSeats.has(seatIndex)) {
+      spriteManager.setSpeakingIndicator(seatIndex, false);
+    }
+  });
+
+  nextSpeakingSeats.forEach((seatIndex) => {
+    spriteManager.setSpeakingIndicator(seatIndex, true);
+  });
+
+  activeSpeakingSeats.clear();
+  nextSpeakingSeats.forEach((seatIndex) => activeSpeakingSeats.add(seatIndex));
+};
 
 const handleChapterButton = async (event: MouseEvent) => {
   event.stopPropagation();
@@ -1312,6 +1396,11 @@ const initThree = () => {
       (controls as any).update();
     }
 
+    if (spriteManager.isInitialized) {
+      syncSpeakingIndicatorsFromStore();
+      spriteManager.updateSpeakingAnimations();
+    }
+
     // 基于当前相机预设视角，限制旋转角度在 ±60°
     const maxDelta = Math.PI / 3; // 60度
     
@@ -1393,6 +1482,12 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  activeSpeakingSeats.clear();
+
+  if (spriteManager && spriteManager.isInitialized) {
+    spriteManager.clearSpeakingIndicators();
+  }
+
   // 清理PointerLockControls
   if (controls && canvas) {
     // 解锁鼠标指针

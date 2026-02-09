@@ -1,6 +1,7 @@
-import { computed, ref, type Ref, watch, nextTick } from 'vue'
+import { computed, ref, type Ref, type ComputedRef, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useMessage } from 'naive-ui'
 import type { LiveRoomVO, RemoteParticipantMedia } from '@/types/live'
 import type { LiveConnectionResult } from './useLiveConnection'
 import { LiveRoomRoleEnum } from '@/enum/live'
@@ -14,8 +15,17 @@ import { useErrorHandler } from './useErrorHandler'
 import { useResourceManager } from './useResourceManager'
 import { useLoadingState } from './useLoadingState'
 import { useRetryMechanism } from './useRetryMechanism'
+import { useSpeakingDetectorStore } from '@/stores/speakingDetector'
+import type { SpeakingDetectorStore } from '@/stores/speakingDetector'
 import * as liveApi from '@/api/live'
 import { RoomEvent, Track, type Room, type RemoteParticipant, type RemoteTrackPublication } from 'livekit-client'
+import { useLiveSpeakingStore } from '@/stores/liveSpeaking'
+
+// 布局模式类型定义
+export type LayoutMode = 'speaker' | 'grid'
+
+// 布局持久化 key
+const LAYOUT_MODE_STORAGE_KEY = 'liveRoomLayoutMode'
 
 export interface LiveRoomResult {
   // 状态
@@ -44,10 +54,22 @@ export interface LiveRoomResult {
   chatMessages: Ref<any[]>
   chatOnlineCount: Ref<number>
   activeVideoCount: Ref<number>
+  maxMediaParticipants: number
+  activeMediaParticipantCount: Ref<number>
+  isMediaLimitReached: Ref<boolean>
   speakerVolumeValue: Ref<number>
   canShowRecording: Ref<boolean>
   activeMainParticipantId: Ref<string | null>
   localVideoTrack: Ref<any | null>
+
+  // 说话指示器状态
+  speakingStates: Map<string, { isSpeaking: boolean; volumeLevel: number }>
+  activeSpeaker: { participantId: string; volumeLevel: number; lastSpeakingAt: number } | null
+  sortedSpeakingIds: ComputedRef<string[]>
+  localParticipantIdentity: ComputedRef<string>
+
+  // 说话检测器实例
+  speakingDetector: SpeakingDetectorStore
 
   // 加载状态
   loadingState: any
@@ -68,7 +90,8 @@ export interface LiveRoomResult {
   handleToggleLayoutMode: () => void
   handleToggleFullscreen: () => void
   handleToggleChatCollapse: () => void
-  cleanup: () => void
+  handlePageUnload: () => void
+  cleanup: (keepDetector?: boolean) => void
   registerVideoPanel?: (panel: any) => void
   unregisterVideoPanel?: () => void
 }
@@ -78,6 +101,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
   const route = useRoute()
   const router = useRouter()
   const userStore = useUserStore()
+  const message = useMessage()
 
   // 基本状态
   const roomId = roomIdProp ?? (route.params.roomId as string)
@@ -86,7 +110,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
   // 后端报告的在线人数（通过API和SSE获取）
   const backendMemberCount = ref<number>(0)
 
-  // 在线人数：优先使用后端数据，其次使用LiveKit计算
+  // 在线人数，优先使用后端数据，其次使用SSE/后端提供的实时成员数
   const onlineCount = computed(() => {
     // 优先使用后端报告的成员数
     if (backendMemberCount.value > 0) {
@@ -99,7 +123,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
       return realtimeCount
     }
 
-    // 回退到LiveKit计算（用于兼容性）
+    // 降级到LiveKit计算（用于兼容性）
     if (!connection.room.value) return 0
     const participantTotal = connection.room.value.remoteParticipants ? connection.room.value.remoteParticipants.size : 0
     return participantTotal + (connection.isConnected.value ? 1 : 0)
@@ -109,16 +133,68 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
   const unreadMessageCount = ref(0)
   const speakerVolume = ref<number | null>(null)
   const sessionId = ref<string | null>(null)
-  const layoutMode = ref('speaker')
+  const sessionStorageKey = `live:session:${roomId}`
+  const localStorageSessionKey = `live:last-session:${roomId}`
+
+  const readStoredSessionId = (): string | null => {
+    const fromSessionStorage = window.sessionStorage.getItem(sessionStorageKey)
+    if (fromSessionStorage) return fromSessionStorage
+    const fromLocalStorage = window.localStorage.getItem(localStorageSessionKey)
+    return fromLocalStorage || null
+  }
+
+  const persistSessionId = (id: string | null): void => {
+    if (!id) return
+    window.sessionStorage.setItem(sessionStorageKey, id)
+    window.localStorage.setItem(localStorageSessionKey, id)
+  }
+
+  const clearStoredSessionId = (): void => {
+    window.sessionStorage.removeItem(sessionStorageKey)
+    window.localStorage.removeItem(localStorageSessionKey)
+  }
+
+  const releaseServerSession = (useUnloadTransport = false): void => {
+    const currentSessionId = sessionId.value || connection.sessionId.value || readStoredSessionId()
+    if (!currentSessionId || !roomId) {
+      clearStoredSessionId()
+      sessionId.value = null
+      return
+    }
+
+    const payload = liveApi.getDefaultLiveRoomSessionDTO()
+    payload.roomId = roomId
+    payload.sessionId = currentSessionId
+
+    if (useUnloadTransport) {
+      liveApi.leaveLiveRoomOnPageUnload(payload)
+    } else {
+      void liveApi.leaveLiveRoom(payload).catch(() => undefined)
+    }
+
+    clearStoredSessionId()
+    sessionId.value = null
+  }
+
+  // 从 localStorage 读取持久化的布局模式，如果没有则使用默认值 'speaker'
+  const getInitialLayoutMode = (): LayoutMode => {
+    const stored = localStorage.getItem(LAYOUT_MODE_STORAGE_KEY)
+    if (stored === 'speaker' || stored === 'grid') {
+      return stored as LayoutMode
+    }
+    return 'speaker'
+  }
+
+  const layoutMode = ref<LayoutMode>(getInitialLayoutMode())
   const selectedMainParticipantId = ref<string | null>(null)
   const firstTeacherParticipantId = ref<string | null>(null)
 
-  // 初始化健壮性管理器
+  // 初始化错误处理器
   const errorHandler = useErrorHandler()
   const resourceManager = useResourceManager()
   const loadingState = useLoadingState()
   const retryMechanism = useRetryMechanism()
-  // 本地 VideoPanel 引用（用于在本地轨道可用时附加本地视频）
+  // 本地 VideoPanel 引用（用于在本地视频通道可用时附加本地视频）
   const videoPanelRef = ref<any>(null)
 
   const registerVideoPanel = (panel: any) => {
@@ -159,6 +235,56 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
   const chat = useChatMessages()
   const recording = useRecording()
   const realtime = useLiveRealtime()
+  // 使用全局 detector store
+  const speakingDetectorStore = useSpeakingDetectorStore()
+  // 保留本地引用以保持类型兼容（注意：detector 可能尚未初始化，需要通过 store 访问）
+  const speakingDetector = speakingDetectorStore
+  const speakingStore = useLiveSpeakingStore()
+
+  const resolveStudentIdFromMetadata = (metadata: string | null | undefined): string | null => {
+    if (!metadata) return null
+
+    try {
+      const meta = JSON.parse(metadata)
+      const candidates = [
+        meta?.studentId,
+        meta?.student?.id,
+        meta?.studentInfo?.id,
+        meta?.profile?.studentId
+      ]
+
+      for (const candidate of candidates) {
+        if (candidate !== null && candidate !== undefined && String(candidate).trim().length > 0) {
+          return String(candidate)
+        }
+      }
+    } catch {
+      // ignore invalid metadata payloads
+    }
+
+    return null
+  }
+
+  const bindParticipantStudentMapping = (participantId: string, metadata?: string | null): void => {
+    const studentId = resolveStudentIdFromMetadata(metadata)
+    if (studentId) {
+      speakingStore.setParticipantStudentMapping(participantId, studentId)
+    }
+  }
+
+  const bindLocalParticipantStudentMapping = (room: Room): void => {
+    const localIdentity = room.localParticipant?.identity
+    if (!localIdentity) return
+
+    const localStudentId = userStore.studentInfo?.id
+    const localTeacherId = userStore.teacherInfo?.id
+    const fallbackUserId = userStore.userInfo?.id
+    const mappedId = localStudentId || localTeacherId || fallbackUserId
+
+    if (mappedId) {
+      speakingStore.setParticipantStudentMapping(localIdentity, String(mappedId))
+    }
+  }
 
   // 计算属性
   const currentUserRole = computed<LiveRoomRoleEnum>(() => {
@@ -189,13 +315,13 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
       return backendMemberCount.value
     }
 
-    // 其次使用SSE推送的实时成员数
+    // 其次使用SSE发送的实时成员数
     const realtimeCount = realtime.membersCount.value
     if (typeof realtimeCount === 'number' && realtimeCount >= 0) {
       return realtimeCount
     }
 
-    // 回退到LiveKit计算（用于兼容性）
+    // 降级到LiveKit计算（用于兼容性）
     return onlineCount.value
   })
 
@@ -204,6 +330,41 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     const remoteVideoCount = remoteParticipants.value.filter(p => p.videoTrack).length
     const localVideoEnabled = media.cameraEnabled.value
     return remoteVideoCount + (localVideoEnabled ? 1 : 0)
+  })
+
+  // 开启摄像头或麦克风的参与人数（最多10人限制）
+  const MAX_MEDIA_PARTICIPANTS = 10
+  const activeMediaParticipantCount = computed(() => {
+    let count = 0
+
+    // 统计本地用户
+    if (media.cameraEnabled.value || media.microphoneEnabled.value) {
+      count++
+    }
+
+    // 统计远程用户
+    const currentRoom = connection.room.value
+    if (currentRoom) {
+      // 遍历远程参与者
+      currentRoom.remoteParticipants.forEach((participant) => {
+        const hasVideo = Array.from(participant.videoTrackPublications.values()).some(
+          (pub) => pub.track && !pub.isMuted
+        )
+        const hasAudio = Array.from(participant.audioTrackPublications.values()).some(
+          (pub) => pub.track && !pub.isMuted
+        )
+        if (hasVideo || hasAudio) {
+          count++
+        }
+      })
+    }
+
+    return count
+  })
+
+  // 是否已达到媒体人数限制
+  const isMediaLimitReached = computed(() => {
+    return activeMediaParticipantCount.value >= MAX_MEDIA_PARTICIPANTS
   })
   const speakerVolumeValue = computed(() => speakerVolume.value ?? 100)
   const canShowRecording = computed(() => {
@@ -221,6 +382,42 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     return pub?.track ?? null
   })
 
+  // 本地参与者的 identity（用于说话指示器）
+  const localParticipantIdentity = computed(() => {
+    const currentRoom = connection.room.value
+    if (!currentRoom?.localParticipant) return 'local'
+    return currentRoom.localParticipant.identity || 'local'
+  })
+
+  watch(
+    () => [
+      connection.room.value?.localParticipant?.identity || null,
+      userStore.studentInfo?.id || null,
+      userStore.teacherInfo?.id || null,
+      userStore.userInfo?.id || null
+    ] as const,
+    ([localIdentity, studentId, teacherId, userId]) => {
+      if (!localIdentity) return
+      const mappedId = studentId || teacherId || userId
+      if (mappedId) {
+        speakingStore.setParticipantStudentMapping(localIdentity, String(mappedId))
+      }
+    },
+    { immediate: true }
+  )
+
+  watch(
+    () => connection.sessionId.value,
+    (latestSessionId) => {
+      if (!latestSessionId || sessionId.value === latestSessionId) {
+        return
+      }
+      sessionId.value = latestSessionId
+      persistSessionId(latestSessionId)
+    },
+    { immediate: true }
+  )
+
   const activeMainParticipantId = computed(() => {
     if (layoutMode.value !== 'speaker') {
       return null
@@ -236,7 +433,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
         return selectedMainParticipantId.value
       }
     }
-    // 优先选择第一个进入的老师
+    // 优先选择第一个进场的老师
     if (firstTeacherParticipantId.value) {
       const firstTeacher = remoteParticipants.value.find(participant =>
         participant.participantId === firstTeacherParticipantId.value && participant.videoTrack
@@ -266,6 +463,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     await loadRoomInfo()
     // 设置 sessionId
     sessionId.value = existingSessionId
+    persistSessionId(existingSessionId)
 
     // 启动SSE实时连接
     await realtime.connect(existingRoomId, null)
@@ -273,7 +471,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     // 恢复 LiveKit 连接
     connection.restoreConnection(existingRoom, existingSessionId, existingRoomId)
 
-    // 设置聊天监听
+    // 设置聊天消息监听
     if (existingRoom) {
       chat.setupRealtimeMessages(existingRoom)
       chat.teardownSseListener()
@@ -297,15 +495,15 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     await loadRoomInfo()
     await chat.loadHistoryMessages(roomId)
 
-    // 检查 props 或路由参数中是否有 token，直接尝试加入
+    // 检查 props 或路由参数中是否有 token，直接尝试加 入
     const queryToken = route.query.token as string
     const providedToken = tokenProp ?? queryToken ?? null
     const querySessionId = route.query.sessionId as string
     if (querySessionId) {
       sessionId.value = querySessionId
+      persistSessionId(querySessionId)
     } else {
-      const storedSessionId = window.sessionStorage.getItem(`live:session:${roomId}`)
-      sessionId.value = storedSessionId || null
+      sessionId.value = readStoredSessionId()
     }
 
     // 启动SSE实时连接
@@ -331,27 +529,28 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
 
         loadingState.setLoading('connection', false)
 
-        // 设置实时消息监听并停止 SSE（已连接则使用 WebRTC DataChannel）
+        // 设置实时消息监听并停止SSE（已连接则使用WebRTC DataChannel）
         if (connection.room.value) {
           chat.setupRealtimeMessages(connection.room.value)
           chat.teardownSseListener()
         }
 
-        const latestSessionId = sessionId.value
+        const latestSessionId = connection.sessionId.value || sessionId.value
         if (latestSessionId) {
-          window.sessionStorage.setItem(`live:session:${roomId}`, latestSessionId)
+          sessionId.value = latestSessionId
+          persistSessionId(latestSessionId)
         }
 
-        // 摄像头默认关闭，不需要尝试附加本地视频轨道
+        // 摄像头默认关闭，不需要尝试附加本地视频
         // 只有当用户手动开启摄像头时，才会在 toggleCamera() 中处理视频附加
-        } catch (error: any) {
+      } catch (error: any) {
         loadingState.setLoading('connection', false)
         errorHandler.handleError(error, t('live.common.connectionContext'), {
           allowRetry: true,
           onRetry: () => connectWithRetry(token)
         })
 
-        // 连接失败时启用降级模式 - 启动 SSE 监听
+        // 连接失败时启动降级方案 - 启动 SSE 监听
         chat.setupSseListener(roomId, undefined)
       }
     }
@@ -380,23 +579,17 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     // 离开直播后停止 SSE 监听
     chat.teardownSseListener()
 
-    const currentSessionId = sessionId.value
-    if (currentSessionId) {
-      const payload = liveApi.getDefaultLiveRoomSessionDTO()
-      payload.roomId = roomId
-      payload.sessionId = currentSessionId
-      liveApi.leaveLiveRoom(payload)
-    }
+    releaseServerSession(false)
 
     loadingState.setLoading('disconnect', false)
-    // 与页面顶部返回按钮一致：离开后返回上一页（例如 classroom3d）
+    // 与页面顶部返回按钮一致：离开后返回上一页面（例如 classroom3d）
     try {
       router.back()
     } catch (e) {
       // ignore navigation errors silently
     }
 
-    // 如果 router.back 无法将用户带出直播页，尝试回退到 classroom 或 dashboard 作为兜底
+    // 如果 router.back 无法将用户带出回退页，尝试回退到 classroom 或 dashboard 作为兜底
     setTimeout(() => {
       const current = router.currentRoute.value
       if (current && (current.name === 'LiveRoom' || current.path.includes('/live/room/'))) {
@@ -411,11 +604,24 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     }, 200)
   }
 
+  const handlePageUnload = (): void => {
+    releaseServerSession(true)
+  }
+
   const handleSendMessage = async (content: string): Promise<void> => {
     await chat.sendMessage(content, connection.room.value, roomId)
   }
 
   const handleToggleCamera = async (): Promise<void> => {
+    // 如果当前未开启摄像头，检查是否已达到人数限制
+    if (!media.cameraEnabled.value && isMediaLimitReached.value) {
+      loadingState.setLoading('camera', false)
+      message.warning(
+        t('live.room.mediaLimitReached', { max: MAX_MEDIA_PARTICIPANTS })
+      )
+      return
+    }
+
     loadingState.setLoading('camera', true, t('live.common.switchingCamera'))
 
     await media.toggleCamera()
@@ -424,11 +630,31 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
   }
 
   const handleToggleMicrophone = async (): Promise<void> => {
+    // 如果当前未开启麦克风，检查是否已达到人数限制
+    if (!media.microphoneEnabled.value && isMediaLimitReached.value) {
+      loadingState.setLoading('microphone', false)
+      message.warning(
+        t('live.room.mediaLimitReached', { max: MAX_MEDIA_PARTICIPANTS })
+      )
+      return
+    }
+
     loadingState.setLoading('microphone', true, t('live.common.switchingMicrophone'))
+    const wasEnabled = media.microphoneEnabled.value
 
-    await media.toggleMicrophone()
-
-    loadingState.setLoading('microphone', false)
+    try {
+      await media.toggleMicrophone()
+      if (wasEnabled) {
+        const localIdentity = connection.room.value?.localParticipant?.identity || 'local'
+        speakingStore.updateSpeakingState(localIdentity, {
+          isSpeaking: false,
+          volumeLevel: 0,
+          lastSpeakingAt: Date.now()
+        })
+      }
+    } finally {
+      loadingState.setLoading('microphone', false)
+    }
   }
 
   const handleToggleRecording = async (): Promise<void> => {
@@ -452,8 +678,19 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
   }
 
   const handleToggleLayoutMode = (): void => {
-    layoutMode.value = layoutMode.value === 'speaker' ? 'grid' : 'speaker'
+    const newMode: LayoutMode = layoutMode.value === 'speaker' ? 'grid' : 'speaker'
+    layoutMode.value = newMode
     selectedMainParticipantId.value = null
+
+    // 持久化到 localStorage
+    localStorage.setItem(LAYOUT_MODE_STORAGE_KEY, newMode)
+
+    // 显示模式切换提示
+    message.success(
+      newMode === 'grid'
+        ? t('live.room.layoutModeGrid') || '已切换到网格模式'
+        : t('live.room.layoutModeSpeaker') || '已切换到演讲者模式'
+    )
   }
 
   const handleToggleFullscreen = (): void => {
@@ -466,7 +703,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
       unreadMessageCount.value = 0
     }
   }
- 
+
   // 将 VideoPanel 注册方法暴露给外部（Provider）
   // 这样父组件可以在挂载后注册 panel 引用
   // registerVideoPanel(panelRef) / unregisterVideoPanel()
@@ -490,17 +727,17 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
 
     switch (eventType) {
       case 'chat_message':
-        // 处理SSE推送的聊天消息
+        // 处理SSE发送的聊天消息
         if (message.data) {
           const chatMessage = {
             id: message.data.id || `${Date.now()}-${Math.random()}`,
             sender: message.data.sender || t('live.room.unknown'),
             content: message.data.content || '',
             timestamp: message.data.sendTime ? new Date(message.data.sendTime).toLocaleTimeString() : new Date().toLocaleTimeString(),
-            isOwn: false // SSE推送的消息默认不是自己的
+            isOwn: false // SSE发送的消息默认不是自己的
           }
 
-          // 使用chat composable的addMessage方法添加消息
+          // 使用chat composable的 addMessage 方法添加消息
           chat.addMessage(chatMessage)
         }
         break
@@ -516,7 +753,10 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
 
   // 同步参与者已有轨道（用于首次加入房间或重连）
   const syncExistingParticipantTracks = (participant: RemoteParticipant) => {
-    const displayName = (participant.identity) || participant.sid
+    const participantId = participant.identity
+    const displayName = participantId || participant.sid
+
+    // 解析 metadata 获取角色和学生信息
     const participantRole = (() => {
       if (participant.metadata) {
         try {
@@ -529,6 +769,8 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
       return null
     })()
 
+    // 建立 participantId -> studentId 映射（供教室页面使用）
+    bindParticipantStudentMapping(participantId, participant.metadata)
     const videoPubs = Array.from(participant.videoTrackPublications.values()) as RemoteTrackPublication[]
     videoPubs.forEach((pub) => {
       if (pub.track && pub.track.kind === Track.Kind.Video) {
@@ -578,13 +820,13 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     })
   }
 
-  // 监听 LiveKit Room 的参与者与轨道事件，保持 remoteParticipants 同步
+  // 监听 LiveKit Room 的参与者与通道事件，保持 remoteParticipants 同步
   watch(
     () => connection.room.value,
     (currentRoom) => {
       if (!currentRoom) return
 
-      // 房间连接成功时，主动从后端获取在线人数（确保数据同步）
+      // 房间连接成功后，主动从后端获取在线人数（确保数据同步）
       if (roomId) {
         liveApi.getRoomMemberCount(roomId).then(result => {
           backendMemberCount.value = result.data
@@ -604,6 +846,9 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
        resourceManager.registerEventListener(currentRoom, RoomEvent.TrackSubscribed, (track: Track, _publication: RemoteTrackPublication, participant: RemoteParticipant) => {
          const participantId = participant.identity
          const displayName = participantId
+
+         // 建立 participantId -> studentId 映射（供教室页面使用）
+         bindParticipantStudentMapping(participantId, participant.metadata)
          const existingIndex = remoteParticipants.value.findIndex(p => p.participantId === participantId)
 
          if (track.kind === Track.Kind.Video) {
@@ -670,11 +915,22 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
         const index = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
         if (index >= 0) remoteParticipants.value.splice(index, 1)
       })
+
+      // 建立本地参与者的映射（participant.identity -> studentId）
+      // 由于 LiveKit 服务器不允许更新 metadata，这里通过 userStore 直接建立映射
+      bindLocalParticipantStudentMapping(currentRoom)
+
+      // 启动说话检测（使用全局 detector store）
+      speakingDetectorStore.connect(currentRoom)
     }
   )
 
   // 清理资源
-  const cleanup = (): void => {
+  /**
+   * 清理直播间资源
+   * @param keepDetector - 是否保留说话检测器（进入 PiP 模式时设为 true）
+   */
+  const cleanup = (keepDetector = false): void => {
     const currentRoom = connection.room.value
     if (currentRoom) {
       chat.teardownRealtimeMessages(currentRoom)
@@ -682,9 +938,19 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     if (connection.isConnected.value || connection.room.value) {
       void connection.disconnect()
     }
+    releaseServerSession(false)
     realtime.disconnect()
     chat.teardownSseListener()
     firstTeacherParticipantId.value = null
+
+    if (keepDetector) {
+      // PiP 模式：只断开 LiveKit 连接，不断开 detector（保留给 Classroom3D 使用）
+      // 注意：connection.disconnect() 会自动断开 detector 的事件监听
+      // setInLiveRoom 状态由 detector 自行管理，不需要手动处理
+    } else {
+      // 非 PiP 模式：完全清理，包括断开 detector 和清空 store
+      speakingDetectorStore.destroy()
+    }
   }
 
   return {
@@ -720,10 +986,20 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     chatMessages,
     chatOnlineCount,
     activeVideoCount,
+    maxMediaParticipants: MAX_MEDIA_PARTICIPANTS,
+    activeMediaParticipantCount,
+    isMediaLimitReached,
     speakerVolumeValue,
     canShowRecording,
     activeMainParticipantId,
     localVideoTrack,
+
+    // 说话检测器
+    speakingStates: speakingDetector.speakingStates,
+    activeSpeaker: speakingDetector.activeSpeaker,
+    sortedSpeakingIds: speakingDetector.sortedSpeakingIds as unknown as ComputedRef<string[]>,
+    speakingDetector,
+    localParticipantIdentity,
 
     // 方法
     initialize,
@@ -738,6 +1014,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     handleToggleLayoutMode,
     handleToggleFullscreen,
     handleToggleChatCollapse,
+    handlePageUnload,
     registerVideoPanel,
     unregisterVideoPanel,
     cleanup

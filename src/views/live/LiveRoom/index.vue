@@ -172,8 +172,16 @@ const enterPiPIfConnected = () => {
 
 // 页面事件处理器
 const handleBeforeUnload = (_event: BeforeUnloadEvent) => {
-  // 如果有活跃直播连接，阻止默认行为并进入画中画模式
-  enterPiPIfConnected()
+  // 浏览器直接关闭/刷新时，兜底通知后端释放会话
+  providerRef.value?.handlePageUnload?.()
+}
+
+const handlePageHide = (event: PageTransitionEvent) => {
+  // 被 BFCache 暂存时不要释放会话
+  if (event.persisted) {
+    return
+  }
+  providerRef.value?.handlePageUnload?.()
 }
 
 // 移除 visibilitychange 监听，因为浏览器最小化时不应该进入画中画模式
@@ -189,6 +197,10 @@ onBeforeRouteLeave((_to, _from, next) => {
 import { nextTick } from 'vue'
 onMounted(async () => {
   await nextTick()
+
+  // 添加页面事件监听器
+  window.addEventListener('beforeunload', handleBeforeUnload)
+  window.addEventListener('pagehide', handlePageHide)
 
   // 如果刚刚从 PiP 恢复，使用 store 中已有的连接
   if (livePiPStore.justRestoredFromPiP && livePiPStore.activeSession) {
@@ -206,18 +218,20 @@ onMounted(async () => {
 
   // 在微任务后再触发 LiveRoom 的初始化逻辑（加载房间、连接 SSE/RTC 等）
   providerRef.value?.initialize?.()
-
-  // 添加页面事件监听器
-  window.addEventListener('beforeunload', handleBeforeUnload)
 })
 
 onUnmounted(() => {
   if (!livePiPStore.isInPiPMode) {
-    providerRef.value?.cleanup?.()
+    // 非 PiP 模式：完全清理，包括断开 detector
+    providerRef.value?.cleanup?.(false)
+  } else {
+    // PiP 模式：只断开 LiveKit 连接，不断开 detector（保留给 Classroom3D 使用）
+    providerRef.value?.cleanup?.(true)
   }
 
   // 清理事件监听器
   window.removeEventListener('beforeunload', handleBeforeUnload)
+  window.removeEventListener('pagehide', handlePageHide)
 })
 
 const showStudentInfo = ref(false)

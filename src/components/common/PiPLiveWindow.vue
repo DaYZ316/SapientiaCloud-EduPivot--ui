@@ -66,6 +66,7 @@ import { MenuOutline, VideocamOffOutline } from '@vicons/ionicons5'
 import { useLivePiPStore } from '@/store'
 import { useRouter } from 'vue-router'
 import { attachTrackToVideoElement } from '@/views/live/LiveRoom/composables/mediaHelpers'
+import { useSpeakingDetectorStore } from '@/stores/speakingDetector'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -298,11 +299,21 @@ const doAttachVideo = (): void => {
 }
 
 // 生命周期
+// 使用全局 detector store，确保直播间页面和悬浮窗共享同一个 detector 实例
+const speakingDetectorStore = useSpeakingDetectorStore()
+
 onMounted(() => {
   console.log('PiP: 组件挂载')
   // 延迟执行，确保 DOM 就绪
   nextTick(() => {
     tryAttachVideo()
+
+    // 连接说话检测器（如果存在活跃的 session）
+    const session = getActiveSession()
+    if (session?.connection) {
+      console.log('PiP: 连接说话检测器')
+      speakingDetectorStore.connect(session.connection)
+    }
   })
 })
 
@@ -310,6 +321,10 @@ onUnmounted(() => {
   if (isDragging.value) {
     stopDrag()
   }
+
+  // 断开说话检测器（只断开检测，不清空 store，保留给 Classroom3D 使用）
+  console.log('PiP: 断开说话检测器')
+  speakingDetectorStore.disconnect()
 })
 
 // 监听 hasVideoStream 变化，尝试绑定视频

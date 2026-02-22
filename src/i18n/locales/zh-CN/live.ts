@@ -228,7 +228,11 @@ export default {
         stop: '结束直播',
         startSuccess: '直播已开启',
         startFailed: '开启直播失败',
-        mediaLimitReached: '同时开启摄像头或麦克风的人数已达上限（{max}人），请等待其他成员关闭设备后再试'
+        mediaLimitReached: '同时开启摄像头或麦克风的人数已达上限（{max}人），请等待其他成员关闭设备后再试',
+        raiseHand: '举手',
+        handRaised: '已举手',
+        handRaiseCooldown: '等待 {seconds} 秒',
+        handRaising: '正在举手'
     },
     pip: {
         title: '正在直播中...',

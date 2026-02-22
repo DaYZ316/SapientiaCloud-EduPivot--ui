@@ -27,6 +27,21 @@
         <span v-if="!props.iconOnly">{{ microphoneEnabled ? t('live.room.microphoneOn') : t('live.room.microphoneOff') }}</span>
       </n-button>
 
+      <!-- 举手控制（仅学生可见） -->
+      <n-button
+        v-if="showHandRaise"
+        quaternary
+        size="small"
+        :type="isHandRaised ? 'warning' : 'default'"
+        :disabled="isHandRaiseDisabled"
+        @click="handleRaiseHand"
+      >
+        <template #icon>
+          <n-icon :component="HandLeftOutline" />
+        </template>
+        <span v-if="!props.iconOnly">{{ handRaiseText }}</span>
+      </n-button>
+
       <!-- 录制控制 -->
       <n-button
         v-if="canShowRecording && props.showRecording"
@@ -63,6 +78,7 @@ import { computed, withDefaults } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { NButton, NSpace, NIcon, NSlider } from 'naive-ui'
 import {
+  HandLeftOutline,
   MicOffOutline,
   MicOutline,
   RadioButtonOnOutline,
@@ -85,12 +101,16 @@ interface Props {
   iconOnly?: boolean
   isOverlay?: boolean
   showRecording?: boolean
+  isHandRaised?: boolean
+  handRaiseCooldown?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   iconOnly: false,
   isOverlay: false,
-  showRecording: true
+  showRecording: true,
+  isHandRaised: false,
+  handRaiseCooldown: 0
 })
 
 interface Emits {
@@ -98,6 +118,7 @@ interface Emits {
   (e: 'toggle-microphone'): void
   (e: 'toggle-recording'): void
   (e: 'update-speaker-volume', value: number): void
+  (e: 'raise-hand'): void
 }
 
 const emit = defineEmits<Emits>()
@@ -108,6 +129,27 @@ const { t } = useI18n()
 const canShowRecording = computed(() => {
   return props.currentUserRole === LiveRoomRoleEnum.TEACHER ||
          props.currentUserRole === LiveRoomRoleEnum.ASSISTANT
+})
+
+// 是否显示举手按钮（仅学生可见）
+const showHandRaise = computed(() => {
+  return props.currentUserRole === LiveRoomRoleEnum.STUDENT
+})
+
+// 举手按钮是否禁用
+const isHandRaiseDisabled = computed(() => {
+  return props.handRaiseCooldown > 0 || props.isHandRaised
+})
+
+// 举手按钮文本
+const handRaiseText = computed(() => {
+  if (props.isHandRaised) {
+    return t('live.room.handRaised')
+  }
+  if (props.handRaiseCooldown > 0) {
+    return t('live.room.handRaiseCooldown', { seconds: props.handRaiseCooldown })
+  }
+  return t('live.room.raiseHand')
 })
 
 // 事件处理
@@ -125,6 +167,12 @@ const handleToggleRecording = () => {
 
 const handleSpeakerVolume = (value: number) => {
   emit('update-speaker-volume', value)
+}
+
+const handleRaiseHand = () => {
+  if (!isHandRaiseDisabled.value) {
+    emit('raise-hand')
+  }
 }
 </script>
 

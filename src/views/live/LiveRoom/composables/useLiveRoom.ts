@@ -1,8 +1,8 @@
-import { computed, ref, type Ref, type ComputedRef, watch, nextTick } from 'vue'
+﻿import { computed, ref, type Ref, type ComputedRef, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useMessage } from 'naive-ui'
-import type { LiveRoomVO, RemoteParticipantMedia } from '@/types/live'
+import { useMessage, useNotification } from 'naive-ui'
+import type { LiveRoomVO, RemoteParticipantMedia, HandRaiseState } from '@/types/live'
 import type { LiveConnectionResult } from './useLiveConnection'
 import { LiveRoomRoleEnum } from '@/enum/live'
 import { useUserStore } from '@/store'
@@ -71,6 +71,11 @@ export interface LiveRoomResult {
   // 说话检测器实例
   speakingDetector: SpeakingDetectorStore
 
+  // 举手相关状态（老师端使用）
+  handRaiseStates: Ref<HandRaiseState[]>
+  isHandRaised: Ref<boolean>
+  handRaiseCooldown: Ref<number>
+
   // 加载状态
   loadingState: any
 
@@ -91,6 +96,7 @@ export interface LiveRoomResult {
   handleToggleFullscreen: () => void
   handleToggleChatCollapse: () => void
   handlePageUnload: () => void
+  handleRaiseHand: () => void
   cleanup: (keepDetector?: boolean) => void
   registerVideoPanel?: (panel: any) => void
   unregisterVideoPanel?: () => void
@@ -102,6 +108,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
   const router = useRouter()
   const userStore = useUserStore()
   const message = useMessage()
+  const notification = useNotification()
 
   // 基本状态
   const roomId = roomIdProp ?? (route.params.roomId as string)
@@ -135,6 +142,13 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
   const sessionId = ref<string | null>(null)
   const sessionStorageKey = `live:session:${roomId}`
   const localStorageSessionKey = `live:last-session:${roomId}`
+
+  // 举手相关状态
+  const handRaiseStates = ref<HandRaiseState[]>([])
+  const isHandRaised = ref(false)
+  const handRaiseCooldown = ref(0)
+  const handRaiseTimerMap = new Map<string, number>()
+  const HAND_RAISE_DURATION = 10 // 举手持续显示时间（秒）
 
   const readStoredSessionId = (): string | null => {
     const fromSessionStorage = window.sessionStorage.getItem(sessionStorageKey)
@@ -704,6 +718,103 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     }
   }
 
+  // 举手相关方法
+  /**
+   * 学生举手
+   */
+  const handleRaiseHand = (): void => {
+    // 如果正在冷却中，不能举手
+    if (handRaiseCooldown.value > 0 || isHandRaised.value) {
+      return
+    }
+
+    const currentRoom = connection.room.value
+    if (!currentRoom) {
+      return
+    }
+
+    // 获取当前用户信息
+    const participantId = currentRoom.localParticipant?.identity || 'local'
+    const participantName = userStore.userInfo?.nickName || participantId
+
+    // 发送举手消息（通过 DataChannel 广播给房间内所有人）
+    const payload = {
+      type: 'hand_raise',
+      participantId,
+      participantName,
+      timestamp: Date.now()
+    }
+
+    currentRoom.localParticipant.publishData(
+      new TextEncoder().encode(JSON.stringify(payload)),
+      { reliable: true }
+    )
+
+    // 设置本地举手状态和冷却
+    isHandRaised.value = true
+    handRaiseCooldown.value = HAND_RAISE_DURATION
+
+    // 冷却倒计时
+    const cooldownInterval = setInterval(() => {
+      handRaiseCooldown.value--
+      if (handRaiseCooldown.value <= 0) {
+        clearInterval(cooldownInterval)
+        isHandRaised.value = false
+      }
+    }, 1000)
+  }
+
+  /**
+   * 处理收到的举手消息（老师端）
+   */
+  const handleHandRaiseMessage = (payload: {
+    type: string
+    participantId: string
+    participantName: string
+    timestamp: number
+  }): void => {
+    // 只有老师和助教能看到举手提示
+    if (currentUserRole.value !== LiveRoomRoleEnum.TEACHER &&
+        currentUserRole.value !== LiveRoomRoleEnum.ASSISTANT) {
+      return
+    }
+
+    // 检查是否已经在举手列表中，避免重复显示
+    const existingIndex = handRaiseStates.value.findIndex(
+      state => state.participantId === payload.participantId
+    )
+
+    if (existingIndex < 0) {
+      // 添加到举手列表
+      handRaiseStates.value.push({
+        participantId: payload.participantId,
+        participantName: payload.participantName,
+        raisedAt: payload.timestamp,
+        remainingSeconds: HAND_RAISE_DURATION
+      })
+
+      // 使用 NNotification 显示举手提示，10秒后自动消失
+      notification.warning({
+        title: payload.participantName,
+        content: t('live.room.handRaising'),
+        duration: 10000,
+        keepAliveOnHover: false
+      })
+
+      // 10秒后从列表中移除
+      const timer = setTimeout(() => {
+        const idx = handRaiseStates.value.findIndex(
+          state => state.participantId === payload.participantId
+        )
+        if (idx >= 0) {
+          handRaiseStates.value.splice(idx, 1)
+        }
+      }, HAND_RAISE_DURATION * 1000)
+
+      handRaiseTimerMap.set(payload.participantId, timer as unknown as number)
+    }
+  }
+
   // 将 VideoPanel 注册方法暴露给外部（Provider）
   // 这样父组件可以在挂载后注册 panel 引用
   // registerVideoPanel(panelRef) / unregisterVideoPanel()
@@ -922,6 +1033,22 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
 
       // 启动说话检测（使用全局 detector store）
       speakingDetectorStore.connect(currentRoom)
+
+      // 监听 DataChannel 消息（用于举手等实时通信）
+      const dataMessageHandler = (data: Uint8Array) => {
+        try {
+          const text = new TextDecoder().decode(data)
+          const payload = JSON.parse(text)
+
+          if (payload?.type === 'hand_raise') {
+            handleHandRaiseMessage(payload)
+          }
+        } catch (e) {
+          // ignore parse errors
+        }
+      }
+      currentRoom.on(RoomEvent.DataReceived, dataMessageHandler)
+      ;(currentRoom as any).__hand_raise_handler = dataMessageHandler
     }
   )
 
@@ -1001,6 +1128,11 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     speakingDetector,
     localParticipantIdentity,
 
+    // 举手相关
+    handRaiseStates,
+    isHandRaised,
+    handRaiseCooldown,
+
     // 方法
     initialize,
     restoreSession,
@@ -1015,6 +1147,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     handleToggleFullscreen,
     handleToggleChatCollapse,
     handlePageUnload,
+    handleRaiseHand,
     registerVideoPanel,
     unregisterVideoPanel,
     cleanup

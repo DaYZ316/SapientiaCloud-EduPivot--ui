@@ -41,6 +41,11 @@ export interface LiveRoomContext {
   activeSpeaker: { participantId: string; volumeLevel: number; lastSpeakingAt: number } | null
   sortedSpeakingIds: ComputedRef<string[]>
 
+  // 举手相关状态
+  handRaiseStates: any
+  isHandRaised: any
+  handRaiseCooldown: any
+
   // 加载状态
   loadingState: any
 
@@ -58,6 +63,7 @@ export interface LiveRoomContext {
   handleToggleLayoutMode: any
   handleToggleFullscreen: any
   handleToggleChatCollapse: any
+  handleRaiseHand: any
   registerVideoPanel?: any
   unregisterVideoPanel?: any
 }

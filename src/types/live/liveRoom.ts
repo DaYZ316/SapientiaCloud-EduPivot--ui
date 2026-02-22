@@ -173,4 +173,32 @@ export interface RemoteParticipantMedia {
     volumeLevel?: number
 }
 
+/**
+ * 举手消息（通过 LiveKit DataChannel 传输）
+ */
+export interface HandRaiseMessage {
+    /** 消息类型 */
+    type: 'hand_raise'
+    /** 举手者 participantId */
+    participantId: string
+    /** 举手者名称 */
+    participantName: string
+    /** 举手时间戳 */
+    timestamp: number
+}
+
+/**
+ * 举手状态（老师端使用）
+ */
+export interface HandRaiseState {
+    /** 举手者 participantId */
+    participantId: string
+    /** 举手者名称 */
+    participantName: string
+    /** 举手时间戳 */
+    raisedAt: number
+    /** 剩余显示时间（秒） */
+    remainingSeconds: number
+}
+
 

@@ -222,7 +222,11 @@ export default {
         stop: 'End Live',
         startSuccess: 'Live started',
         startFailed: 'Failed to start live',
-        mediaLimitReached: 'The maximum number of participants with camera or microphone enabled has been reached ({max} people). Please wait for others to close their devices and try again.'
+        mediaLimitReached: 'The maximum number of participants with camera or microphone enabled has been reached ({max} people). Please wait for others to close their devices and try again.',
+        raiseHand: 'Raise Hand',
+        handRaised: 'Hand Raised',
+        handRaiseCooldown: 'Wait {seconds}s',
+        handRaising: 'Raising Hand'
     },
     pip: {
         title: 'Live streaming...',

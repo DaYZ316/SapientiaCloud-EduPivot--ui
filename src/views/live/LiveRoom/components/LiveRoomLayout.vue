@@ -54,10 +54,13 @@
           :icon-only="true"
           :is-overlay="true"
           :show-recording="true"
+          :is-hand-raised="context.isHandRaised.value"
+          :hand-raise-cooldown="context.handRaiseCooldown.value"
           @toggle-camera="handleToggleCamera"
           @toggle-microphone="handleToggleMicrophone"
           @toggle-recording="handleToggleRecording"
           @update-speaker-volume="handleSpeakerVolumeChange"
+          @raise-hand="handleRaiseHand"
         />
 
         <!-- 布局控制按钮 -->
@@ -172,6 +175,10 @@ const handleSendMessage = (content: string) => {
 
 const handleToggleChatCollapse = () => {
   context.handleToggleChatCollapse()
+}
+
+const handleRaiseHand = () => {
+  context.handleRaiseHand()
 }
 
 // 布局切换快捷键处理

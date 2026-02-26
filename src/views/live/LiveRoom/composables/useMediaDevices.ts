@@ -1,5 +1,5 @@
-import { ref, readonly } from 'vue'
-import { ConnectionState } from 'livekit-client'
+﻿import { ref, readonly } from 'vue'
+import { ConnectionState, Track } from 'livekit-client'
 import { useI18n } from 'vue-i18n'
 import { useErrorHandler } from './useErrorHandler'
 import { useRetryMechanism } from './useRetryMechanism'
@@ -7,16 +7,16 @@ import type { Room } from 'livekit-client'
 import type { Ref } from 'vue'
 
 export interface MediaDevicesResult {
-  // 状态
+
   cameraEnabled: boolean
   microphoneEnabled: boolean
+  screenShareEnabled: boolean
 
-  // 方法
   toggleCamera: () => Promise<void>
   toggleMicrophone: () => Promise<void>
+  toggleScreenShare: () => Promise<void>
   setupLocalMedia: (targetRoom: Room) => Promise<void>
 
-  // 诊断方法
   diagnoseCameraIssues: () => Promise<string>
   diagnoseMicrophoneIssues: () => Promise<string>
 }
@@ -24,20 +24,18 @@ export interface MediaDevicesResult {
 export const useMediaDevices = (room: Ref<Room | null>) => {
   const { t } = useI18n()
 
-  // 集成健壮性工具
   const errorHandler = useErrorHandler()
   const retryMechanism = useRetryMechanism()
 
-  // 媒体状态
   const cameraEnabled = ref<boolean>(false)
   const microphoneEnabled = ref<boolean>(false)
+  const screenShareEnabled = ref<boolean>(false)
 
-  // 全局错误捕获，防止DataCloneError传播
   const safeAsyncCall = async <T>(operation: () => Promise<T>, fallbackError: string): Promise<T> => {
     try {
       return await operation()
     } catch (error) {
-      // 如果是DataCloneError，抛出一个安全的错误
+
       if (error instanceof Error && error.name === 'DataCloneError') {
         throw new Error(fallbackError)
       }
@@ -45,8 +43,6 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
     }
   }
 
-
-  // 切换摄像头
   const toggleCamera = async (): Promise<void> => {
     const currentRoom = room.value
     if (!currentRoom) {
@@ -65,58 +61,53 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
       return
     }
 
-    // ✅ 关键：在用户手势中先启动音频上下文，解除自动播放限制
     safeAsyncCall(
       () => currentRoom.startAudio(),
       t('live.media.audioContextStartFailed')
     ).catch(() => {
-      // 即使startAudio失败，也要安全处理
+
     })
 
     const enabled = !cameraEnabled.value
 
     try {
-      // 如果要启用摄像头，先检查是否存在 video input 设备，避免在无设备时继续重试
+
       if (enabled && navigator?.mediaDevices?.enumerateDevices) {
-        navigator.mediaDevices.enumerateDevices().then((devices) => {
-          const hasVideoInput = devices.some(d => d.kind === 'videoinput')
-          if (!hasVideoInput) {
-            const notFoundErr: any = new Error(t('live.media.cameraNotFound'))
-            notFoundErr.name = 'NotFoundError'
-            throw notFoundErr
-          }
-        }).catch(() => {
-          // 如果 enumerateDevices 本身失败，继续让后续逻辑尝试并在 catch 中集中处理
-        })
+        const devices = await navigator.mediaDevices.enumerateDevices()
+        const hasVideoInput = devices.some(d => d.kind === 'videoinput')
+        if (!hasVideoInput) {
+          const notFoundErr: any = new Error(t('live.media.cameraNotFound'))
+          notFoundErr.name = 'NotFoundError'
+          throw notFoundErr
+        }
       }
 
       await retryMechanism.retry(
         async () => {
           if (!enabled) {
-            // 禁用摄像头 - 使用安全包装器
+
             await safeAsyncCall(
               () => currentRoom.localParticipant.setCameraEnabled(false),
               t('live.media.cameraDisableFailed')
             )
             cameraEnabled.value = false
           } else {
-            // 启用摄像头 - 使用最保守的安全策略
+
             try {
-              // 步骤1: 清理现有轨道（如果有）
+
               const existingVideoTracks = Array.from(currentRoom.localParticipant.videoTrackPublications.values())
               if (existingVideoTracks.length > 0) {
                 safeAsyncCall(
                   () => currentRoom.localParticipant.setCameraEnabled(false),
                   t('live.media.cameraCleanupFailed')
                 ).then(() => {
-                  // 等待轨道完全停止
+
                   return new Promise(resolve => setTimeout(resolve, 300))
                 }).catch(() => {
-                  // 清理失败，继续执行
+
                 })
               }
 
-              // 步骤2: 启用摄像头 - 使用安全包装器和超时保护
               const enablePromise = safeAsyncCall(
                 () => currentRoom.localParticipant.setCameraEnabled(true),
                 t('live.media.cameraEnableFailed')
@@ -128,67 +119,18 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
               await Promise.race([enablePromise, timeoutPromise])
               cameraEnabled.value = true
 
-              // 步骤3: 等待轨道发布和稳定 - 使用更短的等待时间
               await new Promise(resolve => setTimeout(resolve, 500))
 
-              // 步骤4: 验证轨道是否成功发布
               const videoTracks = Array.from(currentRoom.localParticipant.videoTrackPublications.values())
               if (videoTracks.length === 0) {
                 throw new Error(t('live.media.cameraPublishFailed'))
               }
 
-              // 步骤5: 额外等待确保轨道稳定
               await new Promise(resolve => setTimeout(resolve, 300))
-
-              // 步骤6: 手动触发视频附加
-              try {
-                // 获取第一个视频轨道
-                const firstVideoTrack = videoTracks[0]?.track
-                if (!firstVideoTrack) {
-                  return
-                }
-
-                // 查找 useLiveRoom 的上下文并触发附加
-                const vueInstances: any[] = []
-                function findVueInstances(node: any) {
-                  if (node.__vue__) {
-                    vueInstances.push(node.__vue__)
-                  }
-                  if (node.children) {
-                    Array.from(node.children).forEach(findVueInstances)
-                  }
-                }
-                findVueInstances(document.body)
-
-                vueInstances.forEach((vm: any) => {
-                  if (vm.$?.data?.videoPanelRef || vm.$?.refs?.videoPanelRef) {
-                    const videoPanel = vm.$?.data?.videoPanelRef || vm.$?.refs?.videoPanelRef
-                    if (videoPanel?.attachLocalVideo) {
-                      videoPanel.attachLocalVideo(firstVideoTrack)
-                    }
-                  }
-                })
-
-                // 也尝试直接附加到 DOM 元素
-                const localVideos = document.querySelectorAll('.video-panel .local-video video')
-                Array.from(localVideos).forEach((video) => {
-                  try {
-                    const videoEl = video as HTMLVideoElement
-                    if (firstVideoTrack && typeof firstVideoTrack.attach === 'function') {
-                      firstVideoTrack.attach(videoEl)
-                      videoEl.muted = true
-                      videoEl.play?.().catch(() => {})
-                    }
-                  } catch (e) {
-                  }
-                })
-              } catch (attachError) {
-              }
 
             } catch (trackError: any) {
               cameraEnabled.value = false
 
-              // 增强错误信息，避免传递可能包含不可克隆对象的原始错误
               const enhancedError = new Error(trackError?.message || t('live.media.cameraEnableFailed'))
               enhancedError.name = trackError?.name || 'CameraError'
               throw enhancedError
@@ -201,12 +143,9 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
         }
       )
     } catch (error: any) {
-      // 使用安全的错误创建函数，避免任何DataCloneError
+
       const safeError = { name: 'MediaError', message: t('live.media.operationFailed') }
 
-      // 错误已通过errorHandler处理，这里不再输出
-
-      // 简化的错误处理
       const customMessage = error?.message || t('live.media.cameraStartFailed')
 
       errorHandler.handleError(safeError, 'media_camera_toggle', {
@@ -220,7 +159,6 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
     }
   }
 
-  // 切换麦克风
   const toggleMicrophone = async (): Promise<void> => {
     const currentRoom = room.value
     if (!currentRoom) {
@@ -239,14 +177,13 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
       return
     }
 
-    // ✅ 关键：在用户手势中先启动音频上下文，解除自动播放限制
     try {
       await safeAsyncCall(
         () => currentRoom.startAudio(),
         t('live.media.audioContextStartFailed')
       )
     } catch (error: any) {
-      // 即使startAudio失败，也要安全处理
+
     }
 
     const enabled = !microphoneEnabled.value
@@ -255,16 +192,16 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
       await retryMechanism.retry(
         async () => {
           if (!enabled) {
-            // 禁用麦克风
+
             await safeAsyncCall(
               () => currentRoom.localParticipant.setMicrophoneEnabled(false),
               t('live.media.microphoneDisableFailed')
             )
             microphoneEnabled.value = false
           } else {
-            // 启用麦克风 - 改进的轨道管理逻辑
+
             try {
-              // 先检查是否已有音频轨道，如果有则先停止
+
               const existingAudioTracks = Array.from(currentRoom.localParticipant.audioTrackPublications.values())
               if (existingAudioTracks.length > 0) {
                 try {
@@ -272,27 +209,24 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
                     () => currentRoom.localParticipant.setMicrophoneEnabled(false),
                     t('live.media.microphoneCleanupFailed')
                   )
-                  // 等待轨道完全停止
+
                   await new Promise(resolve => setTimeout(resolve, 300))
                 } catch (cleanupError: any) {
-                  // 清理失败，继续执行
+
                 }
               }
 
-              // 启用麦克风
               await safeAsyncCall(
                 () => currentRoom.localParticipant.setMicrophoneEnabled(true),
                 t('live.media.microphoneEnableFailed')
               )
               microphoneEnabled.value = true
 
-              // 等待轨道发布和稳定
               await new Promise(resolve => setTimeout(resolve, 500))
 
             } catch (trackError: any) {
               microphoneEnabled.value = false
 
-              // 增强错误信息，避免传递可能包含不可克隆对象的原始错误
               const enhancedError = new Error(t('live.media.microphoneEnableFailed'))
               enhancedError.name = trackError?.name || 'MicrophoneError'
               throw enhancedError
@@ -305,12 +239,9 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
         }
       )
     } catch (error: any) {
-      // 使用安全的错误创建函数，避免任何DataCloneError
+
       const safeError = { name: 'MediaError', message: t('live.media.operationFailed') }
 
-      // 错误已通过errorHandler处理，这里不再输出
-
-      // 简化的错误处理
       const customMessage = error?.message || t('live.media.microphoneStartFailed')
 
       errorHandler.handleError(safeError, 'media_microphone_toggle', {
@@ -324,24 +255,93 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
     }
   }
 
-  // 设置本地媒体（连接成功后调用）
+  const toggleScreenShare = async (): Promise<void> => {
+    const currentRoom = room.value
+    if (!currentRoom) {
+      errorHandler.handleError({ name: 'ConnectionError', message: t('live.room.notConnected') }, 'media_screenShare_toggle', {
+        showNotification: true,
+        customMessage: t('live.room.notConnected')
+      })
+      return
+    }
+
+    if (currentRoom.state !== ConnectionState.Connected) {
+      errorHandler.handleError({ name: 'ConnectionError', message: t('live.room.cannotToggleScreenShare') }, 'media_screenShare_toggle', {
+        showNotification: true,
+        customMessage: t('live.room.cannotToggleScreenShare')
+      })
+      return
+    }
+
+    const enabled = !screenShareEnabled.value
+
+    try {
+      await retryMechanism.retry(
+        async () => {
+          if (!enabled) {
+
+            await safeAsyncCall(
+              () => currentRoom.localParticipant.setScreenShareEnabled(false),
+              t('live.media.screenShareDisableFailed')
+            )
+            screenShareEnabled.value = false
+          } else {
+
+            await safeAsyncCall(
+              () => currentRoom.localParticipant.setScreenShareEnabled(true),
+              t('live.media.screenShareEnableFailed')
+            )
+            screenShareEnabled.value = true
+
+            await new Promise(resolve => setTimeout(resolve, 500))
+
+            const screenShareTracks = Array.from(currentRoom.localParticipant.videoTrackPublications.values())
+              .filter(pub => pub.source === Track.Source.ScreenShare)
+
+            screenShareTracks.forEach(pub => {
+              if (pub.track) {
+                pub.track.on('ended', () => {
+                  screenShareEnabled.value = false
+                })
+              }
+            })
+          }
+        },
+        {
+          maxRetries: 2,
+          retryCondition: (error) => retryMechanism.isRetryableError(error)
+        }
+      )
+    } catch (error: any) {
+      const safeError = { name: 'MediaError', message: t('live.media.operationFailed') }
+
+      const customMessage = error?.message || t('live.media.screenShareStartFailed')
+
+      errorHandler.handleError(safeError, 'media_screenShare_toggle', {
+        showNotification: true,
+        customMessage,
+        allowRetry: retryMechanism.isRetryableError(error),
+        onRetry: () => toggleScreenShare()
+      })
+
+      screenShareEnabled.value = false
+    }
+  }
+
   const setupLocalMedia = async (targetRoom: Room): Promise<void> => {
     if (targetRoom.state !== ConnectionState.Connected) {
       return
     }
 
-    // 摄像头和麦克风都保持关闭状态，由用户手动控制
-    // 不进行任何自动媒体设置
 
     try {
-      // 等待连接稳定
+
       await new Promise(resolve => setTimeout(resolve, 500))
     } catch (error) {
-      // 重置状态以确保一致性
+
       microphoneEnabled.value = false
       cameraEnabled.value = false
 
-      // 使用统一的错误处理器
       errorHandler.handleError(error, 'media_setup', {
         showNotification: true,
         customMessage: t('live.room.mediaSetupFailed')
@@ -349,7 +349,6 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
     }
   }
 
-  // 获取连接状态文本
   const getConnectionStateText = (state: ConnectionState): string => {
     switch (state) {
       case ConnectionState.Connecting:
@@ -363,12 +362,11 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
     }
   }
 
-  // 摄像头问题诊断
   const diagnoseCameraIssues = async (): Promise<string> => {
     const diagnostics: string[] = []
 
     try {
-      // 检查连接状态
+
       const currentRoom = room.value
       if (!currentRoom) {
         diagnostics.push(t('live.diagnostics.roomNotConnected'))
@@ -382,7 +380,6 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
 
       diagnostics.push(t('live.diagnostics.roomConnectionOk'))
 
-      // 检查设备权限
       try {
         const permissionStatus = await navigator.permissions.query({ name: 'camera' as PermissionName })
         diagnostics.push(t('live.diagnostics.cameraPermissionState', { state: permissionStatus.state }))
@@ -390,7 +387,6 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
         diagnostics.push(t('live.diagnostics.cameraPermissionUnavailable'))
       }
 
-      // 检查可用设备
       if (navigator.mediaDevices?.enumerateDevices) {
         try {
           const devices = await navigator.mediaDevices.enumerateDevices()
@@ -411,12 +407,10 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
         }
       }
 
-      // 检查现有轨道
       const existingVideoTracks = Array.from(currentRoom.localParticipant.videoTrackPublications.values())
       diagnostics.push(t('live.diagnostics.currentVideoTracks', { count: existingVideoTracks.length }))
 
-      // 最终建议
-      if (diagnostics.some(d => d.includes('❌'))) {
+      if (diagnostics.some(d => /error|failed|not|denied|unavailable|disconnect/i.test(d))) {
         diagnostics.push(t('live.diagnostics.suggestTitle'))
         diagnostics.push(t('live.diagnostics.suggestCameraPermission'))
         diagnostics.push(t('live.diagnostics.suggestCameraHardware'))
@@ -433,12 +427,11 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
     return diagnostics.join('\n')
   }
 
-  // 麦克风问题诊断
   const diagnoseMicrophoneIssues = async (): Promise<string> => {
     const diagnostics: string[] = []
 
     try {
-      // 检查连接状态
+
       const currentRoom = room.value
       if (!currentRoom) {
         diagnostics.push(t('live.diagnostics.roomNotConnected'))
@@ -452,7 +445,6 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
 
       diagnostics.push(t('live.diagnostics.roomConnectionOk'))
 
-      // 检查设备权限
       try {
         const permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName })
         diagnostics.push(t('live.diagnostics.microphonePermissionState', { state: permissionStatus.state }))
@@ -460,7 +452,6 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
         diagnostics.push(t('live.diagnostics.microphonePermissionUnavailable'))
       }
 
-      // 检查可用设备
       if (navigator.mediaDevices?.enumerateDevices) {
         try {
           const devices = await navigator.mediaDevices.enumerateDevices()
@@ -481,12 +472,10 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
         }
       }
 
-      // 检查现有轨道
       const existingAudioTracks = Array.from(currentRoom.localParticipant.audioTrackPublications.values())
       diagnostics.push(t('live.diagnostics.currentAudioTracks', { count: existingAudioTracks.length }))
 
-      // 最终建议
-      if (diagnostics.some(d => d.includes('❌'))) {
+      if (diagnostics.some(d => /error|failed|not|denied|unavailable|disconnect/i.test(d))) {
         diagnostics.push(t('live.diagnostics.suggestTitle'))
         diagnostics.push(t('live.diagnostics.suggestMicrophonePermission'))
         diagnostics.push(t('live.diagnostics.suggestMicrophoneHardware'))
@@ -504,17 +493,18 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
   }
 
   return {
-    // 状态
+
     cameraEnabled: readonly(cameraEnabled),
     microphoneEnabled: readonly(microphoneEnabled),
+    screenShareEnabled: readonly(screenShareEnabled),
 
-    // 方法
     toggleCamera,
     toggleMicrophone,
+    toggleScreenShare,
     setupLocalMedia,
 
-    // 诊断方法
     diagnoseCameraIssues,
     diagnoseMicrophoneIssues
   }
 }
+

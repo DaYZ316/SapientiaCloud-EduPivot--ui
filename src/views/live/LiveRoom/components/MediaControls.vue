@@ -27,6 +27,20 @@
         <span v-if="!props.iconOnly">{{ microphoneEnabled ? t('live.room.microphoneOn') : t('live.room.microphoneOff') }}</span>
       </n-button>
 
+      <!-- 屏幕共享控制（老师/助教可见） -->
+      <n-button
+        v-if="canShowScreenShare"
+        quaternary
+        size="small"
+        :type="screenShareEnabled ? 'info' : 'default'"
+        @click="handleToggleScreenShare"
+      >
+        <template #icon>
+          <n-icon :component="screenShareEnabled ? TvOutline : TvOutline" />
+        </template>
+        <span v-if="!props.iconOnly">{{ screenShareEnabled ? t('live.room.stopScreenShare') : t('live.room.startScreenShare') }}</span>
+      </n-button>
+
       <!-- 举手控制（仅学生可见） -->
       <n-button
         v-if="showHandRaise"
@@ -81,6 +95,7 @@ import {
   HandLeftOutline,
   MicOffOutline,
   MicOutline,
+  TvOutline,
   RadioButtonOnOutline,
   StopCircleOutline,
   VideocamOffOutline,
@@ -93,6 +108,8 @@ import { LiveRoomRoleEnum } from '@/enum/live'
 interface Props {
   cameraEnabled: boolean
   microphoneEnabled: boolean
+  screenShareEnabled: boolean
+  canShareScreen: boolean
   isRecording: boolean
   recordingLoading: boolean
   currentUserRole: LiveRoomRoleEnum
@@ -116,6 +133,7 @@ const props = withDefaults(defineProps<Props>(), {
 interface Emits {
   (e: 'toggle-camera'): void
   (e: 'toggle-microphone'): void
+  (e: 'toggle-screen-share'): void
   (e: 'toggle-recording'): void
   (e: 'update-speaker-volume', value: number): void
   (e: 'raise-hand'): void
@@ -127,6 +145,12 @@ const { t } = useI18n()
 
 // 计算属性
 const canShowRecording = computed(() => {
+  return props.currentUserRole === LiveRoomRoleEnum.TEACHER ||
+         props.currentUserRole === LiveRoomRoleEnum.ASSISTANT
+})
+
+// 是否显示屏幕共享按钮（老师/助教可见）
+const canShowScreenShare = computed(() => {
   return props.currentUserRole === LiveRoomRoleEnum.TEACHER ||
          props.currentUserRole === LiveRoomRoleEnum.ASSISTANT
 })
@@ -159,6 +183,10 @@ const handleToggleCamera = () => {
 
 const handleToggleMicrophone = () => {
   emit('toggle-microphone')
+}
+
+const handleToggleScreenShare = () => {
+  emit('toggle-screen-share')
 }
 
 const handleToggleRecording = () => {

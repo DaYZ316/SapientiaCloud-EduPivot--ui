@@ -50,6 +50,8 @@ export interface LiveRoomResult {
   connectionConnecting: Ref<boolean>
   cameraEnabled: Ref<boolean>
   microphoneEnabled: Ref<boolean>
+  screenShareEnabled: Ref<boolean>
+  canShareScreen: Ref<boolean>
   recordingLoading: Ref<boolean>
   chatMessages: Ref<any[]>
   chatOnlineCount: Ref<number>
@@ -61,6 +63,7 @@ export interface LiveRoomResult {
   canShowRecording: Ref<boolean>
   activeMainParticipantId: Ref<string | null>
   localVideoTrack: Ref<any | null>
+  localScreenShareTrack: Ref<any | null>
 
   // 说话指示器状态
   speakingStates: Map<string, { isSpeaking: boolean; volumeLevel: number }>
@@ -89,6 +92,7 @@ export interface LiveRoomResult {
   handleSendMessage: (content: string) => Promise<void>
   handleToggleCamera: () => Promise<void>
   handleToggleMicrophone: () => Promise<void>
+  handleToggleScreenShare: () => Promise<void>
   handleToggleRecording: () => Promise<void>
   handleSpeakerVolumeChange: (value: number) => void
   handleSelectMain: (participantId: string) => void
@@ -209,6 +213,9 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
   const retryMechanism = useRetryMechanism()
   // 本地 VideoPanel 引用（用于在本地视频通道可用时附加本地视频）
   const videoPanelRef = ref<any>(null)
+  // 避免重复绑定 DataReceived 事件
+  let dataMessageRoom: Room | null = null
+  let dataMessageHandler: ((data: Uint8Array) => void) | null = null
 
   const registerVideoPanel = (panel: any) => {
     videoPanelRef.value = panel
@@ -218,15 +225,23 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     videoPanelRef.value = null
   }
 
-  const attachRemoteVideoWithRetry = (participantId: string, track: Track) => {
+  const attachRemoteVideoWithRetry = (participantId: string) => {
     const panel = videoPanelRef.value?.value ?? videoPanelRef.value
     if (!panel?.attachRemoteVideo) {
       return
     }
+    const attachPreferredTrack = () => {
+      const participant = remoteParticipants.value.find(p => p.participantId === participantId)
+      const preferredTrack = participant?.screenShareTrack || participant?.videoTrack || null
+      if (!preferredTrack) {
+        return
+      }
+      panel.attachRemoteVideo(participantId, preferredTrack)
+    }
     nextTick(() => {
-      panel.attachRemoteVideo(participantId, track)
-      setTimeout(() => panel.attachRemoteVideo(participantId, track), 300)
-      setTimeout(() => panel.attachRemoteVideo(participantId, track), 800)
+      attachPreferredTrack()
+      setTimeout(attachPreferredTrack, 300)
+      setTimeout(attachPreferredTrack, 800)
     })
   }
 
@@ -299,6 +314,60 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     }
   }
 
+  const resolveParticipantRole = (participant: RemoteParticipant): string | null => {
+    if (!participant.metadata) {
+      return null
+    }
+    try {
+      const meta = JSON.parse(participant.metadata)
+      return meta?.role || null
+    } catch {
+      return null
+    }
+  }
+
+  const upsertRemoteParticipantFromPublications = (participant: RemoteParticipant): void => {
+    const participantId = participant.identity
+    const displayName = participantId || participant.sid
+    const role = resolveParticipantRole(participant)
+
+    const cameraPub = participant.getTrackPublication(Track.Source.Camera) as RemoteTrackPublication | undefined
+    const screenPub = participant.getTrackPublication(Track.Source.ScreenShare) as RemoteTrackPublication | undefined
+    const audioPub = participant.getTrackPublication(Track.Source.Microphone) as RemoteTrackPublication | undefined
+
+    const videoTrack = cameraPub?.track && cameraPub.track.kind === Track.Kind.Video ? cameraPub.track : null
+    const screenShareTrack = screenPub?.track && screenPub.track.kind === Track.Kind.Video ? screenPub.track : null
+    const audioTrack = audioPub?.track && audioPub.track.kind === Track.Kind.Audio ? audioPub.track : null
+
+    const existingIndex = remoteParticipants.value.findIndex(p => p.participantId === participantId)
+    const hasAnyTrack = !!(videoTrack || screenShareTrack || audioTrack)
+
+    if (!hasAnyTrack) {
+      if (existingIndex >= 0) {
+        remoteParticipants.value.splice(existingIndex, 1)
+      }
+      return
+    }
+
+    const nextState: RemoteParticipantMedia = {
+      participantId,
+      displayName,
+      role,
+      videoTrack,
+      screenShareTrack,
+      audioTrack
+    }
+
+    if (existingIndex >= 0) {
+      remoteParticipants.value[existingIndex] = {
+        ...remoteParticipants.value[existingIndex],
+        ...nextState
+      }
+    } else {
+      remoteParticipants.value.push(nextState)
+    }
+  }
+
   // 计算属性
   const currentUserRole = computed<LiveRoomRoleEnum>(() => {
     if (userStore.teacherInfo) {
@@ -316,6 +385,11 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
   const connectionConnecting = computed(() => connection.connecting.value)
   const cameraEnabled = computed(() => media.cameraEnabled.value)
   const microphoneEnabled = computed(() => media.microphoneEnabled.value)
+  const screenShareEnabled = computed(() => media.screenShareEnabled.value)
+  // 判断当前用户是否可以共享屏幕（老师/助教）
+  const canShareScreen = computed(() => {
+    return currentUserRole.value === LiveRoomRoleEnum.TEACHER || currentUserRole.value === LiveRoomRoleEnum.ASSISTANT
+  })
   const recordingLoading = computed(() => recording.recordingLoading.value)
   const chatMessages = computed(() => {
     // 确保返回数组类型
@@ -391,7 +465,20 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     const currentRoom = connection.room.value
     if (!currentRoom?.localParticipant) return null
     const pubs = Array.from(currentRoom.localParticipant.videoTrackPublications.values())
-    const pub = pubs.find(p => p.track && p.track.kind === Track.Kind.Video)
+    // 查找摄像头轨道（非屏幕共享）
+    const pub = pubs.find(p => p.track && p.track.kind === Track.Kind.Video && p.source !== Track.Source.ScreenShare)
+    return pub?.track ?? null
+  })
+
+  // 本地屏幕共享轨道
+  const localScreenShareTrack = computed(() => {
+    // 依赖屏幕共享状态以触发重新计算
+    void media.screenShareEnabled.value
+    const currentRoom = connection.room.value
+    if (!currentRoom?.localParticipant) return null
+    const pubs = Array.from(currentRoom.localParticipant.videoTrackPublications.values())
+    // 查找屏幕共享轨道
+    const pub = pubs.find(p => p.track && p.source === Track.Source.ScreenShare)
     return pub?.track ?? null
   })
 
@@ -436,11 +523,18 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
       return null
     }
     if (selectedMainParticipantId.value === 'local') {
+      // 若本地未共享而远端有共享，强制以远端共享为主画面
+      if (!localScreenShareTrack.value) {
+        const remoteScreenSharer = remoteParticipants.value.find(participant => participant.screenShareTrack)
+        if (remoteScreenSharer) {
+          return remoteScreenSharer.participantId
+        }
+      }
       return 'local'
     }
     if (selectedMainParticipantId.value) {
       const exists = remoteParticipants.value.some(participant => {
-        return participant.participantId === selectedMainParticipantId.value && participant.videoTrack
+        return participant.participantId === selectedMainParticipantId.value && (participant.videoTrack || participant.screenShareTrack)
       })
       if (exists) {
         return selectedMainParticipantId.value
@@ -449,16 +543,21 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     // 优先选择第一个进场的老师
     if (firstTeacherParticipantId.value) {
       const firstTeacher = remoteParticipants.value.find(participant =>
-        participant.participantId === firstTeacherParticipantId.value && participant.videoTrack
+        participant.participantId === firstTeacherParticipantId.value && (participant.videoTrack || participant.screenShareTrack)
       )
       if (firstTeacher) {
         return firstTeacher.participantId
       }
     }
+    // 优先展示远端屏幕共享
+    const remoteScreenSharer = remoteParticipants.value.find(participant => participant.screenShareTrack)
+    if (remoteScreenSharer) {
+      return remoteScreenSharer.participantId
+    }
     if (currentUserRole.value === LiveRoomRoleEnum.TEACHER || currentUserRole.value === LiveRoomRoleEnum.ASSISTANT) {
       return 'local'
     }
-    const fallback = remoteParticipants.value.find(participant => participant.videoTrack)
+    const fallback = remoteParticipants.value.find(participant => participant.videoTrack || participant.screenShareTrack)
     return fallback ? fallback.participantId : 'local'
   })
 
@@ -670,6 +769,22 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     }
   }
 
+  const handleToggleScreenShare = async (): Promise<void> => {
+    // 检查权限
+    if (!canShareScreen.value) {
+      message.warning(t('live.room.screenShareNoPermission'))
+      return
+    }
+
+    loadingState.setLoading('screenShare', true, t('live.common.togglingScreenShare'))
+
+    try {
+      await media.toggleScreenShare()
+    } finally {
+      loadingState.setLoading('screenShare', false)
+    }
+  }
+
   const handleToggleRecording = async (): Promise<void> => {
     const action = recording.isRecording ? t('live.common.recordingStop') : t('live.common.recordingStart')
     loadingState.setLoading('recording', true, t('live.common.recordingInProgress', { action }))
@@ -853,79 +968,43 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     }
   }
 
+  const isScreenShareSource = (source: any): boolean => {
+    return source === Track.Source.ScreenShare || source === 'screen_share' || source === 'SCREEN_SHARE'
+  }
+
+  const containsScreenShareKeyword = (value: any): boolean => {
+    return typeof value === 'string' && /screen|share|display/i.test(value)
+  }
+
+  const resolveIsScreenShareTrack = (publication?: RemoteTrackPublication | null, track?: Track | null): boolean => {
+    const source = (publication as any)?.source ?? (track as any)?.source
+    if (isScreenShareSource(source)) {
+      return true
+    }
+
+    const publicationName = (publication as any)?.trackName ?? (publication as any)?.name
+    const trackName = (track as any)?.name
+    return containsScreenShareKeyword(publicationName) || containsScreenShareKeyword(trackName)
+  }
+
   // 同步参与者已有轨道（用于首次加入房间或重连）
   const syncExistingParticipantTracks = (participant: RemoteParticipant) => {
     const participantId = participant.identity
-    const displayName = participantId || participant.sid
-
-    // 解析 metadata 获取角色和学生信息
-    const participantRole = (() => {
-      if (participant.metadata) {
-        try {
-          const meta = JSON.parse(participant.metadata)
-          return meta.role || null
-        } catch (e) {
-          return null
-        }
-      }
-      return null
-    })()
-
     // 建立 participantId -> studentId 映射（供教室页面使用）
     bindParticipantStudentMapping(participantId, participant.metadata)
-    const videoPubs = Array.from(participant.videoTrackPublications.values()) as RemoteTrackPublication[]
-    videoPubs.forEach((pub) => {
-      if (pub.track && pub.track.kind === Track.Kind.Video) {
-        const existingIndex = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
-        if (existingIndex >= 0) {
-          remoteParticipants.value[existingIndex] = {
-            ...remoteParticipants.value[existingIndex],
-            participantId: participant.identity,
-            displayName,
-            role: participantRole,
-            videoTrack: pub.track,
-          }
-        } else {
-          remoteParticipants.value.push({
-            participantId: participant.identity,
-            displayName,
-            role: participantRole,
-            videoTrack: pub.track,
-            audioTrack: null
-          })
-        }
-      }
-    })
-
-    const audioPubs = Array.from(participant.audioTrackPublications.values()) as RemoteTrackPublication[]
-    audioPubs.forEach((pub) => {
-      if (pub.track && pub.track.kind === Track.Kind.Audio) {
-        const existingIndex = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
-        if (existingIndex >= 0) {
-          remoteParticipants.value[existingIndex] = {
-            ...remoteParticipants.value[existingIndex],
-            participantId: participant.identity,
-            displayName,
-            role: participantRole,
-            audioTrack: pub.track
-          }
-        } else {
-          remoteParticipants.value.push({
-            participantId: participant.identity,
-            displayName,
-            role: participantRole,
-            videoTrack: null,
-            audioTrack: pub.track
-          })
-        }
-      }
-    })
+    upsertRemoteParticipantFromPublications(participant)
   }
 
   // 监听 LiveKit Room 的参与者与通道事件，保持 remoteParticipants 同步
   watch(
     () => connection.room.value,
-    (currentRoom) => {
+    (currentRoom, previousRoom) => {
+      if (previousRoom && previousRoom !== currentRoom && dataMessageHandler) {
+        previousRoom.off(RoomEvent.DataReceived, dataMessageHandler)
+      }
+      if (previousRoom !== currentRoom) {
+        remoteParticipants.value = []
+      }
       if (!currentRoom) return
 
       // 房间连接成功后，主动从后端获取在线人数（确保数据同步）
@@ -945,69 +1024,47 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
         syncExistingParticipantTracks(participant)
       })
 
-       resourceManager.registerEventListener(currentRoom, RoomEvent.TrackSubscribed, (track: Track, _publication: RemoteTrackPublication, participant: RemoteParticipant) => {
+       resourceManager.registerEventListener(currentRoom, RoomEvent.TrackSubscribed, (track: Track, publication: RemoteTrackPublication, participant: RemoteParticipant) => {
          const participantId = participant.identity
-         const displayName = participantId
-
          // 建立 participantId -> studentId 映射（供教室页面使用）
          bindParticipantStudentMapping(participantId, participant.metadata)
-         const existingIndex = remoteParticipants.value.findIndex(p => p.participantId === participantId)
+         upsertRemoteParticipantFromPublications(participant)
 
          if (track.kind === Track.Kind.Video) {
-           if (existingIndex >= 0) {
-             remoteParticipants.value[existingIndex] = {
-               ...remoteParticipants.value[existingIndex],
-               participantId,
-               displayName,
-               videoTrack: track
+           const isScreenShare = resolveIsScreenShareTrack(publication, track)
+           const current = remoteParticipants.value.find(p => p.participantId === participantId)
+           if (current) {
+             // 兜底：如果来源判断失败，补齐第二条视频轨（摄像头+共享同时存在）
+             if (!isScreenShare && !current.screenShareTrack && current.videoTrack && current.videoTrack !== track) {
+               current.screenShareTrack = track as any
+             } else if (!isScreenShare && !current.videoTrack) {
+               current.videoTrack = track as any
+             } else if (isScreenShare) {
+               current.screenShareTrack = track as any
              }
-           } else {
-             remoteParticipants.value.push({
-               participantId,
-               displayName,
-               role: null,
-               videoTrack: track,
-               audioTrack: null
-             })
            }
-           attachRemoteVideoWithRetry(participantId, track)
+           attachRemoteVideoWithRetry(participantId)
          }
          if (track.kind === Track.Kind.Audio) {
-           if (existingIndex >= 0) {
-             remoteParticipants.value[existingIndex] = {
-               ...remoteParticipants.value[existingIndex],
-               participantId,
-               displayName,
-               audioTrack: track
-             }
-           } else {
-             remoteParticipants.value.push({
-               participantId,
-               displayName,
-               role: null,
-               videoTrack: null,
-               audioTrack: track
-             })
-           }
            attachRemoteAudioWithRetry(participantId, track)
          }
-       })
+        })
 
-      resourceManager.registerEventListener(currentRoom, RoomEvent.TrackUnsubscribed, (track: Track, _pub: RemoteTrackPublication, participant: RemoteParticipant) => {
-        const idx = remoteParticipants.value.findIndex(p => p.participantId === participant.identity)
-        if (idx >= 0) {
-          const existing = remoteParticipants.value[idx]
-          if (track.kind === Track.Kind.Video) {
-            if (existing.audioTrack) {
-              remoteParticipants.value[idx] = { ...existing, videoTrack: null }
-            } else {
-              remoteParticipants.value.splice(idx, 1)
+      resourceManager.registerEventListener(currentRoom, RoomEvent.TrackUnsubscribed, (track: Track, pub: RemoteTrackPublication, participant: RemoteParticipant) => {
+        // 统一按 publication/source 重建，避免轨道来源误判导致共享画面被覆盖
+        upsertRemoteParticipantFromPublications(participant)
+        const participantId = participant.identity
+        if (track.kind === Track.Kind.Video) {
+          const current = remoteParticipants.value.find(p => p.participantId === participantId)
+          if (current) {
+            const isScreenShare = resolveIsScreenShareTrack(pub, track)
+            if (isScreenShare && current.screenShareTrack === track) {
+              current.screenShareTrack = null
+            } else if (!isScreenShare && current.videoTrack === track) {
+              current.videoTrack = null
             }
-          } else if (track.kind === Track.Kind.Audio) {
-            if (existing.videoTrack) {
-              remoteParticipants.value[idx] = { ...existing, audioTrack: null }
-            } else {
-              remoteParticipants.value.splice(idx, 1)
+            if (!current.audioTrack && !current.videoTrack && !current.screenShareTrack) {
+              remoteParticipants.value = remoteParticipants.value.filter(p => p.participantId !== participantId)
             }
           }
         }
@@ -1026,7 +1083,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
       speakingDetectorStore.connect(currentRoom)
 
       // 监听 DataChannel 消息（用于举手等实时通信）
-      const dataMessageHandler = (data: Uint8Array) => {
+      dataMessageHandler = (data: Uint8Array) => {
         try {
           const text = new TextDecoder().decode(data)
           const payload = JSON.parse(text)
@@ -1039,7 +1096,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
         }
       }
       currentRoom.on(RoomEvent.DataReceived, dataMessageHandler)
-      ;(currentRoom as any).__hand_raise_handler = dataMessageHandler
+      dataMessageRoom = currentRoom
     }
   )
 
@@ -1053,6 +1110,11 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     if (currentRoom) {
       chat.teardownRealtimeMessages(currentRoom)
     }
+    if (dataMessageRoom && dataMessageHandler) {
+      dataMessageRoom.off(RoomEvent.DataReceived, dataMessageHandler)
+    }
+    dataMessageRoom = null
+    dataMessageHandler = null
     if (connection.isConnected.value || connection.room.value) {
       void connection.disconnect()
     }
@@ -1100,6 +1162,8 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     connectionConnecting,
     cameraEnabled,
     microphoneEnabled,
+    screenShareEnabled,
+    canShareScreen,
     recordingLoading,
     chatMessages,
     chatOnlineCount,
@@ -1111,6 +1175,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     canShowRecording,
     activeMainParticipantId,
     localVideoTrack,
+    localScreenShareTrack,
 
     // 说话检测器
     speakingStates: speakingDetector.speakingStates,
@@ -1131,6 +1196,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     handleSendMessage,
     handleToggleCamera,
     handleToggleMicrophone,
+    handleToggleScreenShare,
     handleToggleRecording,
     handleSpeakerVolumeChange,
     handleSelectMain,

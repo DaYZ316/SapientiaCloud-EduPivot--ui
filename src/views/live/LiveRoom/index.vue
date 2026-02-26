@@ -189,8 +189,12 @@ const handlePageHide = (event: PageTransitionEvent) => {
 
 onBeforeRouteLeave((_to, _from, next) => {
   // 通过页面返回或左侧导航离开直播时进入画中画
-  enterPiPIfConnected()
-  next()
+  // 无论 PiP 进入是否成功，都不阻塞路由切换
+  try {
+    enterPiPIfConnected()
+  } finally {
+    next()
+  }
 })
 
 // 在子组件完全挂载并注册完 refs 后再调用 initialize，避免注册时序问题

@@ -163,8 +163,10 @@ export interface RemoteParticipantMedia {
     displayName?: string | null
     /** 参与者角色 */
     role?: string | null
-    /** 视频轨道 */
+    /** 摄像头视频轨道 */
     videoTrack: any | null
+    /** 屏幕共享视频轨道 */
+    screenShareTrack: any | null
     /** 音频轨道 */
     audioTrack: any | null
     /** 是否正在说话 */

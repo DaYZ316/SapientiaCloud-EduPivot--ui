@@ -35,6 +35,7 @@
           :main-participant-id="context.activeMainParticipantId.value"
           :speaker-volume="speakerVolumeValue"
           :local-video-track="context.localVideoTrack.value"
+          :local-screen-share-track="context.localScreenShareTrack.value"
           :speaking-states="context.speakingStates"
           :sorted-speaking-ids="context.sortedSpeakingIds"
           :local-participant-identity="context.localParticipantIdentity.value"
@@ -46,6 +47,8 @@
         <media-controls
           :camera-enabled="context.cameraEnabled.value"
           :microphone-enabled="context.microphoneEnabled.value"
+          :screen-share-enabled="context.screenShareEnabled.value"
+          :can-share-screen="context.canShareScreen.value"
           :is-recording="context.recording.isRecording.value"
           :recording-loading="context.recordingLoading.value"
           :current-user-role="context.currentUserRole.value"
@@ -58,6 +61,7 @@
           :hand-raise-cooldown="context.handRaiseCooldown.value"
           @toggle-camera="handleToggleCamera"
           @toggle-microphone="handleToggleMicrophone"
+          @toggle-screen-share="handleToggleScreenShare"
           @toggle-recording="handleToggleRecording"
           @update-speaker-volume="handleSpeakerVolumeChange"
           @raise-hand="handleRaiseHand"
@@ -151,6 +155,10 @@ const handleToggleCamera = () => {
 
 const handleToggleMicrophone = () => {
   context.handleToggleMicrophone()
+}
+
+const handleToggleScreenShare = () => {
+  context.handleToggleScreenShare()
 }
 
 const handleToggleRecording = () => {

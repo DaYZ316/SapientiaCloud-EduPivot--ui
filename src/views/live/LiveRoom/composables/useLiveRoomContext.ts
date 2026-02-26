@@ -26,6 +26,8 @@ export interface LiveRoomContext {
   connectionConnecting: any
   cameraEnabled: any
   microphoneEnabled: any
+  screenShareEnabled: any
+  canShareScreen: any
   recordingLoading: any
   chatMessages: any
   chatOnlineCount: any
@@ -34,6 +36,7 @@ export interface LiveRoomContext {
   canShowRecording: any
   activeMainParticipantId: any
   localVideoTrack: any
+  localScreenShareTrack: any
   localParticipantIdentity: any
 
   // 说话指示器状态
@@ -57,6 +60,7 @@ export interface LiveRoomContext {
   handleSendMessage: any
   handleToggleCamera: any
   handleToggleMicrophone: any
+  handleToggleScreenShare: any
   handleToggleRecording: any
   handleSpeakerVolumeChange: any
   handleSelectMain: any

@@ -78,7 +78,18 @@
       </div>
 
       <div v-else class="video-grid">
-        <div class="video-item local-video" :class="{ 'is-speaking': localSpeakingState?.isSpeaking }">
+        <!-- 优先显示屏幕共享作为主视频 -->
+        <div v-if="hasBothScreenShareAndCamera" class="video-item main-video" :class="{ 'is-speaking': localSpeakingState?.isSpeaking }">
+          <video
+            :ref="(el) => setLocalVideoRef(el as HTMLVideoElement | null)"
+            autoplay
+            muted
+            playsinline
+          />
+          <div class="video-label">{{ t('live.room.screenShare') }}</div>
+        </div>
+
+        <div v-else-if="shouldShowLocalTile" class="video-item local-video" :class="{ 'is-speaking': localSpeakingState?.isSpeaking }">
           <video
             :ref="(el) => setLocalVideoRef(el as HTMLVideoElement | null)"
             autoplay
@@ -102,6 +113,19 @@
           <div class="video-label">{{ participant.displayName || participant.participantId }}</div>
         </div>
       </div>
+
+      <!-- 摄像头悬浮窗（当同时开启屏幕共享和摄像头时显示） -->
+      <CameraFloatingWindow
+        v-if="hasBothScreenShareAndCamera"
+        :video-track="localCameraTrackForFloating"
+        container-selector=".video-panel"
+      />
+
+      <CameraFloatingWindow
+        v-else-if="remoteCameraTrackForFloating"
+        :video-track="remoteCameraTrackForFloating"
+        container-selector=".video-panel"
+      />
     </template>
 
     <!-- 未连接状态 -->
@@ -133,6 +157,7 @@ import { VideocamOutline } from '@vicons/ionicons5'
 import { Track } from 'livekit-client'
 import type { RemoteParticipantMedia } from '@/types/live'
 import { useLiveSpeakingStore } from '@/stores/liveSpeaking'
+import CameraFloatingWindow from './CameraFloatingWindow.vue'
 
 interface Props {
   isConnected: boolean
@@ -143,6 +168,7 @@ interface Props {
   mainParticipantId?: string | null
   speakerVolume?: number
   localVideoTrack?: any | null
+  localScreenShareTrack?: any | null
   // 说话指示器相关
   speakingStates?: Map<string, { isSpeaking: boolean; volumeLevel: number }>
   sortedSpeakingIds?: ComputedRef<string[]>
@@ -154,6 +180,7 @@ const props = withDefaults(defineProps<Props>(), {
   mainParticipantId: null,
   speakerVolume: 100,
   localVideoTrack: null,
+  localScreenShareTrack: null,
   speakingStates: () => new Map(),
   sortedSpeakingIds: () => computed(() => []),
   localParticipantIdentity: 'local'
@@ -172,7 +199,31 @@ const speakingStore = useLiveSpeakingStore()
 const isConnectedComputed = computed(() => props.isConnected)
 
 const videoParticipants = computed(() => {
-  return props.remoteParticipants.filter(participant => participant.videoTrack)
+  // 包含有摄像头或屏幕共享的参与者
+  return props.remoteParticipants
+    .filter(participant => participant.videoTrack || participant.screenShareTrack)
+    .sort((a, b) => Number(!!b.screenShareTrack) - Number(!!a.screenShareTrack))
+})
+
+// 获取有屏幕共享的参与者
+const screenShareParticipants = computed(() => {
+  return props.remoteParticipants.filter(participant => participant.screenShareTrack)
+})
+
+// 判断本地是否同时开启了屏幕共享和摄像头
+const hasBothScreenShareAndCamera = computed(() => {
+  return !!props.localScreenShareTrack && !!props.localVideoTrack
+})
+
+const hasLocalDisplayTrack = computed(() => {
+  return !!props.localScreenShareTrack || !!props.localVideoTrack
+})
+
+const shouldShowLocalTile = computed(() => {
+  if (hasBothScreenShareAndCamera.value) {
+    return false
+  }
+  return hasLocalDisplayTrack.value || videoParticipants.value.length === 0
 })
 
 const audioParticipants = computed(() => {
@@ -182,14 +233,31 @@ const audioParticipants = computed(() => {
 const isSpeakerLayout = computed(() => props.layoutMode === 'speaker')
 
 const mainRemoteParticipant = computed(() => {
+  // 如果没有指定主参与者，优先选择有屏幕共享的参与者
   if (!props.mainParticipantId || props.mainParticipantId === 'local') {
+    // 自动选择第一个有屏幕共享的参与者作为主视频
+    if (screenShareParticipants.value.length > 0) {
+      return screenShareParticipants.value[0]
+    }
     return null
+  }
+  // 优先返回有屏幕共享的参与者
+  const screenShareParticipant = screenShareParticipants.value.find(p => p.participantId === props.mainParticipantId)
+  if (screenShareParticipant) {
+    return screenShareParticipant
   }
   return videoParticipants.value.find(participant => participant.participantId === props.mainParticipantId) || null
 })
 
 const shouldShowLocalAsMain = computed(() => {
   if (!isSpeakerLayout.value) {
+    return false
+  }
+  // 远端有人共享屏幕时，本地未共享则不应占据主画面
+  if (screenShareParticipants.value.length > 0 && !props.localScreenShareTrack) {
+    return false
+  }
+  if (!hasLocalDisplayTrack.value) {
     return false
   }
   const result = props.mainParticipantId === 'local' || (!props.mainParticipantId && videoParticipants.value.length === 0)
@@ -199,6 +267,9 @@ const shouldShowLocalAsMain = computed(() => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const shouldShowLocalThumbnail = computed(() => {
   if (!isSpeakerLayout.value) {
+    return false
+  }
+  if (!hasLocalDisplayTrack.value) {
     return false
   }
   // 只有当本地不是主视频且有远程视频参与者时，才在缩略图中显示本地视频
@@ -257,47 +328,36 @@ const localVideoRefs = ref<Set<HTMLVideoElement>>(new Set())
 const lastLocalVideoTrack = ref<any>(null)
 const remoteVideoRefs = ref<Map<string, HTMLVideoElement>>(new Map())
 const remoteAudioRefs = ref<Map<string, HTMLAudioElement>>(new Map())
+const attachedTrackByElement = new WeakMap<HTMLMediaElement, any>()
+
+const getPreferredLocalMainTrack = () => {
+  return props.localScreenShareTrack || props.localVideoTrack || lastLocalVideoTrack.value || null
+}
+
+const localCameraTrackForFloating = computed(() => {
+  return props.localVideoTrack || lastLocalVideoTrack.value || null
+})
+
+const remoteCameraTrackForFloating = computed(() => {
+  if (!mainRemoteParticipant.value) {
+    return null
+  }
+  if (!mainRemoteParticipant.value.screenShareTrack) {
+    return null
+  }
+  return mainRemoteParticipant.value.videoTrack || null
+})
 
   // 设置本地视频元素引用（支持多个实例）
-  const setLocalVideoRef = (el: HTMLVideoElement | null) => {
-    if (el) {
-      localVideoRefs.value.add(el)
-      if (lastLocalVideoTrack.value) {
-        attachToElement(lastLocalVideoTrack.value, el)
-      } else {
-        // 如果没有轨道，尝试查找页面上的 LiveKit 轨道并附件
-        nextTick(() => {
-          try {
-            const vueInstances: any[] = []
-            function findVueInstances(node: any) {
-              if (node.__vue__) {
-                vueInstances.push(node.__vue__)
-              }
-              if (node.children) {
-                Array.from(node.children).forEach(findVueInstances)
-              }
-            }
-            findVueInstances(document.body)
-
-            vueInstances.forEach((vm: any) => {
-              if (vm.$?.data?.room || vm.$?.props?.room || vm.$?.data?.connection?.room?.value) {
-                const room = vm.$?.data?.room || vm.$?.props?.room || vm.$?.data?.connection?.room?.value
-                if (room?.localParticipant) {
-                  const videoPubs = Array.from(room.localParticipant.videoTrackPublications.values())
-                  videoPubs.forEach((pub: any) => {
-                    if (pub.track && pub.track.kind === 'video') {
-                      attachToElement(pub.track, el)
-                    }
-                  })
-                }
-              }
-            })
-          } catch (e) {
-          }
-        })
-      }
-      return
+const setLocalVideoRef = (el: HTMLVideoElement | null) => {
+  if (el) {
+    localVideoRefs.value.add(el)
+    const mainTrack = getPreferredLocalMainTrack()
+    if (mainTrack) {
+      attachToElement(mainTrack, el)
     }
+    return
+  }
     localVideoRefs.value.forEach((videoEl) => {
       if (!videoEl.isConnected) {
         localVideoRefs.value.delete(videoEl)
@@ -312,7 +372,10 @@ const setRemoteVideoRef = (el: HTMLVideoElement | null, participantId: string) =
     remoteVideoRefs.value.set(participantId, el)
     // Attach immediately if the track already exists but the element was created later.
     const participant = props.remoteParticipants.find(p => p.participantId === participantId)
-    if (participant?.videoTrack) {
+    // 优先附加屏幕共享轨道（如果有）
+    if (participant?.screenShareTrack) {
+      attachToElement(participant.screenShareTrack, el)
+    } else if (participant?.videoTrack) {
       attachToElement(participant.videoTrack, el)
     }
     return
@@ -337,17 +400,27 @@ const setRemoteAudioRef = (el: HTMLAudioElement | null, participantId: string) =
 const attachToElement = (trackOrStream: any, el: HTMLMediaElement | null) => {
   if (!el || !trackOrStream) return
 
+  const previous = attachedTrackByElement.get(el)
+  if (previous && previous !== trackOrStream) {
+    if (typeof previous.detach === 'function') {
+      previous.detach(el)
+    }
+    el.srcObject = null
+  }
+
   // 优先使用 LiveKit 的 attach 接口
   if (typeof trackOrStream.attach === 'function') {
     trackOrStream.attach(el)
-    el.play?.()
+    attachedTrackByElement.set(el, trackOrStream)
+    el.play?.().catch(() => undefined)
     return
   }
 
   // 如果已经是 MediaStream，直接设置 srcObject
   if (trackOrStream instanceof MediaStream) {
     el.srcObject = trackOrStream
-    el.play?.()
+    attachedTrackByElement.set(el, trackOrStream)
+    el.play?.().catch(() => undefined)
     return
   }
 
@@ -355,27 +428,33 @@ const attachToElement = (trackOrStream: any, el: HTMLMediaElement | null) => {
   if (typeof trackOrStream.kind === 'string' && typeof (trackOrStream as any).label === 'string') {
     const ms = new MediaStream([trackOrStream])
     el.srcObject = ms
-    el.play?.()
+    attachedTrackByElement.set(el, trackOrStream)
+    el.play?.().catch(() => undefined)
     return
   }
 
   // 有些实现会把 stream 放在 mediaStream/stream 字段中
   if (trackOrStream.mediaStream instanceof MediaStream) {
     el.srcObject = trackOrStream.mediaStream
-    el.play?.()
+    attachedTrackByElement.set(el, trackOrStream)
+    el.play?.().catch(() => undefined)
     return
   }
   if (trackOrStream.stream instanceof MediaStream) {
     el.srcObject = trackOrStream.stream
-    el.play?.()
+    attachedTrackByElement.set(el, trackOrStream)
+    el.play?.().catch(() => undefined)
     return
   }
 }
 
 const attachLocalVideo = (track: any) => {
   lastLocalVideoTrack.value = track
+  const mainTrack = getPreferredLocalMainTrack()
   localVideoRefs.value.forEach((videoEl) => {
-    attachToElement(track, videoEl)
+    if (mainTrack) {
+      attachToElement(mainTrack, videoEl)
+    }
   })
 }
 
@@ -404,15 +483,21 @@ const applySpeakerVolume = (value = 100) => {
   })
 }
 
+const getPreferredVideoTrack = (participant: RemoteParticipantMedia | any) => {
+  if (!participant) return null
+  return participant.screenShareTrack || participant.videoTrack || null
+}
+
   // 当 props.remoteParticipants 更新时，自动附加/分离轨道
   watch(() => props.remoteParticipants, (newList) => {
 
     // attach newly arrived video tracks
     newList.forEach((p: any) => {
-      if (p && p.participantId && p.videoTrack) {
+      const preferredTrack = getPreferredVideoTrack(p)
+      if (p && p.participantId && preferredTrack) {
         const el = remoteVideoRefs.value.get(p.participantId)
         if (el) {
-          attachToElement(p.videoTrack, el)
+          attachToElement(preferredTrack, el)
         } else {
         }
       }
@@ -432,9 +517,10 @@ const applySpeakerVolume = (value = 100) => {
 
   // 监听本地视频轨道变化，强力附加
   watch(() => lastLocalVideoTrack.value, (newTrack) => {
-    if (newTrack) {
+    const mainTrack = getPreferredLocalMainTrack()
+    if (mainTrack || newTrack) {
       localVideoRefs.value.forEach((videoEl) => {
-        attachToElement(newTrack, videoEl)
+        attachToElement(mainTrack || newTrack, videoEl)
       })
     }
   })
@@ -444,18 +530,20 @@ const applySpeakerVolume = (value = 100) => {
     if (newMainId !== oldMainId) {
 
       // 强制重新附加所有本地视频轨道
-      if (lastLocalVideoTrack.value) {
+      const mainTrack = getPreferredLocalMainTrack()
+      if (mainTrack) {
         localVideoRefs.value.forEach((videoEl) => {
-          attachToElement(lastLocalVideoTrack.value, videoEl)
+          attachToElement(mainTrack, videoEl)
         })
       }
 
       // 重新附加所有远程视频轨道，确保布局切换后视频正确显示
       props.remoteParticipants.forEach((participant) => {
-        if (participant?.videoTrack) {
+        const preferredTrack = getPreferredVideoTrack(participant)
+        if (preferredTrack) {
           const videoEl = remoteVideoRefs.value.get(participant.participantId)
           if (videoEl) {
-            attachToElement(participant.videoTrack, videoEl)
+            attachToElement(preferredTrack, videoEl)
           }
         }
       })
@@ -469,9 +557,30 @@ const applySpeakerVolume = (value = 100) => {
   watch(() => props.localVideoTrack, (track) => {
     if (track) {
       lastLocalVideoTrack.value = track
+    }
+    if (!props.localScreenShareTrack) {
+      const mainTrack = getPreferredLocalMainTrack()
+      if (mainTrack) {
+        localVideoRefs.value.forEach((videoEl) => {
+          attachToElement(mainTrack, videoEl)
+        })
+      }
+    }
+  }, { immediate: true })
+
+  // 监听本地屏幕共享轨道变化
+  watch(() => props.localScreenShareTrack, (track) => {
+    if (track) {
       localVideoRefs.value.forEach((videoEl) => {
         attachToElement(track, videoEl)
       })
+    } else {
+      const mainTrack = getPreferredLocalMainTrack()
+      if (mainTrack) {
+        localVideoRefs.value.forEach((videoEl) => {
+          attachToElement(mainTrack, videoEl)
+        })
+      }
     }
   }, { immediate: true })
 
@@ -513,11 +622,12 @@ const cleanupLocalVideo = () => {
 onMounted(() => {
   nextTick(() => {
     props.remoteParticipants.forEach((p: any) => {
-      if (p && p.participantId && p.videoTrack) {
+      const preferredTrack = getPreferredVideoTrack(p)
+      if (p && p.participantId && preferredTrack) {
         const el = remoteVideoRefs.value.get(p.participantId)
         if (el) {
-          p.videoTrack.attach(el)
-          el.play?.()
+          attachToElement(preferredTrack, el)
+          el.play?.().catch(() => undefined)
         }
       }
     })
@@ -526,7 +636,7 @@ onMounted(() => {
         const el = remoteAudioRefs.value.get(p.participantId)
         if (el) {
           p.audioTrack.attach(el)
-          el.play?.()
+          el.play?.().catch(() => undefined)
           applySpeakerVolume(props.speakerVolume)
         }
       }

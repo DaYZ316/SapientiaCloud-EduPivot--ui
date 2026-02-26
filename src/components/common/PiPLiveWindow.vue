@@ -1,27 +1,35 @@
 <template>
   <div v-if="isVisible" class="pip-live-window">
-    <!-- 直播视频 -->
-    <video
-      v-if="hasVideoStream"
-      ref="videoRef"
-      class="pip-video"
-      autoplay
-      muted
-      playsinline
-    />
-
-    <!-- 占位符 - 当没有视频流时显示 -->
-    <div v-if="!hasVideoStream" class="pip-placeholder">
-      <div class="pip-placeholder-icon">
-        <n-icon size="48" color="var(--text-color-3)">
-          <VideocamOffOutline />
-        </n-icon>
+    <!-- 主视频（优先显示屏幕共享） -->
+    <div class="pip-main-video">
+      <video
+        v-if="hasMainVideoStream"
+        ref="videoRef"
+        class="pip-video"
+        autoplay
+        muted
+        playsinline
+      />
+      <!-- 占位符 - 当没有视频流时显示 -->
+      <div v-else class="pip-placeholder">
+        <div class="pip-placeholder-icon">
+          <n-icon size="48" color="var(--text-color-3)">
+            <VideocamOffOutline />
+          </n-icon>
+        </div>
+        <div class="pip-placeholder-text">{{ t('live.pip.noVideo') }}</div>
       </div>
-      <div class="pip-placeholder-text">{{ t('live.pip.noVideo') }}</div>
-      <!-- 重试按钮 -->
-      <n-button v-if="retryCount < 3" size="small" @click="retryAttachVideo">
-        {{ t('live.pip.retry') }} ({{ 3 - retryCount }})
-      </n-button>
+    </div>
+
+    <!-- 摄像头小窗（当同时开启屏幕共享和摄像头时显示） -->
+    <div v-if="hasBothVideoAndScreenShare" class="pip-camera-window">
+      <video
+        ref="cameraVideoRef"
+        class="pip-video pip-camera-video"
+        autoplay
+        muted
+        playsinline
+      />
     </div>
 
     <!-- 控制栏 -->
@@ -94,9 +102,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 // Refs
 const videoRef = ref<HTMLVideoElement | null>(null)
+const cameraVideoRef = ref<HTMLVideoElement | null>(null)
 const isDragging = ref<boolean>(false)
 const dragOffset = ref({ x: 0, y: 0 })
-const retryCount = ref<number>(0)
 
 // 计算属性
 const isVisible = computed(() => {
@@ -104,23 +112,23 @@ const isVisible = computed(() => {
   console.log('PiP isVisible:', visible, 'props.isVisible:', props.isVisible, 'isInPiPMode:', getIsInPiPMode())
   return visible
 })
-const hasVideoStream = computed(() => {
+
+// 是否有主视频（优先屏幕共享）
+const hasMainVideoStream = computed(() => {
   const session = getActiveSession()
-  const hasStream = session && (session.videoStream || (session.connection && session.participantId))
-  console.log('PiP hasVideoStream:', hasStream, 'session:', session)
+  // 优先使用屏幕共享，其次使用普通视频
+  const hasStream = session && (session.screenShareStream || session.videoStream || (session.connection && session.participantId))
+  console.log('PiP hasMainVideoStream:', hasStream, 'session:', session)
   return hasStream
 })
 
-// 重试绑定视频
-const retryAttachVideo = (): void => {
-  if (retryCount.value >= 3) {
-    return
-  }
-  retryCount.value++
-  console.log(`PiP: 重试绑定视频 (${retryCount.value}/3)`)
-  // 触发一次 attach
-  tryAttachVideo()
-}
+// 是否同时有屏幕共享和摄像头
+const hasBothVideoAndScreenShare = computed(() => {
+  const session = getActiveSession()
+  const hasBoth = session && session.screenShareStream && session.videoStream
+  console.log('PiP hasBothVideoAndScreenShare:', hasBoth)
+  return hasBoth
+})
 
 // 方法
 /**
@@ -195,7 +203,7 @@ const stopDrag = (): void => {
 const tryAttachVideo = (): void => {
   console.log('PiP: tryAttachVideo 被调用')
   console.log('PiP: videoRef:', !!videoRef.value)
-  console.log('PiP: hasVideoStream:', hasVideoStream.value)
+  console.log('PiP: hasMainVideoStream:', hasMainVideoStream.value)
   
   const session = getActiveSession()
   console.log('PiP: activeSession:', session)
@@ -231,22 +239,48 @@ const doAttachVideo = (): void => {
 
   console.log('PiP: 开始绑定视频')
 
-  // 优先使用已保存的视频流
-  if (session.videoStream) {
-    console.log('PiP: 使用已保存的视频流')
+  // 优先使用屏幕共享轨道
+  const screenShareStream = session.screenShareStream
+  const videoStream = session.videoStream
+
+  // 绑定主视频（优先屏幕共享）
+  if (screenShareStream) {
+    console.log('PiP: 使用屏幕共享轨道')
     try {
-      videoRef.value.srcObject = session.videoStream
+      videoRef.value.srcObject = screenShareStream
       videoRef.value.muted = true
       videoRef.value.play().catch(() => {})
-      console.log('PiP: 视频流绑定成功')
-      return
+      console.log('PiP: 屏幕共享轨道绑定成功')
     } catch (e) {
-      console.warn('PiP: 设置视频流失败', e)
+      console.warn('PiP: 设置屏幕共享轨道失败', e)
+    }
+  } else if (videoStream) {
+    console.log('PiP: 使用普通视频轨道')
+    try {
+      videoRef.value.srcObject = videoStream
+      videoRef.value.muted = true
+      videoRef.value.play().catch(() => {})
+      console.log('PiP: 视频轨道绑定成功')
+    } catch (e) {
+      console.warn('PiP: 设置视频轨道失败', e)
     }
   }
 
-  // 如果没有视频流，尝试从 connection 中获取
-  if (session.connection && session.participantId) {
+  // 绑定摄像头小窗（当同时有屏幕共享和摄像头时）
+  if (videoStream && screenShareStream && cameraVideoRef.value) {
+    console.log('PiP: 绑定摄像头小窗')
+    try {
+      cameraVideoRef.value.srcObject = videoStream
+      cameraVideoRef.value.muted = true
+      cameraVideoRef.value.play().catch(() => {})
+      console.log('PiP: 摄像头小窗绑定成功')
+    } catch (e) {
+      console.warn('PiP: 设置摄像头小窗失败', e)
+    }
+  }
+
+  // 如果没有预存的 stream，尝试从 connection 中获取
+  if (!screenShareStream && !videoStream && session.connection && session.participantId) {
     console.log('PiP: 尝试从 connection 获取视频流')
     try {
       const room = session.connection as any
@@ -327,9 +361,9 @@ onUnmounted(() => {
   speakingDetectorStore.disconnect()
 })
 
-// 监听 hasVideoStream 变化，尝试绑定视频
-watch(hasVideoStream, (newVal) => {
-  console.log('PiP: hasVideoStream 变化:', newVal)
+// 监听主视频流变化，尝试绑定视频
+watch(hasMainVideoStream, (newVal) => {
+  console.log('PiP: hasMainVideoStream 变化:', newVal)
   if (newVal) {
     nextTick(() => {
       tryAttachVideo()
@@ -357,13 +391,39 @@ watch(hasVideoStream, (newVal) => {
   display: flex;
   flex-direction: column;
 
-  .pip-video {
+  .pip-main-video {
     flex: 1;
+    position: relative;
+    min-height: 0;
+  }
+
+  .pip-video {
     width: 100%;
     height: 100%;
     object-fit: contain;
     background: var(--background-color);
     border-radius: 8px 8px 0 0;
+  }
+
+  // 摄像头小窗
+  .pip-camera-window {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    width: 100px;
+    height: 75px;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    z-index: 10;
+
+    .pip-camera-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 4px;
+    }
   }
 
   .pip-placeholder {

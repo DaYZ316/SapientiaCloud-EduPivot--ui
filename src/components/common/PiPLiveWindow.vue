@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isVisible" class="pip-live-window">
+  <div v-if="isVisible" ref="pipWindowRef" class="pip-live-window">
     <!-- 主视频（优先显示屏幕共享） -->
     <div class="pip-main-video">
       <video
@@ -103,6 +103,7 @@ const props = withDefaults(defineProps<Props>(), {
 // Refs
 const videoRef = ref<HTMLVideoElement | null>(null)
 const cameraVideoRef = ref<HTMLVideoElement | null>(null)
+const pipWindowRef = ref<HTMLDivElement | null>(null)
 const isDragging = ref<boolean>(false)
 const dragOffset = ref({ x: 0, y: 0 })
 
@@ -156,18 +157,25 @@ const endLive = (): void => {
  * 开始拖拽
  */
 const startDrag = (event: MouseEvent): void => {
-  isDragging.value = true
-  const pipWindow = videoRef.value?.parentElement
-  if (pipWindow) {
-    const rect = pipWindow.getBoundingClientRect()
-    dragOffset.value = {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top
-    }
+  event.preventDefault()
 
-    document.addEventListener('mousemove', onDrag)
-    document.addEventListener('mouseup', stopDrag)
+  const pipWindow = pipWindowRef.value
+  if (!pipWindow) {
+    return
   }
+
+  isDragging.value = true
+  const rect = pipWindow.getBoundingClientRect()
+  dragOffset.value = {
+    x: event.clientX - rect.left,
+    y: event.clientY - rect.top
+  }
+
+  // 从默认的 `top/right` 定位切换到 `left/top`，避免拖拽时布局冲突
+  pipWindow.style.right = 'auto'
+
+  document.addEventListener('mousemove', onDrag)
+  document.addEventListener('mouseup', stopDrag)
 }
 
 /**
@@ -176,7 +184,7 @@ const startDrag = (event: MouseEvent): void => {
 const onDrag = (event: MouseEvent): void => {
   if (!isDragging.value) return
 
-  const pipWindow = videoRef.value?.parentElement
+  const pipWindow = pipWindowRef.value
   if (pipWindow) {
     const newX = event.clientX - dragOffset.value.x
     const newY = event.clientY - dragOffset.value.y
@@ -185,6 +193,7 @@ const onDrag = (event: MouseEvent): void => {
     const maxX = window.innerWidth - pipWindow.offsetWidth
     const maxY = window.innerHeight - pipWindow.offsetHeight
 
+    pipWindow.style.right = 'auto'
     pipWindow.style.left = `${Math.max(0, Math.min(newX, maxX))}px`
     pipWindow.style.top = `${Math.max(0, Math.min(newY, maxY))}px`
   }

@@ -1,9 +1,18 @@
-import { ref, computed, readonly } from 'vue'
+import { ref, computed, readonly, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import * as liveApi from '@/api/live'
 import type { LiveRoomVO } from '@/types/live'
 import { LiveRoomRoleEnum } from '@/enum/live'
 import { useErrorHandler } from './useErrorHandler'
+
+// 录制状态常量
+const EGRESS_STATUS = {
+  NOT_RECORDING: 0,
+  RECORDING: 1,
+  STOPPING: 2,
+  STOPPED: 3,
+  FAILED: 4
+} as const
 
 export interface RecordingResult {
   // 状态
@@ -12,7 +21,7 @@ export interface RecordingResult {
   recordingLoading: boolean
 
   // 方法
-  toggleRecording: (roomInfo: LiveRoomVO | null, currentUserRole: LiveRoomRoleEnum) => Promise<void>
+  toggleRecording: (roomInfoRef: Ref<LiveRoomVO | null>, currentUserRole: LiveRoomRoleEnum) => Promise<void>
   canRecord: (roomInfo: LiveRoomVO | null, currentUserRole: LiveRoomRoleEnum) => boolean
 }
 
@@ -25,22 +34,23 @@ export const useRecording = () => {
 
   // 计算属性
   const isRecording = computed(() => {
-    // 这里需要从roomInfo获取状态，暂时返回false
+    // 从外部传入的 roomInfo ref 中获取状态
+    // 实际使用中以传入的 roomInfo.egressStatus 为准
     return false
   })
 
   const recordingStatusLabel = computed(() => {
-    // 这里需要从roomInfo获取状态，暂时返回null
     return null
   })
 
   // 切换录制状态
   const toggleRecording = async (
-    roomInfo: LiveRoomVO | null,
+    roomInfoRef: Ref<LiveRoomVO | null>,
     currentUserRole: LiveRoomRoleEnum
   ): Promise<void> => {
+    const roomInfo = roomInfoRef.value
     if (!roomInfo) {
-      errorHandler.handleError(new Error('Room info not found'), 'recording_toggle', {
+      errorHandler.handleError({ name: 'RecordError', message: t('live.recording.roomInfoMissing') }, 'recording_toggle', {
         showNotification: true,
         customMessage: t('live.recording.roomInfoMissing')
       })
@@ -49,7 +59,7 @@ export const useRecording = () => {
 
     // 检查权限
     if (!canRecord(roomInfo, currentUserRole)) {
-      errorHandler.handleError(new Error('No permission to record'), 'recording_toggle', {
+      errorHandler.handleError({ name: 'PermissionError', message: t('live.room.noPermissionToRecord') }, 'recording_toggle', {
         showNotification: true,
         customMessage: t('live.room.noPermissionToRecord')
       })
@@ -62,16 +72,15 @@ export const useRecording = () => {
 
     recordingLoading.value = true
 
-    const operation = isRecording.value ? 'stop' : 'start'
-    const apiCall = isRecording.value
+    const isCurrentlyRecording = roomInfo.egressStatus === EGRESS_STATUS.RECORDING
+    const operation = isCurrentlyRecording ? 'stop' : 'start'
+    const apiCall = isCurrentlyRecording
       ? liveApi.stopRecording(roomInfo.id)
       : liveApi.startRecording(roomInfo.id)
 
     apiCall.then((response) => {
       if (response?.data) {
-        // 更新房间信息
         Object.assign(roomInfo, response.data)
-        // 成功提示通过其他方式处理，这里先注释掉
       }
       recordingLoading.value = false
     }).catch((error: any) => {

@@ -129,18 +129,28 @@ export const useLiveConnection = (): LiveConnectionResult => {
     let returnedRoomName: string | null = null
 
     if (!token) {
+      // 第一次尝试：使用存储的 sessionId
       const tokenDTO: LiveRoomTokenRequestDTO = {
         role: currentUserRole,
         sessionId: providedSessionId ?? sessionId.value ?? null
       }
 
-      const tokenResponse = await retryMechanism.retry(
+      let tokenResponse = await retryMechanism.retry(
         () => liveApi.issueLiveRoomToken(roomInfo.id, tokenDTO),
         {
           maxRetries: 2,
           retryCondition: (error) => retryMechanism.isRetryableError(error)
         }
       )
+
+      // 如果失败且带了 sessionId，尝试不带 sessionId 强制创建新会话
+      if (!tokenResponse?.data && tokenDTO.sessionId) {
+        const freshTokenDTO: LiveRoomTokenRequestDTO = {
+          role: currentUserRole,
+          sessionId: null  // 不传 sessionId，强制创建新会话
+        }
+        tokenResponse = await liveApi.issueLiveRoomToken(roomInfo.id, freshTokenDTO)
+      }
 
       if (tokenResponse?.data) {
         if (typeof tokenResponse.data === 'string') {

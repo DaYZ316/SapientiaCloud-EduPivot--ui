@@ -1,4 +1,4 @@
-import { ref, computed, readonly, onBeforeUnmount } from 'vue'
+import { ref, readonly, onBeforeUnmount, type Ref } from 'vue'
 import { Room, RoomEvent } from 'livekit-client'
 import { useI18n } from 'vue-i18n'
 import { fetchEventSource } from '@microsoft/fetch-event-source'
@@ -10,8 +10,8 @@ import { apiConfig } from '@/utils/http'
 
 export interface ChatMessagesResult {
   // 状态
-  messages: LiveRoomChatMessage[]
-  chatOnlineCount: number
+  messages: Ref<readonly LiveRoomChatMessage[]>
+  chatOnlineCount: Ref<number>
 
   // 方法
   loadHistoryMessages: (roomId: string) => Promise<void>
@@ -21,6 +21,7 @@ export interface ChatMessagesResult {
   teardownRealtimeMessages: (room: Room) => void
   setupSseListener: (roomId: string, classroomId?: string) => Promise<void>
   teardownSseListener: () => void
+  setOnlineCount: (count: number) => void
 }
 
 export const useChatMessages = () => {
@@ -34,8 +35,13 @@ export const useChatMessages = () => {
   let sseController: AbortController | null = null
   const sseIsConnected = ref<boolean>(false)
 
-  // 在线人数（简化计算）
-  const chatOnlineCount = computed(() => Math.max(messages.value.length > 0 ? 2 : 1, 1))
+  // 在线人数（由外部传入）
+  const chatOnlineCount = ref<number>(1)
+
+  // 设置在线人数
+  const setOnlineCount = (count: number): void => {
+    chatOnlineCount.value = Math.max(count, 1)
+  }
 
   // 加载历史消息
   const loadHistoryMessages = async (roomId: string): Promise<void> => {
@@ -312,7 +318,7 @@ export const useChatMessages = () => {
   return {
     // 状态
     messages: readonly(messages),
-    chatOnlineCount,
+    chatOnlineCount: readonly(chatOnlineCount),
 
     // 方法
     loadHistoryMessages,
@@ -321,6 +327,7 @@ export const useChatMessages = () => {
     setupRealtimeMessages,
     teardownRealtimeMessages,
     setupSseListener,
-    teardownSseListener
+    teardownSseListener,
+    setOnlineCount
   }
 }

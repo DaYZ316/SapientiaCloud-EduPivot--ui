@@ -1,5 +1,5 @@
-﻿import { ref, readonly } from 'vue'
-import { ConnectionState, Track } from 'livekit-client'
+﻿import { ref, readonly, watch } from 'vue'
+import { ConnectionState, RoomEvent, Track } from 'livekit-client'
 import { useI18n } from 'vue-i18n'
 import { useErrorHandler } from './useErrorHandler'
 import { useRetryMechanism } from './useRetryMechanism'
@@ -16,6 +16,7 @@ export interface MediaDevicesResult {
   toggleMicrophone: () => Promise<void>
   toggleScreenShare: () => Promise<void>
   setupLocalMedia: (targetRoom: Room) => Promise<void>
+  syncLocalMediaState: (targetRoom?: Room | null) => void
 
   diagnoseCameraIssues: () => Promise<string>
   diagnoseMicrophoneIssues: () => Promise<string>
@@ -30,6 +31,123 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
   const cameraEnabled = ref<boolean>(false)
   const microphoneEnabled = ref<boolean>(false)
   const screenShareEnabled = ref<boolean>(false)
+
+  let listenerRoom: Room | null = null
+  let roomEventHandlers: Array<{ event: RoomEvent; handler: (...args: unknown[]) => void }> = []
+
+  const isPublicationActive = (publication: unknown): boolean => {
+    const pub = publication as { track?: unknown; isMuted?: boolean } | null | undefined
+    if (!pub) {
+      return false
+    }
+    if (!pub.track) {
+      return false
+    }
+    if (typeof pub.isMuted === 'boolean') {
+      return !pub.isMuted
+    }
+    return true
+  }
+
+  const syncLocalMediaState = (targetRoom: Room | null = room.value): void => {
+    if (!targetRoom || targetRoom.state !== ConnectionState.Connected || !targetRoom.localParticipant) {
+      cameraEnabled.value = false
+      microphoneEnabled.value = false
+      screenShareEnabled.value = false
+      return
+    }
+
+    const localParticipant = targetRoom.localParticipant
+    const videoPublications = Array.from(localParticipant.videoTrackPublications?.values?.() ?? [])
+    const audioPublications = Array.from(localParticipant.audioTrackPublications?.values?.() ?? [])
+
+    const hasCameraTrack = videoPublications.some((publication: any) => {
+      return publication?.source === Track.Source.Camera && isPublicationActive(publication)
+    })
+    const hasScreenShareTrack = videoPublications.some((publication: any) => {
+      return publication?.source === Track.Source.ScreenShare && isPublicationActive(publication)
+    })
+    const hasMicrophoneTrack = audioPublications.some((publication: any) => {
+      return publication?.source === Track.Source.Microphone && isPublicationActive(publication)
+    })
+
+    const cameraFlag = typeof localParticipant.isCameraEnabled === 'boolean' ? localParticipant.isCameraEnabled : null
+    const microphoneFlag = typeof localParticipant.isMicrophoneEnabled === 'boolean' ? localParticipant.isMicrophoneEnabled : null
+    const screenShareFlag = typeof localParticipant.isScreenShareEnabled === 'boolean' ? localParticipant.isScreenShareEnabled : null
+
+    cameraEnabled.value = cameraFlag === null ? hasCameraTrack : cameraFlag || hasCameraTrack
+    microphoneEnabled.value = microphoneFlag === null ? hasMicrophoneTrack : microphoneFlag || hasMicrophoneTrack
+    screenShareEnabled.value = screenShareFlag === null ? hasScreenShareTrack : screenShareFlag || hasScreenShareTrack
+  }
+
+  const isLocalParticipantEvent = (targetRoom: Room, participant: any): boolean => {
+    if (!participant) {
+      return false
+    }
+    return participant === targetRoom.localParticipant ||
+      participant.identity === targetRoom.localParticipant?.identity ||
+      participant.sid === targetRoom.localParticipant?.sid
+  }
+
+  const unbindRoomEvents = (): void => {
+    if (!listenerRoom) {
+      return
+    }
+    roomEventHandlers.forEach(({ event, handler }) => {
+      listenerRoom?.off(event, handler as any)
+    })
+    roomEventHandlers = []
+    listenerRoom = null
+  }
+
+  const bindRoomEvents = (targetRoom: Room): void => {
+    unbindRoomEvents()
+    listenerRoom = targetRoom
+
+    const addListener = (event: RoomEvent, handler: (...args: any[]) => void) => {
+      targetRoom.on(event, handler as any)
+      roomEventHandlers.push({ event, handler })
+    }
+
+    addListener(RoomEvent.LocalTrackPublished, () => {
+      syncLocalMediaState(targetRoom)
+    })
+    addListener(RoomEvent.LocalTrackUnpublished, () => {
+      syncLocalMediaState(targetRoom)
+    })
+    addListener(RoomEvent.TrackMuted, (_publication: any, participant: any) => {
+      if (isLocalParticipantEvent(targetRoom, participant)) {
+        syncLocalMediaState(targetRoom)
+      }
+    })
+    addListener(RoomEvent.TrackUnmuted, (_publication: any, participant: any) => {
+      if (isLocalParticipantEvent(targetRoom, participant)) {
+        syncLocalMediaState(targetRoom)
+      }
+    })
+    addListener(RoomEvent.Reconnected, () => {
+      syncLocalMediaState(targetRoom)
+    })
+    addListener(RoomEvent.Disconnected, () => {
+      syncLocalMediaState(null)
+    })
+  }
+
+  watch(
+    room,
+    (currentRoom, previousRoom) => {
+      if (previousRoom && previousRoom !== currentRoom) {
+        unbindRoomEvents()
+      }
+      if (!currentRoom) {
+        syncLocalMediaState(null)
+        return
+      }
+      bindRoomEvents(currentRoom)
+      syncLocalMediaState(currentRoom)
+    },
+    { immediate: true }
+  )
 
   const safeAsyncCall = async <T>(operation: () => Promise<T>, fallbackError: string): Promise<T> => {
     try {
@@ -119,7 +237,8 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
               await Promise.race([enablePromise, timeoutPromise])
               cameraEnabled.value = true
 
-              await new Promise(resolve => setTimeout(resolve, 500))
+              await new Promise(resolve => setTimeout(resolve, 100))
+              syncLocalMediaState(currentRoom)
 
               const videoTracks = Array.from(currentRoom.localParticipant.videoTrackPublications.values())
               if (videoTracks.length === 0) {
@@ -222,7 +341,8 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
               )
               microphoneEnabled.value = true
 
-              await new Promise(resolve => setTimeout(resolve, 500))
+              await new Promise(resolve => setTimeout(resolve, 100))
+              syncLocalMediaState(currentRoom)
 
             } catch (trackError: any) {
               microphoneEnabled.value = false
@@ -293,7 +413,8 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
             )
             screenShareEnabled.value = true
 
-            await new Promise(resolve => setTimeout(resolve, 500))
+            await new Promise(resolve => setTimeout(resolve, 100))
+            syncLocalMediaState(currentRoom)
 
             const screenShareTracks = Array.from(currentRoom.localParticipant.videoTrackPublications.values())
               .filter(pub => pub.source === Track.Source.ScreenShare)
@@ -336,11 +457,13 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
 
     try {
 
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await new Promise(resolve => setTimeout(resolve, 100))
+      syncLocalMediaState(targetRoom)
     } catch (error) {
 
       microphoneEnabled.value = false
       cameraEnabled.value = false
+      screenShareEnabled.value = false
 
       errorHandler.handleError(error, 'media_setup', {
         showNotification: true,
@@ -502,6 +625,7 @@ export const useMediaDevices = (room: Ref<Room | null>) => {
     toggleMicrophone,
     toggleScreenShare,
     setupLocalMedia,
+    syncLocalMediaState,
 
     diagnoseCameraIssues,
     diagnoseMicrophoneIssues

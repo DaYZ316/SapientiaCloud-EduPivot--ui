@@ -2,7 +2,7 @@
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMessage, useNotification } from 'naive-ui'
-import type { LiveRoomVO, RemoteParticipantMedia, HandRaiseState } from '@/types/live'
+import type { LiveRoomVO, RemoteParticipantMedia, HandRaiseState, LiveRoomChatMessage } from '@/types/live'
 import type { LiveConnectionResult } from './useLiveConnection'
 import { LiveRoomRoleEnum } from '@/enum/live'
 import { useUserStore } from '@/store'
@@ -393,7 +393,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
   const recordingLoading = computed(() => recording.recordingLoading.value)
   const chatMessages = computed(() => {
     // 确保返回数组类型
-    const msgs = chat.messages.value
+    const msgs = chat.messages.value as unknown as LiveRoomChatMessage[]
     return Array.isArray(msgs) ? msgs : []
   })
   const chatOnlineCount = computed(() => {
@@ -490,6 +490,13 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
   })
 
   watch(
+    () => onlineCount.value,
+    (newCount) => {
+      chat.setOnlineCount(newCount)
+    }
+  )
+
+  watch(
     () => [
       connection.room.value?.localParticipant?.identity || null,
       userStore.studentInfo?.id || null,
@@ -582,6 +589,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
 
     // 恢复 LiveKit 连接
     connection.restoreConnection(existingRoom, existingSessionId, existingRoomId)
+    media.syncLocalMediaState(existingRoom)
 
     // 设置聊天消息监听
     if (existingRoom) {
@@ -611,12 +619,20 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     const queryToken = route.query.token as string
     const providedToken = tokenProp ?? queryToken ?? null
     const querySessionId = route.query.sessionId as string
+
+    // 判断是否是刷新场景
+    const isReload = typeof performance !== 'undefined' &&
+                     performance.getEntriesByType &&
+                     (performance.getEntriesByType('navigation') as PerformanceNavigationTiming[])?.[0]?.type === 'reload'
+
     if (querySessionId) {
       sessionId.value = querySessionId
       persistSessionId(querySessionId)
-    } else {
+    } else if (!isReload) {
+      // 非刷新场景才读取存储的 sessionId
       sessionId.value = readStoredSessionId()
     }
+    // 刷新场景：sessionId 保持 null，让后端创建新会话
 
     // 启动SSE实时连接
     await realtime.connect(roomId, null)
@@ -789,7 +805,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     const action = recording.isRecording ? t('live.common.recordingStop') : t('live.common.recordingStart')
     loadingState.setLoading('recording', true, t('live.common.recordingInProgress', { action }))
 
-    await recording.toggleRecording(roomInfo.value, currentUserRole.value)
+    await recording.toggleRecording(roomInfo, currentUserRole.value)
 
     loadingState.setLoading('recording', false)
   }
@@ -992,6 +1008,11 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     const participantId = participant.identity
     // 建立 participantId -> studentId 映射（供教室页面使用）
     bindParticipantStudentMapping(participantId, participant.metadata)
+    // 记录第一个进场的老师
+    const role = resolveParticipantRole(participant)
+    if (role === LiveRoomRoleEnum.TEACHER.toString() && !firstTeacherParticipantId.value) {
+      firstTeacherParticipantId.value = participant.identity
+    }
     upsertRemoteParticipantFromPublications(participant)
   }
 
@@ -1021,6 +1042,11 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
 
       // 订阅事件
       resourceManager.registerEventListener(currentRoom, RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
+        // 记录第一个进场的老师
+        const role = resolveParticipantRole(participant)
+        if (role === LiveRoomRoleEnum.TEACHER.toString() && !firstTeacherParticipantId.value) {
+          firstTeacherParticipantId.value = participant.identity
+        }
         syncExistingParticipantTracks(participant)
       })
 

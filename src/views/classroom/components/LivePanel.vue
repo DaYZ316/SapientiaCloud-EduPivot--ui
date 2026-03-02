@@ -46,9 +46,12 @@
             </div>
 
             <div class="room-row"><strong>{{ t('live.panel.roomName') }}</strong> {{ room.roomName }}</div>
-            <div class="room-row"><strong>{{ t('live.panel.status') }}</strong> {{ getStatusLabel(room.status) }}</div>
-            <div class="room-row" v-if="room.startTime"><strong>{{ t('live.panel.startTime') }}</strong> {{ room.startTime }}</div>
-            <div class="room-row" v-if="room.expectedEndTime"><strong>{{ t('live.panel.expectedEndTime') }}</strong> {{ room.expectedEndTime }}</div>
+            <div class="room-row">
+              <strong>{{ t('live.panel.status') }}</strong>
+              <span :class="['live-panel__status-badge', getStatusClass(room.status)]">{{ getStatusLabel(room.status) }}</span>
+            </div>
+            <div class="room-row" v-if="room.startTime"><strong>{{ t('live.panel.startTime') }}</strong> {{ formatLiveTime(room.startTime) }}</div>
+            <div class="room-row" v-if="room.expectedEndTime"><strong>{{ t('live.panel.expectedEndTime') }}</strong> {{ formatLiveTime(room.expectedEndTime) }}</div>
             <div class="room-row" v-if="room.maxParticipants !== null && room.maxParticipants !== undefined">
               <strong>{{ t('live.panel.maxParticipants') }}</strong> {{ room.maxParticipants }}
             </div>
@@ -61,19 +64,39 @@
           <div v-else class="live-panel__empty">{{ t('live.panel.noRoom') }}</div>
         </div>
 
-        <div class="live-panel__actions">
-          <template v-if="room && room.status === LiveRoomStatusEnum.LIVE">
-            <NButton type="primary" @click="joinLive" :loading="joiningLoading">{{ t('live.room.join') }}</NButton>
-          </template>
+        <div class="live-panel__right">
+          <div class="live-panel__action-card">
+            <div class="live-panel__action-status">
+              <span class="live-panel__action-status-label">{{ t('live.panel.status') }}</span>
+              <span
+                :class="[
+                  'live-panel__status-badge',
+                  getStatusClass(room?.status)
+                ]"
+              >
+                {{ getStatusLabel(room?.status) }}
+              </span>
+            </div>
 
-          <span v-if="isTeacher">
-            <template v-if="room && room.status === LiveRoomStatusEnum.LIVE">
-              <NButton type="warning" @click="endLive" :loading="endingLoading">{{ t('live.room.stop') }}</NButton>
-            </template>
-            <template v-else-if="room">
-              <NButton type="success" @click="startLive" :loading="startingLoading">{{ t('live.room.start') }}</NButton>
-            </template>
-          </span>
+            <div class="live-panel__actions">
+              <template v-if="room && room.status === LiveRoomStatusEnum.LIVE">
+                <NButton type="primary" @click="joinLive" :loading="joiningLoading">{{ t('live.room.join') }}</NButton>
+              </template>
+
+              <template v-if="isTeacher">
+                <template v-if="room && room.status === LiveRoomStatusEnum.LIVE">
+                  <NButton type="warning" @click="endLive" :loading="endingLoading">{{ t('live.room.stop') }}</NButton>
+                </template>
+                <template v-else-if="room">
+                  <NButton type="success" @click="startLive" :loading="startingLoading">{{ t('live.room.start') }}</NButton>
+                </template>
+              </template>
+            </div>
+
+            <div v-if="!room" class="live-panel__action-tip">
+              {{ isTeacher ? t('live.panel.noRoom') : t('classroom.waitingForTeacher') }}
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -128,6 +151,41 @@ const errorHandler = useErrorHandler();
 const joiningLoading = computed(() => Boolean(joining.value));
 const endingLoading = computed(() => Boolean(ending.value));
 const startingLoading = computed(() => Boolean(starting.value));
+
+const formatLiveTime = (time: string | null | undefined): string => {
+  if (!time) {
+    return '';
+  }
+
+  const raw = String(time).trim();
+  const withT = raw.includes('T') ? raw : raw.replace(' ', 'T');
+  const hasTimezone = /([zZ]|[+\-]\d{2}:\d{2})$/.test(withT);
+  const parsedDate = new Date(hasTimezone ? withT : `${withT}+08:00`);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return raw.replace('T', ' ');
+  }
+
+  const formatter = new Intl.DateTimeFormat('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+  const parts = formatter.formatToParts(parsedDate);
+  const values: Record<string, string> = {};
+  parts.forEach((part) => {
+    if (part.type !== 'literal') {
+      values[part.type] = part.value;
+    }
+  });
+
+  return `${values.year}-${values.month}-${values.day} ${values.hour}:${values.minute}:${values.second}`;
+};
 
 watch(() => props.show, async (val) => {
   if (val) {
@@ -310,6 +368,13 @@ function getStatusLabel(status: number | null | undefined) {
   return t('classroom.liveStatus.notStarted');
 }
 
+function getStatusClass(status: number | null | undefined): string {
+  if (status === LiveRoomStatusEnum.LIVE) return 'is-live';
+  if (status === LiveRoomStatusEnum.ENDED) return 'is-ended';
+  if (status === LiveRoomStatusEnum.CLOSED) return 'is-closed';
+  return 'is-idle';
+}
+
 // 状态轮询定时器
 let statusPollingTimer: number | null = null;
 
@@ -344,16 +409,20 @@ onBeforeUnmount(() => {
   left: 50%;
   transform: translate(-50%, -50%);
   animation: panel-enter 0.25s ease;
-  width: min(920px, 92vw);
-  max-width: 920px;
-  height: min(78vh, 720px);
-  max-height: 78vh;
+  width: min(1120px, 88vw);
+  max-width: 1120px;
+  min-height: 72vh;
+  max-height: 84vh;
   display: flex;
   flex-direction: column;
-  background: color-mix(in srgb, var(--background-color) 96%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 85%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--background-secondary-color) 80%, transparent),
+    color-mix(in srgb, var(--background-tertiary-color) 95%, transparent)
+  );
+  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
   border-radius: 16px;
-  box-shadow: 0 22px 60px color-mix(in srgb, var(--shadow-color) 65%, transparent);
+  box-shadow: 0 18px 38px color-mix(in srgb, var(--shadow-color) 80%, transparent);
   overflow: hidden;
   z-index: 1003;
 }
@@ -386,9 +455,8 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 18px;
-  background: color-mix(in srgb, var(--background-secondary-color) 55%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--border-secondary-color) 85%, transparent);
+  padding: 12px 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-secondary-color) 90%, transparent);
 }
 
 .live-panel__title {
@@ -398,46 +466,92 @@ onBeforeUnmount(() => {
 
 .live-panel__body {
   flex: 1;
-  padding: 16px;
+  padding: 12px;
   overflow: hidden;
-  background: color-mix(in srgb, var(--background-color) 92%, transparent);
+  background: color-mix(in srgb, var(--background-secondary-color) 85%, transparent);
+}
+
+.live-panel__loading {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .room-row {
   display: grid;
-  grid-template-columns: 110px 1fr;
+  grid-template-columns: 120px 1fr;
   column-gap: 12px;
-  align-items: baseline;
-  padding: 14px 14px;
+  align-items: center;
+  padding: 12px 14px;
   border-radius: 12px;
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.5;
   color: var(--text-color);
-  background: color-mix(in srgb, var(--background-color) 92%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 75%, transparent);
-  margin: 12px 0;
+  background: color-mix(in srgb, var(--background-tertiary-color) 82%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  margin: 10px 0;
 }
 
-.live-panel__actions {
-  margin-top: 12px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.room-row strong {
+  color: var(--text-color-3);
+  font-weight: 600;
 }
+
+.live-panel__status-badge {
+  width: fit-content;
+  max-width: 100%;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  border: 1px solid transparent;
+  white-space: nowrap;
+
+  &.is-live {
+    color: var(--success-color);
+    border-color: color-mix(in srgb, var(--success-color) 60%, transparent);
+    background: color-mix(in srgb, var(--success-color) 12%, transparent);
+  }
+
+  &.is-ended {
+    color: var(--error-color);
+    border-color: color-mix(in srgb, var(--error-color) 60%, transparent);
+    background: color-mix(in srgb, var(--error-color) 12%, transparent);
+  }
+
+  &.is-closed {
+    color: var(--warning-color);
+    border-color: color-mix(in srgb, var(--warning-color) 60%, transparent);
+    background: color-mix(in srgb, var(--warning-color) 12%, transparent);
+  }
+
+  &.is-idle {
+    color: var(--text-color-3);
+    border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
+    background: color-mix(in srgb, var(--background-color) 88%, transparent);
+  }
+}
+
 .course-info-row {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   align-items: flex-start;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  padding: 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--background-tertiary-color) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
 }
 .course-cover {
-  width: 92px;
-  height: 64px;
+  width: 104px;
+  height: 72px;
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--background-color);
   border: 1px solid color-mix(in srgb, var(--border-color) 85%, transparent);
-  box-shadow: 0 6px 16px color-mix(in srgb, var(--shadow-color) 22%, transparent);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--shadow-color) 24%, transparent);
 }
 .course-meta {
   flex: 1;
@@ -447,7 +561,7 @@ onBeforeUnmount(() => {
 }
 .course-title {
   font-weight: 700;
-  font-size: 18px;
+  font-size: 19px;
   line-height: 1.3;
 }
 .course-teacher {
@@ -471,24 +585,160 @@ onBeforeUnmount(() => {
 
 .live-panel__actions :deep(.n-button) {
   font-size: 14px;
-  height: 36px;
-  padding: 0 12px;
+  height: 40px;
+  padding: 0 14px;
+  min-width: 120px;
 }
 
 .live-panel__grid {
   height: 100%;
   width: 100%;
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1.7fr) minmax(260px, 0.9fr);
   gap: 16px;
   align-items: stretch;
 }
 
 .live-panel__left {
   width: 100%;
+  min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 2px;
 }
 
 .live-panel__right {
-  display: none;
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.live-panel__action-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--border-secondary-color) 78%, transparent);
+  background: color-mix(in srgb, var(--background-tertiary-color) 82%, transparent);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--shadow-secondary-color) 28%, transparent);
+}
+
+.live-panel__action-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.live-panel__action-status-label {
+  font-size: 13px;
+  color: var(--text-color-3);
+  font-weight: 600;
+}
+
+.live-panel__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.live-panel__actions :deep(.n-button) {
+  width: 100%;
+}
+
+.live-panel__action-tip {
+  margin-top: auto;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px dashed color-mix(in srgb, var(--border-secondary-color) 85%, transparent);
+  color: var(--text-color-3);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.live-panel__empty {
+  color: var(--text-color-3);
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px dashed color-mix(in srgb, var(--border-secondary-color) 78%, transparent);
+  background: color-mix(in srgb, var(--background-tertiary-color) 76%, transparent);
+}
+
+@media (max-width: 1024px) {
+  .live-panel {
+    width: min(980px, 92vw);
+    min-height: 76vh;
+  }
+
+  .live-panel__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .live-panel__left {
+    overflow-y: auto;
+  }
+
+  .live-panel__right {
+    overflow: visible;
+  }
+
+  .live-panel__action-card {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .live-panel__action-status {
+    min-width: 220px;
+  }
+
+  .live-panel__actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .live-panel__actions :deep(.n-button) {
+    width: auto;
+    min-width: 140px;
+  }
+
+  .live-panel__action-tip {
+    margin-top: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .live-panel {
+    width: 94vw;
+    min-height: 78vh;
+    max-height: 88vh;
+  }
+
+  .room-row {
+    grid-template-columns: 100px 1fr;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .course-info-row {
+    padding: 12px;
+  }
+
+  .course-cover {
+    width: 88px;
+    height: 62px;
+  }
+
+  .course-title {
+    font-size: 16px;
+  }
+
+  .live-panel__actions :deep(.n-button) {
+    width: 100%;
+  }
 }
 </style>

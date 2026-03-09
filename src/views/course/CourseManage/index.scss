@@ -1,0 +1,57 @@
+@use '@/assets/styles/index.scss' as *;
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+.form-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  :deep(.n-form-item) {
+    margin-bottom: 0;
+  }
+
+  :deep(.n-form-item-label) {
+    font-weight: 500;
+    color: var(--text-color);
+  }
+
+  :deep(.n-input),
+  :deep(.n-select) {
+    width: 100%;
+  }
+
+  :deep(.n-textarea) {
+    resize: vertical;
+    min-height: 120px;
+  }
+}
+
+// 确保图片上传组件在右列有足够的空间
+.form-column:last-child {
+  :deep(.image-upload-container) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 160px;
+  }
+}
+
+// 头像组件样式
+.mr-3 {
+  margin-right: 12px;
+}
+
+.mr-1 {
+  margin-right: 4px;
+}

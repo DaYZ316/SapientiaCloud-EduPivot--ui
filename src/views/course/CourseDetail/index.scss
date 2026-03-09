@@ -1,0 +1,340 @@
+.course-detail {
+  width: 100%;
+  min-height: calc(100vh - 48px); // 使用最小高度而不是固定高度
+  box-sizing: border-box;
+
+  .action-button {
+    :deep(.n-icon) {
+      font-size: 18px;
+      color: var(--text-color-2);
+    }
+
+    &:hover {
+      :deep(.n-icon) {
+        color: var(--primary-color);
+      }
+    }
+  }
+
+  .course-detail-content {
+    .content-layout {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+
+      .course-section {
+        flex: 0 0 900px;
+        min-width: 900px;
+        max-width: 900px;
+        width: 900px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+
+        // 确保课程卡片宽度不变，始终为900px
+        :deep(.course-card) {
+          width: 900px;
+          max-width: 900px;
+          min-width: 900px;
+        }
+
+        .charts-container {
+          display: flex;
+          gap: 24px;
+          margin-top: 16px;
+          width: 100%;
+
+          .education-chart-container,
+          .student-status-chart-container {
+            flex: 1;
+            width: 50%;
+          }
+        }
+
+        .teacher-student-container {
+          display: flex;
+          align-items: stretch;
+          gap: 16px;
+          width: 100%;
+          margin-top: 16px;
+
+          // 计数器组件占据较小空间
+          :deep(.student-teacher-counter) {
+            flex: 0 0 280px;
+            min-width: 280px;
+          }
+
+          // 跑马灯组件占据剩余空间
+          :deep(.teacher-marquee-container) {
+            flex: 1;
+            min-width: 0;
+          }
+        }
+
+        .enrollment-chart-container {
+          margin-top: 24px;
+          width: 100%;
+        }
+      }
+
+      .teacher-section {
+        flex: 1;
+        min-width: 400px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+
+        .teacher-loading {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 200px;
+        }
+
+        .teacher-empty {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 200px;
+        }
+
+        .grade-chart-container {
+          width: 100%;
+          max-width: 900px;
+          height: 400px;
+        }
+
+      }
+    }
+  }
+
+}
+
+// 编辑对话框样式
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+.form-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  :deep(.n-form-item) {
+    margin-bottom: 0;
+  }
+
+  :deep(.n-form-item-label) {
+    font-weight: 500;
+    color: var(--text-color);
+  }
+
+  :deep(.n-input),
+  :deep(.n-select) {
+    width: 100%;
+  }
+
+  :deep(.n-textarea) {
+    resize: vertical;
+    min-height: 120px;
+  }
+}
+
+// 确保图片上传组件在右列有足够的空间
+.form-column:last-child {
+  :deep(.image-upload-container) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 160px;
+  }
+}
+
+// 渐变动画
+@keyframes gradientShift {
+  0% {
+    background-position: -200% 0%;
+  }
+  100% {
+    background-position: 200% 0%;
+  }
+}
+
+// 响应式设计
+// 中等屏幕（1024px - 1400px）
+@media (max-width: 1400px) and (min-width: 1025px) {
+  .course-detail {
+    .course-detail-content {
+      .content-layout {
+        .teacher-section {
+          min-width: 300px;
+        }
+      }
+    }
+  }
+}
+
+// 小屏幕（768px - 1024px）
+@media (max-width: 1024px) and (min-width: 769px) {
+  .course-detail {
+    .course-detail-content {
+      .content-layout {
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+
+        .course-section {
+          flex: 0 0 900px;
+          min-width: 900px;
+          max-width: 900px;
+          width: 900px;
+          margin: 0;
+
+          // 确保课程卡片宽度不变，始终为900px
+          :deep(.course-card) {
+            width: 900px;
+            max-width: 900px;
+            min-width: 900px;
+          }
+        }
+
+        .teacher-section {
+          flex: 0 0 100%;
+          min-width: unset;
+          width: 100%;
+          max-width: 900px;
+          margin: 0 auto;
+        }
+      }
+    }
+  }
+}
+
+// 移动端（768px以下）
+@media (max-width: 768px) {
+  .course-detail {
+    padding: 16px 16px 40px 16px;
+    overflow-x: auto;
+
+    .course-detail-content {
+      .content-layout {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+
+        .course-section {
+          flex: 0 0 900px;
+          min-width: 900px;
+          max-width: 900px;
+          width: 900px;
+          margin: 0;
+
+          // 确保课程卡片宽度不变，始终为900px
+          :deep(.course-card) {
+            width: 900px;
+            max-width: 900px;
+            min-width: 900px;
+          }
+
+          .charts-container {
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 12px;
+            width: 100%;
+
+            .education-chart-container,
+            .student-status-chart-container {
+              width: 100%;
+              flex: none;
+            }
+          }
+
+          .teacher-student-container {
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 12px;
+
+            // 移动端时两个组件都占据全宽
+            :deep(.student-teacher-counter),
+            :deep(.teacher-marquee-container) {
+              flex: none;
+              width: 100%;
+              min-width: unset;
+            }
+          }
+
+          .enrollment-chart-container {
+            margin-top: 16px;
+            width: 100%;
+          }
+        }
+
+        .teacher-section {
+          flex: 0 0 100%;
+          min-width: unset;
+          width: 100%;
+          gap: 16px;
+
+          .grade-chart-container {
+            max-width: 100%;
+            height: 350px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// 小屏幕移动端优化
+@media (max-width: 480px) {
+  .course-detail {
+    padding: 12px 12px 32px 12px; // 小屏幕也增加底部内边距
+
+
+    .course-detail-content {
+      .content-layout {
+        gap: 12px;
+
+        .course-section {
+          .education-chart-container {
+            margin-top: 8px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// 暗色主题适配
+@media (prefers-color-scheme: dark) {
+  .course-detail {
+    .course-detail-content {
+      .content-layout {
+        .course-section {
+          width: 100%;
+        }
+      }
+    }
+  }
+}
+
+
+// 头像组件样式
+.mr-3 {
+  margin-right: 12px;
+}
+
+.mr-1 {
+  margin-right: 4px;
+}
+

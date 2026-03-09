@@ -1,0 +1,279 @@
+.login-page-container {
+  width: 100%;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: var(--background-color);
+
+  .liquid-ether-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.animate-in {
+      opacity: 1;
+    }
+  }
+}
+
+
+.rolling-gallery-container {
+  position: absolute;
+  top: 40px;
+  left: -5%;
+  width: auto;
+  max-width: 70%;
+  pointer-events: none;
+  background: transparent;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  transform: translateX(-60px);
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s,
+              transform 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
+
+  &.animate-in {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .slogan-text {
+    font-size: 42px;
+    font-weight: 700;
+    text-align: center;
+    margin-top: -120px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    letter-spacing: 2px;
+    line-height: 1.4;
+    max-width: 70%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    
+    // 渐变文字效果
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    
+    // 多层阴影效果
+    filter: drop-shadow(0 4px 12px var(--shadow-color))
+            drop-shadow(0 2px 6px var(--color-primary));
+    
+    // 流光动画
+    animation: slogan-fade-in-up 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.6s both,
+               slogan-gradient-flow 4s ease-in-out infinite;
+    
+    // 响应式字体大小
+    @media (max-width: 1400px) {
+      font-size: 38px;
+      letter-spacing: 1.8px;
+      margin-top: -110px;
+    }
+    
+    @media (max-width: 1200px) {
+      font-size: 32px;
+      letter-spacing: 1.5px;
+      margin-top: -100px;
+    }
+    
+    @media (max-width: 992px) {
+      font-size: 28px;
+      letter-spacing: 1.2px;
+      margin-top: -90px;
+      max-width: 60%;
+    }
+    
+    @media (max-width: 768px) {
+      font-size: 24px;
+      letter-spacing: 1px;
+      margin-top: -80px;
+      max-width: 55%;
+    }
+    
+    @media (max-width: 640px) {
+      font-size: 20px;
+      letter-spacing: 0.8px;
+      margin-top: -70px;
+      max-width: 50%;
+    }
+    
+    @media (max-width: 480px) {
+      font-size: 18px;
+      letter-spacing: 0.5px;
+      margin-top: -60px;
+      max-width: 45%;
+    }
+  }
+
+  // 平板和移动端隐藏滚动图片
+  @media (max-width: 992px) {
+    display: none;
+  }
+}
+
+.login-form-container {
+  position: absolute;
+  top: 240px;
+  right: 5%;
+  width: auto;
+  max-width: 65%;
+  min-width: 520px;
+  z-index: 1;
+  opacity: 0;
+  transform: translateX(60px);
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.5s,
+              transform 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.5s;
+
+  &.animate-in {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  // 卡片过渡动画
+  .card-fade-enter-active,
+  .card-fade-leave-active {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-fade-enter-from {
+    opacity: 0;
+    transform: translateX(-30px) scale(0.95);
+  }
+
+  .card-fade-enter-to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  .card-fade-leave-from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  .card-fade-leave-to {
+    opacity: 0;
+    transform: translateX(30px) scale(0.95);
+  }
+
+  // 响应式布局
+  @media (max-width: 1400px) {
+    top: 200px;
+    right: 12%;
+    max-width: 60%;
+    min-width: 480px;
+  }
+
+  @media (max-width: 1200px) {
+    top: 180px;
+    right: 10%;
+    max-width: 55%;
+    min-width: 450px;
+  }
+
+  @media (max-width: 992px) {
+    top: 160px;
+    right: 50%;
+    transform: translateX(calc(50% + 60px));
+    max-width: 90%;
+    min-width: auto;
+    width: 90%;
+    
+    &.animate-in {
+      transform: translateX(50%);
+    }
+  }
+
+  @media (max-width: 768px) {
+    top: 140px;
+    max-width: 95%;
+    width: 95%;
+    padding: 0 16px;
+  }
+
+  @media (max-width: 640px) {
+    top: 120px;
+    max-width: 100%;
+    width: 100%;
+    padding: 0 12px;
+  }
+
+  @media (max-width: 480px) {
+    top: 100px;
+    right: 55%;
+    transform: translateX(50%);
+    max-width: 100%;
+    width: 100%;
+    padding: 0 8px;
+    
+    &.animate-in {
+      transform: translateX(50%);
+    }
+  }
+}
+
+@keyframes slogan-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slogan-gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.beian-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  padding: 12px 0;
+  background: transparent;
+  text-align: center;
+  z-index: 1000;
+
+  a {
+    color: var(--text-disabled-color);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 400;
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: var(--color-primary);
+    }
+  }
+
+  // 响应式设计
+  @media (max-width: 768px) {
+    padding: 8px 0;
+
+    a {
+      font-size: 12px;
+    }
+  }
+}

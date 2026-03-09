@@ -1,0 +1,528 @@
+@use '@/assets/styles/index.scss' as *;
+
+// 使用系统颜色变量
+$primary-color: var(--primary-color);
+$primary-light: var(--color-primary-light);
+$text-color: var(--text-color);
+$background-secondary: var(--background-secondary-color);
+$background-tertiary: var(--background-tertiary-color);
+$shadow-color: var(--shadow-color);
+
+// 透明度颜色变量 - 使用CSS变量
+$accent-shadow: color-mix(in srgb, var(--primary-color) 30%, transparent);
+$accent-shadow-light: color-mix(in srgb, var(--primary-color) 20%, transparent);
+$accent-shadow-dark: color-mix(in srgb, var(--primary-color) 40%, transparent);
+
+// 渐变色
+$gradient-accent: linear-gradient(135deg, $primary-color 0%, $primary-light 100%);
+$gradient-background: linear-gradient(135deg, $background-secondary 0%, $background-tertiary 100%);
+
+.teacher-card {
+  position: relative;
+  width: 100%;
+  max-width: 900px; // 与CourseCard保持一致的最大宽度
+  height: 360px;
+  background: $gradient-background;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px $shadow-color;
+  display: flex;
+  flex-direction: row;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  // 垂直布局时调整高度
+  &:not(.horizontal) {
+    height: 450px;
+  }
+
+  // 添加顶部装饰条
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: $gradient-accent;
+    z-index: 10;
+  }
+
+  // 添加右下角装饰圆点
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 8px;
+    height: 8px;
+    background: $primary-color;
+    border-radius: 50%;
+    opacity: 0.6;
+    z-index: 10;
+    animation: pulse 2s ease-in-out infinite;
+  }
+}
+
+// 了解教师按钮样式
+.learn-more-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 20;
+  box-shadow: 0 4px 12px $accent-shadow;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px $accent-shadow-dark;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.teacher-info-section {
+  flex: 1;
+  padding: 20px 24px 24px 24px;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.decorative-curve {
+  position: absolute;
+  top: -150px;
+  left: 0;
+  width: 400px;
+  height: 700px;
+  background: linear-gradient(135deg, $primary-color 0%, $primary-light 30%, transparent 70%);
+  border-radius: 0 0 300px 0;
+  opacity: 0.15;
+  z-index: -2;
+}
+
+.teacher-basic-info {
+  position: relative;
+  z-index: 3;
+  margin-bottom: 16px;
+}
+
+.teacher-name {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  .first-name {
+    font-size: 28px;
+    font-weight: 700;
+    color: $primary-color;
+    line-height: 1.2;
+    text-shadow: 0 2px 4px $accent-shadow;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .last-name {
+    font-size: 28px;
+    font-weight: 700;
+    color: $text-color;
+    line-height: 1.2;
+    text-shadow: 0 2px 4px $shadow-color;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.teacher-title {
+  font-size: 16px;
+  color: $text-color;
+  font-weight: 400;
+  opacity: 0.9;
+  margin-left: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.5;
+}
+
+.contact-info {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  position: relative;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateX(4px);
+
+    .contact-icon {
+      color: $primary-light;
+      transform: scale(1.1);
+    }
+
+    .contact-value {
+      color: $text-color;
+      opacity: 1;
+    }
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, $primary-color 0%, transparent 100%);
+    opacity: 0.3;
+    transition: opacity 0.2s ease;
+  }
+
+  &:hover::after {
+    opacity: 0.6;
+  }
+}
+
+.contact-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $primary-color;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 20px;
+    background: $primary-color;
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+  }
+}
+
+.contact-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.contact-label {
+  font-size: 12px;
+  color: $primary-color;
+  font-weight: 500;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.contact-value {
+  font-size: 14px;
+  color: $text-color;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+// 联系信息底部样式
+.contact-footer {
+  position: absolute;
+  bottom: 16px;
+  left: 24px;
+  color: $primary-color;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 15;
+  max-width: calc(100% - 48px);
+  word-break: break-all;
+  line-height: 1.4;
+
+  // 阴影效果
+  text-shadow: 0 2px 4px $accent-shadow;
+}
+
+.teacher-brand-section {
+  flex: 0 0 280px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  
+  .brand-circle {
+    margin-left: -20px;
+  }
+
+  // 添加背景装饰元素
+  &::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: -40px;
+    width: 60px;
+    height: 60px;
+    background: $gradient-accent;
+    border-radius: 50%;
+    opacity: 0.1;
+    z-index: -2;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 30px;
+    left: 30px;
+    width: 40px;
+    height: 40px;
+    background: $gradient-accent;
+    border-radius: 8px;
+    opacity: 0.08;
+    z-index: 1;
+    transform: rotate(45deg);
+  }
+}
+
+.brand-circle {
+  position: relative;
+  width: 250px;
+  height: 250px;
+  background: $gradient-background;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 4px $accent-shadow-light,
+  0 8px 32px $shadow-color;
+  z-index: 2;
+
+  // 教师头像样式
+  .teacher-avatar {
+    width: 160px !important;
+    height: 160px !important;
+    border: 3px solid $primary-color !important;
+    box-shadow: 0 4px 16px $accent-shadow !important;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+  }
+}
+
+// 脉冲动画
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.2);
+  }
+}
+
+
+// 响应式设计
+@media (max-width: 768px) {
+  .teacher-card {
+    flex-direction: column;
+    height: auto;
+    min-height: 700px;
+    max-width: 100%; // 与CourseCard保持一致
+  }
+
+  .teacher-info-section {
+    padding: 24px;
+    flex: 1;
+  }
+
+  .teacher-brand-section {
+    flex: 0 0 300px;
+    padding: 24px;
+    justify-content: center;
+
+    &::before {
+      top: 15px;
+      left: -35px;
+    }
+    
+    .brand-circle {
+      margin-left: -20px;
+    }
+  }
+
+  .decorative-curve {
+    top: -50px;
+    left: -80px;
+    width: 450px;
+    height: 550px;
+  }
+
+  .brand-circle {
+    width: 200px;
+    height: 200px;
+
+    .teacher-avatar {
+      width: 160px !important;
+      height: 160px !important;
+    }
+  }
+
+  .teacher-name .first-name,
+  .teacher-name .last-name {
+    font-size: 24px;
+  }
+
+  // 移动端用户编码样式调整
+  .contact-footer {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    margin-top: 16px;
+    padding: 0;
+    font-size: 12px;
+    max-width: 100%;
+    text-align: center;
+  }
+}
+
+// 中等屏幕尺寸调整 (768px - 1024px)
+@media (max-width: 1024px) and (min-width: 769px) {
+  .teacher-card {
+    max-width: 800px; // 与CourseCard保持一致
+    height: 400px;
+  }
+
+  .teacher-info-section {
+    padding: 20px 22px 22px 22px;
+  }
+
+  .teacher-brand-section {
+    flex: 0 0 240px;
+    padding: 20px;
+    justify-content: center;
+
+    &::before {
+      top: 12px;
+      left: -35px;
+    }
+    
+    .brand-circle {
+      margin-left: -15px;
+    }
+  }
+
+  .brand-circle {
+    width: 220px;
+    height: 220px;
+
+    .teacher-avatar {
+      width: 150px !important;
+      height: 150px !important;
+    }
+  }
+
+  .teacher-name .first-name,
+  .teacher-name .last-name {
+    font-size: 26px;
+  }
+
+  // 中等屏幕用户编码样式
+  .contact-footer {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    margin-top: 16px;
+    padding: 0;
+    font-size: 12px;
+    max-width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .teacher-card {
+    margin: 0 16px; // 与CourseCard保持一致的外边距
+    border-radius: 12px;
+    min-height: 650px;
+    max-width: calc(100% - 32px); // 考虑左右边距
+  }
+
+  .teacher-info-section {
+    padding: 20px;
+  }
+
+  .teacher-brand-section {
+    padding: 20px;
+    flex: 0 0 250px;
+    justify-content: center;
+
+    &::before {
+      top: 20px;
+      left: -30px;
+    }
+    
+    .brand-circle {
+      margin-left: -15px;
+    }
+  }
+
+  .decorative-curve {
+    top: -30px;
+    left: -50px;
+    width: 350px;
+    height: 450px;
+  }
+
+  .brand-circle {
+    width: 180px;
+    height: 180px;
+
+    .teacher-avatar {
+      width: 140px !important;
+      height: 140px !important;
+    }
+  }
+
+  .teacher-name .first-name,
+  .teacher-name .last-name {
+    font-size: 20px;
+  }
+
+  // 小屏幕用户编码样式调整
+  .contact-footer {
+    margin-top: 12px;
+    padding: 0;
+    font-size: 11px;
+    text-align: center;
+  }
+}

@@ -1,0 +1,288 @@
+@use '@/assets/styles/index.scss';
+
+.notification-management-container {
+  .search-form {
+    margin-bottom: 16px;
+
+    .n-form-item {
+      margin-bottom: 16px;
+      margin-right: 16px;
+
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+
+    .n-input,
+    .n-select,
+    .n-date-picker {
+      width: 100%;
+    }
+    
+    .n-form-item > .n-button + .n-button {
+      margin-left: 8px;
+    }
+    .n-form-item:last-child .n-button:not(:first-child) {
+      margin-left: 12px;
+    }
+  }
+
+  .table-actions {
+    margin: 16px 0;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    .n-button {
+      flex-shrink: 0;
+    }
+  }
+
+  // 表格内操作列按钮间距补丁：确保操作按钮不会挤在一起
+  :deep(.n-data-table) {
+    :deep(.n-space) {
+      > .n-button {
+        margin-left: 8px;
+      }
+    }
+  }
+
+  .notification-detail {
+    .detail-descriptions {
+      margin-bottom: 16px;
+
+      :deep(.n-descriptions-item-label) {
+        font-weight: 500;
+        color: var(--text-secondary-color);
+      }
+
+      :deep(.n-descriptions-item-content) {
+        color: var(--text-color);
+      }
+    }
+
+    .detail-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .detail-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-color);
+
+        &::after {
+          content: '';
+          flex: 1;
+          height: 1px;
+          background-color: var(--border-secondary-color);
+        }
+      }
+    }
+
+    .notification-content {
+      padding: 14px 16px;
+      background-color: var(--background-secondary-color);
+      border-radius: 8px;
+      margin-bottom: 0;
+      line-height: 1.7;
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+
+      // 富文本内容样式
+      h1, h2, h3, h4, h5, h6 {
+        margin: 8px 0 4px 0;
+        font-weight: 600;
+        color: var(--text-color);
+      }
+
+      p {
+        margin: 4px 0;
+        color: var(--text-color);
+      }
+
+      ul, ol {
+        margin: 8px 0;
+        padding-left: 20px;
+      }
+
+      li {
+        margin: 4px 0;
+        color: var(--text-color);
+      }
+
+      a {
+        color: var(--primary-color);
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      blockquote {
+        margin: 8px 0;
+        padding: 8px 12px;
+        border-left: 4px solid var(--primary-color);
+        background-color: var(--background-secondary-color);
+        color: var(--text-secondary-color);
+      }
+
+      code {
+        padding: 2px 4px;
+        background-color: var(--background-secondary-color);
+        border-radius: 2px;
+        font-family: 'Monaco', 'Consolas', monospace;
+        font-size: 13px;
+        color: var(--text-color);
+      }
+
+      pre {
+        padding: 12px;
+        background-color: var(--background-secondary-color);
+        border-radius: 4px;
+        overflow-x: auto;
+        border: 1px solid var(--border-color);
+
+        code {
+          padding: 0;
+          background-color: transparent;
+          border-radius: 0;
+        }
+      }
+    }
+
+    .attachments-list {
+      margin-top: 8px;
+
+      .attachment-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background-color: var(--background-tertiary-color);
+        border-radius: 4px;
+        margin-bottom: 8px;
+        border: 1px solid var(--border-color);
+
+        .attachment-icon {
+          flex-shrink: 0;
+          color: var(--primary-color);
+        }
+
+        .attachment-info {
+          flex: 1;
+          min-width: 0;
+
+          .attachment-name {
+            font-weight: 500;
+            color: var(--text-color);
+            word-break: break-all;
+          }
+
+          .attachment-size {
+            font-size: 12px;
+            color: var(--text-disabled-color);
+          }
+        }
+
+        .attachment-actions {
+          flex-shrink: 0;
+
+          .n-button {
+            margin-left: 8px;
+          }
+        }
+      }
+    }
+  }
+
+  .upload-attachments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+
+    .upload-attachment-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 12px;
+      background-color: var(--background-tertiary-color);
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+    }
+
+    .upload-attachment-name {
+      flex: 1;
+      min-width: 0;
+      color: var(--text-color);
+      word-break: break-all;
+    }
+
+    .upload-attachment-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+  }
+
+  // 响应式设计
+  @media (max-width: 768px) {
+    .search-form {
+      .n-form-item {
+        width: 100%;
+        margin-right: 0;
+      }
+    }
+
+    .table-actions {
+      flex-direction: column;
+
+      .n-button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  }
+
+  // 表格样式调整
+  :deep(.n-data-table) {
+    .n-data-table-tbody {
+      .n-data-table-tr {
+        &.unread {
+          background-color: rgba(var(--info-color), 0.05);
+
+          &:hover {
+            background-color: rgba(var(--info-color), 0.08);
+          }
+        }
+      }
+    }
+  }
+
+  // 模态框样式
+  :deep(.n-modal) {
+    .n-card {
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+  }
+
+  // 上传组件样式
+  :deep(.n-upload) {
+    .n-upload-file-list {
+      margin-top: 8px;
+    }
+  }
+}

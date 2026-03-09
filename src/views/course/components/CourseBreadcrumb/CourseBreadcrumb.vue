@@ -1,0 +1,80 @@
+<template>
+  <div class="breadcrumb-container">
+    <n-breadcrumb class="breadcrumb" size="large">
+      <n-breadcrumb-item>
+        <router-link to="/dashboard">{{ t('course.home') }}</router-link>
+      </n-breadcrumb-item>
+      <n-breadcrumb-item>
+        <router-link to="/course/my-courses">{{ t('course.myCourses') }}</router-link>
+      </n-breadcrumb-item>
+      <n-breadcrumb-item v-if="courseInfo">
+        <router-link v-if="showCourseLink" :to="`/course/detail/${courseId}`">
+          {{ courseInfo.courseName }}
+        </router-link>
+        <span v-else>{{ courseInfo.courseName }}</span>
+      </n-breadcrumb-item>
+      <n-breadcrumb-item v-if="showQuestionBankOption">
+        <router-link :to="`/course/detail/${courseId}/questions`">
+          {{ t('app.title.course.courseQuestions') }}
+        </router-link>
+      </n-breadcrumb-item>
+      <n-breadcrumb-item v-if="showForumOption">
+        <router-link :to="`/course/detail/${courseId}/forum`">
+          {{ t('course.forum.title') }}
+        </router-link>
+      </n-breadcrumb-item>
+      <n-breadcrumb-item v-if="showPostOption">
+        <router-link :to="`/course/detail/${courseId}/forum/${forumId}`">
+          {{ t('course.forum.posts') }}
+        </router-link>
+      </n-breadcrumb-item>
+      <n-breadcrumb-item v-if="currentPage">
+        {{ currentPage }}
+      </n-breadcrumb-item>
+    </n-breadcrumb>
+
+    <!-- 操作按钮插槽 -->
+    <div v-if="$slots.actions" class="breadcrumb-actions">
+      <slot name="actions"></slot>
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import {computed} from 'vue'
+import {useRoute} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import type {CourseVO} from '@/types/course'
+
+// 定义组件属性
+interface Props {
+  courseInfo?: CourseVO | null
+  currentPage?: string
+  showCourseLink?: boolean
+  showQuestionBankOption?: boolean
+  showForumOption?: boolean
+  showPostOption?: boolean
+  forumId?: string
+}
+
+withDefaults(defineProps<Props>(), {
+  courseInfo: null,
+  currentPage: '',
+  showCourseLink: true,
+  showQuestionBankOption: false,
+  showForumOption: false,
+  showPostOption: false,
+  forumId: ''
+})
+
+// 路由和国际化
+const route = useRoute()
+const {t} = useI18n()
+
+// 计算属性
+const courseId = computed(() => route.params.courseId as string)
+</script>
+
+<style lang="scss" scoped>
+@use './CourseBreadcrumb.scss';
+</style>

@@ -1,0 +1,38 @@
+@use '@/assets/styles/index.scss' as *;
+
+.search-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 16px;
+
+  .search-form {
+    flex: 1;
+  }
+
+  .enroll-course-btn {
+    flex-shrink: 0;
+  }
+}
+
+.course-card-container {
+  .empty-state {
+    display: flex;
+    justify-content: center;
+    padding: 40px 0;
+  }
+
+  .course-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(5, 1fr);
+    margin-bottom: 24px;
+  }
+
+  .pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 24px;
+  }
+}

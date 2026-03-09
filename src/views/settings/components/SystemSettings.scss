@@ -1,0 +1,35 @@
+.system-settings {
+  padding: 20px;
+
+  h2 {
+    margin: 24px 0 16px 0;
+    color: var(--text-color);
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .color-options {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .color-option {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+
+    &:hover {
+      transform: scale(1.1);
+      border-color: var(--border-color);
+    }
+
+    &.active {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px var(--primary-color-light, rgba(24, 144, 255, 0.2));
+    }
+  }
+}

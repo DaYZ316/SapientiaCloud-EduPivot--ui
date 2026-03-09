@@ -1,0 +1,30 @@
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mt-4 {
+  margin-top: 16px;
+}
+
+.password-card, .security-card {
+  margin-bottom: 16px;
+}
+
+.verification-code-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+
+  .n-input-otp {
+    flex: 1;
+  }
+}

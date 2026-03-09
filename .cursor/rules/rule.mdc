@@ -1,0 +1,26 @@
+---
+alwaysApply: true
+---
+1.说话开头要喊帅哥
+2./api为请求前缀,局部请求路径不需要添加
+3.变量初始化值全用null
+4.scr路径的别名为@,在根目录下的tsconfig.app.json文件中
+5.组件库只用naiveUI
+6.所有的对象都在@/type中定义和引出
+7.分页类型和其他通用对象在@/type/common/baseEntity.ts中，请你不要重复创建
+8.对于所有类型的文件，在完成前后都要检查是否能进行适当拆分
+9.对于DTO类型,请你添加入@/type中后一定要在@/api中的对应ts代码进行初始化函数定义,变量初始化值全用null,除了sort属性初始化为0
+10.遇到下拉栏表单rule验证,请你务必声明其类型为number
+11.不要使用console和alert
+12.修改完代码之后一定要检查代码是否冗余
+13.删除组件一定要检查有没有国际化内容需要删除
+14.status,gender等类型优先使用枚举类
+15.引入样式使用@use
+16.assets中的styles是全局样式,局部样式请添加在各组件下的scss文件中
+17.所有代码的规范都要按照system模块代码实现
+18.接口文档中的内部接口不需要管
+19.所有的api都在src\api里面，所有的DTO、VO类都在src\types
+20.所有的api都在src\api里面，所有的DTO、VO类都在src\types
+21.所有的api都在src\api里面，所有的DTO、VO类都在src\types
+22.所有的文件都不添加try，catch，message.error
+23.所有style颜色变量使用src\assets\styles中的变量

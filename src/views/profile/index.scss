@@ -1,0 +1,283 @@
+.profile-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+
+  .profile-header {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 60px;
+    padding-bottom: 40px;
+    margin-bottom: 30px;
+    overflow: hidden;
+    border-radius: 12px;
+    text-align: center;
+
+    .profile-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 180px;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--info-color) 100%);
+      z-index: 0;
+    }
+
+    .profile-avatar-container {
+      position: relative;
+      z-index: 2;
+      margin-bottom: 16px;
+    }
+
+    .profile-name {
+      font-size: 28px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .profile-bio {
+      color: var(--text-secondary-color);
+      margin: 0 0 20px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .admin-badge {
+      position: relative;
+      z-index: 2;
+      margin-bottom: 20px;
+
+      .n-tag {
+        font-weight: 600;
+        font-size: 16px;
+        padding: 8px 16px;
+      }
+    }
+
+    .profile-stats {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      position: relative;
+      z-index: 2;
+
+      .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .stat-value {
+          font-size: 24px;
+          font-weight: 600;
+          color: var(--text-color);
+          margin-bottom: 4px;
+        }
+
+        .stat-label {
+          font-size: 14px;
+          color: var(--text-secondary-color);
+        }
+      }
+    }
+  }
+
+  .profile-tabs {
+    .custom-tabs {
+      margin-bottom: 24px;
+    }
+
+    .profile-section {
+      margin-bottom: 30px;
+    }
+
+    .info-card {
+      .action-buttons {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 24px;
+      }
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 500;
+      margin: 0 0 16px 0;
+      color: var(--text-color);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    // Admin角色特殊样式
+    .admin-role-section {
+      margin-bottom: 24px;
+
+      .admin-role-card {
+        border: 1px solid rgba(76, 175, 80, 0.2);
+        background: rgba(76, 175, 80, 0.03);
+        box-shadow: 0 2px 8px rgba(76, 175, 80, 0.1);
+        transition: all 0.3s ease;
+
+        &:hover {
+          border-color: rgba(76, 175, 80, 0.3);
+          box-shadow: 0 4px 16px rgba(76, 175, 80, 0.15);
+        }
+
+        .admin-role-header {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding-bottom: 12px;
+          border-bottom: 1px solid rgba(76, 175, 80, 0.1);
+
+          .admin-icon {
+            color: var(--success-color);
+            font-size: 20px;
+            opacity: 0.8;
+          }
+        }
+
+        .admin-role-content {
+          .admin-description {
+            color: var(--text-secondary-color);
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 0;
+            padding-top: 12px;
+          }
+        }
+      }
+    }
+
+    // Admin权限特殊样式
+    .admin-permissions-section {
+      margin-bottom: 24px;
+
+      .admin-permissions-card {
+        border: 1px solid rgba(76, 175, 80, 0.2);
+        background: rgba(76, 175, 80, 0.03);
+        box-shadow: 0 2px 8px rgba(76, 175, 80, 0.1);
+        transition: all 0.3s ease;
+
+        &:hover {
+          border-color: rgba(76, 175, 80, 0.3);
+          box-shadow: 0 4px 16px rgba(76, 175, 80, 0.15);
+        }
+
+        .admin-permissions-header {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding-bottom: 12px;
+          border-bottom: 1px solid rgba(76, 175, 80, 0.1);
+
+          .admin-icon {
+            color: var(--success-color);
+            font-size: 20px;
+            opacity: 0.8;
+          }
+        }
+
+        .admin-permissions-content {
+          .admin-description {
+            color: var(--text-secondary-color);
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 0;
+            padding-top: 12px;
+          }
+        }
+      }
+    }
+
+    .roles-card {
+      .roles-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+
+        .role-item {
+          padding: 16px;
+
+          .role-content {
+            margin-bottom: 16px;
+
+            .role-row {
+              display: flex;
+              align-items: center;
+              margin-bottom: 8px;
+
+              .role-label {
+                font-weight: 500;
+                width: 120px;
+                flex-shrink: 0;
+              }
+
+              .role-value {
+                color: var(--text-secondary-color);
+              }
+            }
+          }
+
+          .role-permissions {
+            .permission-title {
+              font-weight: 500;
+              margin-bottom: 12px;
+            }
+
+            .permission-tags {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 8px;
+            }
+          }
+        }
+      }
+    }
+
+    .permissions-card {
+      .permissions-tree {
+        max-height: 600px;
+        overflow-y: auto;
+      }
+    }
+
+
+    // 教师信息卡片样式
+    .teacher-info-card {
+      border: 2px solid var(--warning-color);
+      background: linear-gradient(135deg, rgba(250, 173, 20, 0.05) 0%, rgba(250, 173, 20, 0.1) 100%);
+
+      .teacher-info-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .teacher-icon {
+          color: var(--warning-color);
+          font-size: 24px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 12px;
+
+    .profile-header {
+      .profile-stats {
+        gap: 24px;
+      }
+    }
+  }
+}

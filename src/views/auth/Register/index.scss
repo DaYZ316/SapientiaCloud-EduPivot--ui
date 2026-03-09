@@ -1,0 +1,366 @@
+@use '@/assets/styles/index.scss' as *;
+
+.register-card {
+  background: color-mix(in srgb, var(--background-color) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
+  border-radius: 36px;
+  padding: 24px 36px;
+  box-shadow: 0 8px 32px 0 var(--shadow-secondary-color);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  width: 100%;
+  transition: box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+
+  .register-card-header {
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
+
+    .n-steps {
+      :deep(.n-step-header) {
+        .n-step-header__title {
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--text-color);
+        }
+
+        .n-step-header__indicator {
+          .n-step-header__indicator-wrapper {
+            border-color: var(--border-color);
+          }
+
+          &.n-step-header__indicator--active {
+            .n-step-header__indicator-wrapper {
+              border-color: var(--primary-color);
+              background-color: var(--primary-color);
+            }
+          }
+
+          &.n-step-header__indicator--finish {
+            .n-step-header__indicator-wrapper {
+              border-color: var(--success-color);
+              background-color: var(--success-color);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // 步骤切换动画 - 前进（从右滑入）
+  .step-slide-next-enter-active,
+  .step-slide-next-leave-active {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .step-slide-next-enter-from {
+    opacity: 0;
+    transform: translateX(30px) scale(0.95);
+  }
+
+  .step-slide-next-enter-to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  .step-slide-next-leave-from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  .step-slide-next-leave-to {
+    opacity: 0;
+    transform: translateX(-30px) scale(0.95);
+  }
+
+  // 步骤切换动画 - 后退（从左滑入）
+  .step-slide-prev-enter-active,
+  .step-slide-prev-leave-active {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .step-slide-prev-enter-from {
+    opacity: 0;
+    transform: translateX(-30px) scale(0.95);
+  }
+
+  .step-slide-prev-enter-to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  .step-slide-prev-leave-from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  .step-slide-prev-leave-to {
+    opacity: 0;
+    transform: translateX(30px) scale(0.95);
+  }
+
+  .step-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    .n-form {
+      margin-top: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+
+      .n-form-item {
+        margin-bottom: 0;
+
+        &:last-child {
+          padding-bottom: 0;
+          margin-bottom: 0;
+        }
+
+        .n-input {
+          border-radius: 10px;
+          background: transparent;
+          border-color: var(--primary-color) !important;
+          transition: border-color 0.3s ease, box-shadow 0.3s ease;
+
+          &:hover {
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 20%, transparent);
+          }
+
+          &:focus,
+          &:focus-within {
+            border-color: var(--primary-color) !important;
+          }
+
+          &:focus-within {
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 20%, transparent);
+          }
+
+          :deep(*) {
+            border-color: var(--primary-color) !important;
+          }
+        }
+      }
+
+      .avatar-upload-wrapper {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 0;
+      }
+
+      .verification-code-wrapper {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        width: 100%;
+
+        .n-input-otp {
+          flex: 1;
+          min-width: 0;
+
+          :deep(.n-input) {
+            background: transparent;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+
+            .n-input__border {
+              border-color: var(--primary-color) !important;
+            }
+          }
+
+          :deep(.n-input:hover) {
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 20%, transparent);
+          }
+
+          :deep(.n-input:hover .n-input__border),
+          :deep(.n-input:focus-within .n-input__border) {
+            border-color: var(--primary-color) !important;
+          }
+
+          :deep(.n-input:focus-within) {
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 20%, transparent);
+          }
+        }
+
+        .n-button {
+          flex-shrink: 0;
+          border-radius: 10px;
+          white-space: nowrap;
+        }
+      }
+    }
+
+    .confirm-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+
+      .n-descriptions {
+        :deep(.n-descriptions-table) {
+          .n-descriptions-table__th,
+          .n-descriptions-table__td {
+            background-color: color-mix(in srgb, var(--background-color) 5%, transparent);
+            border-color: color-mix(in srgb, var(--border-color) 20%, transparent);
+            padding: 12px 16px;
+          }
+
+          .n-descriptions-table__th {
+            color: var(--text-secondary-color);
+            font-weight: 500;
+            width: 120px;
+          }
+
+          .n-descriptions-table__td {
+            color: var(--text-color);
+          }
+        }
+      }
+
+      .avatar-preview {
+        display: flex;
+        align-items: center;
+      }
+    }
+
+    .register-button {
+      width: 100%;
+      height: 44px;
+      border-radius: 10px;
+      font-weight: 500;
+      font-size: 15px;
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      transition: all 0.3s ease;
+      margin-top: 0;
+      box-shadow: 0 2px 8px color-mix(in srgb, var(--primary-color) 30%, transparent);
+
+      &:hover:not(:disabled):not(.n-button--loading) {
+        background: var(--color-primary-light);
+        border-color: var(--color-primary-light);
+        box-shadow: 0 4px 12px color-mix(in srgb, var(--primary-color) 40%, transparent);
+        transform: translateY(-1px);
+      }
+
+      &:active:not(:disabled):not(.n-button--loading) {
+        background: var(--color-primary-dark);
+        border-color: var(--color-primary-dark);
+        box-shadow: 0 2px 6px color-mix(in srgb, var(--primary-color) 30%, transparent);
+        transform: translateY(0);
+      }
+
+      &:disabled,
+      &.n-button--loading {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+    }
+
+    .register-button-secondary {
+      width: 100%;
+      height: 44px;
+      border-radius: 10px;
+      font-weight: 500;
+      font-size: 15px;
+      transition: all 0.3s ease;
+      margin-top: 0;
+      background: color-mix(in srgb, var(--background-color) 5%, transparent);
+      border-color: color-mix(in srgb, var(--border-color) 20%, transparent);
+      color: var(--text-color);
+
+      &:hover:not(:disabled) {
+        background: color-mix(in srgb, var(--background-color) 10%, transparent);
+        border-color: color-mix(in srgb, var(--border-color) 30%, transparent);
+      }
+
+      &:active:not(:disabled) {
+        background: color-mix(in srgb, var(--background-color) 15%, transparent);
+      }
+    }
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .register-card {
+    padding: 20px 24px;
+    border-radius: 24px;
+
+    .register-card-header {
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+
+      .n-steps {
+        :deep(.n-step-header) {
+          .n-step-header__title {
+            font-size: 12px;
+          }
+        }
+      }
+    }
+
+    .step-content {
+      .n-form {
+        .n-form-item {
+          padding-bottom: 12px;
+        }
+
+        .avatar-upload-wrapper {
+          padding: 12px 0;
+        }
+      }
+
+      .register-button,
+      .register-button-secondary {
+        height: 42px;
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .register-card {
+    padding: 18px 20px;
+    margin: 16px;
+    border-radius: 20px;
+
+    .register-card-header {
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+
+      .n-steps {
+        :deep(.n-step-header) {
+          .n-step-header__title {
+            font-size: 11px;
+          }
+        }
+      }
+    }
+
+    .step-content {
+      .n-form {
+        .n-form-item {
+          padding-bottom: 10px;
+        }
+
+        .avatar-upload-wrapper {
+          padding: 10px 0;
+        }
+      }
+
+      .register-button,
+      .register-button-secondary {
+        height: 42px;
+        font-size: 14px;
+      }
+    }
+  }
+}
+

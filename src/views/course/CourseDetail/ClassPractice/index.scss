@@ -1,0 +1,125 @@
+.class-practice {
+  width: 100%;
+  min-height: 89vh;
+  box-sizing: border-box;
+
+  // 左右分布布局
+  .main-content {
+    display: flex;
+    gap: 16px;
+    height: 74vh;
+  }
+
+  // 左侧练习列表
+  .practice-sidebar {
+    flex: 0 0 40%;
+    min-width: 350px;
+    max-width: 450px;
+    height: 100%;
+    overflow: hidden;
+
+    :deep(.practice-list-card) {
+      height: 100%;
+      overflow-y: auto;
+    }
+  }
+
+  // 右侧练习详情
+  .practice-detail {
+    flex: 1;
+    height: 100%;
+    overflow: hidden;
+
+    :deep(.practice-detail-card),
+    :deep(.practice-empty-card) {
+      height: 100%;
+      overflow-y: auto;
+    }
+  }
+}
+
+// 响应式设计
+@media (max-width: 1200px) {
+  .class-practice {
+    .main-content {
+      height: 85vh;
+      gap: 14px;
+    }
+
+    // 中等屏幕下的左右分布
+    .practice-sidebar {
+      flex: 0 0 35%;
+      min-width: 320px;
+      max-width: 400px;
+    }
+
+    .practice-detail {
+      flex: 1;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .class-practice {
+    .main-content {
+      flex-direction: column;
+      height: auto;
+      min-height: auto;
+      gap: 16px;
+    }
+
+    // 平板端上下分布
+    .practice-sidebar {
+      flex: none;
+      width: 100%;
+      min-width: auto;
+      max-width: none;
+      height: 400px;
+
+      :deep(.practice-list-card) {
+        height: 100%;
+        overflow-y: auto;
+      }
+    }
+
+    .practice-detail {
+      flex: none;
+      width: 100%;
+      height: 500px;
+
+      :deep(.practice-detail-card),
+      :deep(.practice-empty-card) {
+        height: 100%;
+        overflow-y: auto;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .class-practice {
+    .main-content {
+      gap: 12px;
+    }
+
+    // 手机端上下分布
+    .practice-sidebar {
+      height: 350px;
+
+      :deep(.practice-list-card) {
+        height: 100%;
+        overflow-y: auto;
+      }
+    }
+
+    .practice-detail {
+      height: 450px;
+
+      :deep(.practice-detail-card),
+      :deep(.practice-empty-card) {
+        height: 100%;
+        overflow-y: auto;
+      }
+    }
+  }
+}

@@ -193,6 +193,7 @@
                     <n-input-number
                         v-model:value="componentCols"
                         :min="1"
+                        :step="inputStep"
                         style="width:100%;"
                         :placeholder="t('classroom.detail.columnsPlaceholder')"
                         @update:value="computeCellSizeDetail"
@@ -204,28 +205,50 @@
               <div class="seating-preview-section">
                 <label class="form-label required">{{ t('classroom.detail.seatingPreview') }}</label>
                 <div v-if="rows > 0 && cols > 0" class="seating-preview" ref="seatingPreviewRef">
-                  <template v-if="classroomType === ClassroomTypeEnum.LARGE">
-                    <div class="large-components-row" :style="{ gap: GAP_D + 'px' }">
-                      <template v-for="r in rows" :key="'row-' + r">
-                        <div class="large-component-row" style="display:flex;gap:8px;justify-content:center;">
-                          <template v-for="c in componentCount" :key="'comp-' + r + '-' + c">
-                            <div
-                              class="large-component"                        
-                            >
-                              <div
-                                v-for="local in 4"
-                                :key="local"
-                                class="large-seat"
-                                :style="{ fontSize: '12px' }"
-                              >
-                                <span v-if="getSeatLabelFromComp(r - 1, c - 1, local - 1)">{{ getSeatLabelFromComp(r - 1, c - 1, local - 1) }}</span>
-                              </div>
-                          </div>
-                          </template>
-                        </div>
-                      </template>
+                  <template v-if="classroomType === ClassroomTypeEnum.EXTRA_LARGE">
+                    <div class="preview-extra-large-container">
+                      <div
+                        v-for="(seat, index) in getExtraLargeSeatPositions()"
+                        :key="`seat-${index}`"
+                        class="preview-extra-large-seat"
+                        :style="{
+                          left: seat.x + 'px',
+                          top: seat.y + 'px'
+                        }"
+                        :title="`${t('classroom.detail.seat')}: ${seat.label}`"
+                      >
+                        {{ seat.label }}
+                      </div>
                     </div>
-                    <p class="preview-info" style="text-align:center;margin-top:8px;">{{ t('classroom.detail.totalSeats', {count: rows * cols}) }}</p>
+                    <p class="preview-info" style="text-align:center;margin-top:8px;">
+                      {{ t('classroom.detail.totalSeats', {count: getExtraLargeTotalSeats(rows, cols)}) }}
+                    </p>
+                  </template>
+                  <template v-else-if="classroomType === ClassroomTypeEnum.LARGE">
+                    <div class="preview-grid">
+                      <div
+                          v-for="(_row, rowIndex) in rows"
+                          :key="`row-${rowIndex}`"
+                          class="preview-large-row"
+                      >
+                          <div
+                              v-for="(_col, colIndex) in (cols/4)"
+                              :key="`seat-${rowIndex}-${colIndex}`"
+                              class="preview-large-col"
+                          >
+                            <div
+                              v-for="local in 4"
+                              :key="local"
+                              class="preview-large-seat"
+                            >
+                              {{ String.fromCharCode(65 + colIndex) }}{{ rowIndex + 1 }}
+                            </div>
+                          </div>
+                      </div>
+                    </div>
+                    <p class="preview-info" style="text-align:center;margin-top:8px;">
+                      {{ t('classroom.detail.totalSeats', {count: rows * cols}) }}
+                    </p>
                   </template>
                   <template v-else>
                     <div class="preview-grid">
@@ -241,8 +264,8 @@
                             class="preview-seat"
                             :style="{ width: cellSizeDetail + 'px', height: cellSizeDetail + 'px' }"
                         >
-                        {{ String.fromCharCode(65 + colIndex) }}{{ rowIndex + 1 }}
-                      </div>
+                          {{ String.fromCharCode(65 + colIndex) }}{{ rowIndex + 1 }}
+                        </div>
                       </div>
                     </div>
                     <p class="preview-info">{{ t('classroom.detail.totalSeats', {count: rows * cols}) }}</p>
@@ -289,7 +312,7 @@ import type {CourseRecordDTO, CourseRecordVO} from '@/types/classroom'
 import {getClassroomTypeFromString, getClassroomTypeString, ClassroomTypeEnum} from '@/enum/classroom/classroomTypeEnum'
 import {CourseRecordStatusEnum} from '@/enum/classroom/courseRecordStatusEnum'
 import {runViewTransition} from '@/utils/themeAnimation'
- 
+import {getExtraLargeTotalSeats} from '@/views/classroom/composables/useSeatLayout'
 
 interface Props {
   courseId: string
@@ -353,7 +376,7 @@ const classroomSpecs = computed(() => [
   {
     value: 'classroomPromax',
     name: t('classroom.detail.classroomPromax'),
-    capacity: 80,
+    capacity: 250,
     features: t('classroom.detail.classroomPromaxFeatures'),
     icon: LibraryOutline
   }
@@ -456,7 +479,6 @@ function onClassroomSizeChange(/* newSize param may be unreliable; read from rea
   // 重新计算预览格子尺寸以响应式适配新规格
   computeCellSizeDetail()
 }
-
 
 // 提交表单
 async function submitForm() {
@@ -584,17 +606,23 @@ onBeforeUnmount(() => {
 // When classroom is LARGE, the UI's columns input should represent model/component count (each component = 4 seats).
 const componentCols = computed<number>({
   get() {
-    if (classroomType.value === ClassroomTypeEnum.LARGE) {
-      return Math.max(1, Math.ceil((cols.value || 1) / 4));
-    }
     return cols.value || 1;
   },
   set(v: number) {
-    if (classroomType.value === ClassroomTypeEnum.LARGE) {
-      // store as actual seat columns (components * 4)
-      cols.value = Number(v) * 4;
+    const raw = Number(v) || 0;
+    if (classroomType.value === ClassroomTypeEnum.EXTRA_LARGE) {
+      // round to nearest integer first
+      let n = Math.round(raw);
+      // if odd, pick nearest even (四舍五入到最近偶数)
+      if (n % 2 !== 0) {
+        const down = n - 1;
+        const up = n + 1;
+        n = Math.abs(raw - down) <= Math.abs(up - raw) ? down : up;
+      }
+      // ensure at least 2 columns for even layout
+      cols.value = Math.max(2, n);
     } else {
-      cols.value = Number(v);
+      cols.value = Math.max(1, Math.round(raw));
     }
     // recompute preview sizing after change
     computeCellSizeDetail();
@@ -608,6 +636,15 @@ const componentCount = computed(() => {
   return Math.max(1, cols.value || 1);
 });
 
+const inputStep = computed(() => {
+  if (classroomType.value === ClassroomTypeEnum.LARGE) {
+    return 4;
+  }else if (classroomType.value === ClassroomTypeEnum.EXTRA_LARGE) {
+    return 2;
+  }
+  return 1;
+});
+
 // For LARGE classroom: compute seat label from component row/col and local seat index (0..3)
 const getSeatLabelFromComp = (compRow: number, compCol: number, localIndex: number): string | null => {
   const globalRow = compRow;
@@ -616,6 +653,97 @@ const getSeatLabelFromComp = (compRow: number, compCol: number, localIndex: numb
   const totalCols = cols.value || 1;
   if (globalRow < 0 || globalRow >= totalRows || globalCol < 0 || globalCol >= totalCols) return null;
   return `${String.fromCharCode(65 + globalCol)}${globalRow + 1}`;
+};
+
+// For EXTRA_LARGE classroom: compute seat positions for fan-shaped layout
+const getExtraLargeSeatPositions = () => {
+  const positions: Array<{x: number, y: number, label: string, ring: number}> = [];
+
+  // Parameters based on calculateExtraLargeSeatPosition logic
+  const outerRadius = 29.6;
+  const innerRadius = 11.8;
+  const angleSpanDeg = 120;
+  const angleStart = (180 - (180 - angleSpanDeg) / 2) * Math.PI / 180;
+
+  // Compute radii for each ring
+  const radii: number[] = [];
+  for (let r = 0; r < 10; r++) {
+    const t = r / 9;
+    radii.push(innerRadius + t * (outerRadius - innerRadius));
+  }
+
+  // Calculate total seats based on classroom type
+  // For EXTRA_LARGE classroom: cols represents seats in first row, each subsequent row adds 2 seats
+  const totalSeats = getExtraLargeTotalSeats(rows.value || 0, cols.value || 0);
+  let seatIndex = 0;
+
+  // use preview container size if available to fit layout to outer frame
+  const container = seatingPreviewRef.value;
+  const containerWidth = container ? Math.max(100, container.clientWidth) : 300;
+  const containerHeight = container ? Math.max(100, container.clientHeight) : 300;
+  const minSide = Math.min(containerWidth, containerHeight);
+  // leave some padding inside the frame
+  const padding = Math.max(16, Math.floor(minSide * 0.06));
+  const usableSize = minSide - padding * 2;
+
+  // scale so outerRadius maps to ~usableSize/2
+  const scale = usableSize / (outerRadius * 2);
+  const centerX = containerWidth / 2;
+  const centerY = containerHeight / 2;
+
+  // Process each seat
+  while (seatIndex < totalSeats) {
+    let remaining = seatIndex + 1;
+    let count = Math.max(1, cols.value || 1);
+    let ring = 0;
+
+    // Find which ring this seat belongs to
+    while (remaining > count) {
+      remaining -= count;
+      count += 2;
+      ring++;
+      if (ring >= radii.length) break;
+    }
+
+    if (ring < radii.length) {
+      const radius = radii[ring];
+      let angle = angleStart;
+      const angleSpan = (angleSpanDeg * Math.PI) / 180 / (count + 1);
+      const angleMedium = angleStart - angleSpan * Math.floor(count / 2);
+
+      remaining -= 0.5;
+      if (remaining <= count / 2) {
+        angle = angleStart - (angleSpan * remaining);
+      } else {
+        remaining -= count / 2;
+        angle = angleMedium - (angleSpan * remaining);
+        remaining += count / 2;
+      }
+
+      // Convert polar to cartesian (for 2D preview)
+      const x = Math.cos(angle) * radius+2;
+      const z = -Math.sin(angle) * radius+14;
+
+      const previewX = centerX + x * scale * 4;
+      const previewY = centerY - z * scale * 4; // Flip Y axis for screen coordinates
+
+      // Generate seat label
+      const rowNum = ring;
+      const colNum = remaining+0.5;
+      const label = `${String.fromCharCode(65 + (rowNum % 26))}${colNum}`;
+
+      positions.push({
+        x: previewX,
+        y: previewY,
+        label,
+        ring
+      });
+    }
+
+    seatIndex++;
+  }
+
+  return positions;
 };
 
 // 处理留在此页

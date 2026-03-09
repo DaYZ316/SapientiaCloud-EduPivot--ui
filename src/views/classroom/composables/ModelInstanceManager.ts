@@ -82,7 +82,7 @@ export class ModelInstanceManager {
   }
 
   // 创建整体模型的实例化网格集合
-  createGroupedInstancedMeshes(subComponents: SubComponentInfo[], count: number): InstancedMesh[] {
+  createGroupedInstancedMeshes(subComponents: SubComponentInfo[], count: number, texture: THREE.Texture | null): InstancedMesh[] {
     const instancedMeshGroups: InstancedMesh[] = [];
 
     subComponents.forEach((component) => {
@@ -90,9 +90,10 @@ export class ModelInstanceManager {
         const mesh = meshData.mesh;
         try {
           const geometry = mesh.geometry;
-          const material = Array.isArray(mesh.material)
-              ? mesh.material.map((m: THREE.Material) => m.clone())
-              : (mesh.material.clone ? mesh.material.clone() : mesh.material);
+          const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            side: THREE.DoubleSide
+          });
 
           const instancedMesh = new THREE.InstancedMesh(geometry, material, count);
           instancedMesh.name = `${component.name}_${meshIndex}_instanced`;

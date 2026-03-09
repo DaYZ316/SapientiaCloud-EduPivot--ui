@@ -84,9 +84,9 @@ export const computeCameraPositionsBySize = (
     frontPos.y = baseHeight + extraHeight - 4;
     frontPos.z = halfZ - wallOffsetZ - extraBack + 8;
 
-    rightRearPos.x = halfX + wallOffsetX * 0.5 - 8;
+    rightRearPos.x = halfX + wallOffsetX * 0.5 - 6;
     rightRearPos.y = baseHeight + extraHeight - 2;
-    rightRearPos.z = -(halfZ - wallOffsetZ + extraBack) + 30;
+    rightRearPos.z = -(halfZ - wallOffsetZ + extraBack) + 19;
 
     leftRearPos.x = -rightRearPos.x;
     leftRearPos.y = rightRearPos.y;

@@ -506,7 +506,7 @@
       }
 
       .seating-settings-section {
-        flex: 0 0 280px;
+        flex: 0 0 100px;
         min-width: 200px;
         max-width: 100%;
 
@@ -630,35 +630,77 @@
             text-align: center;
             transition: color 0.3s ease;
           }
-          
+
           /* large component styles - moved from ClassroomDetail.vue */
-          .large-components-row {
+          .preview-large-row {
             display: flex;
             gap: 12px;
             justify-content: center;
             align-items: center;
-            flex-wrap: wrap;
-          }
-          .large-component {
-            width: 140px;
+            flex-wrap: nowrap;
+            width: 100%;
+            max-width: 100%;
+          }          
+
+          .preview-large-col{   
+            width: 160px;
             height: 40px;
-            border: 1px solid rgba(0,0,0,0.12);
+            min-width: 160px;
+            flex-shrink: 0;
+            display: flex;   
+            align-items: center;
+            justify-content: center;
+            background-color: var(--background-secondary-color);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
-            display: flex;
-            overflow: hidden;
-            background: rgba(255,255,255,0.02);
           }
-          .large-seat {
+          .preview-large-seat {
             flex: 1;
-            border-left: 1px solid rgba(0,0,0,0.06);
+            border-left: 2px solid var(--border-color);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 11px;
+            font-weight: 500;
             color: var(--text-color);
           }
-          .large-seat:first-child {
+          .preview-large-seat:first-child {
             border-left: none;
+          }
+
+          /* Extra large classroom fan-shaped layout styles */
+          .preview-extra-large-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background-color: var(--background-color);
+            border-radius: 8px;
+            overflow: scroll;
+          }
+
+          .preview-extra-large-seat {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--text-color);
+            background-color: var(--card-background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: all 0.2s ease;
+
+            &:hover {
+              background-color: var(--primary-color);
+              color: white;
+              border-color: var(--primary-color);
+              transform: translate(-50%, -50%) scale(1.1);
+            }
           }
         }
       }

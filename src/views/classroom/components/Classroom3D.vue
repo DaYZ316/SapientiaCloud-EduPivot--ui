@@ -83,7 +83,9 @@ import {
 } from '@/views/classroom/composables/useCameraGroup';
 import {
   getClassroomModelPathByRecord,
+  getClassroomModelTexturePathByRecord,
   getDeskModelPathByRecord,
+  getdeskChairModelTexturePathByRecord,
 } from '@/views/classroom/composables/useModelRouter';
 import {useSeatLayout} from '@/views/classroom/composables/useSeatLayout';
 import {ClassroomTypeEnum} from '@/enum/classroom/classroomTypeEnum';
@@ -707,6 +709,7 @@ let camera: PerspectiveCamera | null = null;
 let controls: PointerLockControls | null = null;
 let classroomModel: THREE.Group | null = null;
 let loader: GLTFLoader | null = null;
+let textureLoader: THREE.TextureLoader| null = null;
 let spritePositions: THREE.Vector3[] = [];
 const initThree = () => {
   //窗口大小信息
@@ -957,7 +960,6 @@ const initThree = () => {
   const sun = new THREE.Vector3();
 
   /// GUI
-
   const effectController = {
     turbidity: 8,          // 降低浑浊度，黎明时空气较清新
     rayleigh: 5,           // 增加瑞利散射，强化黎明的蓝色和粉色调
@@ -995,87 +997,103 @@ const initThree = () => {
    */
   spritePositions = [];
 
+
+
   /**
    * 加载教室模型
    */
   loader = new GLTFLoader();
+  textureLoader = new THREE.TextureLoader();
+
+  let classroomTexture: THREE.Texture | null = null;
+  let deskChairTexture: THREE.Texture | null = null;
 
   // 加载模型 - 顺序加载实现
   const loadModelsSequentially = async () => {
     try {
+      await new Promise<void>((resolve, reject) => {
+        if (!textureLoader) {
+          reject(new Error('TextureLoader not initialized'));
+          return;
+        }
+        
+        classroomTexture = textureLoader.load(getClassroomModelTexturePathByRecord(courseRecord.value))
+        deskChairTexture = textureLoader.load(getdeskChairModelTexturePathByRecord(courseRecord.value))
+        classroomTexture.flipY = false;
+        deskChairTexture.flipY = false;
+
+        resolve();
+      });
       // 加载第一个模型（教室）
       await new Promise<void>((resolve, reject) => {
+        const bakedMaterial = new THREE.MeshBasicMaterial({
+          map: classroomTexture,
+          side: THREE.DoubleSide
+        });
+
         if (!loader) {
           reject(new Error('Loader not initialized'));
           return;
         }
+
         loader.load(
-            getClassroomModelPathByRecord(courseRecord.value),
-            (gltf: GLTF) => {
-              classroomModel = gltf.scene;
-              // 调整模型大小和位置
-              classroomModel.position.set(0, 0, 0);
-              classroomModel.rotation.y = Math.PI / 2; // 根据需要调整旋转
+          getClassroomModelPathByRecord(courseRecord.value),
+          (gltf: GLTF) => {
+            classroomModel = gltf.scene;
+            // 调整模型大小和位置
+            classroomModel.position.set(0, 0, 0);
+            classroomModel.rotation.y = Math.PI / 2; // 根据需要调整旋转
 
-              // 计算并输出模型尺寸
-              const box = new THREE.Box3().setFromObject(classroomModel);
-              const size = new THREE.Vector3();
-              box.getSize(size);
+            // 计算并输出模型尺寸
+            const box = new THREE.Box3().setFromObject(classroomModel);
+            const size = new THREE.Vector3();
+            box.getSize(size);
 
-              classroomXLenghtRef.value = size.x;
-              classroomYLenghtRef.value = size.y;
-              classroomZLenghtRef.value = size.z;
+            classroomXLenghtRef.value = size.x;
+            classroomYLenghtRef.value = size.y;
+            classroomZLenghtRef.value = size.z;
 
-              // 根据最新的教室模型尺寸重新计算相机位置
-              window.cameraPositions = computeCameraPositionsBySize(
-                  classroomXLenghtRef.value,
-                  classroomYLenghtRef.value,
-                  classroomZLenghtRef.value,
-                  courseRecord.value?.classroomType
+            // 根据最新的教室模型尺寸重新计算相机位置
+            window.cameraPositions = computeCameraPositionsBySize(
+                classroomXLenghtRef.value,
+                classroomYLenghtRef.value,
+                classroomZLenghtRef.value,
+                courseRecord.value?.classroomType
+            );
+
+            // 模型加载完成后，将相机初始位置设置为相机组中的 front 视角
+            const frontConfig = window.cameraPositions?.front;
+            if (camera && frontConfig) {
+              camera.position.set(
+                  frontConfig.position.x,
+                  frontConfig.position.y,
+                  frontConfig.position.z
               );
-
-              // 模型加载完成后，将相机初始位置设置为相机组中的 front 视角
-              const frontConfig = window.cameraPositions?.front;
-              if (camera && frontConfig) {
-                camera.position.set(
-                    frontConfig.position.x,
-                    frontConfig.position.y,
-                    frontConfig.position.z
-                );
-                camera.setRotationFromEuler(frontConfig.initialRotation);
-              }
-
-              // 处理Blender中添加的点光源，转换为three.js标准
-              classroomModel.traverse((child: THREE.Object3D) => {
-                // 检查是否为光源对象
-                const light = child as THREE.Light;
-                if (light.isLight) {
-                  // 点光源增强处理
-                  const pointLight = light as THREE.PointLight;
-                  if (pointLight.isPointLight) {
-                    // 设置点光源的强度为0.2
-                    pointLight.intensity = 8;
-                    // 设置合适的衰减
-                    pointLight.decay = 2;
-                    // 增加光源范围
-                    pointLight.distance = Math.max(pointLight.distance || 10, 15);
-                  }
-                }
-              });
-
-
-              if (scene && classroomModel) {
-                scene.add(classroomModel);
-              }
-              resolve();
-            },
-            () => {
-              // 加载进度处理
-            },
-            (error) => {
-              reject(error);
+              camera.setRotationFromEuler(frontConfig.initialRotation);
             }
+
+            // 遍历模型，应用纹理
+            classroomModel.traverse((child) => {
+              if ((child as THREE.Mesh).isMesh) {
+                const mesh = child as THREE.Mesh;
+                mesh.material = bakedMaterial;
+                mesh.material.needsUpdate = true;
+              }
+            });
+
+            if (scene && classroomModel) {
+              scene.add(classroomModel);
+            }
+            resolve();
+          },
+          () => {
+            // 加载进度处理
+          },
+          (error) => {
+            reject(error);
+          }
         );
+
       });
 
       // 第一个模型加载完成后，加载第二个模型（桌椅）
@@ -1109,7 +1127,11 @@ const initThree = () => {
                 const totalSeatCount = maxAllowedInstances * seatsPerModel;
 
                 // 3. 创建整体模型的实例化网格集合
-                const instancedMeshGroups = modelInstanceManager.createGroupedInstancedMeshes(subComponents, maxAllowedInstances);
+                const instancedMeshGroups = modelInstanceManager.createGroupedInstancedMeshes(
+                  subComponents, 
+                  maxAllowedInstances,
+                  deskChairTexture
+                );
 
                 // 4. 批量计算位置和设置矩阵（优化内存使用）
                 const calculatePosition = (instanceId: number, position: THREE.Vector3): THREE.Vector3 => {

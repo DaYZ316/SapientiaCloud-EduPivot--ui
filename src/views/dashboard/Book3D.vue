@@ -13,7 +13,6 @@ import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 // 组件状态
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const loading = ref(true);
-const loadingText = ref('正在加载3D模型...');
 const error = ref<string | null>(null);
 // 使用静态路径，因为 3D 模型文件是通过插件直接复制到 dist/assets/3Dmodel/ 的
 const modelUrl = import.meta.env.DEV
@@ -27,6 +26,7 @@ let scene: THREE.Scene | null = null;
 let camera: THREE.PerspectiveCamera | null = null;
 let bookModel: THREE.Group | null = null;
 let loader: GLTFLoader | null = null;
+let bakedMaterial: THREE.MeshBasicMaterial | null = null;
 let animationId: number | null = null;
 let sizes = {
   width: 0,
@@ -87,7 +87,8 @@ const initThree = () => {
      * 相机设置
      */
     camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 1000);
-    camera.position.set(1, 1.5, 1); // 设置相机位置，从斜上方观察书本
+    camera.position.set(-0.2, 1.5, 2); // 设置相机位置，从斜上方观察书本
+    camera.rotation.set(-0.5, -0.1, 0)
     scene.add(camera);
 
     /**
@@ -108,27 +109,54 @@ const initThree = () => {
     /**
      * 灯光设置
      */
-        // 温暖的黄色主灯光
-    const keyLight = new THREE.PointLight(0xffe28a, 6);
-    keyLight.position.set(0.6, 1.2, 1.6);
-    scene.add(keyLight);
 
-    // 柔和的填充灯光
-    const fillLight = new THREE.AmbientLight(0xfff1c7, 0.3);
-    scene.add(fillLight);
-
-    /**
-     * 加载器设置
-     */
-    loader = new GLTFLoader();
-    // 设置 GLTFLoader 的基础路径，用于解析相对资源路径
-    const modelDir = modelUrl.substring(0, modelUrl.lastIndexOf('/') + 1);
-    loader.setPath(modelDir);
 
     /**
      * 加载3D模型
      */
-    loadBookModel();
+    const textureLoader = new THREE.TextureLoader();
+    const texturePath = import.meta.env.DEV
+        ? new URL('@/assets/3Dmodel/book/texture/baked.png', import.meta.url).href
+        : '/assets/3Dmodel/book/texture/baked.png';
+    const bookTexture = textureLoader.load(texturePath);
+    bookTexture.flipY = false;
+
+    bakedMaterial = new THREE.MeshBasicMaterial({
+        map: bookTexture,
+        side: THREE.DoubleSide
+    });
+
+    loader = new GLTFLoader();
+    const modelDir = modelUrl.substring(0, modelUrl.lastIndexOf('/') + 1);
+    loader.setPath(modelDir);
+    const modelFileName = modelUrl.substring(modelUrl.lastIndexOf('/') + 1);
+    loader.load(
+        modelFileName,
+        (gltf) => {
+          bookModel = gltf.scene;
+
+          // 遍历模型，应用纹理
+          bookModel.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+              const mesh = child as THREE.Mesh;
+              if (bakedMaterial) {
+                mesh.material = bakedMaterial;
+                mesh.material.needsUpdate = true;
+              }
+            }
+          });
+
+          if (scene) {
+            scene.add(bookModel);
+          }
+        },
+        (xhr) => {
+          console.log(`加载进度: ${Math.round(xhr.loaded / xhr.total * 100)}%`);
+        },
+        (error) => {
+          console.error('模型加载错误:', error);
+        }
+    );
 
     /**
      * 开始动画循环
@@ -156,50 +184,11 @@ const initThree = () => {
   }
 };
 
-// 修复缺失的纹理
-const fixMissingTextures = (object: THREE.Object3D) => {
-  object.traverse((child: THREE.Object3D) => {
-    if ((child as THREE.Mesh).isMesh) {
-      const mesh = child as THREE.Mesh;
-      if (mesh.material) {
-        const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-
-        materials.forEach((material: THREE.Material) => {
-          if (material instanceof THREE.MeshStandardMaterial || material instanceof THREE.MeshBasicMaterial) {
-            // 检查各种纹理类型
-            const textureTypes = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'emissiveMap', 'aoMap'];
-
-            textureTypes.forEach((textureType) => {
-              const texture = (material as any)[textureType];
-              if (texture && texture.image === undefined) {
-                console.warn(`修复缺失的${textureType}纹理`);
-                // 创建默认纹理
-                const defaultTexture = new THREE.Texture();
-                const canvas = document.createElement('canvas');
-                canvas.width = 1;
-                canvas.height = 1;
-                const context = canvas.getContext('2d');
-                if (context) {
-                  context.fillStyle = textureType === 'emissiveMap' ? '#000000' : '#ffffff';
-                  context.fillRect(0, 0, 1, 1);
-                }
-                defaultTexture.image = canvas;
-                defaultTexture.needsUpdate = true;
-                (material as any)[textureType] = defaultTexture;
-              }
-            });
-          }
-        });
-      }
-    }
-  });
-};
-
 // 计算画布尺寸
 const calculateCanvasSize = () => {
   // 获取屏幕尺寸的70%
-  sizes.width = window.innerWidth * 0.7;
-  sizes.height = window.innerHeight * 0.95;
+  sizes.width = window.innerWidth * 0.45;
+  sizes.height = window.innerHeight * 0.43;
 };
 
 
@@ -211,95 +200,6 @@ const startBounceBack = () => {
   bounceStartTime = Date.now();
   bounceStartRotation.x = bookModel.rotation.x;
   bounceStartRotation.y = bookModel.rotation.y;
-};
-
-// 加载书本模型
-const loadBookModel = () => {
-  loadingText.value = '正在加载书本模型...';
-
-  if (!loader) return;
-
-  // 创建自定义的LoadingManager来处理纹理加载失败
-  const loadingManager = new THREE.LoadingManager();
-  loadingManager.onError = (url: string) => {
-    console.warn('资源加载失败:', url);
-    // 对于纹理加载失败，不抛出错误，让加载继续
-    if (url.includes('.jpg') || url.includes('.png') || url.includes('.jpeg')) {
-      console.warn('纹理文件缺失，使用默认纹理');
-    }
-  };
-
-  // 如果设置了 setPath，load 方法只需要文件名
-  const modelFileName = modelUrl.substring(modelUrl.lastIndexOf('/') + 1);
-  loader.load(
-      modelFileName,
-      (gltf: { scene: THREE.Group }) => {
-        try {
-          // 成功加载模型
-          bookModel = gltf.scene;
-
-          // 重置旋转状态
-          isRotating = true;
-          bookModel.rotation.y = 0; // 从0度开始Y轴旋转
-          bookModel.rotation.x = 0; // 从0度开始X轴旋转
-
-          // 计算模型尺寸并调整
-          const box = new THREE.Box3().setFromObject(bookModel);
-          const size = new THREE.Vector3();
-          box.getSize(size);
-
-          // 计算模型中心点
-          const center = new THREE.Vector3();
-          box.getCenter(center);
-
-          // 调整模型位置，使其偏向画面右上角（注意：这是模型在场景中的坐标，不移动画布）
-          bookModel.position.set(1, 1.25, -0.4);
-
-          // 计算缩放比例，确保模型适合视图
-          const maxDim = Math.max(size.x, size.y, size.z);
-          const scale = 1.4 / maxDim; // 调整缩放因子以合适显示
-          bookModel.scale.set(scale, scale, scale);
-
-          // 修复缺失的纹理
-          fixMissingTextures(bookModel);
-
-          // 添加到场景
-          if (scene) {
-            scene.add(bookModel);
-          }
-
-          loadingText.value = '书本模型加载完成';
-          loading.value = false;
-        } catch (err) {
-          console.error('处理模型时出错:', err);
-          error.value = '模型处理失败';
-          loading.value = false;
-        }
-      },
-      (xhr: ProgressEvent<EventTarget>) => {
-        // 加载进度
-        if (xhr.lengthComputable) {
-          const percent = ((xhr.loaded / xhr.total) * 100).toFixed(0);
-          loadingText.value = `正在加载书本模型... ${percent}%`;
-        }
-      },
-      (err: unknown) => {
-        // 加载错误
-        const errorMessage = err instanceof Error ? err.message : String(err);
-        if (errorMessage.includes('texture') || errorMessage.includes('Texture')) {
-          console.warn('纹理加载失败，但模型仍可使用:', errorMessage);
-          // 即使纹理加载失败，也尝试继续加载模型的其他部分
-          loadingText.value = '纹理加载失败，使用默认材质...';
-          setTimeout(() => {
-            loading.value = false;
-          }, 1000);
-        } else {
-          console.error('模型加载失败:', err);
-          error.value = '书本模型加载失败';
-          loading.value = false;
-        }
-      }
-  );
 };
 
 // 动画循环

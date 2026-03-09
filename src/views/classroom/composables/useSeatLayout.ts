@@ -126,7 +126,7 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
     // 左右方向：教室宽6米，右边1米用于摆放架子，剩余5米均匀分布座位
     const shelfWidth = 0.8; // 右边架子宽度0.6米
     const availableWidth = width - shelfWidth; // 5米
-    const leftBound = -halfWidth + shelfWidth; // -3米（左边界）
+    const leftBound = -halfWidth + shelfWidth -1; // -3米（左边界）
 
     // 计算列索引（0-based）
     const columnIndex = instanceId % actualColumns;
@@ -139,10 +139,10 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
     const firstRowOffset = 5; // 第一排距离前墙4.6米
     const rowSpacing = 1.8; // 每排间隔1.8米
     const rowIndex = Math.floor(instanceId / actualColumns);
-    position.z = frontWallZ - firstRowOffset - rowIndex * rowSpacing + 1.8;
+    position.z = frontWallZ - firstRowOffset - rowIndex * rowSpacing;
 
     // 上下方向：座位高度0.5米
-    position.y = 0.5;
+    position.y = 0.1;
 
     return position;
   };
@@ -211,7 +211,7 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
     position.z = z;
 
     // 高度随行数增加
-    position.y = 2.05 + rowIndex * 0.18;
+    position.y = -0.8 + rowIndex * 0.18;
 
     return position;
   };
@@ -225,7 +225,8 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
     // Parameters from user: outer diameter 30m, inner diameter 10m, angle span 142°
     const outerRadius = 29.6; // 15
     const innerRadius = 11.8; // 5
-    const angleSpanDeg =120;
+    const angleSpanDeg =110;
+
     const angleStart=(180-(180-angleSpanDeg)/2) * Math.PI / 180;
     let angleSpan=(angleSpanDeg * Math.PI) / 180 / 13;
     const angleMedium=angleStart-angleSpan*7;
@@ -260,9 +261,9 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
 
     // convert polar to cartesian (x right, z forward)
     position.x = Math.cos(angle) * radius;
-    position.z = -Math.sin(angle) * radius+10;
+    position.z = -Math.sin(angle) * radius + 10;
     // small height offset per ring for perspective
-    position.y = 1.8 + ring * 0.6;
+    position.y = 0.8 + ring * 0.6;
 
     return position;
   };

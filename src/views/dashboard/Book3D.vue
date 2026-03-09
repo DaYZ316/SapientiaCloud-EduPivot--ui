@@ -13,7 +13,6 @@ import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 // 组件状态
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const loading = ref(true);
-const loadingText = ref('正在加载3D模型...');
 const error = ref<string | null>(null);
 // 使用静态路径，因为 3D 模型文件是通过插件直接复制到 dist/assets/3Dmodel/ 的
 const modelUrl = import.meta.env.DEV

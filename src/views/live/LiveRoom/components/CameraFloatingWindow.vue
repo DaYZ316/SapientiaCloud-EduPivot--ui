@@ -1,19 +1,19 @@
 <template>
   <div
-    v-if="videoTrack"
-    class="camera-floating-window"
-    :class="{ 'is-editing': isEditing }"
-    :style="containerStyle"
-    @mouseenter="isHovered = true"
-    @mouseleave="isHovered = false"
+      v-if="videoTrack"
+      :class="{ 'is-editing': isEditing }"
+      :style="containerStyle"
+      class="camera-floating-window"
+      @mouseenter="isHovered = true"
+      @mouseleave="isHovered = false"
   >
     <!-- 视频元素 -->
     <video
-      ref="videoRef"
-      autoplay
-      muted
-      playsinline
-      class="floating-video"
+        ref="videoRef"
+        autoplay
+        class="floating-video"
+        muted
+        playsinline
     />
 
     <!-- 悬浮时的控制栏 -->
@@ -21,18 +21,18 @@
       <div v-if="isHovered || isEditing" class="floating-controls">
         <!-- 编辑模式：显示调整大小手柄 -->
         <div v-if="isEditing" class="resize-handle resize-handle-se" @pointerdown="startResize">
-          <n-icon :component="ResizeOutline" />
+          <n-icon :component="ResizeOutline"/>
         </div>
 
         <!-- 切换编辑按钮 -->
         <n-button
-          quaternary
-          size="tiny"
-          class="edit-btn"
-          @click="toggleEdit"
+            class="edit-btn"
+            quaternary
+            size="tiny"
+            @click="toggleEdit"
         >
           <template #icon>
-            <n-icon :component="isEditing ? CheckmarkOutline : SettingsOutline" />
+            <n-icon :component="isEditing ? CheckmarkOutline : SettingsOutline"/>
           </template>
         </n-button>
       </div>
@@ -40,19 +40,19 @@
 
     <!-- 拖拽手柄（编辑模式下显示） -->
     <div
-      v-if="isEditing"
-      class="drag-handle"
-      @pointerdown="startDrag"
+        v-if="isEditing"
+        class="drag-handle"
+        @pointerdown="startDrag"
     >
-      <n-icon :component="MoveOutline" />
+      <n-icon :component="MoveOutline"/>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { NButton, NIcon } from 'naive-ui'
-import { SettingsOutline, CheckmarkOutline, MoveOutline, ResizeOutline } from '@vicons/ionicons5'
+import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
+import {NButton, NIcon} from 'naive-ui'
+import {CheckmarkOutline, MoveOutline, ResizeOutline, SettingsOutline} from '@vicons/ionicons5'
 
 interface Props {
   videoTrack?: any | null
@@ -62,13 +62,14 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  initialPosition: () => ({ x: 20, y: 20 }),
-  initialSize: () => ({ width: 180, height: 135 }),
+  initialPosition: () => ({x: 20, y: 20}),
+  initialSize: () => ({width: 180, height: 135}),
   containerSelector: '.video-panel'
 })
 
 interface Emits {
   (e: 'update:position', position: { x: number; y: number }): void
+
   (e: 'update:size', size: { width: number; height: number }): void
 }
 
@@ -81,15 +82,15 @@ const isDragging = ref(false)
 const isResizing = ref(false)
 
 // 位置和大小状态
-const position = ref({ ...props.initialPosition })
-const size = ref({ ...props.initialSize })
+const position = ref({...props.initialPosition})
+const size = ref({...props.initialSize})
 
 // 拖拽/调整的起始状态
-const dragStart = ref({ x: 0, y: 0 })
-const resizeStart = ref({ width: 0, height: 0, x: 0, y: 0 })
+const dragStart = ref({x: 0, y: 0})
+const resizeStart = ref({width: 0, height: 0, x: 0, y: 0})
 
 // 容器边界
-const containerBounds = ref({ width: 0, height: 0 })
+const containerBounds = ref({width: 0, height: 0})
 
 // 计算样式
 const containerStyle = computed(() => ({
@@ -140,7 +141,7 @@ const updateContainerBounds = () => {
   const container = document.querySelector(props.containerSelector)
   if (container) {
     const rect = container.getBoundingClientRect()
-    containerBounds.value = { width: rect.width, height: rect.height }
+    containerBounds.value = {width: rect.width, height: rect.height}
   }
 }
 
@@ -195,7 +196,7 @@ const onDrag = (e: PointerEvent) => {
   const newTop = Math.max(0, Math.min(localY - dragStart.value.y, maxTop))
   const newBottom = containerBounds.value.height - newTop - size.value.height
 
-  position.value = { x: newLeft, y: Math.max(0, newBottom) }
+  position.value = {x: newLeft, y: Math.max(0, newBottom)}
 }
 
 // 停止拖拽
@@ -235,7 +236,7 @@ const onResize = (e: PointerEvent) => {
   const newWidth = Math.max(120, Math.min(resizeStart.value.width + deltaX, containerBounds.value.width - position.value.x - 20))
   const newHeight = Math.max(90, Math.min(resizeStart.value.height + deltaY, containerBounds.value.height - position.value.y - 20))
 
-  size.value = { width: newWidth, height: newHeight }
+  size.value = {width: newWidth, height: newHeight}
 }
 
 // 停止调整大小
@@ -278,29 +279,29 @@ const loadState = () => {
 
 // 监听视频轨道变化，附加到 video 元素
 watch(
-  () => props.videoTrack,
-  (track, prevTrack) => {
-    if (prevTrack && prevTrack !== track) {
-      detachTrackFromVideo(prevTrack)
-    }
-    if (track) {
-      attachTrackToVideo(track)
-    } else if (videoRef.value) {
-      videoRef.value.srcObject = null
-    }
-  },
-  { immediate: true }
+    () => props.videoTrack,
+    (track, prevTrack) => {
+      if (prevTrack && prevTrack !== track) {
+        detachTrackFromVideo(prevTrack)
+      }
+      if (track) {
+        attachTrackToVideo(track)
+      } else if (videoRef.value) {
+        videoRef.value.srcObject = null
+      }
+    },
+    {immediate: true}
 )
 
 watch(
-  () => videoRef.value,
-  (el) => {
-    if (!el) return
-    if (props.videoTrack) {
-      attachTrackToVideo(props.videoTrack)
-    }
-  },
-  { immediate: true }
+    () => videoRef.value,
+    (el) => {
+      if (!el) return
+      if (props.videoTrack) {
+        attachTrackToVideo(props.videoTrack)
+      }
+    },
+    {immediate: true}
 )
 
 // 窗口大小变化时更新边界

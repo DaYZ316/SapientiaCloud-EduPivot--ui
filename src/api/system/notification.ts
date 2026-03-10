@@ -112,7 +112,7 @@ export function removeNotificationById(id: string) {
 
 // 批量删除通知
 export function removeNotificationByIds(ids: string[]) {
-    return http.delete('/system/notification', { data: ids })
+    return http.delete('/system/notification', {data: ids})
 }
 
 // 管理员撤回通知消息

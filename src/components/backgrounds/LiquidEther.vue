@@ -2,9 +2,9 @@
   <div ref="mountRef" :class="`w-full h-full relative overflow-hidden ${className || ''}`" :style="style"/>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import * as THREE from 'three';
-import {onMounted, onUnmounted, ref, watch, computed} from 'vue';
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
 import {generateColorVariants} from '@/utils/colorAlgorithm';
 
 interface LiquidEtherProps {

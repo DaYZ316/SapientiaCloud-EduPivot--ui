@@ -1,5 +1,7 @@
 <template>
-  <div v-if="!isCollapsed" :class="['chat-panel', {'chat-panel-fixed-footer': fixedFooter, 'chat-panel-collapsed': isCollapsed}]" :style="panelStyle">
+  <div v-if="!isCollapsed"
+       :class="['chat-panel', {'chat-panel-fixed-footer': fixedFooter, 'chat-panel-collapsed': isCollapsed}]"
+       :style="panelStyle">
     <header v-if="showHeader" class="chat-panel__header">
       <div class="chat-panel__titles">
         <h3 class="chat-panel__title">{{ title }}</h3>
@@ -12,12 +14,12 @@
       </div>
       <div class="chat-panel__actions">
         <n-button
-          text
-          size="small"
-          @click="$emit('toggle-collapse')"
+            size="small"
+            text
+            @click="$emit('toggle-collapse')"
         >
           <template #icon>
-            <n-icon :component="isCollapsed ? ChevronForwardOutline : ChevronBackOutline" />
+            <n-icon :component="isCollapsed ? ChevronForwardOutline : ChevronBackOutline"/>
           </template>
         </n-button>
       </div>
@@ -77,33 +79,33 @@
   <div v-else class="chat-panel-collapsed">
     <div class="chat-panel-collapsed__header">
       <n-icon size="20">
-        <ChatbubblesOutline />
+        <ChatbubblesOutline/>
       </n-icon>
       <span v-if="unreadCount && unreadCount > 0" class="chat-panel-collapsed__badge">{{ unreadCount }}</span>
     </div>
     <div class="chat-panel-collapsed__content">
       <div class="chat-panel-collapsed__item">
         <n-icon size="16">
-          <PeopleOutline />
+          <PeopleOutline/>
         </n-icon>
         <span class="chat-panel-collapsed__text">{{ extra }}</span>
       </div>
       <div v-if="unreadCount && unreadCount > 0" class="chat-panel-collapsed__item">
         <n-icon size="16">
-          <NotificationsOutline />
+          <NotificationsOutline/>
         </n-icon>
         <span class="chat-panel-collapsed__text">{{ unreadCount }}条未读</span>
       </div>
     </div>
     <div class="chat-panel-collapsed__footer">
       <n-button
-        text
-        size="small"
-        @click="$emit('toggle-collapse')"
+          size="small"
+          text
+          @click="$emit('toggle-collapse')"
       >
         <template #icon>
           <n-icon>
-            <ChevronForwardOutline />
+            <ChevronForwardOutline/>
           </n-icon>
         </template>
       </n-button>
@@ -114,13 +116,13 @@
 <script lang="ts" setup>
 import {computed, nextTick, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
-import { NIcon, NButton } from 'naive-ui'
+import {NButton, NIcon} from 'naive-ui'
 import {
-  ChevronForwardOutline,
-  ChevronBackOutline,
   ChatbubblesOutline,
-  PeopleOutline,
-  NotificationsOutline
+  ChevronBackOutline,
+  ChevronForwardOutline,
+  NotificationsOutline,
+  PeopleOutline
 } from '@vicons/ionicons5'
 
 interface ChatMessage {
@@ -147,6 +149,7 @@ interface Props {
 
 interface Emits {
   (e: 'send', content: string): void
+
   (e: 'toggle-collapse'): void
 }
 
@@ -238,7 +241,7 @@ watch(
         }
       }
     },
-    { deep: true }
+    {deep: true}
 )
 
 function handleSend() {

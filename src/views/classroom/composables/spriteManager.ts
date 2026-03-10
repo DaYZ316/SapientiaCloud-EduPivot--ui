@@ -143,6 +143,15 @@ export class SpriteManager {
     // 相机引用
     private _camera: THREE.Camera | null = null;
     private _speakingRingSprites: THREE.Sprite[] = [];
+    private _speakingRingTexture: THREE.Texture | null = null;
+    // 说话状态存储（seatIndex -> isSpeaking）
+    private _speakingStates: Map<number, boolean>;
+    // 说话状态动画脉冲值
+    private _speakingPulseValues: Map<number, number>;
+
+    // ========== 说话指示器相关属性==========
+    // 说话指示器基础颜色
+    private _speakingBaseColor: THREE.Color;
 
     /**
      * 构造函数
@@ -177,17 +186,32 @@ export class SpriteManager {
 
     // 默认纹理存储
     private _defaultTexture: THREE.Texture | null = null;
-    private _speakingRingTexture: THREE.Texture | null = null;
-
-    // ========== 说话指示器相关属性==========
-    // 说话状态存储（seatIndex -> isSpeaking）
-    private _speakingStates: Map<number, boolean>;
-    // 说话状态动画脉冲值
-    private _speakingPulseValues: Map<number, number>;
-    // 说话指示器基础颜色
-    private _speakingBaseColor: THREE.Color;
 
     // ========== 说话指示器公开方法 ==========
+
+    /**
+     * 获取默认纹理
+     * @returns 默认纹理
+     */
+    get defaultTexture(): THREE.Texture | null {
+        return this._defaultTexture;
+    }
+
+    /**
+     * 获取精灵数量
+     * @returns 精灵数量
+     */
+    get spriteCount(): number {
+        return this._positions ? this._positions.length : 0;
+    }
+
+    /**
+     * 获取初始化状态
+     * @returns 是否已初始化
+     */
+    get isInitialized(): boolean {
+        return this._initialized;
+    }
 
     /**
      * 设置说话指示器状态
@@ -236,6 +260,8 @@ export class SpriteManager {
             this.setSpeakingIndicator(seatIndex, isSpeaking);
         });
     }
+
+    // ========== 说话指示器私有方法==========
 
     /**
      * 更新所有说话指示器的动画（每帧调用）
@@ -307,103 +333,6 @@ export class SpriteManager {
                 ringSprite.scale.set(0.62, 0.62, 1);
             }
         }
-    }
-
-    // ========== 说话指示器私有方法==========
-
-    /**
-     * 更新说话指示器材质
-     * @private
-     */
-    private _updateSpeakingMaterial(seatIndex: number, isSpeaking: boolean, pulseValue?: number): void {
-        if (!this._sprites[seatIndex] || !this._spriteMaterials[seatIndex]) {
-            return;
-        }
-
-        const sprite = this._sprites[seatIndex];
-        const material = this._spriteMaterials[seatIndex];
-        const ringSprite = this._speakingRingSprites[seatIndex];
-        const ringMaterial = ringSprite ? (ringSprite.material as THREE.SpriteMaterial) : null;
-
-        // 检查该位置是否有学生
-        const userId = this._studentsArray?.[seatIndex];
-        if (userId === null || userId === undefined) {
-            if (ringSprite && ringMaterial) {
-                ringMaterial.opacity = 0;
-                ringMaterial.needsUpdate = true;
-                ringSprite.visible = false;
-            }
-            return;
-        }
-
-        if (isSpeaking) {
-            // 正在说话：保持头像原色，只显示环形边框
-            const pulse = pulseValue ?? (this._speakingPulseValues.get(seatIndex) || 0.8);
-            material.color.setHex(0xffffff);
-            material.opacity = 0.9;
-            material.needsUpdate = true;
-            sprite.scale.set(0.5, 0.5, 1);
-
-            if (ringSprite && ringMaterial) {
-                const ringScale = 0.62 + pulse * 0.08;
-                ringMaterial.color.copy(this._speakingBaseColor);
-                ringMaterial.opacity = 0.45 + pulse * 0.35;
-                ringMaterial.needsUpdate = true;
-                ringSprite.scale.set(ringScale, ringScale, 1);
-                ringSprite.visible = true;
-            }
-        } else {
-            // 停止说话：恢复原始状态
-            const originalTexture = this._userTextures.get(seatIndex) || this._defaultTexture;
-            if (originalTexture) {
-                material.map = originalTexture;
-            }
-            material.color.setHex(0xffffff);
-            material.opacity = 0.9;
-            material.needsUpdate = true;
-
-            // 恢复原始大小
-            sprite.scale.set(0.5, 0.5, 1);
-
-            if (ringSprite && ringMaterial) {
-                ringMaterial.opacity = 0;
-                ringMaterial.needsUpdate = true;
-                ringSprite.visible = false;
-                ringSprite.scale.set(0.62, 0.62, 1);
-            }
-        }
-
-        // 确保精灵始终面向相机
-        if (this._camera) {
-            sprite.lookAt(this._camera.position);
-            if (ringSprite) {
-                ringSprite.lookAt(this._camera.position);
-            }
-        }
-    }
-
-    /**
-     * 获取默认纹理
-     * @returns 默认纹理
-     */
-    get defaultTexture(): THREE.Texture | null {
-        return this._defaultTexture;
-    }
-
-    /**
-     * 获取精灵数量
-     * @returns 精灵数量
-     */
-    get spriteCount(): number {
-        return this._positions ? this._positions.length : 0;
-    }
-
-    /**
-     * 获取初始化状态
-     * @returns 是否已初始化
-     */
-    get isInitialized(): boolean {
-        return this._initialized;
     }
 
     /**
@@ -780,6 +709,77 @@ export class SpriteManager {
         this._validatePositionIndex(positionIndex);
         const userId = this._studentsArray![positionIndex];
         return userId !== null && userId !== undefined ? userId : null;
+    }
+
+    /**
+     * 更新说话指示器材质
+     * @private
+     */
+    private _updateSpeakingMaterial(seatIndex: number, isSpeaking: boolean, pulseValue?: number): void {
+        if (!this._sprites[seatIndex] || !this._spriteMaterials[seatIndex]) {
+            return;
+        }
+
+        const sprite = this._sprites[seatIndex];
+        const material = this._spriteMaterials[seatIndex];
+        const ringSprite = this._speakingRingSprites[seatIndex];
+        const ringMaterial = ringSprite ? (ringSprite.material as THREE.SpriteMaterial) : null;
+
+        // 检查该位置是否有学生
+        const userId = this._studentsArray?.[seatIndex];
+        if (userId === null || userId === undefined) {
+            if (ringSprite && ringMaterial) {
+                ringMaterial.opacity = 0;
+                ringMaterial.needsUpdate = true;
+                ringSprite.visible = false;
+            }
+            return;
+        }
+
+        if (isSpeaking) {
+            // 正在说话：保持头像原色，只显示环形边框
+            const pulse = pulseValue ?? (this._speakingPulseValues.get(seatIndex) || 0.8);
+            material.color.setHex(0xffffff);
+            material.opacity = 0.9;
+            material.needsUpdate = true;
+            sprite.scale.set(0.5, 0.5, 1);
+
+            if (ringSprite && ringMaterial) {
+                const ringScale = 0.62 + pulse * 0.08;
+                ringMaterial.color.copy(this._speakingBaseColor);
+                ringMaterial.opacity = 0.45 + pulse * 0.35;
+                ringMaterial.needsUpdate = true;
+                ringSprite.scale.set(ringScale, ringScale, 1);
+                ringSprite.visible = true;
+            }
+        } else {
+            // 停止说话：恢复原始状态
+            const originalTexture = this._userTextures.get(seatIndex) || this._defaultTexture;
+            if (originalTexture) {
+                material.map = originalTexture;
+            }
+            material.color.setHex(0xffffff);
+            material.opacity = 0.9;
+            material.needsUpdate = true;
+
+            // 恢复原始大小
+            sprite.scale.set(0.5, 0.5, 1);
+
+            if (ringSprite && ringMaterial) {
+                ringMaterial.opacity = 0;
+                ringMaterial.needsUpdate = true;
+                ringSprite.visible = false;
+                ringSprite.scale.set(0.62, 0.62, 1);
+            }
+        }
+
+        // 确保精灵始终面向相机
+        if (this._camera) {
+            sprite.lookAt(this._camera.position);
+            if (ringSprite) {
+                ringSprite.lookAt(this._camera.position);
+            }
+        }
     }
 
     /**

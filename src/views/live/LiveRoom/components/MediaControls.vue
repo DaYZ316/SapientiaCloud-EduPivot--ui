@@ -3,84 +3,90 @@
     <n-space align="center">
       <!-- 摄像头控制 -->
       <n-button
-        quaternary
-        size="small"
-        :type="cameraEnabled ? 'default' : 'error'"
-        @click="handleToggleCamera"
+          :type="cameraEnabled ? 'default' : 'error'"
+          quaternary
+          size="small"
+          @click="handleToggleCamera"
       >
         <template #icon>
-          <n-icon :component="cameraEnabled ? VideocamOutline : VideocamOffOutline" />
+          <n-icon :component="cameraEnabled ? VideocamOutline : VideocamOffOutline"/>
         </template>
         <span v-if="!props.iconOnly">{{ cameraEnabled ? t('live.room.cameraOn') : t('live.room.cameraOff') }}</span>
       </n-button>
 
       <!-- 麦克风控制 -->
       <n-button
-        quaternary
-        size="small"
-        :type="microphoneEnabled ? 'default' : 'error'"
-        @click="handleToggleMicrophone"
+          :type="microphoneEnabled ? 'default' : 'error'"
+          quaternary
+          size="small"
+          @click="handleToggleMicrophone"
       >
         <template #icon>
-          <n-icon :component="microphoneEnabled ? MicOutline : MicOffOutline" />
+          <n-icon :component="microphoneEnabled ? MicOutline : MicOffOutline"/>
         </template>
-        <span v-if="!props.iconOnly">{{ microphoneEnabled ? t('live.room.microphoneOn') : t('live.room.microphoneOff') }}</span>
+        <span v-if="!props.iconOnly">{{
+            microphoneEnabled ? t('live.room.microphoneOn') : t('live.room.microphoneOff')
+          }}</span>
       </n-button>
 
       <!-- 屏幕共享控制（老师/助教可见） -->
       <n-button
-        v-if="canShowScreenShare"
-        quaternary
-        size="small"
-        :type="screenShareEnabled ? 'info' : 'default'"
-        @click="handleToggleScreenShare"
+          v-if="canShowScreenShare"
+          :type="screenShareEnabled ? 'info' : 'default'"
+          quaternary
+          size="small"
+          @click="handleToggleScreenShare"
       >
         <template #icon>
-          <n-icon :component="screenShareEnabled ? TvOutline : TvOutline" />
+          <n-icon :component="screenShareEnabled ? TvOutline : TvOutline"/>
         </template>
-        <span v-if="!props.iconOnly">{{ screenShareEnabled ? t('live.room.stopScreenShare') : t('live.room.startScreenShare') }}</span>
+        <span v-if="!props.iconOnly">{{
+            screenShareEnabled ? t('live.room.stopScreenShare') : t('live.room.startScreenShare')
+          }}</span>
       </n-button>
 
       <!-- 举手控制（仅学生可见） -->
       <n-button
-        v-if="showHandRaise"
-        quaternary
-        size="small"
-        :type="isHandRaised ? 'warning' : 'default'"
-        :disabled="isHandRaiseDisabled"
-        @click="handleRaiseHand"
+          v-if="showHandRaise"
+          :disabled="isHandRaiseDisabled"
+          :type="isHandRaised ? 'warning' : 'default'"
+          quaternary
+          size="small"
+          @click="handleRaiseHand"
       >
         <template #icon>
-          <n-icon :component="HandLeftOutline" />
+          <n-icon :component="HandLeftOutline"/>
         </template>
         <span v-if="!props.iconOnly">{{ handRaiseText }}</span>
       </n-button>
 
       <!-- 录制控制 -->
       <n-button
-        v-if="canShowRecording && props.showRecording"
-        quaternary
-        size="small"
-        :disabled="!canRecord"
-        :loading="recordingLoading"
-        :type="isRecording ? 'error' : 'default'"
-        @click="handleToggleRecording"
+          v-if="canShowRecording && props.showRecording"
+          :disabled="!canRecord"
+          :loading="recordingLoading"
+          :type="isRecording ? 'error' : 'default'"
+          quaternary
+          size="small"
+          @click="handleToggleRecording"
       >
         <template #icon>
-          <n-icon :component="isRecording ? StopCircleOutline : RadioButtonOnOutline" />
+          <n-icon :component="isRecording ? StopCircleOutline : RadioButtonOnOutline"/>
         </template>
-        <span v-if="!props.iconOnly">{{ isRecording ? t('live.room.stopRecording') : t('live.room.startRecording') }}</span>
+        <span v-if="!props.iconOnly">{{
+            isRecording ? t('live.room.stopRecording') : t('live.room.startRecording')
+          }}</span>
       </n-button>
 
       <div class="volume-control">
-        <n-icon :component="speakerVolume <= 0 ? VolumeMuteOutline : VolumeHighOutline" />
+        <n-icon :component="speakerVolume <= 0 ? VolumeMuteOutline : VolumeHighOutline"/>
         <n-slider
-          :value="speakerVolume"
-          :step="5"
-          :min="0"
-          :max="100"
-          style="width: 120px;"
-          @update:value="handleSpeakerVolume"
+            :max="100"
+            :min="0"
+            :step="5"
+            :value="speakerVolume"
+            style="width: 120px;"
+            @update:value="handleSpeakerVolume"
         />
       </div>
     </n-space>
@@ -88,22 +94,22 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, withDefaults } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { NButton, NSpace, NIcon, NSlider } from 'naive-ui'
+import {computed, withDefaults} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {NButton, NIcon, NSlider, NSpace} from 'naive-ui'
 import {
   HandLeftOutline,
   MicOffOutline,
   MicOutline,
-  TvOutline,
   RadioButtonOnOutline,
   StopCircleOutline,
+  TvOutline,
   VideocamOffOutline,
   VideocamOutline,
   VolumeHighOutline,
   VolumeMuteOutline
 } from '@vicons/ionicons5'
-import { LiveRoomRoleEnum } from '@/enum/live'
+import {LiveRoomRoleEnum} from '@/enum/live'
 
 interface Props {
   cameraEnabled: boolean
@@ -132,27 +138,32 @@ const props = withDefaults(defineProps<Props>(), {
 
 interface Emits {
   (e: 'toggle-camera'): void
+
   (e: 'toggle-microphone'): void
+
   (e: 'toggle-screen-share'): void
+
   (e: 'toggle-recording'): void
+
   (e: 'update-speaker-volume', value: number): void
+
   (e: 'raise-hand'): void
 }
 
 const emit = defineEmits<Emits>()
 
-const { t } = useI18n()
+const {t} = useI18n()
 
 // 计算属性
 const canShowRecording = computed(() => {
   return props.currentUserRole === LiveRoomRoleEnum.TEACHER ||
-         props.currentUserRole === LiveRoomRoleEnum.ASSISTANT
+      props.currentUserRole === LiveRoomRoleEnum.ASSISTANT
 })
 
 // 是否显示屏幕共享按钮（老师/助教可见）
 const canShowScreenShare = computed(() => {
   return props.currentUserRole === LiveRoomRoleEnum.TEACHER ||
-         props.currentUserRole === LiveRoomRoleEnum.ASSISTANT
+      props.currentUserRole === LiveRoomRoleEnum.ASSISTANT
 })
 
 // 是否显示举手按钮（仅学生可见）
@@ -171,7 +182,7 @@ const handRaiseText = computed(() => {
     return t('live.room.handRaised')
   }
   if (props.handRaiseCooldown > 0) {
-    return t('live.room.handRaiseCooldown', { seconds: props.handRaiseCooldown })
+    return t('live.room.handRaiseCooldown', {seconds: props.handRaiseCooldown})
   }
   return t('live.room.raiseHand')
 })

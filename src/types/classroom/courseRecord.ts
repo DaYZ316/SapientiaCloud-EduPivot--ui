@@ -3,7 +3,6 @@
  */
 import type {PageEntity} from '../common/baseEntity'
 import type {ClassroomTypeEnum} from '@/enum/classroom/classroomTypeEnum'
-import type {CourseRecordStatusEnum} from '@/enum/classroom/courseRecordStatusEnum'
 
 /**
  * 课程记录数据传输对象
@@ -29,8 +28,6 @@ export interface CourseRecordDTO {
     startTime: string | null
     /** 课程结束时间 */
     overTime: string | null
-    /** 课程状态 (0=未开始, 1=进行中, 2=已结束, 3=取消) */
-    status: CourseRecordStatusEnum | null
 }
 
 /**
@@ -61,8 +58,6 @@ export interface CourseRecordVO {
     startTime: string
     /** 课程结束时间 */
     overTime: string
-    /** 课程状态 (0=未开始, 1=进行中, 2=已结束, 3=取消) */
-    status: CourseRecordStatusEnum
     /** 创建时间 */
     createTime: string
     /** 更新时间 */
@@ -81,8 +76,6 @@ export interface CourseRecordPageQueryDTO extends PageEntity {
     courseName?: string | null
     /** 教室类型 (0=小型教室, 1=中型教室, 2=大型教室, 3=超大型教室) */
     classroomType?: string | null
-    /** 课程状态 (0=未开始, 1=进行中, 2=已结束, 3=取消) */
-    status?: string | null
     /** 开始时间范围 - 起始 */
     startTimeBegin?: string | null
     /** 开始时间范围 - 结束 */

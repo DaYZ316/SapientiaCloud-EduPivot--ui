@@ -1,10 +1,11 @@
 <template>
-  <section :class="['video-panel', { 'is-connected': isConnectedComputed }]" :style="isConnectedComputed ? { opacity: 1, transform: 'translateY(0)' } : {}">
+  <section :class="['video-panel', { 'is-connected': isConnectedComputed }]"
+           :style="isConnectedComputed ? { opacity: 1, transform: 'translateY(0)' } : {}">
     <!-- 全屏按钮 -->
     <!-- 连接状态 -->
     <template v-if="connecting">
       <div class="connecting-state">
-        <n-spin size="large" />
+        <n-spin size="large"/>
         <div class="connecting-text">{{ connectionStateLabel || t('live.room.connecting') }}</div>
       </div>
     </template>
@@ -13,33 +14,39 @@
     <template v-else-if="isConnected">
       <div v-if="isSpeakerLayout" class="speaker-layout">
         <div class="speaker-main">
-          <div v-if="shouldShowLocalAsMain" class="video-item main-video local-video" :class="{ 'is-speaking': localSpeakingState?.isSpeaking }">
+          <div v-if="shouldShowLocalAsMain" :class="{ 'is-speaking': localSpeakingState?.isSpeaking }"
+               class="video-item main-video local-video">
             <video
-              :ref="(el) => setLocalVideoRef(el as HTMLVideoElement | null)"
-              autoplay
-              muted
-              playsinline
+                :ref="(el) => setLocalVideoRef(el as HTMLVideoElement | null)"
+                autoplay
+                muted
+                playsinline
             />
             <div class="video-label">{{ t('live.room.localVideo') }}</div>
             <!-- 说话指示器 -->
             <div v-if="localSpeakingState?.isSpeaking" class="speaking-indicator">
-              <div class="speaking-bar" :style="{ height: `${localSpeakingState.volumeLevel * 100}%` }"></div>
+              <div :style="{ height: `${localSpeakingState.volumeLevel * 100}%` }" class="speaking-bar"></div>
             </div>
           </div>
-          <div v-else-if="mainRemoteParticipant" class="video-item main-video" :class="{ 'is-speaking': getParticipantSpeakingState(mainRemoteParticipant.participantId)?.isSpeaking }">
+          <div v-else-if="mainRemoteParticipant" :class="{ 'is-speaking': getParticipantSpeakingState(mainRemoteParticipant.participantId)?.isSpeaking }"
+               class="video-item main-video">
             <video
-              :ref="(el) => mainRemoteParticipant?.participantId && setRemoteVideoRef(el as HTMLVideoElement | null, mainRemoteParticipant.participantId)"
-              autoplay
-              playsinline
+                :ref="(el) => mainRemoteParticipant?.participantId && setRemoteVideoRef(el as HTMLVideoElement | null, mainRemoteParticipant.participantId)"
+                autoplay
+                playsinline
             />
-            <div class="video-label">{{ mainRemoteParticipant?.displayName || mainRemoteParticipant?.participantId }}</div>
+            <div class="video-label">{{
+                mainRemoteParticipant?.displayName || mainRemoteParticipant?.participantId
+              }}
+            </div>
           </div>
-          <div v-else class="video-item main-video local-video" :class="{ 'is-speaking': localSpeakingState?.isSpeaking }">
+          <div v-else :class="{ 'is-speaking': localSpeakingState?.isSpeaking }"
+               class="video-item main-video local-video">
             <video
-              :ref="(el) => setLocalVideoRef(el as HTMLVideoElement | null)"
-              autoplay
-              muted
-              playsinline
+                :ref="(el) => setLocalVideoRef(el as HTMLVideoElement | null)"
+                autoplay
+                muted
+                playsinline
             />
             <div class="video-label">{{ t('live.room.localVideo') }}</div>
           </div>
@@ -47,30 +54,30 @@
 
         <div v-if="hasThumbnails" class="speaker-thumbs">
           <div
-            v-if="shouldShowLocalThumbnail"
-            class="video-item thumb-video local-video"
-            :class="{ 'is-speaking': localSpeakingState?.isSpeaking }"
-            @click="handleSelectMain('local')"
+              v-if="shouldShowLocalThumbnail"
+              :class="{ 'is-speaking': localSpeakingState?.isSpeaking }"
+              class="video-item thumb-video local-video"
+              @click="handleSelectMain('local')"
           >
             <video
-              :ref="(el) => setLocalVideoRef(el as HTMLVideoElement | null)"
-              autoplay
-              muted
-              playsinline
+                :ref="(el) => setLocalVideoRef(el as HTMLVideoElement | null)"
+                autoplay
+                muted
+                playsinline
             />
             <div class="video-label">{{ t('live.room.localVideo') }}</div>
           </div>
           <div
-            v-for="participant in thumbnailParticipants"
-            :key="participant.participantId"
-            class="video-item thumb-video"
-            :class="{ 'is-speaking': getParticipantSpeakingState(participant.participantId)?.isSpeaking }"
-            @click="handleSelectMain(participant.participantId)"
+              v-for="participant in thumbnailParticipants"
+              :key="participant.participantId"
+              :class="{ 'is-speaking': getParticipantSpeakingState(participant.participantId)?.isSpeaking }"
+              class="video-item thumb-video"
+              @click="handleSelectMain(participant.participantId)"
           >
             <video
-              :ref="(el) => setRemoteVideoRef(el as HTMLVideoElement | null, participant.participantId)"
-              autoplay
-              playsinline
+                :ref="(el) => setRemoteVideoRef(el as HTMLVideoElement | null, participant.participantId)"
+                autoplay
+                playsinline
             />
             <div class="video-label">{{ participant.displayName || participant.participantId }}</div>
           </div>
@@ -79,36 +86,38 @@
 
       <div v-else class="video-grid">
         <!-- 优先显示屏幕共享作为主视频 -->
-        <div v-if="hasBothScreenShareAndCamera" class="video-item main-video" :class="{ 'is-speaking': localSpeakingState?.isSpeaking }">
+        <div v-if="hasBothScreenShareAndCamera" :class="{ 'is-speaking': localSpeakingState?.isSpeaking }"
+             class="video-item main-video">
           <video
-            :ref="(el) => setLocalVideoRef(el as HTMLVideoElement | null)"
-            autoplay
-            muted
-            playsinline
+              :ref="(el) => setLocalVideoRef(el as HTMLVideoElement | null)"
+              autoplay
+              muted
+              playsinline
           />
           <div class="video-label">{{ t('live.room.screenShare') }}</div>
         </div>
 
-        <div v-else-if="shouldShowLocalTile" class="video-item local-video" :class="{ 'is-speaking': localSpeakingState?.isSpeaking }">
+        <div v-else-if="shouldShowLocalTile" :class="{ 'is-speaking': localSpeakingState?.isSpeaking }"
+             class="video-item local-video">
           <video
-            :ref="(el) => setLocalVideoRef(el as HTMLVideoElement | null)"
-            autoplay
-            muted
-            playsinline
+              :ref="(el) => setLocalVideoRef(el as HTMLVideoElement | null)"
+              autoplay
+              muted
+              playsinline
           />
           <div class="video-label">{{ t('live.room.localVideo') }}</div>
         </div>
 
         <div
-          v-for="participant in videoParticipants"
-          :key="participant.participantId"
-          class="video-item"
-          :class="{ 'is-speaking': getParticipantSpeakingState(participant.participantId)?.isSpeaking }"
+            v-for="participant in videoParticipants"
+            :key="participant.participantId"
+            :class="{ 'is-speaking': getParticipantSpeakingState(participant.participantId)?.isSpeaking }"
+            class="video-item"
         >
           <video
-            :ref="(el) => setRemoteVideoRef(el as HTMLVideoElement | null, participant.participantId)"
-            autoplay
-            playsinline
+              :ref="(el) => setRemoteVideoRef(el as HTMLVideoElement | null, participant.participantId)"
+              autoplay
+              playsinline
           />
           <div class="video-label">{{ participant.displayName || participant.participantId }}</div>
         </div>
@@ -116,47 +125,47 @@
 
       <!-- 摄像头悬浮窗（当同时开启屏幕共享和摄像头时显示） -->
       <CameraFloatingWindow
-        v-if="hasBothScreenShareAndCamera"
-        :video-track="localCameraTrackForFloating"
-        container-selector=".video-panel"
+          v-if="hasBothScreenShareAndCamera"
+          :video-track="localCameraTrackForFloating"
+          container-selector=".video-panel"
       />
 
       <CameraFloatingWindow
-        v-else-if="remoteCameraTrackForFloating"
-        :video-track="remoteCameraTrackForFloating"
-        container-selector=".video-panel"
+          v-else-if="remoteCameraTrackForFloating"
+          :video-track="remoteCameraTrackForFloating"
+          container-selector=".video-panel"
       />
     </template>
 
     <!-- 未连接状态 -->
     <template v-else>
       <div class="video-placeholder">
-        <n-icon size="48" color="var(--text-color-3)">
-          <VideocamOutline />
+        <n-icon color="var(--text-color-3)" size="48">
+          <VideocamOutline/>
         </n-icon>
         <div class="placeholder-text">{{ t('live.room.notConnected') }}</div>
       </div>
     </template>
     <div class="remote-audio">
       <audio
-        v-for="participant in audioParticipants"
-        :key="participant.participantId"
-        :ref="(el) => setRemoteAudioRef(el as HTMLAudioElement | null, participant.participantId)"
-        autoplay
-        playsinline
+          v-for="participant in audioParticipants"
+          :key="participant.participantId"
+          :ref="(el) => setRemoteAudioRef(el as HTMLAudioElement | null, participant.participantId)"
+          autoplay
+          playsinline
       />
     </div>
   </section>
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, type ComputedRef, watch, onMounted, nextTick } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { NIcon } from 'naive-ui'
-import { VideocamOutline } from '@vicons/ionicons5'
-import { Track } from 'livekit-client'
-import type { RemoteParticipantMedia } from '@/types/live'
-import { useLiveSpeakingStore } from '@/stores/liveSpeaking'
+import {computed, type ComputedRef, nextTick, onMounted, ref, watch} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {NIcon} from 'naive-ui'
+import {VideocamOutline} from '@vicons/ionicons5'
+import {Track} from 'livekit-client'
+import type {RemoteParticipantMedia} from '@/types/live'
+import {useLiveSpeakingStore} from '@/stores/liveSpeaking'
 import CameraFloatingWindow from './CameraFloatingWindow.vue'
 
 interface Props {
@@ -192,7 +201,7 @@ interface Emits {
 
 const emit = defineEmits<Emits>()
 
-const { t } = useI18n()
+const {t} = useI18n()
 const speakingStore = useLiveSpeakingStore()
 
 // Template prop used for class binding
@@ -201,8 +210,8 @@ const isConnectedComputed = computed(() => props.isConnected)
 const videoParticipants = computed(() => {
   // 包含有摄像头或屏幕共享的参与者
   return props.remoteParticipants
-    .filter(participant => participant.videoTrack || participant.screenShareTrack)
-    .sort((a, b) => Number(!!b.screenShareTrack) - Number(!!a.screenShareTrack))
+      .filter(participant => participant.videoTrack || participant.screenShareTrack)
+      .sort((a, b) => Number(!!b.screenShareTrack) - Number(!!a.screenShareTrack))
 })
 
 // 获取有屏幕共享的参与者
@@ -348,7 +357,7 @@ const remoteCameraTrackForFloating = computed(() => {
   return mainRemoteParticipant.value.videoTrack || null
 })
 
-  // 设置本地视频元素引用（支持多个实例）
+// 设置本地视频元素引用（支持多个实例）
 const setLocalVideoRef = (el: HTMLVideoElement | null) => {
   if (el) {
     localVideoRefs.value.add(el)
@@ -358,12 +367,12 @@ const setLocalVideoRef = (el: HTMLVideoElement | null) => {
     }
     return
   }
-    localVideoRefs.value.forEach((videoEl) => {
-      if (!videoEl.isConnected) {
-        localVideoRefs.value.delete(videoEl)
-      }
-    })
-  }
+  localVideoRefs.value.forEach((videoEl) => {
+    if (!videoEl.isConnected) {
+      localVideoRefs.value.delete(videoEl)
+    }
+  })
+}
 
 // 设置远程视频元素引用
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -488,101 +497,101 @@ const getPreferredVideoTrack = (participant: RemoteParticipantMedia | any) => {
   return participant.screenShareTrack || participant.videoTrack || null
 }
 
-  // 当 props.remoteParticipants 更新时，自动附加/分离轨道
-  watch(() => props.remoteParticipants, (newList) => {
+// 当 props.remoteParticipants 更新时，自动附加/分离轨道
+watch(() => props.remoteParticipants, (newList) => {
 
-    // attach newly arrived video tracks
-    newList.forEach((p: any) => {
-      const preferredTrack = getPreferredVideoTrack(p)
-      if (p && p.participantId && preferredTrack) {
-        const el = remoteVideoRefs.value.get(p.participantId)
-        if (el) {
-          attachToElement(preferredTrack, el)
-        } else {
-        }
+  // attach newly arrived video tracks
+  newList.forEach((p: any) => {
+    const preferredTrack = getPreferredVideoTrack(p)
+    if (p && p.participantId && preferredTrack) {
+      const el = remoteVideoRefs.value.get(p.participantId)
+      if (el) {
+        attachToElement(preferredTrack, el)
+      } else {
       }
-    })
+    }
+  })
 
-    // attach newly arrived audio tracks
-    newList.forEach((p: any) => {
-      if (p && p.participantId && p.audioTrack) {
-        const el = remoteAudioRefs.value.get(p.participantId)
-        if (el) {
-          attachToElement(p.audioTrack, el)
-          applySpeakerVolume(props.speakerVolume)
-        }
+  // attach newly arrived audio tracks
+  newList.forEach((p: any) => {
+    if (p && p.participantId && p.audioTrack) {
+      const el = remoteAudioRefs.value.get(p.participantId)
+      if (el) {
+        attachToElement(p.audioTrack, el)
+        applySpeakerVolume(props.speakerVolume)
       }
-    })
-  }, { deep: true, immediate: true })
+    }
+  })
+}, {deep: true, immediate: true})
 
-  // 监听本地视频轨道变化，强力附加
-  watch(() => lastLocalVideoTrack.value, (newTrack) => {
+// 监听本地视频轨道变化，强力附加
+watch(() => lastLocalVideoTrack.value, (newTrack) => {
+  const mainTrack = getPreferredLocalMainTrack()
+  if (mainTrack || newTrack) {
+    localVideoRefs.value.forEach((videoEl) => {
+      attachToElement(mainTrack || newTrack, videoEl)
+    })
+  }
+})
+
+// 监听主要参与者变化，重新附加轨道
+watch(() => props.mainParticipantId, (newMainId, oldMainId) => {
+  if (newMainId !== oldMainId) {
+
+    // 强制重新附加所有本地视频轨道
     const mainTrack = getPreferredLocalMainTrack()
-    if (mainTrack || newTrack) {
+    if (mainTrack) {
       localVideoRefs.value.forEach((videoEl) => {
-        attachToElement(mainTrack || newTrack, videoEl)
+        attachToElement(mainTrack, videoEl)
       })
     }
-  })
 
-  // 监听主要参与者变化，重新附加轨道
-  watch(() => props.mainParticipantId, (newMainId, oldMainId) => {
-    if (newMainId !== oldMainId) {
-
-      // 强制重新附加所有本地视频轨道
-      const mainTrack = getPreferredLocalMainTrack()
-      if (mainTrack) {
-        localVideoRefs.value.forEach((videoEl) => {
-          attachToElement(mainTrack, videoEl)
-        })
-      }
-
-      // 重新附加所有远程视频轨道，确保布局切换后视频正确显示
-      props.remoteParticipants.forEach((participant) => {
-        const preferredTrack = getPreferredVideoTrack(participant)
-        if (preferredTrack) {
-          const videoEl = remoteVideoRefs.value.get(participant.participantId)
-          if (videoEl) {
-            attachToElement(preferredTrack, videoEl)
-          }
+    // 重新附加所有远程视频轨道，确保布局切换后视频正确显示
+    props.remoteParticipants.forEach((participant) => {
+      const preferredTrack = getPreferredVideoTrack(participant)
+      if (preferredTrack) {
+        const videoEl = remoteVideoRefs.value.get(participant.participantId)
+        if (videoEl) {
+          attachToElement(preferredTrack, videoEl)
         }
-      })
-    }
-  })
-
-  watch(() => props.speakerVolume, (value) => {
-    applySpeakerVolume(value ?? 100)
-  }, { immediate: true })
-
-  watch(() => props.localVideoTrack, (track) => {
-    if (track) {
-      lastLocalVideoTrack.value = track
-    }
-    if (!props.localScreenShareTrack) {
-      const mainTrack = getPreferredLocalMainTrack()
-      if (mainTrack) {
-        localVideoRefs.value.forEach((videoEl) => {
-          attachToElement(mainTrack, videoEl)
-        })
       }
-    }
-  }, { immediate: true })
+    })
+  }
+})
 
-  // 监听本地屏幕共享轨道变化
-  watch(() => props.localScreenShareTrack, (track) => {
-    if (track) {
+watch(() => props.speakerVolume, (value) => {
+  applySpeakerVolume(value ?? 100)
+}, {immediate: true})
+
+watch(() => props.localVideoTrack, (track) => {
+  if (track) {
+    lastLocalVideoTrack.value = track
+  }
+  if (!props.localScreenShareTrack) {
+    const mainTrack = getPreferredLocalMainTrack()
+    if (mainTrack) {
       localVideoRefs.value.forEach((videoEl) => {
-        attachToElement(track, videoEl)
+        attachToElement(mainTrack, videoEl)
       })
-    } else {
-      const mainTrack = getPreferredLocalMainTrack()
-      if (mainTrack) {
-        localVideoRefs.value.forEach((videoEl) => {
-          attachToElement(mainTrack, videoEl)
-        })
-      }
     }
-  }, { immediate: true })
+  }
+}, {immediate: true})
+
+// 监听本地屏幕共享轨道变化
+watch(() => props.localScreenShareTrack, (track) => {
+  if (track) {
+    localVideoRefs.value.forEach((videoEl) => {
+      attachToElement(track, videoEl)
+    })
+  } else {
+    const mainTrack = getPreferredLocalMainTrack()
+    if (mainTrack) {
+      localVideoRefs.value.forEach((videoEl) => {
+        attachToElement(mainTrack, videoEl)
+      })
+    }
+  }
+}, {immediate: true})
 
 // 分离远程视频轨道
 const detachRemoteVideo = (participantId: string, track: Track) => {
@@ -893,34 +902,30 @@ defineExpose({
 
 .video-item.is-speaking {
   border-color: rgba(82, 196, 26, 0.98);
-  box-shadow:
-    inset 0 0 0 2px rgba(82, 196, 26, 0.72),
-    0 0 10px rgba(82, 196, 26, 0.45);
+  box-shadow: inset 0 0 0 2px rgba(82, 196, 26, 0.72),
+  0 0 10px rgba(82, 196, 26, 0.45);
   animation: speakingBorderGlow 0.9s ease-in-out infinite;
   will-change: border-color, box-shadow, filter;
 }
 
 .video-item.main-video.is-speaking {
   border-width: 3px;
-  box-shadow:
-    inset 0 0 0 2px rgba(82, 196, 26, 0.9),
-    0 0 14px rgba(82, 196, 26, 0.55);
+  box-shadow: inset 0 0 0 2px rgba(82, 196, 26, 0.9),
+  0 0 14px rgba(82, 196, 26, 0.55);
   animation: speakingBorderGlowMain 0.9s ease-in-out infinite;
 }
 
 @keyframes speakingBorderGlow {
   0%, 100% {
     border-color: rgba(82, 196, 26, 0.92);
-    box-shadow:
-      inset 0 0 0 2px rgba(82, 196, 26, 0.7),
-      0 0 8px rgba(82, 196, 26, 0.4);
+    box-shadow: inset 0 0 0 2px rgba(82, 196, 26, 0.7),
+    0 0 8px rgba(82, 196, 26, 0.4);
     filter: saturate(1);
   }
   50% {
     border-color: rgba(149, 222, 100, 1);
-    box-shadow:
-      inset 0 0 0 2px rgba(149, 222, 100, 0.95),
-      0 0 14px rgba(82, 196, 26, 0.75);
+    box-shadow: inset 0 0 0 2px rgba(149, 222, 100, 0.95),
+    0 0 14px rgba(82, 196, 26, 0.75);
     filter: saturate(1.05);
   }
 }
@@ -928,16 +933,14 @@ defineExpose({
 @keyframes speakingBorderGlowMain {
   0%, 100% {
     border-color: rgba(82, 196, 26, 0.95);
-    box-shadow:
-      inset 0 0 0 2px rgba(82, 196, 26, 0.85),
-      0 0 12px rgba(82, 196, 26, 0.5);
+    box-shadow: inset 0 0 0 2px rgba(82, 196, 26, 0.85),
+    0 0 12px rgba(82, 196, 26, 0.5);
     filter: saturate(1);
   }
   50% {
     border-color: rgba(149, 222, 100, 1);
-    box-shadow:
-      inset 0 0 0 2px rgba(149, 222, 100, 1),
-      0 0 18px rgba(82, 196, 26, 0.85);
+    box-shadow: inset 0 0 0 2px rgba(149, 222, 100, 1),
+    0 0 18px rgba(82, 196, 26, 0.85);
     filter: saturate(1.08);
   }
 }

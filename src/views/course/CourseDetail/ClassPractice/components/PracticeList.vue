@@ -15,15 +15,15 @@
       >
         <div class="practice-item__header">
           <div class="practice-item__classroom">
-            <n-tag type="info" size="small">
+            <n-tag size="small" type="info">
               {{ practice.classroomName || t('course.classPractice.unnamedClassroom') }}
             </n-tag>
           </div>
           <div class="practice-item__required">
             <n-tag
                 :type="practice.isRequired === IsRequiredEnum.REQUIRED ? 'success' : 'default'"
-                size="small"
                 round
+                size="small"
             >
               {{ getIsRequiredLabel(practice.isRequired, isEn) }}
             </n-tag>

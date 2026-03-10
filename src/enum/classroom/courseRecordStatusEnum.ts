@@ -75,3 +75,27 @@ export function getCourseRecordStatusLabel(value: CourseRecordStatusEnum | numbe
     return map[enumValue] || map[CourseRecordStatusEnum.PREPARING];
 }
 
+/**
+ * 根据开始时间和结束时间计算课程状态
+ * @param startTime 课程开始时间
+ * @param overTime 课程结束时间
+ * @returns 课程状态枚举
+ */
+export function calculateCourseRecordStatus(startTime: string | null | undefined, overTime: string | null | undefined): CourseRecordStatusEnum {
+    if (!startTime || !overTime) {
+        return CourseRecordStatusEnum.PREPARING;
+    }
+
+    const now = new Date().getTime();
+    const start = new Date(startTime).getTime();
+    const end = new Date(overTime).getTime();
+
+    if (now < start) {
+        return CourseRecordStatusEnum.PREPARING;
+    } else if (now >= start && now <= end) {
+        return CourseRecordStatusEnum.IN_PROGRESS;
+    } else {
+        return CourseRecordStatusEnum.ENDED;
+    }
+}
+

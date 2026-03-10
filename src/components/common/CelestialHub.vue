@@ -1,12 +1,12 @@
 <template>
-  <div class="book-3d-container" :style="{ width: props.size + 'px', height: props.size + 'px' }">
+  <div :style="{ width: props.size + 'px', height: props.size + 'px' }" class="book-3d-container">
     <!-- 3D画布 - 始终渲染以确保初始化时可获取 -->
     <canvas ref="canvasRef" class="webgl-canvas"></canvas>
   </div>
 </template>
 
 <script lang="ts" setup>
-import {onMounted, onBeforeUnmount, ref, watch} from 'vue';
+import {onBeforeUnmount, onMounted, ref, watch} from 'vue';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';

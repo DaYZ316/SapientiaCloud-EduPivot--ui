@@ -308,7 +308,7 @@ const VueOfficeDocx = defineAsyncComponent(() => import('@vue-office/docx'))
 const VueOfficeExcel = defineAsyncComponent(() => import('@vue-office/excel'))
 const VueOfficePptx = defineAsyncComponent(() => import('@vue-office/pptx'))
 
- 
+
 const {t} = useI18n()
 const router = useRouter()
 const route = useRoute()

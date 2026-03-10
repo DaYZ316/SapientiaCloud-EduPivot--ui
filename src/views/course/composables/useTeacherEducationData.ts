@@ -1,4 +1,4 @@
-import {computed, readonly, ref, watch, type Ref} from 'vue'
+import {computed, readonly, ref, type Ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {EducationEnum, getEducationLabel} from '@/enum/teacher/educationEnum'
 import {useCourseStore} from '@/store/modules/course'

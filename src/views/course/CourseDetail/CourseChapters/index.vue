@@ -356,8 +356,8 @@ async function handleChapterDelete(chapter: CourseChapterVO) {
           selectedChapter.value = null
           selectedChapterId.value = null
         }
-    } catch (error) {
-    }
+      } catch (error) {
+      }
     }
   })
 }

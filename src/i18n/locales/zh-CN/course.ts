@@ -39,6 +39,7 @@ export default {
     // 操作按钮
     actions: {
         add: '新增课程',
+        addCourse: '添加课程',
         edit: '编辑',
         delete: '删除',
         deleteConfirm: '确认删除',
@@ -190,7 +191,8 @@ export default {
         enroll: '选课',
         drop: '退课',
         viewDetails: '查看详情',
-        courseProgress: '课程进度'
+        courseProgress: '积分超越百分比',
+        rootChapterCount: '章节数'
     },
 
     // 学生管理

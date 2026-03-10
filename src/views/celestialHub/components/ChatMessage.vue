@@ -32,10 +32,10 @@
         <!-- AI消息 -->
         <AiMessageBubble
             v-else-if="messageRole === 'assistant'"
-            :message="message"
             :is-streaming="props.isStreaming"
-            @feedback="handleFeedback"
+            :message="message"
             @copy="handleCopy"
+            @feedback="handleFeedback"
             @resend="handleResend"
         />
       </div>
@@ -49,7 +49,7 @@ import type {ChatMessage} from '@/types/celestialHub/chatMessage'
 import type {QuestionResponseDTO} from '@/types/celestialHub/question'
 import QuestionRequesterMessage from './QuestionRequesterMessage.vue'
 import QuestionGeneratorMessage from './QuestionGeneratorMessage.vue'
-import { UserMessageBubble, AiMessageBubble, SystemMessageBubble } from '@/components/common/bubbles'
+import {UserMessageBubble, AiMessageBubble, SystemMessageBubble} from '@/components/common/bubbles'
 
 // Props
 const props = defineProps<{

@@ -14,8 +14,7 @@ export function getDefaultCourseRecordDTO(): CourseRecordDTO {
         layoutRows: null,
         layoutColumns: null,
         startTime: null,
-        overTime: null,
-        status: null
+        overTime: null
     }
 }
 
@@ -31,7 +30,6 @@ export function getDefaultCourseRecordPageQueryDTO(): CourseRecordPageQueryDTO {
         teacherId: null,
         courseName: null,
         classroomType: null,
-        status: null,
         startTimeBegin: null,
         startTimeEnd: null
     }

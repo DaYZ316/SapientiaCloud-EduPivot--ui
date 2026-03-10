@@ -1,8 +1,8 @@
 /**
  * 通知相关类型定义
  */
-import type { PageEntity } from '../common/baseEntity'
-import type { NotificationType, NotificationReadStatus, NotificationScopeType } from '@/enum/system/notificationTypeEnum'
+import type {PageEntity} from '../common/baseEntity'
+import type {NotificationReadStatus, NotificationScopeType, NotificationType} from '@/enum/system/notificationTypeEnum'
 
 /**
  * 通知视图对象

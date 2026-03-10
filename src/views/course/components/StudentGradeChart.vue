@@ -94,13 +94,13 @@ const studentGradeData = computed<StudentScoreDataItem[]>(() => {
 
   // 过滤有成绩的学生并按成绩排序
   return students.value
-    .filter(student => student.grade !== null && student.grade !== undefined)
-    .map(student => ({
-      name: student.realName || t('common.unknown'),
-      grade: student.grade!,
-      id: student.studentId
-    }))
-    .sort((a, b) => b.grade - a.grade) // 按成绩降序排列
+      .filter(student => student.grade !== null && student.grade !== undefined)
+      .map(student => ({
+        name: student.realName || t('common.unknown'),
+        grade: student.grade!,
+        id: student.studentId
+      }))
+      .sort((a, b) => b.grade - a.grade) // 按成绩降序排列
 })
 
 // 判断是否有数据

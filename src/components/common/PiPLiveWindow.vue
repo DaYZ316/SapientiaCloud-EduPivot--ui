@@ -3,18 +3,18 @@
     <!-- 主视频（优先显示屏幕共享） -->
     <div class="pip-main-video">
       <video
-        v-if="hasMainVideoStream"
-        ref="videoRef"
-        class="pip-video"
-        autoplay
-        muted
-        playsinline
+          v-if="hasMainVideoStream"
+          ref="videoRef"
+          autoplay
+          class="pip-video"
+          muted
+          playsinline
       />
       <!-- 占位符 - 当没有视频流时显示 -->
       <div v-else class="pip-placeholder">
         <div class="pip-placeholder-icon">
-          <n-icon size="48" color="var(--text-color-3)">
-            <VideocamOffOutline />
+          <n-icon color="var(--text-color-3)" size="48">
+            <VideocamOffOutline/>
           </n-icon>
         </div>
         <div class="pip-placeholder-text">{{ t('live.pip.noVideo') }}</div>
@@ -24,11 +24,11 @@
     <!-- 摄像头小窗（当同时开启屏幕共享和摄像头时显示） -->
     <div v-if="hasBothVideoAndScreenShare" class="pip-camera-window">
       <video
-        ref="cameraVideoRef"
-        class="pip-video pip-camera-video"
-        autoplay
-        muted
-        playsinline
+          ref="cameraVideoRef"
+          autoplay
+          class="pip-video pip-camera-video"
+          muted
+          playsinline
       />
     </div>
 
@@ -41,16 +41,16 @@
 
       <div class="pip-actions">
         <n-button
-          size="tiny"
-          @click="restoreToFullscreen"
+            size="tiny"
+            @click="restoreToFullscreen"
         >
           {{ t('live.pip.restore') }}
         </n-button>
 
         <n-button
-          size="tiny"
-          type="error"
-          @click="endLive"
+            size="tiny"
+            type="error"
+            @click="endLive"
         >
           {{ t('live.pip.end') }}
         </n-button>
@@ -60,23 +60,23 @@
     <!-- 拖拽手柄 -->
     <div class="pip-drag-handle" @mousedown="startDrag">
       <n-icon size="16">
-        <MenuOutline />
+        <MenuOutline/>
       </n-icon>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { NButton, NIcon } from 'naive-ui'
-import { MenuOutline, VideocamOffOutline } from '@vicons/ionicons5'
-import { useLivePiPStore } from '@/store'
-import { useRouter } from 'vue-router'
-import { attachTrackToVideoElement } from '@/views/live/LiveRoom/composables/mediaHelpers'
-import { useSpeakingDetectorStore } from '@/stores/speakingDetector'
+<script lang="ts" setup>
+import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {NButton, NIcon} from 'naive-ui'
+import {MenuOutline, VideocamOffOutline} from '@vicons/ionicons5'
+import {useLivePiPStore} from '@/store'
+import {useRouter} from 'vue-router'
+import {attachTrackToVideoElement} from '@/views/live/LiveRoom/composables/mediaHelpers'
+import {useSpeakingDetectorStore} from '@/stores/speakingDetector'
 
-const { t } = useI18n()
+const {t} = useI18n()
 const router = useRouter()
 const livePiPStore = useLivePiPStore()
 
@@ -105,7 +105,7 @@ const videoRef = ref<HTMLVideoElement | null>(null)
 const cameraVideoRef = ref<HTMLVideoElement | null>(null)
 const pipWindowRef = ref<HTMLDivElement | null>(null)
 const isDragging = ref<boolean>(false)
-const dragOffset = ref({ x: 0, y: 0 })
+const dragOffset = ref({x: 0, y: 0})
 
 // 计算属性
 const isVisible = computed(() => {
@@ -213,7 +213,7 @@ const tryAttachVideo = (): void => {
   console.log('PiP: tryAttachVideo 被调用')
   console.log('PiP: videoRef:', !!videoRef.value)
   console.log('PiP: hasMainVideoStream:', hasMainVideoStream.value)
-  
+
   const session = getActiveSession()
   console.log('PiP: activeSession:', session)
   console.log('PiP: isInPiPMode:', getIsInPiPMode())
@@ -258,7 +258,8 @@ const doAttachVideo = (): void => {
     try {
       videoRef.value.srcObject = screenShareStream
       videoRef.value.muted = true
-      videoRef.value.play().catch(() => {})
+      videoRef.value.play().catch(() => {
+      })
       console.log('PiP: 屏幕共享轨道绑定成功')
     } catch (e) {
       console.warn('PiP: 设置屏幕共享轨道失败', e)
@@ -268,7 +269,8 @@ const doAttachVideo = (): void => {
     try {
       videoRef.value.srcObject = videoStream
       videoRef.value.muted = true
-      videoRef.value.play().catch(() => {})
+      videoRef.value.play().catch(() => {
+      })
       console.log('PiP: 视频轨道绑定成功')
     } catch (e) {
       console.warn('PiP: 设置视频轨道失败', e)
@@ -281,7 +283,8 @@ const doAttachVideo = (): void => {
     try {
       cameraVideoRef.value.srcObject = videoStream
       cameraVideoRef.value.muted = true
-      cameraVideoRef.value.play().catch(() => {})
+      cameraVideoRef.value.play().catch(() => {
+      })
       console.log('PiP: 摄像头小窗绑定成功')
     } catch (e) {
       console.warn('PiP: 设置摄像头小窗失败', e)
@@ -318,7 +321,7 @@ const doAttachVideo = (): void => {
         }
       } else {
         const remoteParticipant = (room.remoteParticipants && room.remoteParticipants.get && room.remoteParticipants.get(participantId)) ||
-                                  Array.from(room.remoteParticipants ? room.remoteParticipants.values() : []).find((p: any) => p.identity === participantId)
+            Array.from(room.remoteParticipants ? room.remoteParticipants.values() : []).find((p: any) => p.identity === participantId)
         if (remoteParticipant) {
           const videoPubs: any[] = Array.from(remoteParticipant.videoTrackPublications?.values?.() ?? [])
           for (const pub of videoPubs) {
@@ -378,7 +381,7 @@ watch(hasMainVideoStream, (newVal) => {
       tryAttachVideo()
     })
   }
-}, { immediate: true })
+}, {immediate: true})
 
 </script>
 

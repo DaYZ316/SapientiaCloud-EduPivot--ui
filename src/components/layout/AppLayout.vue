@@ -16,64 +16,64 @@
 
     <!-- 画中画直播窗口 -->
     <PiPLiveWindow
-      :room-id="pipRoomId"
-      :is-visible="isPiPVisible"
+        :is-visible="isPiPVisible"
+        :room-id="pipRoomId"
     />
   </div>
 </template>
 
 <script lang="ts" setup>
-  import {computed, onMounted, onUnmounted} from 'vue'
-  import {useRoute} from 'vue-router'
-  import {useMenuStore, useThemeStore, useLivePiPStore} from '@/store'
-  import Sider from './Sider.vue'
-  import Header from './Header.vue'
-  import Main from './Main.vue'
-  import PiPLiveWindow from '@/components/common/PiPLiveWindow.vue'
-  
-  const route = useRoute()
-  const themeStore = useThemeStore()
-  const menuStore = useMenuStore()
-  const livePiPStore = useLivePiPStore()
-  
-  const isDashboardPage = computed(() => route.name === 'Dashboard')
-  
-  // helper: 安全解包 store 可能是 ref 或普通值
-  const unwrapStoreField = (field: any) => {
-    if (field == null) return null
-    if (typeof field === 'object' && 'value' in field) return (field as any).value
-    return field
+import {computed, onMounted, onUnmounted} from 'vue'
+import {useRoute} from 'vue-router'
+import {useLivePiPStore, useMenuStore, useThemeStore} from '@/store'
+import Sider from './Sider.vue'
+import Header from './Header.vue'
+import Main from './Main.vue'
+import PiPLiveWindow from '@/components/common/PiPLiveWindow.vue'
+
+const route = useRoute()
+const themeStore = useThemeStore()
+const menuStore = useMenuStore()
+const livePiPStore = useLivePiPStore()
+
+const isDashboardPage = computed(() => route.name === 'Dashboard')
+
+// helper: 安全解包 store 可能是 ref 或普通值
+const unwrapStoreField = (field: any) => {
+  if (field == null) return null
+  if (typeof field === 'object' && 'value' in field) return (field as any).value
+  return field
+}
+
+// 画中画相关（更稳健）
+const isPiPVisible = computed(() => {
+  const v = unwrapStoreField((livePiPStore as any).isInPiPMode)
+  const visible = !!v
+  console.log('AppLayout isPiPVisible:', visible, 'isInPiPMode:', v)
+  return visible
+})
+
+const pipRoomId = computed(() => {
+  const session = unwrapStoreField((livePiPStore as any).activeSession)
+  return session ? session.roomId ?? null : null
+})
+
+const checkScreenSize = () => {
+  if (window.innerWidth < 768) {
+    themeStore.setSidebarCollapsed(true)
   }
-  
-  // 画中画相关（更稳健）
-  const isPiPVisible = computed(() => {
-    const v = unwrapStoreField((livePiPStore as any).isInPiPMode)
-    const visible = !!v
-    console.log('AppLayout isPiPVisible:', visible, 'isInPiPMode:', v)
-    return visible
-  })
-  
-  const pipRoomId = computed(() => {
-    const session = unwrapStoreField((livePiPStore as any).activeSession)
-    return session ? session.roomId ?? null : null
-  })
-  
-  const checkScreenSize = () => {
-    if (window.innerWidth < 768) {
-      themeStore.setSidebarCollapsed(true)
-    }
-  }
-  
-  onMounted(() => {
-    checkScreenSize()
-    window.addEventListener('resize', checkScreenSize)
-    menuStore.loadLastAccessedCourse()
-  })
-  
-  onUnmounted(() => {
-    window.removeEventListener('resize', checkScreenSize)
-  })
-  </script>
+}
+
+onMounted(() => {
+  checkScreenSize()
+  window.addEventListener('resize', checkScreenSize)
+  menuStore.loadLastAccessedCourse()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkScreenSize)
+})
+</script>
 
 <style lang="scss" scoped>
 .app-layout {

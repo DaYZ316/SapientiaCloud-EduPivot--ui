@@ -721,7 +721,7 @@ const handleDeleteAttachment = (fileInfo: FileInfoDTO) => {
         attachmentFiles.value = attachmentFiles.value.filter(file => !file.url.includes(fileInfo.objectName))
 
         message.success(t('course.chapters.deleteAttachmentSuccess'))
-        } catch (error) {
+      } catch (error) {
       }
     }
   })
@@ -853,7 +853,7 @@ const saveChapter = async (isDraft: boolean = false) => {
       // 保持当前页面状态不变，不进行标签页跳转
     } else {
     }
-    } catch (error) {
+  } catch (error) {
   } finally {
     saving.value = false
   }

@@ -1,26 +1,26 @@
 <template>
-  <div class="room-status-bar" v-show="!context.isFullscreen.value">
+  <div v-show="!context.isFullscreen.value" class="room-status-bar">
     <connection-status
-      :room-status="context.roomInfo.value?.status || null"
-      :online-count="context.onlineCount.value"
-      :current-user-role="context.currentUserRole.value"
-      :is-recording="context.recording.isRecording.value"
-      :recording-status-label="context.recording.recordingStatusLabel.value"
-      :connection-state-label="context.connectionStateLabel.value"
-      :connection-error="context.connectionError.value"
-      :show-leave-button="context.connectionIsConnected.value"
-      @leave="context.handleLeave()"
+        :connection-error="context.connectionError.value"
+        :connection-state-label="context.connectionStateLabel.value"
+        :current-user-role="context.currentUserRole.value"
+        :is-recording="context.recording.isRecording.value"
+        :online-count="context.onlineCount.value"
+        :recording-status-label="context.recording.recordingStatusLabel.value"
+        :room-status="context.roomInfo.value?.status || null"
+        :show-leave-button="context.connectionIsConnected.value"
+        @leave="context.handleLeave()"
     />
-  <n-space>
-    <!-- 离开按钮已移至聊天面板上方 -->
-  </n-space>
+    <n-space>
+      <!-- 离开按钮已移至聊天面板上方 -->
+    </n-space>
   </div>
 </template>
 
-<script setup lang="ts">
-import { NSpace } from 'naive-ui'
+<script lang="ts" setup>
+import {NSpace} from 'naive-ui'
 import ConnectionStatus from './ConnectionStatus.vue'
-import { useLiveRoomContext } from '../composables/useLiveRoomContext'
+import {useLiveRoomContext} from '../composables/useLiveRoomContext'
 // 使用注入的上下文
 const context = useLiveRoomContext()
 </script>

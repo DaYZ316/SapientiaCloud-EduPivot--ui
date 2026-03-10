@@ -12,7 +12,7 @@
             <n-space>
               <n-text depth="3">
                 <template #icon>
-                  <n-icon size="16" color="#52c41a">
+                  <n-icon color="#52c41a" size="16">
                     <CalendarOutline/>
                   </n-icon>
                 </template>
@@ -20,7 +20,7 @@
               </n-text>
               <n-text depth="3">
                 <template #icon>
-                  <n-icon size="16" color="#fa541c">
+                  <n-icon color="#fa541c" size="16">
                     <CalendarOutline/>
                   </n-icon>
                 </template>
@@ -30,8 +30,8 @@
           </div>
           <n-tag
               :type="selectedPractice.isRequired === IsRequiredEnum.REQUIRED ? 'success' : 'default'"
-              size="small"
               round
+              size="small"
           >
             {{ getIsRequiredLabel(selectedPractice.isRequired, isEn) }}
           </n-tag>
@@ -44,36 +44,36 @@
 
       <!-- 题目详情 -->
       <QuestionDisplay
-        :question-detail="questionDetail"
-        :loading-question="loadingQuestion"
+          :loading-question="loadingQuestion"
+          :question-detail="questionDetail"
       />
 
       <!-- 练习统计图表 -->
       <div class="practice-statistics-section">
         <PracticeStatisticsChart
-          :statistics="practiceStatistics"
-          :loading="loadingStatistics"
-          @filter-change="handleFilterChange"
+            :loading="loadingStatistics"
+            :statistics="practiceStatistics"
+            @filter-change="handleFilterChange"
         />
       </div>
 
       <!-- 学生提交记录 -->
       <div class="student-submissions-section">
-        <n-card class="submissions-table-card" :bordered="false" embedded>
+        <n-card :bordered="false" class="submissions-table-card" embedded>
           <template #header>
             <div class="section-title">{{ t('course.classPractice.studentAnswers') }}</div>
           </template>
           <PageTable
-            ref="pageTableRef"
-            :columns="submissionColumns"
-            :api-fn="fetchPracticeSubmissions"
-            :query-params="queryParams"
-            :auto-load="autoLoadTable"
-            :auto-search="true"
-            :show-size-picker="false"
-            :show-quick-jumper="false"
-            :page-sizes="[10, 20, 50]"
-            size="small"
+              ref="pageTableRef"
+              :api-fn="fetchPracticeSubmissions"
+              :auto-load="autoLoadTable"
+              :auto-search="true"
+              :columns="submissionColumns"
+              :page-sizes="[10, 20, 50]"
+              :query-params="queryParams"
+              :show-quick-jumper="false"
+              :show-size-picker="false"
+              size="small"
           />
         </n-card>
       </div>
@@ -81,30 +81,30 @@
 
     <!-- 答案详情弹窗 -->
     <AnswerDetailModal
-      v-model:show="showAnswerDetail"
-      :answer-detail="currentAnswerDetail"
-      :question-score="questionDetail?.score"
-      :answer-list="answerList"
-      :current-index="currentAnswerIndex"
-      @graded="handleAnswerGraded"
-      @navigate="handleAnswerNavigate"
+        v-model:show="showAnswerDetail"
+        :answer-detail="currentAnswerDetail"
+        :answer-list="answerList"
+        :current-index="currentAnswerIndex"
+        :question-score="questionDetail?.score"
+        @graded="handleAnswerGraded"
+        @navigate="handleAnswerNavigate"
     />
 
   </div>
 </template>
 
 <script lang="ts" setup>
-import { CalendarOutline } from '@vicons/ionicons5'
-import { computed, ref, watch, h } from 'vue'
-import { useI18n } from 'vue-i18n'
-import type { ClassroomQuestionVO } from '@/types/classroom'
-import type { QuestionVO } from '@/types/course/question'
-import { IsRequiredEnum } from '@/enum/classroom/isRequiredEnum'
-import { getQuestionById } from '@/api/course/question'
-import { listPractice, getDefaultPracticeQuery } from '@/api/student/practice'
-import { getAnswerStatusLabel, AnswerStatusEnum } from '@/enum/student/answerStatusEnum'
-import { getPracticeStatistics } from '@/api/student/practice'
-import { getIsRequiredLabel } from '@/enum/classroom/isRequiredEnum'
+import {CalendarOutline} from '@vicons/ionicons5'
+import {computed, ref, watch, h} from 'vue'
+import {useI18n} from 'vue-i18n'
+import type {ClassroomQuestionVO} from '@/types/classroom'
+import type {QuestionVO} from '@/types/course/question'
+import {IsRequiredEnum} from '@/enum/classroom/isRequiredEnum'
+import {getQuestionById} from '@/api/course/question'
+import {listPractice, getDefaultPracticeQuery} from '@/api/student/practice'
+import {getAnswerStatusLabel, AnswerStatusEnum} from '@/enum/student/answerStatusEnum'
+import {getPracticeStatistics} from '@/api/student/practice'
+import {getIsRequiredLabel} from '@/enum/classroom/isRequiredEnum'
 import PageTable from '@/components/common/PageTable.vue'
 import PracticeStatisticsChart from './PracticeStatisticsChart.vue'
 import AnswerDetailModal from './AnswerDetailModal.vue'
@@ -119,7 +119,7 @@ interface Props {
 const props = defineProps<Props>()
 
 // 国际化
-const { locale, t: t } = useI18n()
+const {locale, t: t} = useI18n()
 const isEn = computed(() => locale.value === 'en-US')
 
 // 响应式数据
@@ -184,7 +184,7 @@ const submissionColumns = [
     key: 'studentRealName',
     width: 120,
     render: (row: any) => h('span', {
-      style: { color: 'var(--text-color)' }
+      style: {color: 'var(--text-color)'}
     }, row.studentRealName || '-')
   },
   {
@@ -199,15 +199,15 @@ const submissionColumns = [
               color: 'var(--color-primary)',
               fontSize: '16px',
               fontWeight: '700'
-             }
+            }
           }, row.score.toString()),
           h('span', {
-            style: { color: 'var(--text-color)' }
+            style: {color: 'var(--text-color)'}
           }, t('course.classPractice.pointUnit'))
         ])
       }
       return h('span', {
-        style: { color: 'var(--text-secondary-color)' }
+        style: {color: 'var(--text-secondary-color)'}
       }, '-')
     }
   },
@@ -236,7 +236,7 @@ const submissionColumns = [
     key: 'createTime',
     width: 160,
     render: (row: any) => h('span', {
-      style: { color: 'var(--text-secondary-color)' }
+      style: {color: 'var(--text-secondary-color)'}
     }, formatTime(row.createTime || ''))
   },
   {
@@ -244,7 +244,7 @@ const submissionColumns = [
     key: 'updateTime',
     width: 160,
     render: (row: any) => h('span', {
-      style: { color: 'var(--text-secondary-color)' }
+      style: {color: 'var(--text-secondary-color)'}
     }, (row.isCorrect === null || row.isCorrect === undefined || row.isCorrect === 3) ? '-' : (row.updateTime ? formatTime(row.updateTime) : '-'))
   },
   {
@@ -286,8 +286,8 @@ const loadPracticeStatistics = async (practiceId: string) => {
   try {
     const response = await getPracticeStatistics(practiceId)
     const statisticsData = (response.success || response.code === 200)
-      ? response.data
-      : null
+        ? response.data
+        : null
 
     if (statisticsData) {
       practiceStatisticsCache.set(practiceId, statisticsData)
@@ -330,8 +330,8 @@ const loadFullQuestionDetail = async () => {
   try {
     const response = await getQuestionById(props.selectedPractice.questionId)
     const questionData = (response.success || response.code === 200)
-      ? response.data
-      : (props.selectedPractice.questionVO as QuestionVO || null)
+        ? response.data
+        : (props.selectedPractice.questionVO as QuestionVO || null)
 
     if (questionData) {
       questionDetailCache.set(props.selectedPractice.questionId, questionData)
@@ -357,7 +357,7 @@ watch(() => props.selectedPractice, (newPractice) => {
     fullQuestionDetail.value = null
     practiceStatistics.value = null
   }
-}, { immediate: true })
+}, {immediate: true})
 
 // 查看答案详情
 const handleViewAnswerDetail = (row: any, index?: number) => {
@@ -416,10 +416,14 @@ const formatTime = (time: string) => {
 const getStatusType = (isCorrect: number | null | undefined) => {
   if (isCorrect === null || isCorrect === undefined) return 'info'
   switch (isCorrect) {
-    case 1: return 'success'  // 正确
-    case 2: return 'warning'  // 半对
-    case 3: return 'info'     // 待批阅
-    default: return 'error'   // 错误或其他
+    case 1:
+      return 'success'  // 正确
+    case 2:
+      return 'warning'  // 半对
+    case 3:
+      return 'info'     // 待批阅
+    default:
+      return 'error'   // 错误或其他
   }
 }
 

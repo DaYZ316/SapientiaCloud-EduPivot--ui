@@ -3,14 +3,14 @@
     <!-- 搜索框 -->
     <div class="search-section">
       <n-input
-        v-model:value="searchQuery"
-        placeholder="搜索公开课程..."
-        @input="handleSearch"
-        clearable
+          v-model:value="searchQuery"
+          clearable
+          placeholder="搜索公开课程..."
+          @input="handleSearch"
       >
         <template #prefix>
           <n-icon>
-            <SearchOutlined />
+            <SearchOutlined/>
           </n-icon>
         </template>
       </n-input>
@@ -18,28 +18,28 @@
 
     <!-- 课程列表 -->
     <div
-      ref="courseListRef"
-      class="course-list"
-      @scroll="handleScroll"
+        ref="courseListRef"
+        class="course-list"
+        @scroll="handleScroll"
     >
       <n-grid
-        v-if="courses.length > 0"
-        :cols="5"
-        :x-gap="12"
-        :y-gap="16"
+          v-if="courses.length > 0"
+          :cols="5"
+          :x-gap="12"
+          :y-gap="16"
       >
         <n-grid-item
-          v-for="course in courses"
-          :key="course.id"
+            v-for="course in courses"
+            :key="course.id"
         >
           <div class="course-card" @click="handleCourseClick(course)">
             <!-- 课程封面图片 -->
             <div class="course-cover">
               <img
-                :alt="course.courseName"
-                :src="course.coverImageUrl || defaultImage"
-                class="cover-image"
-                @error="handleImageError"
+                  :alt="course.courseName"
+                  :src="course.coverImageUrl || defaultImage"
+                  class="cover-image"
+                  @error="handleImageError"
               />
             </div>
 
@@ -49,18 +49,18 @@
               <h3 class="course-title">
                 <span class="course-name">{{ course.courseName }}</span>
                 <n-tag
-                  v-if="course.courseType === 0"
-                  type="info"
-                  size="small"
-                  class="course-type-tag"
+                    v-if="course.courseType === 0"
+                    class="course-type-tag"
+                    size="small"
+                    type="info"
                 >
                   必修
                 </n-tag>
                 <n-tag
-                  v-else-if="course.courseType === 1"
-                  type="success"
-                  size="small"
-                  class="course-type-tag"
+                    v-else-if="course.courseType === 1"
+                    class="course-type-tag"
+                    size="small"
+                    type="success"
                 >
                   选修
                 </n-tag>
@@ -75,10 +75,10 @@
               <div v-if="course.teacherName" class="instructor">
                 <div class="teacher-tag" @click.stop="handleTeacherClick(course)">
                   <AvatarDisplay
-                    :avatarSrc="course.teacherAvatar"
-                    :username="course.teacherName"
-                    size="small"
-                    :round="true"
+                      :avatarSrc="course.teacherAvatar"
+                      :round="true"
+                      :username="course.teacherName"
+                      size="small"
                   />
                   <span class="teacher-name">{{ course.teacherName }}</span>
                 </div>
@@ -101,28 +101,16 @@
                     <span>{{ course.location }}</span>
                   </div>
                 </div>
-
-                <!-- 统计信息 -->
-                <div class="info-row">
-                  <div class="info-item">
-                    <n-icon :component="UserOutlined" class="info-icon"/>
-                    <span>{{ course.studentCount || 0 }} 学生</span>
-                  </div>
-                  <div class="info-item">
-                    <n-icon :component="BookOutlined" class="info-icon"/>
-                    <span>{{ course.chapterCount || 0 }} 章节</span>
-                  </div>
-                </div>
               </div>
 
               <!-- 查看详情按钮 -->
               <div class="course-actions">
                 <n-button
-                  block
-                  round
-                  size="large"
-                  type="primary"
-                  @click.stop="handleCourseClick(course)"
+                    block
+                    round
+                    size="large"
+                    type="primary"
+                    @click.stop="handleCourseClick(course)"
                 >
                   查看详情
                 </n-button>
@@ -134,24 +122,24 @@
 
       <!-- 空状态 -->
       <n-empty
-        v-else-if="!loading && courses.length === 0"
-        description="暂无公开课程"
+          v-else-if="!loading && courses.length === 0"
+          description="暂无公开课程"
       />
 
       <!-- 加载状态 -->
       <div
-        v-if="loading && courses.length === 0"
-        class="loading-container"
+          v-if="loading && courses.length === 0"
+          class="loading-container"
       >
-        <n-spin size="large" />
+        <n-spin size="large"/>
       </div>
 
       <!-- 底部加载更多 -->
       <div
-        v-if="loading && courses.length > 0"
-        class="loading-more"
+          v-if="loading && courses.length > 0"
+          class="loading-more"
       >
-        <n-spin size="small" />
+        <n-spin size="small"/>
         <n-text depth="3">加载更多...</n-text>
       </div>
     </div>
@@ -159,12 +147,12 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, computed } from 'vue'
-import { SearchOutlined, CalendarOutlined, EnvironmentOutlined, UserOutlined, BookOutlined } from '@vicons/antd'
+import {ref, onMounted, computed} from 'vue'
+import {SearchOutlined, CalendarOutlined, EnvironmentOutlined} from '@vicons/antd'
 import AvatarDisplay from '@/components/common/AvatarDisplay.vue'
-import { listCourse, getDefaultCourseQuery } from '@/api/course/course'
-import type { CourseVO, CourseQueryParams } from '@/types/course'
-import { useRouter } from 'vue-router'
+import {listCourse, getDefaultCourseQuery} from '@/api/course/course'
+import type {CourseVO, CourseQueryParams} from '@/types/course'
+import {useRouter} from 'vue-router'
 import defaultCourseImage from '@/assets/image/default-course.png'
 
 const router = useRouter()
@@ -258,7 +246,7 @@ async function loadCourses() {
 function handleScroll() {
   if (!courseListRef.value) return
 
-  const { scrollTop, scrollHeight, clientHeight } = courseListRef.value
+  const {scrollTop, scrollHeight, clientHeight} = courseListRef.value
   const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100
 
   if (isNearBottom && !loading.value && hasMore.value) {
@@ -269,8 +257,7 @@ function handleScroll() {
 
 // 处理课程点击
 function handleCourseClick(course: CourseVO) {
-  // TODO: 跳转到课程详情页
-  console.log('点击课程:', course)
+  router.push(`/course/detail/${course.id}`)
 }
 
 // 处理教师点击
@@ -542,6 +529,7 @@ onMounted(() => {
       /* 隐藏滚动条 - 移动端也隐藏 */
       scrollbar-width: none;
       -ms-overflow-style: none;
+
       &::-webkit-scrollbar {
         width: 0;
         height: 0;

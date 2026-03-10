@@ -10,16 +10,16 @@
     <n-form-item :label="t('course.classPractice.searchForm.classroomId')" path="classroomId">
       <n-select
           v-model:value="searchForm.classroomId"
+          :filterable="true"
+          :loading="classroomLoading"
           :options="classroomOptions"
           :placeholder="t('course.classPractice.searchForm.classroomIdPlaceholder')"
-          :loading="classroomLoading"
           :remote="true"
-          :filterable="true"
           clearable
           style="min-width: 240px;"
           @focus="handleClassroomFocus"
-          @search="handleClassroomSearch"
           @scroll="handleClassroomScroll"
+          @search="handleClassroomSearch"
       />
     </n-form-item>
     <n-form-item :label="t('course.classPractice.searchForm.isRequired')" path="isRequired">
@@ -83,7 +83,9 @@ const props = withDefaults(defineProps<Props>(), {
 // Emits
 interface Emits {
   (e: 'update:modelValue', value: ClassroomQuestionPageQueryDTO): void
+
   (e: 'search'): void
+
   (e: 'reset'): void
 }
 
@@ -99,7 +101,7 @@ const timeRange = ref<[number, number] | null>(null)
 const isRequiredOptions = computed(() => getIsRequiredOptions(locale.value === 'en-US'))
 
 // 课堂记录选项
-const classroomOptions = ref<Array<{label: string, value: string}>>([])
+const classroomOptions = ref<Array<{ label: string, value: string }>>([])
 const classroomLoading = ref(false)
 const classroomSearchQuery = ref('')
 

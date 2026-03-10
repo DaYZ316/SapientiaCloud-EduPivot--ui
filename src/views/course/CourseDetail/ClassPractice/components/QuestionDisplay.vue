@@ -2,7 +2,7 @@
   <div v-if="questionDetail" class="question-display">
     <!-- 题目详情 -->
     <div v-if="loadingQuestion" class="loading-container">
-      <n-spin size="large" />
+      <n-spin size="large"/>
     </div>
     <div v-else class="question-detail-content">
       <!-- 题目元信息 -->
@@ -115,11 +115,11 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import type { QuestionVO } from '@/types/course/question'
-import { getQuestionBankDifficultyLabel } from '@/enum/course/questionBankDifficultyEnum'
-import { getQuestionTypeLabel } from '@/enum/course/questionTypeEnum'
+import {computed} from 'vue'
+import {useI18n} from 'vue-i18n'
+import type {QuestionVO} from '@/types/course/question'
+import {getQuestionBankDifficultyLabel} from '@/enum/course/questionBankDifficultyEnum'
+import {getQuestionTypeLabel} from '@/enum/course/questionTypeEnum'
 
 // Props
 interface Props {
@@ -132,7 +132,7 @@ withDefaults(defineProps<Props>(), {
 })
 
 // 国际化
-const { t: t } = useI18n()
+const {t: t} = useI18n()
 const isEn = computed(() => false) // 暂时设为false，后续可根据需要调整
 
 // 获取题目类型文本
@@ -396,6 +396,7 @@ const formatEstimatedTime = (time?: number | null) => {
 
       .detail-section {
         padding: 12px;
+
         .detail-content {
           font-size: 16px;
         }

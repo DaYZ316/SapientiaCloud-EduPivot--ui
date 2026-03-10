@@ -69,7 +69,8 @@
               :style="{width: '980px'}"
               preset="card"
           >
-            <NCard :bordered="false" :segmented="false" :title="t('classroom.questionPanel.modalTitle')" aria-modal="true"
+            <NCard :bordered="false" :segmented="false" :title="t('classroom.questionPanel.modalTitle')"
+                   aria-modal="true"
                    role="dialog" size="small">
               <div class="sync-range">
                 <div class="sync-range__item">

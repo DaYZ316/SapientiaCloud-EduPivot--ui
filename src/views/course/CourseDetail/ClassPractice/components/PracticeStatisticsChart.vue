@@ -1,6 +1,6 @@
 <template>
   <div class="practice-statistics-chart">
-    <n-card class="chart-card" :bordered="false" embedded>
+    <n-card :bordered="false" class="chart-card" embedded>
       <template #header>
         <div class="chart-header">
           <span class="chart-title">{{ t('course.classPractice.practiceStatistics') }}</span>
@@ -8,10 +8,10 @@
       </template>
 
       <div v-if="loading" class="loading-container">
-        <n-spin size="medium" />
+        <n-spin size="medium"/>
       </div>
       <div v-else-if="!statistics" class="empty-container">
-        <n-empty :description="t('course.classPractice.noStatisticsData')" />
+        <n-empty :description="t('course.classPractice.noStatisticsData')"/>
       </div>
       <div v-else class="chart-container">
         <div ref="chartRef" class="echarts-container"></div>
@@ -46,13 +46,13 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue'
+<script lang="ts" setup>
+import {ref, onMounted, onUnmounted, watch, nextTick, computed} from 'vue'
 import * as echarts from 'echarts'
-import { useThemeStore } from '@/store/modules/theme'
-import { useI18n } from 'vue-i18n'
-import { getAnswerStatusLabel, AnswerStatusEnum, getAnswerStatusCountLabel } from '@/enum/student/answerStatusEnum'
-import type { PracticeStatisticsVO } from '@/types/student/practice'
+import {useThemeStore} from '@/store/modules/theme'
+import {useI18n} from 'vue-i18n'
+import {getAnswerStatusLabel, AnswerStatusEnum, getAnswerStatusCountLabel} from '@/enum/student/answerStatusEnum'
+import type {PracticeStatisticsVO} from '@/types/student/practice'
 
 // Props
 interface Props {
@@ -72,7 +72,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 
 // 国际化
-const { locale, t: t } = useI18n()
+const {locale, t: t} = useI18n()
 const isEn = computed(() => locale.value === 'en-US')
 
 // 响应式数据
@@ -285,7 +285,7 @@ watch(() => props.statistics, () => {
     selectedIndex.value = null // 重置选中状态
     initChart()
   })
-}, { deep: true })
+}, {deep: true})
 
 // 监听主题变化
 watch(() => themeStore.isDarkMode, () => {

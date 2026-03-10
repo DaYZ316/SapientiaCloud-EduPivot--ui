@@ -1,7 +1,7 @@
 <template>
-  <div 
-    class="absolute inset-0 w-full h-full overflow-hidden cursor-pointer"
-    @click="handleClick"
+  <div
+      class="absolute inset-0 w-full h-full overflow-hidden cursor-pointer"
+      @click="handleClick"
   >
 
 
@@ -10,13 +10,13 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+<script lang="ts" setup>
+import {computed, onBeforeUnmount, onMounted, ref} from 'vue'
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js'
+import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import {RenderPass} from 'three/examples/jsm/postprocessing/RenderPass.js'
+import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 
 const canvasContainer = ref<HTMLElement | null>(null)
 
@@ -73,12 +73,12 @@ const initScene = () => {
   // 使用正交相机，保证画面比例在不同分辨率下更加统一
   const aspect = width / height
   camera = new THREE.OrthographicCamera(
-    (-FRUSTUM_SIZE * aspect) / 2,
-    (FRUSTUM_SIZE * aspect) / 2,
-    FRUSTUM_SIZE / 2,
-    -FRUSTUM_SIZE / 2,
-    0.1,
-    1000
+      (-FRUSTUM_SIZE * aspect) / 2,
+      (FRUSTUM_SIZE * aspect) / 2,
+      FRUSTUM_SIZE / 2,
+      -FRUSTUM_SIZE / 2,
+      0.1,
+      1000
   )
   camera.position.set(0, 0, 15)
   camera.lookAt(0, 0, 0)
@@ -110,10 +110,10 @@ const initScene = () => {
   // 后期处理
   const renderScene = new RenderPass(scene, camera)
   bloomPass = new UnrealBloomPass(
-    new THREE.Vector2(width, height),
-    1.5,
-    0.4,
-    0.85
+      new THREE.Vector2(width, height),
+      1.5,
+      0.4,
+      0.85
   )
   bloomPass.threshold = 0
   bloomPass.strength = CONFIG.bloomStrength
@@ -141,7 +141,7 @@ const initScene = () => {
 
   // 内部实心高亮球
   const innerCoreGeo = new THREE.SphereGeometry(0.8, 32, 32)
-  const innerCoreMat = new THREE.MeshBasicMaterial({ color: 0xffffff })
+  const innerCoreMat = new THREE.MeshBasicMaterial({color: 0xffffff})
   innerCore = new THREE.Mesh(innerCoreGeo, innerCoreMat)
   pivotGroup.add(innerCore)
 
@@ -155,12 +155,12 @@ const initScene = () => {
   pivotGroup.add(coreLight)
 
   function createRing(
-    radius: number,
-    tube: number,
-    color: number,
-    speedX: number,
-    speedY: number,
-    speedZ: number
+      radius: number,
+      tube: number,
+      color: number,
+      speedX: number,
+      speedY: number,
+      speedZ: number
   ) {
     const geometry = new THREE.TorusGeometry(radius, tube, 16, 100)
     // 参照最外层光能环，将内部环也改为光能体风格
@@ -174,15 +174,15 @@ const initScene = () => {
     const mesh = new THREE.Mesh(geometry, material)
 
     mesh.rotation.set(
-      Math.random() * Math.PI,
-      Math.random() * Math.PI,
-      Math.random() * Math.PI
+        Math.random() * Math.PI,
+        Math.random() * Math.PI,
+        Math.random() * Math.PI
     )
     pivotGroup!.add(mesh)
 
     return {
       mesh: mesh,
-      speed: { x: speedX, y: speedY, z: speedZ }
+      speed: {x: speedX, y: speedY, z: speedZ}
     }
   }
 
@@ -219,15 +219,15 @@ const initScene = () => {
   outerRing.add(outerWire)
 
   outerRing.rotation.set(
-    Math.random() * Math.PI,
-    Math.random() * Math.PI,
-    Math.random() * Math.PI
+      Math.random() * Math.PI,
+      Math.random() * Math.PI,
+      Math.random() * Math.PI
   )
   pivotGroup.add(outerRing)
 
   rings.push({
     mesh: outerRing,
-    speed: { x: 0.02, y: 0.05, z: 0.02 }
+    speed: {x: 0.02, y: 0.05, z: 0.02}
   })
 
 
@@ -248,19 +248,19 @@ const animate = () => {
   if (overloaded) {
     // 增强bloom效果
     bloomPass.strength = CONFIG.bloomStrength * 2.5
-    
+
     // 改变核心颜色为红色/橙色（超载警告色）
     const overloadColor = 0xff4444 // 红色
     const overloadCoreColor = 0xff8844 // 橙红色
     ;(coreMesh.material as THREE.MeshBasicMaterial).color.setHex(overloadColor)
     ;(innerCore.material as THREE.MeshBasicMaterial).color.setHex(overloadCoreColor)
-    
+
     // 改变光照颜色
     if (coreLight) {
       coreLight.color.setHex(overloadColor)
       coreLight.intensity = 5.0 // 增强光照强度
     }
-    
+
     // 增强脉冲效果
     const overloadPulse = Math.sin(time * 8) * 0.2 + 1
     innerCore.scale.set(overloadPulse, overloadPulse, overloadPulse)
@@ -269,12 +269,12 @@ const animate = () => {
     bloomPass.strength = CONFIG.bloomStrength
     ;(coreMesh.material as THREE.MeshBasicMaterial).color.setHex(CONFIG.colors.core)
     ;(innerCore.material as THREE.MeshBasicMaterial).color.setHex(0xffffff)
-    
+
     if (coreLight) {
       coreLight.color.setHex(CONFIG.colors.core)
       coreLight.intensity = 3.2
     }
-    
+
     const pulse = Math.sin(time * 3) * 0.1 + 1
     innerCore.scale.set(pulse, pulse, pulse)
   }
@@ -322,8 +322,8 @@ const handleClick = () => {
 
 // 防抖函数
 const debounce = <T extends (...args: any[]) => void>(
-  func: T,
-  wait: number
+    func: T,
+    wait: number
 ): ((...args: Parameters<T>) => void) => {
   let timeout: ReturnType<typeof setTimeout> | null = null
   return (...args: Parameters<T>) => {
@@ -360,7 +360,7 @@ onMounted(() => {
   // 等待下一帧确保容器已渲染
   setTimeout(() => {
     initScene()
-    
+
     // 使用 ResizeObserver 监听容器尺寸变化
     if (canvasContainer.value) {
       resizeObserver = new ResizeObserver((entries) => {
@@ -372,7 +372,7 @@ onMounted(() => {
       })
       resizeObserver.observe(canvasContainer.value)
     }
-    
+
     // 同时监听窗口大小变化（作为备用）
     window.addEventListener('resize', handleResize)
   }, 0)

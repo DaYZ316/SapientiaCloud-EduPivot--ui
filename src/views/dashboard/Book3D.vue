@@ -59,7 +59,7 @@ let isMouseOver = false; // 鼠标是否在画布上
 let isBouncingBack = false; // 是否正在执行回弹动画
 let bounceStartTime = 0; // 回弹开始时间
 let bounceDuration = 800; // 回弹动画总时长（毫秒）
-let bounceStartRotation = { x: 0, y: 0 }; // 回弹开始时的旋转角度
+let bounceStartRotation = {x: 0, y: 0}; // 回弹开始时的旋转角度
 
 // 初始化Three.js场景
 const initThree = () => {
@@ -117,13 +117,13 @@ const initThree = () => {
     const textureLoader = new THREE.TextureLoader();
     const texturePath = import.meta.env.DEV
         ? new URL('@/assets/3Dmodel/book/texture/baked.png', import.meta.url).href
-        : '/assets/3Dmodel/book/texture/baked.png';
+        : '/assets/baked.png';
     const bookTexture = textureLoader.load(texturePath);
     bookTexture.flipY = false;
 
     bakedMaterial = new THREE.MeshBasicMaterial({
-        map: bookTexture,
-        side: THREE.DoubleSide
+      map: bookTexture,
+      side: THREE.DoubleSide
     });
 
     loader = new GLTFLoader();

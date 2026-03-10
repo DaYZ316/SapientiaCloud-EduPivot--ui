@@ -5,49 +5,51 @@
         {{ t('dashboard.notifications.title') }}
       </n-text>
       <n-button
-        v-if="notifications.length > 0"
-        text
-        size="small"
-        @click="$router.push('/system/notification')"
+          v-if="notifications.length > 0"
+          size="small"
+          text
+          @click="$router.push('/system/notification')"
       >
         {{ t('dashboard.notifications.viewAll') }}
       </n-button>
     </div>
 
     <div v-if="loading" class="notification-loading">
-      <n-spin size="small" />
+      <n-spin size="small"/>
       <n-text depth="3">{{ t('common.loading') }}</n-text>
     </div>
 
     <div v-else-if="notifications.length === 0" class="notification-empty">
-      <n-empty :description="t('dashboard.notifications.empty')" size="small" />
+      <n-empty :description="t('dashboard.notifications.empty')" size="small"/>
     </div>
 
     <div v-else class="notification-list">
       <div
-        v-for="notification in notifications"
-        :key="notification.id"
-        class="notification-item"
-        :class="{ 'unread': notification.status === NotificationReadStatus.UNREAD }"
-        @click="handleNotificationClick(notification)"
+          v-for="notification in notifications"
+          :key="notification.id"
+          :class="{ 'unread': notification.status === NotificationReadStatus.UNREAD }"
+          class="notification-item"
+          @click="handleNotificationClick(notification)"
       >
         <div class="notification-icon">
           <n-icon size="16">
-            <svg v-if="notification.type === NotificationType.SYSTEM" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            <svg v-if="notification.type === NotificationType.SYSTEM" fill="currentColor" viewBox="0 0 24 24">
+              <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
             </svg>
-            <svg v-else-if="notification.type === NotificationType.COURSE" viewBox="0 0 24 24" fill="currentColor">
+            <svg v-else-if="notification.type === NotificationType.COURSE" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
             </svg>
-            <svg v-else viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            <svg v-else fill="currentColor" viewBox="0 0 24 24">
+              <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
             </svg>
           </n-icon>
         </div>
 
         <div class="notification-content">
           <div class="notification-title-row">
-            <n-text class="notification-title" strong :ellipsis="{ tooltip: true }">
+            <n-text :ellipsis="{ tooltip: true }" class="notification-title" strong>
               {{ notification.title }}
             </n-text>
           </div>
@@ -67,9 +69,9 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import {ref, onMounted} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {useRouter} from 'vue-router'
 import {
   NCard,
   NText,
@@ -78,12 +80,12 @@ import {
   NEmpty,
   NIcon
 } from 'naive-ui'
-import type { NotificationVO } from '@/types/system/notification'
-import { listAllNotification, markNotificationAsRead } from '@/api/system/notification'
-import { NotificationType, NotificationReadStatus } from '@/enum/system/notificationTypeEnum'
-import { formatDateTime } from '@/utils/dateUtil'
+import type {NotificationVO} from '@/types/system/notification'
+import {listAllNotification, markNotificationAsRead} from '@/api/system/notification'
+import {NotificationType, NotificationReadStatus} from '@/enum/system/notificationTypeEnum'
+import {formatDateTime} from '@/utils/dateUtil'
 
-const { t } = useI18n()
+const {t} = useI18n()
 const router = useRouter()
 
 const notifications = ref<NotificationVO[]>([])
@@ -113,15 +115,15 @@ const handleNotificationClick = async (notification: NotificationVO) => {
 
       // 延迟一点跳转，确保后端状态同步完�?
       setTimeout(() => {
-        router.push({ path: '/system/notification', query: { id: notification.id } })
+        router.push({path: '/system/notification', query: {id: notification.id}})
       }, 300)
     } catch (error) {
       // 静默处理错误，即使标记失败也跳转
-      router.push({ path: '/system/notification', query: { id: notification.id } })
+      router.push({path: '/system/notification', query: {id: notification.id}})
     }
   } else {
     // 已读通知直接跳转
-    router.push({ path: '/system/notification', query: { id: notification.id } })
+    router.push({path: '/system/notification', query: {id: notification.id}})
   }
 }
 
@@ -145,9 +147,8 @@ onMounted(() => {
   background: color-mix(in srgb, var(--background-color) 85%, transparent);
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
-  box-shadow:
-    0 8px 32px var(--shadow-color),
-    0 4px 16px var(--shadow-secondary-color);
+  box-shadow: 0 8px 32px var(--shadow-color),
+  0 4px 16px var(--shadow-secondary-color);
   user-select: none;
   transition: all 0.3s ease;
 
@@ -286,9 +287,8 @@ onMounted(() => {
     height: auto;
     min-height: 300px;
     margin-top: 12px;
-    box-shadow:
-      0 6px 24px var(--shadow-color),
-      0 3px 12px var(--shadow-secondary-color);
+    box-shadow: 0 6px 24px var(--shadow-color),
+    0 3px 12px var(--shadow-secondary-color);
 
     .notification-header {
       margin-bottom: 16px;

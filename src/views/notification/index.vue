@@ -3,9 +3,9 @@
     <PageHeader :title="t('notification.title')"/>
 
     <n-card size="small">
-      <n-tabs v-model:value="activeBox" type="line" class="mb-4">
-        <n-tab-pane :tab="t('notification.tab.received')" name="received" />
-        <n-tab-pane :tab="t('notification.tab.sent')" name="sent" />
+      <n-tabs v-model:value="activeBox" class="mb-4" type="line">
+        <n-tab-pane :tab="t('notification.tab.received')" name="received"/>
+        <n-tab-pane :tab="t('notification.tab.sent')" name="sent"/>
       </n-tabs>
       <!-- 搜索表单 -->
       <n-form :model="searchForm" class="search-form" inline>
@@ -114,10 +114,10 @@
           ref="pageTableRef"
           :api-fn="listNotification"
           :auto-search="false"
+          :checked-row-keys="selectedRowKeys"
           :columns="columnsComputed"
           :query-params="searchForm"
           :row-key="(row: NotificationVO) => row.id"
-          :checked-row-keys="selectedRowKeys"
           size="small"
           @update:checked-row-keys="onSelectionChange"
           @update:data="onDataUpdate"
@@ -195,21 +195,21 @@
               v-model:value="sendForm.userIds"
               :options="userOptions"
               :placeholder="t('notification.addNotification.recipientsPlaceholder')"
-              multiple
               filterable
+              multiple
           />
         </n-form-item>
 
         <n-form-item :label="t('notification.addNotification.content')" path="content">
-        <RichTextEditor
-            v-model="sendForm.content!"
-            :bucket-code="notificationBucketCode"
-            :placeholder="t('notification.addNotification.contentPlaceholder')"
-            upload-path="notification-assets"
-        />
+          <RichTextEditor
+              v-model="sendForm.content!"
+              :bucket-code="notificationBucketCode"
+              :placeholder="t('notification.addNotification.contentPlaceholder')"
+              upload-path="notification-assets"
+          />
         </n-form-item>
 
-                <n-form-item :label="t('notification.addNotification.attachments')" path="attachmentUrls">
+        <n-form-item :label="t('notification.addNotification.attachments')" path="attachmentUrls">
           <FileUpload
               v-model="attachmentFiles"
               :bucket-code="notificationBucketCode"
@@ -257,7 +257,7 @@
       <template #footer>
         <n-space justify="end">
           <n-button @click="showSendModal = false">{{ t('notification.addNotification.cancel') }}</n-button>
-          <n-button type="primary" :loading="sendLoading" @click="handleSendNotification">
+          <n-button :loading="sendLoading" type="primary" @click="handleSendNotification">
             {{ t('notification.addNotification.submit') }}
           </n-button>
         </n-space>
@@ -273,9 +273,9 @@
     >
       <div v-if="currentNotification" class="notification-detail">
         <n-descriptions
-            class="detail-descriptions"
             :column="2"
             bordered
+            class="detail-descriptions"
             label-placement="left"
             size="small"
         >
@@ -297,19 +297,22 @@
         </n-descriptions>
 
         <div class="detail-section" style="margin-top: 16px;">
-          <n-text strong class="detail-title">{{ t('notification.table.content') }}</n-text>
-          <div style="background-color: var(--background-tertiary-color); padding: 10px;" class="notification-content" v-html="currentNotification?.content"></div>
+          <n-text class="detail-title" strong>{{ t('notification.table.content') }}</n-text>
+          <div class="notification-content" style="background-color: var(--background-tertiary-color); padding: 10px;"
+               v-html="currentNotification?.content"></div>
         </div>
 
         <div v-if="currentNotification?.attachmentUrls" class="detail-section">
-          <n-text strong class="detail-title">{{ t('notification.detail.attachments') }}</n-text>
+          <n-text class="detail-title" strong>{{ t('notification.detail.attachments') }}</n-text>
           <div class="attachments-list">
             <div v-for="(item, index) in currentAttachments" :key="index" class="attachment-item">
-              <n-icon size="20" class="attachment-icon">
+              <n-icon class="attachment-icon" size="20">
                 <DocumentAttachOutline/>
               </n-icon>
               <div class="attachment-info">
-                <div class="attachment-name">{{ item.name || t('notification.detail.unknownAttachment') + (index + 1) }}</div>
+                <div class="attachment-name">{{ item.name || t('notification.detail.unknownAttachment') + (index + 1)
+                  }}
+                </div>
               </div>
               <div class="attachment-actions">
                 <n-button text type="primary" @click="downloadAttachment(item.url)">
@@ -329,11 +332,11 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch, h, nextTick } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
-import { useDialog } from 'naive-ui'
+<script lang="ts" setup>
+import {ref, reactive, computed, onMounted, watch, h, nextTick} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {useRoute} from 'vue-router'
+import {useDialog} from 'naive-ui'
 import {
   SearchOutline,
   RefreshOutline,
@@ -351,8 +354,8 @@ import Icon from '@/components/common/Icon.vue'
 import PageTable from '@/components/common/PageTable.vue'
 import RichTextEditor from '@/components/common/RichTextEditor.vue'
 import FileUpload from '@/components/common/FileUpload.vue'
-import { useUserStore } from '@/store'
-import { renderIcon } from '@/utils/iconUtil'
+import {useUserStore} from '@/store'
+import {renderIcon} from '@/utils/iconUtil'
 
 import {
   listNotification,
@@ -365,7 +368,7 @@ import {
   getDefaultNotificationQuery,
   getNotificationById
 } from '@/api/system/notification'
-import type { NotificationVO } from '@/types/system/notification'
+import type {NotificationVO} from '@/types/system/notification'
 import {
   getNotificationTypeOptions,
   getNotificationReadStatusOptions,
@@ -374,13 +377,13 @@ import {
   NotificationReadStatus
 } from '@/enum/system/notificationTypeEnum'
 
-import { getAllRoles } from '@/api/system/role'
-import { getAllUsers } from '@/api/system/user'
-import { listAllCourse } from '@/api/course/course'
-import { BusinessBucketCodeEnum } from '@/enum/minIO/businessBucketEnum'
+import {getAllRoles} from '@/api/system/role'
+import {getAllUsers} from '@/api/system/user'
+import {listAllCourse} from '@/api/course/course'
+import {BusinessBucketCodeEnum} from '@/enum/minIO/businessBucketEnum'
 
 // 国际�?
-const { t, locale } = useI18n()
+const {t, locale} = useI18n()
 const dialog = useDialog()
 const userStore = useUserStore()
 const route = useRoute()
@@ -440,7 +443,7 @@ const handleAttachmentUploadSuccess = (_file: any, data: any) => {
   const name = rawName ? rawName.split('/').pop() || rawName : rawName
   const list = sendForm.attachmentUrls as Array<{ name: string; url: string }>
   if (!list.find(item => item.url === url)) {
-    list.push({ name, url })
+    list.push({name, url})
   }
 }
 
@@ -502,29 +505,35 @@ const loadUserOptions = () => {
 // 动态表单验证规�?
 const sendFormRules = computed(() => ({
   title: [
-    { required: true, message: t('notification.addNotification.titlePlaceholder'), trigger: 'blur' }
+    {required: true, message: t('notification.addNotification.titlePlaceholder'), trigger: 'blur'}
   ],
   // 通知类型可能�?0（系统通知），0 被视�?falsy，因此必须明确为数字类型校验
   type: [
-    { required: true, type: 'number', message: t('notification.addNotification.typePlaceholder'), trigger: 'change' }
+    {required: true, type: 'number', message: t('notification.addNotification.typePlaceholder'), trigger: 'change'}
   ],
   content: [
-    { required: true, message: t('notification.addNotification.contentPlaceholder'), trigger: 'blur' }
+    {required: true, message: t('notification.addNotification.contentPlaceholder'), trigger: 'blur'}
   ],
   // 根据接收者类型添加验证规�?
   ...(sendForm.recipientType === 1 && {
     roleKey: [
-      { required: true, message: t('notification.addNotification.recipientsPlaceholder'), trigger: 'change' }
+      {required: true, message: t('notification.addNotification.recipientsPlaceholder'), trigger: 'change'}
     ]
   }),
   ...(sendForm.recipientType === 2 && {
     courseId: [
-      { required: true, message: t('notification.addNotification.recipientsPlaceholder'), trigger: 'change' }
+      {required: true, message: t('notification.addNotification.recipientsPlaceholder'), trigger: 'change'}
     ]
   }),
   ...(sendForm.recipientType === 3 && {
     userIds: [
-      { required: true, type: 'array', min: 1, message: t('notification.addNotification.recipientsPlaceholder'), trigger: 'change' }
+      {
+        required: true,
+        type: 'array',
+        min: 1,
+        message: t('notification.addNotification.recipientsPlaceholder'),
+        trigger: 'change'
+      }
     ]
   })
 }))
@@ -570,7 +579,7 @@ const columns: any[] = [
     width: 80,
     render: (row: any) => {
       const isUnread = row.status === NotificationReadStatus.UNREAD
-      return h('n-tag', { type: isUnread ? 'info' : 'default' }, getNotificationReadStatusLabel(row.status, locale.value === 'en-US'))
+      return h('n-tag', {type: isUnread ? 'info' : 'default'}, getNotificationReadStatusLabel(row.status, locale.value === 'en-US'))
     }
   },
   {
@@ -600,33 +609,33 @@ const columns: any[] = [
 
       if (row.status === NotificationReadStatus.UNREAD) {
         actions.push(
-          h(
-            'button',
-            {
-              class: 'n-button n-button--text action-btn',
-              style: { marginRight: '8px' },
-              onClick: () => handleMarkAsRead(row)
-            },
-            [
-              renderIcon(CheckmarkCircleOutline)(),
-              ' ' + t('notification.actions.markAsRead')
-            ]
-          )
+            h(
+                'button',
+                {
+                  class: 'n-button n-button--text action-btn',
+                  style: {marginRight: '8px'},
+                  onClick: () => handleMarkAsRead(row)
+                },
+                [
+                  renderIcon(CheckmarkCircleOutline)(),
+                  ' ' + t('notification.actions.markAsRead')
+                ]
+            )
         )
       }
 
       actions.push(
-        h(
-          'button',
-          {
-            class: 'n-button n-button--text action-btn',
-            onClick: () => handleViewDetail(row)
-          },
-          [
-            renderIcon(EyeOutline)(),
-            ' ' + t('notification.actions.view')
-          ]
-        )
+          h(
+              'button',
+              {
+                class: 'n-button n-button--text action-btn',
+                onClick: () => handleViewDetail(row)
+              },
+              [
+                renderIcon(EyeOutline)(),
+                ' ' + t('notification.actions.view')
+              ]
+          )
       )
 
       return h('n-space', null, actions)
@@ -696,17 +705,17 @@ const sentColumns: any[] = [
       const actions = []
       // 仅展示查看消息详情（消息级，不会标记为已读）
       actions.push(
-        h(
-          'button',
-          {
-            class: 'n-button n-button--text action-btn',
-            onClick: () => handleViewSentDetail(row)
-          },
-          [
-            renderIcon(EyeOutline)(),
-            ' ' + t('notification.actions.view')
-          ]
-        )
+          h(
+              'button',
+              {
+                class: 'n-button n-button--text action-btn',
+                onClick: () => handleViewSentDetail(row)
+              },
+              [
+                renderIcon(EyeOutline)(),
+                ' ' + t('notification.actions.view')
+              ]
+          )
       )
       return h('n-space', null, actions)
     }
@@ -962,7 +971,7 @@ const handleRouteNotificationId = async (notificationId: string | undefined) => 
 // 监听路由参数变化
 watch(() => route.query.id, (newId) => {
   handleRouteNotificationId(newId as string)
-}, { immediate: true })
+}, {immediate: true})
 
 // 组件挂载时初始化
 onMounted(() => {
@@ -974,7 +983,7 @@ onMounted(() => {
   // 处理初始路由参数
   handleRouteNotificationId(route.query.id as string)
 })
- 
+
 // 监听 activeBox 切换，调整查询参数并刷新表格
 watch(activeBox, (newVal) => {
   if (newVal === 'sent') {

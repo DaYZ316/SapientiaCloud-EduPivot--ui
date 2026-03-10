@@ -9,7 +9,7 @@ import type {
     LiveRoomTokenVO,
     LiveRoomVO
 } from '@/types/live'
-import { defaultServerConfig } from '@/config/server'
+import {defaultServerConfig} from '@/config/server'
 
 /**
  * 获取默认直播房间创建 DTO
@@ -180,7 +180,7 @@ export function leaveLiveRoomOnPageUnload(data: LiveRoomSessionDTO): void {
 
     try {
         if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
-            const blob = new Blob([payload], { type: 'application/json' })
+            const blob = new Blob([payload], {type: 'application/json'})
             navigator.sendBeacon(endpoint, blob)
         }
     } catch {
@@ -220,7 +220,7 @@ export function endLiveRoom(id: string) {
  * 获取短期 SSE token（需登录），用于 EventSource 订阅
  */
 export function getSseToken(classroomId?: string | null) {
-    return http.post<string>('/live/live/sse-token', null, { params: { classroomId } })
+    return http.post<string>('/live/live/sse-token', null, {params: {classroomId}})
 }
 
 /**

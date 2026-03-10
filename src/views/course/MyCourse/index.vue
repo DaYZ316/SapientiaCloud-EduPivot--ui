@@ -3,7 +3,7 @@
     <page-header :title="t('course.myCourses')"/>
 
     <n-card size="small">
-      <!-- 搜索表单和加课按钮 -->
+      <!-- 搜索表单和按钮 -->
       <div class="search-container">
         <course-search-form
             v-model="searchForm"
@@ -20,6 +20,17 @@
             </n-icon>
           </template>
           {{ t('course.enroll.addCourse') }}
+        </n-button>
+        <!-- 添加课程按钮 - 只有教师或管理员才能看到 -->
+        <n-button v-if="isTeacher || isAdmin" class="add-course-btn" type="primary" @click="handleAddCourse">
+          <template #icon>
+            <n-icon>
+              <svg height="16" viewBox="0 0 24 24" width="16">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/>
+              </svg>
+            </n-icon>
+          </template>
+          {{ t('course.actions.addCourse') }}
         </n-button>
       </div>
 
@@ -85,6 +96,16 @@
         </n-space>
       </template>
     </n-modal>
+
+    <!-- 添加课程对话框 -->
+    <CourseFormDialog
+        v-model:visible="showAddCourseDialog"
+        :modal-width="'900px'"
+        :show-fields="['courseName', 'courseType', 'teacherId', 'assistantTeacherIds', 'semester', 'location', 'status', 'isPublic', 'coverImageUrl', 'description']"
+        form-layout="full"
+        mode="add"
+        @submit="handleFormSubmit"
+    />
   </div>
 </template>
 
@@ -95,13 +116,18 @@ import {useI18n} from 'vue-i18n'
 import {useRouter} from 'vue-router'
 import CourseCard from './CourseCard.vue'
 import CourseSearchForm from '../components/CourseSearchForm.vue'
+import CourseFormDialog from '../components/CourseFormDialog.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import * as courseApi from '@/api/course'
 import {useUserStore} from '@/store/modules/user'
 import {getDiscreteApi} from '@/utils/naiveUIHelper'
-import {addCourseStudent, listMyCourseForStudent, getDefaultMyCourseQuery as getDefaultMyCourseQueryStudent} from '@/api/course/courseStudent'
-import { listMyCourseForTeacher } from '@/api/course/courseTeacher'
+import {
+  addCourseStudent,
+  listMyCourseForStudent,
+  getDefaultMyCourseQuery as getDefaultMyCourseQueryStudent
+} from '@/api/course/courseStudent'
+import {listMyCourseForTeacher} from '@/api/course/courseTeacher'
 
 const {t} = useI18n()
 const {message} = getDiscreteApi()
@@ -110,6 +136,9 @@ const router = useRouter()
 
 // 检查用户是否为管理员
 const isAdmin = computed(() => userStore.hasRole('ADMIN'))
+
+// 检查用户是否为教师
+const isTeacher = computed(() => userStore.teacherInfo?.id !== null && userStore.teacherInfo?.id !== undefined)
 
 // 检查用户是否为学生
 const isStudent = computed(() => userStore.studentInfo?.id !== null && userStore.studentInfo?.id !== undefined)
@@ -151,6 +180,9 @@ const enrollRules = computed(() => ({
     {required: true, message: t('course.enroll.courseIdRequired'), trigger: 'blur'}
   ]
 }))
+
+// 添加课程相关状态
+const showAddCourseDialog = ref(false)
 
 // 根据角色选择的 API：admin -> listCourse；teacher -> listMyCourseForTeacher；student -> listMyCourse
 // 优先判断管理员身份（即使该账号同时是教师）
@@ -298,6 +330,26 @@ const handleEnrollCourse = async () => {
   // 重新加载课程数据
   loadCourseData()
   enrollLoading.value = false
+}
+
+// 处理添加课程按钮点击
+const handleAddCourse = () => {
+  showAddCourseDialog.value = true
+}
+
+// 表单提交处理
+const handleFormSubmit = async (formData: courseType.CourseDTO) => {
+  // 如果是教师或管理员，teacherId 为当前登录用户的教师 ID
+  if (userStore.teacherInfo?.id) {
+    formData.teacherId = userStore.teacherInfo.id
+  }
+
+  await courseApi.addCourse(formData)
+
+  message.success(t('course.actions.addSuccess'))
+  showAddCourseDialog.value = false
+  // 重新加载课程数据
+  loadCourseData()
 }
 
 // 组件挂载时初始化

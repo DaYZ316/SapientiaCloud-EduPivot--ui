@@ -4,49 +4,49 @@
       <div class="stat-item">
         <div class="stat-number">
           <n-number-animation
-            v-if="startAnimation"
-            ref="studentAnimationRef"
-            :from="0"
-            :to="statistics?.studentCount || 0"
-            :precision="0"
-            :duration="1000"
-            :show-separator="true"
+              v-if="startAnimation"
+              ref="studentAnimationRef"
+              :duration="1000"
+              :from="0"
+              :precision="0"
+              :show-separator="true"
+              :to="statistics?.studentCount || 0"
           />
           <span v-else>{{ statistics?.studentCount || 0 }}</span>
         </div>
         <div class="stat-label">{{ t('dashboard.stats.students') }}</div>
       </div>
 
-      <n-divider vertical />
+      <n-divider vertical/>
 
       <div class="stat-item">
         <div class="stat-number">
           <n-number-animation
-            v-if="startAnimation"
-            ref="teacherAnimationRef"
-            :from="0"
-            :to="statistics?.teacherCount || 0"
-            :precision="0"
-            :duration="1000"
-            :show-separator="true"
+              v-if="startAnimation"
+              ref="teacherAnimationRef"
+              :duration="1000"
+              :from="0"
+              :precision="0"
+              :show-separator="true"
+              :to="statistics?.teacherCount || 0"
           />
           <span v-else>{{ statistics?.teacherCount || 0 }}</span>
         </div>
         <div class="stat-label">{{ t('dashboard.stats.teachers') }}</div>
       </div>
 
-      <n-divider vertical />
+      <n-divider vertical/>
 
       <div class="stat-item">
         <div class="stat-number">
           <n-number-animation
-            v-if="startAnimation"
-            ref="courseAnimationRef"
-            :from="0"
-            :to="statistics?.courseCount || 0"
-            :precision="0"
-            :duration="1000"
-            :show-separator="true"
+              v-if="startAnimation"
+              ref="courseAnimationRef"
+              :duration="1000"
+              :from="0"
+              :precision="0"
+              :show-separator="true"
+              :to="statistics?.courseCount || 0"
           />
           <span v-else>{{ statistics?.courseCount || 0 }}</span>
         </div>
@@ -57,13 +57,13 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { NCard, NNumberAnimation, NDivider } from 'naive-ui'
-import type { StatisticsVO } from '@/types/dashboard/statistics'
-import { getStatistics } from '@/api/dashboard/dashboard'
+import {ref, onMounted} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {NCard, NNumberAnimation, NDivider} from 'naive-ui'
+import type {StatisticsVO} from '@/types/dashboard/statistics'
+import {getStatistics} from '@/api/dashboard/dashboard'
 
-const { t } = useI18n()
+const {t} = useI18n()
 const statistics = ref<StatisticsVO | null>(null)
 const startAnimation = ref(false)
 
@@ -102,9 +102,8 @@ onMounted(() => {
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
   border: none;
-  box-shadow:
-    0 8px 32px var(--shadow-color),
-    0 4px 16px var(--shadow-secondary-color);
+  box-shadow: 0 8px 32px var(--shadow-color),
+  0 4px 16px var(--shadow-secondary-color);
   user-select: none;
 
   .stats-container {
@@ -131,9 +130,8 @@ onMounted(() => {
         display: flex;
         align-items: center;
         justify-content: center;
-        text-shadow:
-          0 3px 12px color-mix(in srgb, var(--primary-color) 40%, transparent),
-          0 2px 4px rgba(0, 0, 0, 0.15);
+        text-shadow: 0 3px 12px color-mix(in srgb, var(--primary-color) 40%, transparent),
+        0 2px 4px rgba(0, 0, 0, 0.15);
         filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
       }
 
@@ -155,10 +153,9 @@ onMounted(() => {
     margin-left: auto;
     margin-right: auto;
     border-radius: 16px;
-    box-shadow:
-      0 6px 24px var(--shadow-color),
-      0 3px 12px var(--shadow-secondary-color),
-      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    box-shadow: 0 6px 24px var(--shadow-color),
+    0 3px 12px var(--shadow-secondary-color),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 
     .stats-container {
       flex-direction: column;
@@ -174,9 +171,8 @@ onMounted(() => {
         .stat-number {
           font-size: 36px;
           min-height: 48px;
-          text-shadow:
-            0 3px 10px color-mix(in srgb, var(--primary-color) 35%, transparent),
-            0 2px 3px rgba(0, 0, 0, 0.12);
+          text-shadow: 0 3px 10px color-mix(in srgb, var(--primary-color) 35%, transparent),
+          0 2px 3px rgba(0, 0, 0, 0.12);
         }
 
         .stat-label {
@@ -187,10 +183,9 @@ onMounted(() => {
   }
 
   .dark .statistics-card {
-    box-shadow:
-      0 8px 32px var(--shadow-color),
-      0 4px 16px var(--shadow-secondary-color),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px var(--shadow-color),
+    0 4px 16px var(--shadow-secondary-color),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 }
 
@@ -199,10 +194,9 @@ onMounted(() => {
   .statistics-card {
     background: rgba(26, 26, 26, 0.75);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow:
-      0 12px 40px var(--shadow-color),
-      0 4px 16px var(--shadow-secondary-color),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    box-shadow: 0 12px 40px var(--shadow-color),
+    0 4px 16px var(--shadow-secondary-color),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 }
 </style>

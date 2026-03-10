@@ -96,6 +96,7 @@ const props = defineProps<Props>()
 // Emits
 interface Emits {
   (e: 'continue-course', course: courseType.CourseVO): void
+
   (e: 'course-click', course: courseType.CourseVO): void
 }
 

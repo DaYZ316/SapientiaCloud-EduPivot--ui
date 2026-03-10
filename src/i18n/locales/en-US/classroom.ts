@@ -116,11 +116,9 @@ export default {
         deleteConfirm: 'Are you sure you want to delete this course record? This operation cannot be undone',
         deleteConfirmText: 'Confirm Delete',
         deleteSuccess: 'Course record deleted successfully',
-        cancelCourse: 'Cancel Course',
-        cancelConfirm: 'Are you sure you want to cancel this course record? Once cancelled, this operation cannot be undone. Please proceed with caution',
-        cancelConfirmText: 'Confirm Cancel',
-        cancelSuccess: 'Course record cancelled successfully'
-        ,
+        changeClassroomTypeConfirmTitle: 'Confirm classroom type change?',
+        changeClassroomTypeConfirmContent: 'There are students already seated. Continuing will reinitialize the seating layout and may clear existing seat assignments. Do you want to continue?',
+        changeClassroomTypeConfirmContinue: 'Continue',
         cantDecreaseRowsBecauseOccupied: 'Cannot decrease rows: there are students already seated. Please remove or reassign students first.',
         cantDecreaseColsBecauseOccupied: 'Cannot decrease columns: there are students already seated. Please remove or reassign students first.'
     },
@@ -179,13 +177,21 @@ export default {
     noStudentOnSeat: 'There is no student in this seat',
     noPermissionToRemove: 'You do not have permission to remove this student',
     removeSeatSuccess: 'Student seat removed successfully',
+    standUp: {
+        onlySelfCanStandUp: 'Only yourself can stand up',
+        confirm: {
+            title: 'Confirm Stand Up',
+            content: 'Are you sure you want to stand up and leave your seat?',
+            confirm: 'Confirm',
+            cancel: 'Cancel'
+        },
+        success: 'Successfully stood up'
+    },
     searchForm: {
         courseName: 'Course Name',
         courseNamePlaceholder: 'Please enter course name',
         classroomType: 'Classroom Size',
         classroomTypePlaceholder: 'Please select classroom size',
-        status: 'Course Status',
-        statusPlaceholder: 'Please select course status',
         startTimeRange: 'Start Time Range',
         startTimeRangePlaceholder: 'Please select start time range',
         search: 'Search',

@@ -6,8 +6,9 @@
         :show-course-link="false"
     >
       <template #actions>
-        <!-- 三个点操作按钮 -->
+        <!-- 三个点操作按钮 - 只有开课教师或管理员可见 -->
         <n-dropdown
+            v-if="canEditOrDelete"
             :options="actionOptions"
             placement="bottom-end"
             trigger="click"
@@ -84,7 +85,7 @@
 
         <!-- 右侧教师信息 -->
         <div class="teacher-section">
-        <LoadingSpinner
+          <LoadingSpinner
               v-if="teacherDataLoading"
               :title="t('course.messages.loadingTeacher')"
               min-height="200px"
@@ -265,7 +266,7 @@ import * as TeacherApi from '@/api/teacher'
 import type {TeacherVO} from '@/types/teacher'
 import {CoursePublicEnum, getCourseStatusOptions, getCourseTypeOptions} from '@/enum/course'
 import {BusinessBucketCodeEnum} from '@/enum/minIO'
-import {useCourseStore, useMenuStore} from '@/store'
+import {useCourseStore, useMenuStore, useUserStore} from '@/store'
 import TeacherCard from '../components/TeacherCard/TeacherCard.vue'
 import CourseCard from '../components/CourseCard/CourseCard.vue'
 import TeacherMarquee from '../components/TeacherMarquee.vue'
@@ -294,6 +295,7 @@ const {setTitle} = useTitle()
 // 菜单状态管理
 const menuStore = useMenuStore()
 const courseStore = useCourseStore()
+const userStore = useUserStore()
 
 // 响应式数据
 const loading = ref(false)
@@ -321,6 +323,22 @@ const courseId = computed(() => route.params.courseId as string)
 const courseInfo = computed(() => courseStore.currentCourseInfo)
 const courseTypeOptions = computed(() => getCourseTypeOptions(t))
 const courseStatusOptions = computed(() => getCourseStatusOptions(t))
+
+// 判断当前用户是否有编辑/删除课程的权限（开课教师或管理员）
+const canEditOrDelete = computed(() => {
+  // 未登录则没有权限
+  if (!userStore.isLogin) return false
+
+  // 管理员有权限
+  if (userStore.hasRole('ADMIN')) return true
+
+  // 开课教师有权限
+  if (userStore.teacherInfo && courseInfo.value?.teacherId) {
+    return userStore.teacherInfo.id === courseInfo.value.teacherId
+  }
+
+  return false
+})
 
 // 统一管理教师数据，避免重复API调用
 const {

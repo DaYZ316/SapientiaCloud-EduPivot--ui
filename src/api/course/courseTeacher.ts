@@ -1,5 +1,11 @@
 import http from '@/utils/http'
-import type {CourseQueryParams, CourseVO, CourseTeacherAssignDTO, CourseTeacherDTO, CourseTeacherQueryDTO} from '@/types/course'
+import type {
+    CourseQueryParams,
+    CourseTeacherAssignDTO,
+    CourseTeacherDTO,
+    CourseTeacherQueryDTO,
+    CourseVO
+} from '@/types/course'
 import type {TeacherVO} from '@/types/teacher'
 
 /**
@@ -110,5 +116,5 @@ export function batchAddAssistantTeachers(courseId: string, teacherIds: string[]
  * @param teacherIds 教师ID列表
  */
 export function batchDeleteAssistantTeachers(courseId: string, teacherIds: string[]) {
-    return http.delete(`/course/course-teacher/${courseId}/assistants/batch`, { data: teacherIds })
+    return http.delete(`/course/course-teacher/${courseId}/assistants/batch`, {data: teacherIds})
 }

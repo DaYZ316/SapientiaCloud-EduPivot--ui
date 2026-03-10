@@ -1,6 +1,6 @@
 import type {RouteRecordRaw} from 'vue-router'
 import {createRouter, createWebHistory} from 'vue-router'
-import {useLoadingBarStore, useTransitionStore, useUserStore, useLivePiPStore} from '@/store'
+import {useLivePiPStore, useLoadingBarStore, useTransitionStore, useUserStore} from '@/store'
 import {TitleUtil} from '@/utils'
 
 /**

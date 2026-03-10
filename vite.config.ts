@@ -2,7 +2,7 @@ import {defineConfig} from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 import {fileURLToPath} from 'url'
-import {copyFileSync, mkdirSync, existsSync, readdirSync} from 'fs'
+import {copyFileSync, existsSync, mkdirSync, readdirSync} from 'fs'
 import {defaultServerConfig, getProxyTarget} from './src/config/server'
 
 // 获取当前文件的目录路径（ESM 兼容）

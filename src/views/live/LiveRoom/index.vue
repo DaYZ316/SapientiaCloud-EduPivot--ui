@@ -1,42 +1,43 @@
 ﻿<template>
   <div class="live-room-container">
     <live-room-provider ref="providerRef" :room-id-prop="props.roomIdProp" :token-prop="props.tokenProp">
-      <live-room-header />
+      <live-room-header/>
 
-      <live-room-status />
+      <live-room-status/>
 
       <n-card size="small">
-        <live-room-controls />
+        <live-room-controls/>
 
-        <live-room-layout />
+        <live-room-layout/>
       </n-card>
     </live-room-provider>
 
     <student-info-popup
-      :position="popupPosition"
-      :seat-index="currentSeatIndex"
-      :show="showStudentInfo"
-      :student="currentStudent"
+        :position="popupPosition"
+        :seat-index="currentSeatIndex"
+        :show="showStudentInfo"
+        :student="currentStudent"
     />
     <n-alert
-      v-if="showPointerLockHint"
-      :title="t('classroom.pointerLockHintTitle')"
-      class="pointer-lock-hint"
-      closable
-      type="info"
-      @close="showPointerLockHint = false"
+        v-if="showPointerLockHint"
+        :title="t('classroom.pointerLockHintTitle')"
+        class="pointer-lock-hint"
+        closable
+        type="info"
+        @close="showPointerLockHint = false"
     >
       {{ t('classroom.pointerLockHint') }}
     </n-alert>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRoute, onBeforeRouteLeave } from 'vue-router'
-import { NAlert, NCard } from 'naive-ui'
-import { useLivePiPStore } from '@/store'
+<script lang="ts" setup>
+// 在子组件完全挂载并注册完 refs 后再调用 initialize，避免注册时序问题
+import {nextTick, onMounted, onUnmounted, ref} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {onBeforeRouteLeave, useRoute} from 'vue-router'
+import {NAlert, NCard} from 'naive-ui'
+import {useLivePiPStore} from '@/store'
 import LiveRoomProvider from './components/LiveRoomProvider.vue'
 import LiveRoomHeader from './components/LiveRoomHeader.vue'
 import LiveRoomStatus from './components/LiveRoomStatus.vue'
@@ -44,7 +45,7 @@ import LiveRoomControls from './components/LiveRoomControls.vue'
 import LiveRoomLayout from './components/LiveRoomLayout.vue'
 import StudentInfoPopup from '@/views/classroom/components/StudentInfoPopup.vue'
 
-const { t } = useI18n()
+const {t} = useI18n()
 const route = useRoute()
 const livePiPStore = useLivePiPStore()
 
@@ -104,7 +105,7 @@ const extractVideoStreamFromRoom = (room: any, participantId: string): MediaStre
   }
 
   const remoteParticipant = (room.remoteParticipants && room.remoteParticipants.get && room.remoteParticipants.get(participantId)) ||
-    Array.from(room.remoteParticipants ? room.remoteParticipants.values() : []).find((p: any) => p.identity === participantId)
+      Array.from(room.remoteParticipants ? room.remoteParticipants.values() : []).find((p: any) => p.identity === participantId)
 
   if (!remoteParticipant) {
     return null
@@ -197,8 +198,6 @@ onBeforeRouteLeave((_to, _from, next) => {
   }
 })
 
-// 在子组件完全挂载并注册完 refs 后再调用 initialize，避免注册时序问题
-import { nextTick } from 'vue'
 onMounted(async () => {
   await nextTick()
 
@@ -212,9 +211,9 @@ onMounted(async () => {
     if (session.connection) {
       // 恢复会话：加载 roomInfo、连接 SSE、同步参与者等
       await providerRef.value?.restoreSession?.(
-        session.connection,
-        session.sessionId ?? null,
-        session.roomId
+          session.connection,
+          session.sessionId ?? null,
+          session.roomId
       )
     }
     return
@@ -240,7 +239,7 @@ onUnmounted(() => {
 
 const showStudentInfo = ref(false)
 const showPointerLockHint = ref(false)
-const popupPosition = ref({ x: 0, y: 0 })
+const popupPosition = ref({x: 0, y: 0})
 const currentSeatIndex = ref<number | null>(null)
 const currentStudent = ref<any>(null)
 </script>

@@ -1,5 +1,11 @@
 import http from '@/utils/http'
-import type {CourseStudentDTO, CourseStudentQueryParams, CourseStudentVO, MyCourseQueryParams, MyCourseVO} from '@/types/course'
+import type {
+    CourseStudentDTO,
+    CourseStudentQueryParams,
+    CourseStudentVO,
+    MyCourseQueryParams,
+    MyCourseVO
+} from '@/types/course'
 
 // 获取默认课程学生DTO
 export function getDefaultCourseStudentDTO(): CourseStudentDTO {

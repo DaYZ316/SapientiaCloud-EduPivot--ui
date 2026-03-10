@@ -67,15 +67,6 @@
             :show-label="false"
             size="large"
         >
-          <n-form-item>
-            <div class="avatar-upload-wrapper">
-              <AuthAvatarUpload
-                  v-model="registerForm.avatar"
-                  :crop-size="300"
-                  :size="180"
-              />
-            </div>
-          </n-form-item>
           <n-form-item path="nickName">
             <n-input
                 v-model:value="registerForm.nickName"
@@ -177,7 +168,6 @@ import {computed, onUnmounted, reactive, ref} from 'vue'
 import {useI18n} from 'vue-i18n'
 import type {FormInst, FormRules} from 'naive-ui'
 import {NButton, NForm, NFormItem, NInput, NInputOtp, NSpace, NStep, NSteps, useDialog} from 'naive-ui'
-import AuthAvatarUpload from '@/views/auth/components/AuthAvatarUpload.vue'
 import {
   getDefaultSendVerificationCodeDTO,
   getDefaultSysUserRegisterDTO,
@@ -211,15 +201,13 @@ const step1FormRef = ref<FormInst | null>(null)
 const step2FormRef = ref<FormInst | null>(null)
 const step3FormRef = ref<FormInst | null>(null)
 
-interface RegisterForm extends Omit<SysUserRegisterDTO, 'verificationCode' | 'avatar'> {
+interface RegisterForm extends Omit<SysUserRegisterDTO, 'verificationCode'> {
   verificationCode: string[] | null
-  avatar: string | undefined
 }
 
 const registerForm = reactive<RegisterForm>({
   ...getDefaultSysUserRegisterDTO(),
-  verificationCode: null,
-  avatar: getDefaultSysUserRegisterDTO().avatar || undefined
+  verificationCode: null
 })
 
 const step1Rules: FormRules = {

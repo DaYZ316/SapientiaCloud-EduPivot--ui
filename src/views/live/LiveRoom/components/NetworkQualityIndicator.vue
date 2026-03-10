@@ -1,10 +1,10 @@
 <template>
-  <div class="network-quality-indicator" :class="`quality-${qualityColor}`">
-    <n-icon :component="qualityIcon" size="16" />
+  <div :class="`quality-${qualityColor}`" class="network-quality-indicator">
+    <n-icon :component="qualityIcon" size="16"/>
     <span class="quality-text">{{ qualityLabel }}</span>
     <n-tooltip v-if="showDetails">
       <template #trigger>
-        <n-icon :component="PinOutline" size="14" class="info-icon" />
+        <n-icon :component="PinOutline" class="info-icon" size="14"/>
       </template>
       <div class="quality-details">
         <div>{{ t('live.network.latency') }}: {{ latency }}ms</div>
@@ -15,12 +15,12 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { NIcon, NTooltip } from 'naive-ui'
-import { WifiOutline, PinOutline } from '@vicons/ionicons5'
-import { useNetworkQuality } from '../composables/useNetworkQuality'
+<script lang="ts" setup>
+import {computed} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {NIcon, NTooltip} from 'naive-ui'
+import {PinOutline, WifiOutline} from '@vicons/ionicons5'
+import {useNetworkQuality} from '../composables/useNetworkQuality'
 
 interface Props {
   showDetails?: boolean
@@ -30,7 +30,7 @@ withDefaults(defineProps<Props>(), {
   showDetails: true
 })
 
-const { t } = useI18n()
+const {t} = useI18n()
 const networkQuality = useNetworkQuality()
 
 const qualityIcon = computed(() => {

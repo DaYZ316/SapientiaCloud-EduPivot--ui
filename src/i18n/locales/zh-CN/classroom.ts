@@ -116,11 +116,9 @@ export default {
         deleteConfirm: '确定要删除该课程记录吗？此操作不可恢复',
         deleteConfirmText: '确认删除',
         deleteSuccess: '课程记录删除成功',
-        cancelCourse: '取消课程',
-        cancelConfirm: '确定要取消该课程记录吗？一旦取消将无法恢复，请谨慎操作',
-        cancelConfirmText: '确认取消',
-        cancelSuccess: '课程记录已取消'
-        ,
+        changeClassroomTypeConfirmTitle: '确认修改教室类型？',
+        changeClassroomTypeConfirmContent: '当前已有学生入座。继续修改教室类型将会初始化教室座位情况，可能导致已入座信息丢失。是否继续？',
+        changeClassroomTypeConfirmContinue: '继续修改',
         cantDecreaseRowsBecauseOccupied: '无法减少行数：存在已入座学生，请先移除或调整学生座位。',
         cantDecreaseColsBecauseOccupied: '无法减少列数：存在已入座学生，请先移除或调整学生座位。'
     },
@@ -181,13 +179,21 @@ export default {
     noStudentOnSeat: '该座位上暂无学生',
     noPermissionToRemove: '您没有权限移除该学生',
     removeSeatSuccess: '已成功移除学生座位',
+    standUp: {
+        onlySelfCanStandUp: '只能本人起立',
+        confirm: {
+            title: '确认起立',
+            content: '确定要起立离开座位吗？',
+            confirm: '确认',
+            cancel: '取消'
+        },
+        success: '已成功起立'
+    },
     searchForm: {
         courseName: '课程名称',
         courseNamePlaceholder: '请输入课程名称',
         classroomType: '教室大小',
         classroomTypePlaceholder: '请选择教室大小',
-        status: '课程状态',
-        statusPlaceholder: '请选择课程状态',
         startTimeRange: '开始时间区间',
         startTimeRangePlaceholder: '请选择开始时间区间',
         search: '搜索',

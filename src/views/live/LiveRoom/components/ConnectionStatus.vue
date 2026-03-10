@@ -9,7 +9,7 @@
     </span>
 
     <!-- 当前用户角色 -->
-    <span class="role-chip">{{ t('live.room.currentRole', { role: currentUserRoleLabel }) }}</span>
+    <span class="role-chip">{{ t('live.room.currentRole', {role: currentUserRoleLabel}) }}</span>
 
     <!-- 录制状态 -->
     <span v-if="recordingStatusLabel" :class="{ 'recording-active': isRecording }" class="recording-chip">
@@ -27,20 +27,20 @@
     </n-text>
 
     <!-- 网络质量指示器 -->
-    <network-quality-indicator />
+    <network-quality-indicator/>
 
     <!-- 离开直播按钮 -->
-    <n-button class="leave-button" v-if="showLeaveButton" type="error" size="small" @click="$emit('leave')">
+    <n-button v-if="showLeaveButton" class="leave-button" size="small" type="error" @click="$emit('leave')">
       {{ t('live.room.leave') }}
     </n-button>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { NText } from 'naive-ui'
-import { getLiveRoomRoleLabel, getLiveRoomStatusLabel, LiveRoomRoleEnum, LiveRoomStatusEnum } from '@/enum/live'
+import {computed} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {NText} from 'naive-ui'
+import {getLiveRoomRoleLabel, getLiveRoomStatusLabel, LiveRoomRoleEnum, LiveRoomStatusEnum} from '@/enum/live'
 import NetworkQualityIndicator from './NetworkQualityIndicator.vue'
 
 interface Props {
@@ -58,7 +58,7 @@ const props = withDefaults(defineProps<Props>(), {
   showLeaveButton: false
 })
 
-const { t } = useI18n()
+const {t} = useI18n()
 
 // 计算属性
 const roomStatusLabel = computed(() => {

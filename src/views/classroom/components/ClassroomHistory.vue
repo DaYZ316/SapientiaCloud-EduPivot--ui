@@ -53,8 +53,8 @@
       >
         <div class="record-header">
           <p class="course-name">{{ item.courseName || t('classroom.history.unnamedCourse') }}</p>
-          <span v-if="item.status !== undefined" :class="'status-' + item.status" class="record-status">
-            {{ getStatusText(item.status) }}
+          <span :class="'status-' + calculateCourseRecordStatus(item.startTime, item.overTime)" class="record-status">
+            {{ getStatusText(item) }}
           </span>
         </div>
         <div class="record-info">
@@ -102,7 +102,7 @@ import {NIcon, NSpin} from 'naive-ui'
 import {listCourseRecord} from '@/api/classroom/courseRecord'
 import eventBus from '@/utils/eventBus'
 import {getClassroomTypeLabel} from '@/enum/classroom/classroomTypeEnum'
-import {getCourseRecordStatusLabel} from '@/enum/classroom/courseRecordStatusEnum'
+import {getCourseRecordStatusLabel, calculateCourseRecordStatus} from '@/enum/classroom/courseRecordStatusEnum'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import Icon from '@/components/common/Icon.vue'
 import type {CourseRecordPageQueryDTO, CourseRecordVO} from '@/types/classroom'
@@ -125,8 +125,9 @@ const recordListRef = ref<HTMLElement | null>(null)
 const selectedRecordId = ref<string | null>(null)
 const searchParams = ref<CourseRecordPageQueryDTO | null>(null)
 
-// 获取状态文本，使用枚举函数
-const getStatusText = (status: number) => {
+// 获取状态文本，使用枚举函数，根据时间计算状态
+const getStatusText = (item: CourseRecordVO) => {
+  const status = calculateCourseRecordStatus(item.startTime, item.overTime)
   return getCourseRecordStatusLabel(status, locale.value === 'en-US')
 }
 

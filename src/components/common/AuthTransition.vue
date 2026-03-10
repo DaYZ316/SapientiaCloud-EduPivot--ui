@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, watch, onBeforeUnmount} from 'vue'
+import {computed, onBeforeUnmount, watch} from 'vue'
 import {useTransitionStore} from '@/store/modules/transition'
 
 const transitionStore = useTransitionStore()

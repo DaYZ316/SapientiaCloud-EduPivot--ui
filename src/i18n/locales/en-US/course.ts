@@ -39,6 +39,7 @@ export default {
     // Action buttons
     actions: {
         add: 'Add Course',
+        addCourse: 'Create Course',
         edit: 'Edit',
         delete: 'Delete',
         deleteConfirm: 'Confirm Delete',
@@ -190,7 +191,8 @@ export default {
         enroll: 'Enroll',
         drop: 'Drop',
         viewDetails: 'View Details',
-        courseProgress: 'Course Progress'
+        courseProgress: 'Points exceeding percentage',
+        rootChapterCount: 'Chapters'
     },
 
     // Student management

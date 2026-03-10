@@ -231,13 +231,6 @@
     border: 1px solid color-mix(in srgb, var(--success-color) 30%, transparent);
   }
 
-  // 取消状态 (3)
-  .status-3 {
-    background-color: color-mix(in srgb, var(--error-color) 12%, var(--background-color));
-    color: var(--error-color);
-    border: 1px solid color-mix(in srgb, var(--error-color) 30%, transparent);
-  }
-
   .record-info {
     display: flex;
     flex-wrap: wrap;

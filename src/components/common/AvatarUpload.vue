@@ -132,11 +132,7 @@ import {uploadFile} from '@/api/minIO'
 import type {AvatarUploadEmits, AvatarUploadProps} from '@/types/minIO/file'
 import {BusinessBucketCodeEnum} from '@/enum/minIO'
 import Icon from '@/components/common/Icon.vue'
-import {
-  getGradientColors,
-  normalizeAvatarSize,
-  resolveUserName
-} from '@/utils/avatarUtil'
+import {getGradientColors, normalizeAvatarSize, resolveUserName} from '@/utils/avatarUtil'
 
 const props = withDefaults(defineProps<AvatarUploadProps>(), {
   modelValue: null,

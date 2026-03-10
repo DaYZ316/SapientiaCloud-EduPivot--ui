@@ -9,10 +9,10 @@
     <!-- 搜索表单 -->
     <div class="search-form-container">
       <ClassroomPracticeSearchForm
-        v-model="searchForm"
-        :course-id="courseId"
-        @search="handleSearch"
-        @reset="handleResetSearch"
+          v-model="searchForm"
+          :course-id="courseId"
+          @reset="handleResetSearch"
+          @search="handleSearch"
       />
     </div>
 
@@ -23,26 +23,26 @@
         <PracticeList
             ref="practiceListRef"
             :course-id="courseId"
-            :selected-practice-id="selectedPracticeId"
             :search-query="searchForm"
+            :selected-practice-id="selectedPracticeId"
             :use-course-records="false"
             @select="handlePracticeSelect"
         />
       </div>
 
-        <!-- 右侧练习详情 -->
+      <!-- 右侧练习详情 -->
       <n-card v-if="selectedPractice" class="practice-detail-card">
         <!-- 管理员和教师显示 PracticeDetail -->
         <PracticeDetail
             v-if="isAdminOrTeacher"
-            :selected-practice="selectedPractice"
             :selected-classroom-info="selectedClassroomInfo"
+            :selected-practice="selectedPractice"
         />
         <!-- 学生显示 StudentPracticeDetail -->
         <StudentPracticeDetail
             v-else
-            :selected-practice="selectedPractice"
             :selected-classroom-info="selectedClassroomInfo"
+            :selected-practice="selectedPractice"
         />
       </n-card>
 

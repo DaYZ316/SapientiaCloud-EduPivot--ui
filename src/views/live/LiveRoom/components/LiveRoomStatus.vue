@@ -1,20 +1,23 @@
 <template>
   <!-- 全局加载状态 -->
-  <n-spin v-if="context.loadingState.hasAnyLoading" size="large" class="global-loading">
+  <n-spin v-if="context.loadingState.hasAnyLoading" class="global-loading" size="large">
     <div class="loading-content">
-      <n-icon :component="VideocamOutline" size="32" />
-      <div class="loading-text">{{ context.loadingState.getLoadingMessage(context.loadingState.getLoadingStates()[0]) || t('live.common.processing') }}</div>
+      <n-icon :component="VideocamOutline" size="32"/>
+      <div class="loading-text">{{
+          context.loadingState.getLoadingMessage(context.loadingState.getLoadingStates()[0]) || t('live.common.processing')
+        }}
+      </div>
     </div>
   </n-spin>
 </template>
 
-<script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { NIcon, NSpin } from 'naive-ui'
-import { VideocamOutline } from '@vicons/ionicons5'
-import { useLiveRoomContext } from '../composables/useLiveRoomContext'
+<script lang="ts" setup>
+import {useI18n} from 'vue-i18n'
+import {NIcon, NSpin} from 'naive-ui'
+import {VideocamOutline} from '@vicons/ionicons5'
+import {useLiveRoomContext} from '../composables/useLiveRoomContext'
 
-const { t } = useI18n()
+const {t} = useI18n()
 
 // 使用注入的上下文
 const context = useLiveRoomContext()

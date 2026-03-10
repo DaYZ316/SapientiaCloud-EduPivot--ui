@@ -52,7 +52,7 @@ import {
 import Icon from '@/components/common/Icon.vue'
 import * as MinIOApi from '@/api/minIO'
 import {BusinessBucketCodeEnum} from '@/enum/minIO'
-import type {FileInfoDTO, FileInfo} from '@/types/minIO/file'
+import type {FileInfo, FileInfoDTO} from '@/types/minIO/file'
 import {getDefaultFileInfoDTO} from '@/types/minIO/file'
 
 interface Props {

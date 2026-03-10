@@ -37,7 +37,7 @@
       </NButton>
     </div>
   </div>
-  <NDrawer v-model:show="drawerVisible" placement="right" :width="drawerWidth">
+  <NDrawer v-model:show="drawerVisible" :width="drawerWidth" placement="right">
     <template #header>
       {{ t('classroom.editSeating') || '编辑座位' }}
     </template>
@@ -54,19 +54,19 @@
       <!-- 座位预览（和 ClassroomDetail.vue 保持一致） -->
       <div v-if="editRows > 0 && editCols > 0" class="seating-preview drawer-preview" style="margin-top:12px;">
         <template v-if="classroomType === ClassroomTypeEnum.LARGE">
-          <div class="large-components-row" :style="{ gap: DRAWER_GAP + 'px' }">
+          <div :style="{ gap: DRAWER_GAP + 'px' }" class="large-components-row">
             <template v-for="r in editRows" :key="'row-' + r">
               <div class="large-component-row" style="display:flex;gap:8px;justify-content:center;">
                 <template v-for="c in componentCount" :key="'comp-' + r + '-' + c">
                   <div
-                    class="large-component"
-                    :style="{ width: (largeCellSize * 4) + 'px', height: largeCellSize + 'px', display:'grid', gridTemplateColumns: 'repeat(4, ' + largeCellSize + 'px)', gridAutoRows: largeCellSize + 'px' }"
+                      :style="{ width: (largeCellSize * 4) + 'px', height: largeCellSize + 'px', display:'grid', gridTemplateColumns: 'repeat(4, ' + largeCellSize + 'px)', gridAutoRows: largeCellSize + 'px' }"
+                      class="large-component"
                   >
                     <div
-                      v-for="local in 4"
-                      :key="local"
-                      class="large-seat"
-                      :style="{ width: largeCellSize + 'px', height: largeCellSize + 'px', fontSize: Math.max(10, Math.floor(largeCellSize / 2)) + 'px' }"
+                        v-for="local in 4"
+                        :key="local"
+                        :style="{ width: largeCellSize + 'px', height: largeCellSize + 'px', fontSize: Math.max(10, Math.floor(largeCellSize / 2)) + 'px' }"
+                        class="large-seat"
                     >
                       <span v-if="getSeatLabelFromComp(r - 1, c - 1, local - 1)">
                         {{ getSeatLabelFromComp(r - 1, c - 1, local - 1) }}
@@ -85,11 +85,11 @@
           <div class="drawer-preview-grid">
             <div v-for="rowIndex in editRows" :key="`row-${rowIndex}`" class="drawer-preview-row">
               <div
-                v-for="colIndex in editCols"
-                :key="`seat-${rowIndex}-${colIndex}`"
-                class="drawer-preview-seat"
-                :title="`${t('classroom.detail.seat')}: ${String.fromCharCode(65 + (colIndex - 1))}${rowIndex}`"
-                :style="{ width: cellSize + 'px', height: cellSize + 'px' }"
+                  v-for="colIndex in editCols"
+                  :key="`seat-${rowIndex}-${colIndex}`"
+                  :style="{ width: cellSize + 'px', height: cellSize + 'px' }"
+                  :title="`${t('classroom.detail.seat')}: ${String.fromCharCode(65 + (colIndex - 1))}${rowIndex}`"
+                  class="drawer-preview-seat"
               >
                 {{ String.fromCharCode(65 + (colIndex - 1)) }}{{ rowIndex }}
               </div>
@@ -105,7 +105,7 @@
       <div style="position:absolute; left:16px; right:16px; bottom:16px;">
         <NSpace justify="end" style="width:100%;">
           <NButton tertiary @click="drawerVisible = false">{{ t('common.cancel') || '取消' }}</NButton>
-          <NButton type="primary" :loading="saving" @click="confirmEdit">{{ t('common.confirm') || '确认' }}</NButton>
+          <NButton :loading="saving" type="primary" @click="confirmEdit">{{ t('common.confirm') || '确认' }}</NButton>
         </NSpace>
       </div>
     </div>
@@ -153,15 +153,15 @@ const drawerWidth = ref(Math.max(360, Math.floor(window.innerWidth * 0.35)));
 const updateDrawerWidth = () => {
   drawerWidth.value = Math.max(360, Math.floor(window.innerWidth * 0.35));
 };
-  window.addEventListener('resize', updateDrawerWidth);
-  onMounted(() => {
-    // ensure initial width is correct if mounted after resize
-    updateDrawerWidth();
-  });
-  onBeforeUnmount(() => {
-    window.removeEventListener('resize', updateDrawerWidth);
-  });
-  const drawerInnerWidth = computed(() => Math.max(0, drawerWidth.value - DRAWER_PADDING));
+window.addEventListener('resize', updateDrawerWidth);
+onMounted(() => {
+  // ensure initial width is correct if mounted after resize
+  updateDrawerWidth();
+});
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateDrawerWidth);
+});
+const drawerInnerWidth = computed(() => Math.max(0, drawerWidth.value - DRAWER_PADDING));
 const cellSize = computed(() => {
   const colsCount = editCols.value || 1;
   const available = Math.max(0, drawerInnerWidth.value - (colsCount - 1) * DRAWER_GAP);
@@ -251,7 +251,7 @@ const loadCurrentLayout = async () => {
         const seatCols = data.layoutColumns ?? null;
         editCols.value = seatCols !== null ? Math.max(1, Math.ceil(Number(seatCols) / 4)) : editCols.value;
       } else {
-      editCols.value = data.layoutColumns ?? editCols.value;
+        editCols.value = data.layoutColumns ?? editCols.value;
       }
     }
   } catch (error) {
@@ -346,8 +346,6 @@ const confirmEdit = async () => {
     } else {
       payload.overTime = null;
     }
-    // 包含 status 字段（可能为 null 或数字），避免后端因为缺少字段抛异常
-    payload.status = currentData?.status ?? null;
     // 确保行列为数字类型或 null
     payload.layoutRows = typeof payload.layoutRows !== 'undefined' ? Number(payload.layoutRows) : null;
     // 对于 LARGE 教室，后端期望收到的是实际座位列数（每个组件包含 4 个并排座位）
@@ -359,7 +357,7 @@ const confirmEdit = async () => {
     }
     payload.layoutColumns = columnsToSend !== undefined ? columnsToSend : null;
 
-    const resp = await updateCourseRecord(payload as any, { meta: { hideHttpError: true, hideBusinessError: true } });
+    const resp = await updateCourseRecord(payload as any, {meta: {hideHttpError: true, hideBusinessError: true}});
     const success = typeof resp === 'boolean' ? resp : Boolean(resp && (resp.success === true || resp.code === 200));
     if (!success) {
       const msg = resp && resp.message ? resp.message : '保存失败';
@@ -376,21 +374,21 @@ const confirmEdit = async () => {
       const latestResp = await getCourseRecordById(recordId);
       const latest = latestResp?.data || null;
       if (latest) {
-      // 同步编辑器值（editCols 存储为组件（模型）列数）
+        // 同步编辑器值（editCols 存储为组件（模型）列数）
         classroomType.value = latest.classroomType ?? classroomType.value;
         editRows.value = latest.layoutRows ?? editRows.value;
-      if (classroomType.value === ClassroomTypeEnum.LARGE) {
-        // latest.layoutColumns 是后端的实际座位列数，前端需要组件数量（每个组件包含4座）
-        editCols.value = latest.layoutColumns ? Math.max(1, Math.ceil(Number(latest.layoutColumns) / 4)) : editCols.value;
-      } else {
-        editCols.value = latest.layoutColumns ?? editCols.value;
-      }
+        if (classroomType.value === ClassroomTypeEnum.LARGE) {
+          // latest.layoutColumns 是后端的实际座位列数，前端需要组件数量（每个组件包含4座）
+          editCols.value = latest.layoutColumns ? Math.max(1, Math.ceil(Number(latest.layoutColumns) / 4)) : editCols.value;
+        } else {
+          editCols.value = latest.layoutColumns ?? editCols.value;
+        }
         (eventBus as any).emit('classroomLayoutUpdated', recordId);
       } else {
         (eventBus as any).emit('classroomLayoutUpdated', recordId);
       }
     } catch {
-    (eventBus as any).emit('classroomLayoutUpdated', recordId);
+      (eventBus as any).emit('classroomLayoutUpdated', recordId);
     }
   } catch (error: any) {
     // 如果后端返回了详细错误信息，尝试读取并显示
@@ -405,8 +403,8 @@ const handleClick = (item: ClassroomToolboxItem, event: MouseEvent) => {
   if (item.key === 'edit-seating') {
     openEditDrawer();
   } else {
-  if (item.handler) {
-    item.handler(event);
+    if (item.handler) {
+      item.handler(event);
     }
   }
   isOpen.value = false;
@@ -528,25 +526,29 @@ const getSeatLabelFromComp = (compRow: number, compCol: number, localIndex: numb
   display: flex;
   flex-direction: column;
 }
+
 .drawer-preview-grid {
   display: flex;
   flex-direction: column;
   gap: 8px;
   align-items: center;
 }
+
 .drawer-preview-row {
   display: flex;
   gap: 8px;
   justify-content: center;
 }
+
 .drawer-preview-seat {
-  background: rgba(255,255,255,0.03);
+  background: rgba(255, 255, 255, 0.03);
   padding: 8px 10px;
   border-radius: 4px;
   min-width: 44px;
   text-align: center;
   color: var(--text-color);
 }
+
 .drawer-preview-info {
   margin-top: 8px;
   color: var(--text-color-muted);
@@ -561,23 +563,26 @@ const getSeatLabelFromComp = (compRow: number, compCol: number, localIndex: numb
   align-items: center;
   flex-wrap: wrap;
 }
+
 .large-component {
   width: 140px;
   height: 80px;
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 6px;
   display: flex;
   overflow: hidden;
 }
+
 .large-seat {
   flex: 1;
-  border-left: 1px solid rgba(255,255,255,0.03);
+  border-left: 1px solid rgba(255, 255, 255, 0.03);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   color: var(--text-color);
 }
+
 .large-seat:first-child {
   border-left: none;
 }

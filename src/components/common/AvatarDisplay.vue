@@ -16,11 +16,7 @@ import {NAvatar} from 'naive-ui'
 import {createAvatar} from '@dicebear/core'
 import * as avatarCollection from '@dicebear/collection'
 import type {AvatarDisplayProps} from '@/types/components/avatar'
-import {
-  getGradientColors,
-  normalizeAvatarSize,
-  resolveUserName
-} from '@/utils/avatarUtil'
+import {getGradientColors, normalizeAvatarSize, resolveUserName} from '@/utils/avatarUtil'
 
 const props = withDefaults(defineProps<AvatarDisplayProps>(), {
   avatarSrc: null,

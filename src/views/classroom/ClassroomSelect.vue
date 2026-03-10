@@ -26,15 +26,6 @@
                     style="min-width: 180px;"
                 />
               </n-form-item>
-              <n-form-item :label="t('classroom.searchForm.status')" path="status">
-                <n-select
-                    v-model:value="searchForm.status"
-                    :options="statusOptions"
-                    :placeholder="t('classroom.searchForm.statusPlaceholder')"
-                    clearable
-                    style="min-width: 180px;"
-                />
-              </n-form-item>
               <n-form-item :label="t('classroom.searchForm.startTimeRange')" path="startTimeRange">
                 <n-date-picker
                     v-model:value="startTimeRange"
@@ -89,7 +80,6 @@ import eventBus from '@/utils/eventBus'
 import * as courseRecordApi from '@/api/classroom/courseRecord'
 import type {CourseRecordPageQueryDTO} from '@/types/classroom'
 import {getClassroomTypeOptions} from '@/enum/classroom/classroomTypeEnum'
-import {getCourseRecordStatusOptions} from '@/enum/classroom/courseRecordStatusEnum'
 import {handleDateRangeChange} from '@/utils/dateUtil'
 import Icon from '@/components/common/Icon.vue'
 
@@ -112,7 +102,6 @@ const startTimeRange = ref<[number, number] | null>(null)
 
 // 选项配置
 const classroomTypeOptions = computed(() => getClassroomTypeOptions(isEnglish.value))
-const statusOptions = computed(() => getCourseRecordStatusOptions(isEnglish.value))
 
 // 搜索处理
 const handleSearch = () => {
@@ -147,8 +136,7 @@ const createSearchParams = (): CourseRecordPageQueryDTO => {
     courseId: courseId.value,
     pageNum: 1,
     pageSize: 20,
-    classroomType: convertEnumToString(searchForm.classroomType),
-    status: convertEnumToString(searchForm.status)
+    classroomType: convertEnumToString(searchForm.classroomType)
   }
 }
 

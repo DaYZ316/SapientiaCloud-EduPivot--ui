@@ -1,19 +1,19 @@
 <template>
   <div class="markdown-renderer">
     <div
+        ref="contentRef"
         class="markdown-body custom-markdown"
         v-html="renderedContent"
-        ref="contentRef"
     ></div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import {computed, ref, nextTick, onMounted, watch} from 'vue'
+import {computed, nextTick, onMounted, ref, watch} from 'vue'
 import {useMessage} from 'naive-ui'
 import {useI18n} from 'vue-i18n'
-import MarkdownIt from 'markdown-it'
 import type {Options} from 'markdown-it'
+import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
 import DOMPurify from 'dompurify'
 import markdownItKatex from '@traptitech/markdown-it-katex'
@@ -95,31 +95,31 @@ const normalizeMathDelimiters = (content: string): string => {
   const fenceParts = content.split(/(```[\s\S]*?```)/g)
 
   return fenceParts
-    .map((part) => {
-      // 代码块直接返回
-      if (part.startsWith('```')) return part
+      .map((part) => {
+        // 代码块直接返回
+        if (part.startsWith('```')) return part
 
-      // 保护内联反引号
-      const inlineParts = part.split(/(`[^`]*`)/g)
-      return inlineParts
-        .map((p) => {
-          if (p.startsWith('`')) return p
+        // 保护内联反引号
+        const inlineParts = part.split(/(`[^`]*`)/g)
+        return inlineParts
+            .map((p) => {
+              if (p.startsWith('`')) return p
 
-          // 处理 $$...$$（展示公式），去除两端多余空白并保持换行
-          let processed = p.replace(/\$\$\s*([\s\S]*?)\s*\$\$/g, (_m, g1) => {
-            return `$$\n${g1.trim()}\n$$`
-          })
+              // 处理 $$...$$（展示公式），去除两端多余空白并保持换行
+              let processed = p.replace(/\$\$\s*([\s\S]*?)\s*\$\$/g, (_m, g1) => {
+                return `$$\n${g1.trim()}\n$$`
+              })
 
-          // 处理 $...$（行内公式），避免匹配已转义的 \$，去掉开/闭两端空格
-          processed = processed.replace(/(^|[^\\])\$\s*([^\n\$][^\$]*?)\s*\$/g, (_m, pre, inner) => {
-            return `${pre}$${inner.trim()}$`
-          })
+              // 处理 $...$（行内公式），避免匹配已转义的 \$，去掉开/闭两端空格
+              processed = processed.replace(/(^|[^\\])\$\s*([^\n\$][^\$]*?)\s*\$/g, (_m, pre, inner) => {
+                return `${pre}$${inner.trim()}$`
+              })
 
-          return processed
-        })
-        .join('')
-    })
-    .join('')
+              return processed
+            })
+            .join('')
+      })
+      .join('')
 }
 
 // 静态渲染内容（不处理流式更新）
@@ -309,9 +309,9 @@ const addCopyButtonListeners = () => {
     // 小屏设备内边距微调
     @media (max-width: 480px) {
       pre {
-      padding: 12px;
-      padding-top: 40px;
-      border-radius: 12px;
+        padding: 12px;
+        padding-top: 40px;
+        border-radius: 12px;
       }
 
       pre[data-lang]::before,

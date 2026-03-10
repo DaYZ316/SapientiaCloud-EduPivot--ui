@@ -251,8 +251,8 @@ const toolsOptions = computed(() => {
   return [
     {
       label: showNote
-        ? `${t('chat.toolsMenu.smartQuestion')} (${t('chat.toolsMenu.needMainPage')})`
-        : t('chat.toolsMenu.smartQuestion'),
+          ? `${t('chat.toolsMenu.smartQuestion')} (${t('chat.toolsMenu.needMainPage')})`
+          : t('chat.toolsMenu.smartQuestion'),
       key: 'smartQuestion'
     }
   ]

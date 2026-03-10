@@ -2,23 +2,23 @@
   <div class="recent-courses">
     <div class="content-area">
       <div v-if="loading" class="recent-loading">
-        <n-spin size="small" />
+        <n-spin size="small"/>
         <n-text depth="3">加载中...</n-text>
       </div>
 
       <div v-else class="courses-grid">
         <div
-          v-for="course in displayCourses"
-          :key="course.id"
-          class="course-card"
-          :class="{ 'empty-card': course.isEmpty }"
-          @click="!course.isEmpty && goCourse(course)"
+            v-for="course in displayCourses"
+            :key="course.id"
+            :class="{ 'empty-card': course.isEmpty }"
+            class="course-card"
+            @click="!course.isEmpty && goCourse(course)"
         >
           <div class="card-media">
-            <img v-if="!course.isEmpty" :src="course.cover || ''" alt="cover" />
+            <img v-if="!course.isEmpty" :src="course.cover || ''" alt="cover"/>
             <div v-else class="empty-content">
-              <n-icon size="32" color="var(--text-color-3)">
-                <BookOutline />
+              <n-icon color="var(--text-color-3)" size="32">
+                <BookOutline/>
               </n-icon>
             </div>
           </div>
@@ -37,15 +37,15 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, watch, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { NSpin, NText, NIcon } from 'naive-ui'
-import { BookOutline } from '@vicons/ionicons5'
-import { useCourseStore } from '@/store/modules/course'
-import { useUserStore } from '@/store/modules/user'
-import { useTransitionStore } from '@/store/modules/transition'
-import type { CourseVO } from '@/types/course'
+import {ref, onMounted, watch, computed} from 'vue'
+import {useRouter} from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {NSpin, NText, NIcon} from 'naive-ui'
+import {BookOutline} from '@vicons/ionicons5'
+import {useCourseStore} from '@/store/modules/course'
+import {useUserStore} from '@/store/modules/user'
+import {useTransitionStore} from '@/store/modules/transition'
+import type {CourseVO} from '@/types/course'
 
 interface CoursePreview {
   id: number | string
@@ -55,7 +55,7 @@ interface CoursePreview {
   isEmpty?: boolean
 }
 
-const { t } = useI18n()
+const {t} = useI18n()
 const router = useRouter()
 const loading = ref(true)
 const courses = ref<CoursePreview[]>([])
@@ -148,24 +148,24 @@ const goToMyCourses = () => {
 
 // 监听 courseStore.currentCourseInfo，更新最近打开课程
 watch(
-  () => courseStore.currentCourseInfo,
-  (newCourse) => {
-    if (newCourse) {
-      persistCourse(newCourse)
-    }
-  },
-  { immediate: true }
+    () => courseStore.currentCourseInfo,
+    (newCourse) => {
+      if (newCourse) {
+        persistCourse(newCourse)
+      }
+    },
+    {immediate: true}
 )
 
 // 监听用户变化，重新加载本地数据
 watch(
-  () => userStore.userInfo?.id,
-  (newUserId, oldUserId) => {
-    if (newUserId !== oldUserId) {
-      loadFromLocal()
-    }
-  },
-  { immediate: true }
+    () => userStore.userInfo?.id,
+    (newUserId, oldUserId) => {
+      if (newUserId !== oldUserId) {
+        loadFromLocal()
+      }
+    },
+    {immediate: true}
 )
 
 onMounted(() => {

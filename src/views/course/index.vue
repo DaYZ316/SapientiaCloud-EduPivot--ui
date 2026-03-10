@@ -13,7 +13,7 @@
       <!-- 操作按钮 -->
       <div class="table-actions">
         <div class="actions-left">
-          <n-button v-if="isAdmin" type="primary" @click="courseManageRef?.openAddModal">
+          <n-button v-if="isAdmin || userStore.teacherInfo?.id" type="primary" @click="courseManageRef?.openAddModal">
             <template #icon>
               <Icon :component="AddOutline"/>
             </template>
@@ -66,9 +66,10 @@ function initializeSearchForm() {
   const defaultQuery = courseApi.getDefaultCourseQuery()
   Object.assign(searchForm.value, defaultQuery)
 
-  // 非管理员根据用户角色设置查询条件
-  if (!isAdmin.value && userStore.teacherInfo?.id) {
-    searchForm.value.teacherId = userStore.teacherInfo.id
+  // 教师不需要设置 teacherId，可以查看所有课程
+  // 非管理员且非教师（学生）根据用户角色设置查询条件
+  if (!isAdmin.value && !userStore.teacherInfo?.id && userStore.studentInfo?.id) {
+    searchForm.value.studentId = userStore.studentInfo.id
   }
 }
 

@@ -1,14 +1,14 @@
 <template>
   <n-modal
-    :show="show"
-    @update:show="$emit('update:show', $event)"
-    preset="card"
-    :title="t('course.classPractice.studentAnswerDetails')"
-    size="huge"
-    :bordered="false"
-    :segmented="false"
-    :mask-closable="false"
-    style="width: 700px"
+      :bordered="false"
+      :mask-closable="false"
+      :segmented="false"
+      :show="show"
+      :title="t('course.classPractice.studentAnswerDetails')"
+      preset="card"
+      size="huge"
+      style="width: 700px"
+      @update:show="$emit('update:show', $event)"
   >
     <div v-if="answerDetail" class="answer-detail-content">
       <div class="answer-info">
@@ -27,8 +27,8 @@
         <div class="info-item">
           <span class="label">{{ t('course.classPractice.status') }}：</span>
           <n-tag
-            :type="getAnswerStatusType(answerDetail.score, props.questionScore)"
-            size="small"
+              :type="getAnswerStatusType(answerDetail.score, props.questionScore)"
+              size="small"
           >
             {{ getAnswerStatusText(answerDetail.score, props.questionScore) }}
           </n-tag>
@@ -62,24 +62,26 @@
 
       <div class="grading-section">
         <h3>{{ t('course.classPractice.gradingAndScoring') }}</h3>
-        <n-form :model="gradingForm" :rules="gradingRules" ref="gradingFormRef">
-          <n-space vertical size="large">
+        <n-form ref="gradingFormRef" :model="gradingForm" :rules="gradingRules">
+          <n-space size="large" vertical>
             <n-form-item :label="t('course.classPractice.scoreLabel')" path="score">
               <n-input-number
-                v-model:value="gradingForm.score"
-                :min="0"
-                :max="props.questionScore ?? undefined"
-                :precision="1"
-                :placeholder="props.questionScore ? `${t('course.classPractice.pleaseEnterScore')} (0-${props.questionScore})` : t('course.classPractice.pleaseEnterScore')"
-                style="width: 200px"
+                  v-model:value="gradingForm.score"
+                  :max="props.questionScore ?? undefined"
+                  :min="0"
+                  :placeholder="props.questionScore ? `${t('course.classPractice.pleaseEnterScore')} (0-${props.questionScore})` : t('course.classPractice.pleaseEnterScore')"
+                  :precision="1"
+                  style="width: 200px"
               />
             </n-form-item>
 
-            <n-space justify="space-between" align="center">
+            <n-space align="center" justify="space-between">
               <n-space>
-                <n-button @click="handlePrevious" :disabled="!canGoPrevious">
+                <n-button :disabled="!canGoPrevious" @click="handlePrevious">
                   <template #icon>
-                    <n-icon><ChevronBackOutline /></n-icon>
+                    <n-icon>
+                      <ChevronBackOutline/>
+                    </n-icon>
                   </template>
                   {{ t('course.classPractice.previous') }}
                 </n-button>
@@ -88,11 +90,15 @@
               <n-text v-if="currentPosition" depth="3">{{ currentPosition }}</n-text>
 
               <n-space>
-                <n-button type="primary" @click="handleSubmitGrading" :disabled="!scoreChanged">{{ hasExistingScore ? t('course.classPractice.modifyScore') : t('course.classPractice.submitGrading') }}</n-button>
-                <n-button @click="handleNext" :disabled="!canGoNext">
+                <n-button :disabled="!scoreChanged" type="primary" @click="handleSubmitGrading">{{ hasExistingScore ?
+                  t('course.classPractice.modifyScore') : t('course.classPractice.submitGrading') }}
+                </n-button>
+                <n-button :disabled="!canGoNext" @click="handleNext">
                   {{ t('course.classPractice.next') }}
                   <template #icon>
-                    <n-icon><ChevronForwardOutline /></n-icon>
+                    <n-icon>
+                      <ChevronForwardOutline/>
+                    </n-icon>
                   </template>
                 </n-button>
               </n-space>
@@ -105,14 +111,14 @@
 </template>
 
 <script lang="ts" setup>
-import type { QuestionStudentVO } from '@/types/student'
-import { updatePractice, getDefaultQuestionStudentDTO } from '@/api/student/practice'
-import { getAnswerStatusLabel } from '@/enum/student/answerStatusEnum'
-import { getGlobalApis } from '@/utils/naiveUIHelper'
-import { ChevronBackOutline, ChevronForwardOutline } from '@vicons/ionicons5'
-import { NForm } from 'naive-ui'
-import { reactive, ref, watch, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
+import type {QuestionStudentVO} from '@/types/student'
+import {updatePractice, getDefaultQuestionStudentDTO} from '@/api/student/practice'
+import {getAnswerStatusLabel} from '@/enum/student/answerStatusEnum'
+import {getGlobalApis} from '@/utils/naiveUIHelper'
+import {ChevronBackOutline, ChevronForwardOutline} from '@vicons/ionicons5'
+import {NForm} from 'naive-ui'
+import {reactive, ref, watch, computed} from 'vue'
+import {useI18n} from 'vue-i18n'
 
 interface Props {
   show: boolean
@@ -125,7 +131,7 @@ interface Props {
 const props = defineProps<Props>()
 
 // 国际化
-const { locale, t: t } = useI18n()
+const {locale, t: t} = useI18n()
 const isEn = computed(() => locale.value === 'en-US')
 
 const emits = defineEmits<{
@@ -154,7 +160,7 @@ const gradingRules = computed(() => {
         },
         trigger: 'blur' as const
       },
-      { type: 'number' as const, min: 0, max: maxScore, message: `得分必须在0-${maxScore}之间`, trigger: 'blur' as const }
+      {type: 'number' as const, min: 0, max: maxScore, message: `得分必须在0-${maxScore}之间`, trigger: 'blur' as const}
     ]
   }
 })
@@ -186,8 +192,8 @@ const canGoPrevious = computed(() => {
 // 是否可以导航到下一个
 const canGoNext = computed(() => {
   return props.currentIndex !== undefined &&
-         props.answerList &&
-         props.currentIndex < props.answerList.length - 1
+      props.answerList &&
+      props.currentIndex < props.answerList.length - 1
 })
 
 // 当前位置显示
@@ -290,7 +296,7 @@ const handleSubmitGrading = async () => {
     originalScore.value = gradingForm.score
 
     // 显示成功消息
-    const { message } = getGlobalApis()
+    const {message} = getGlobalApis()
     if (message) {
       message.success('批阅成功')
     }

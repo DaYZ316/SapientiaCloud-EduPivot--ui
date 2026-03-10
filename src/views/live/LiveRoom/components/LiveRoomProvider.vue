@@ -1,12 +1,12 @@
 <template>
-  <slot />
+  <slot/>
 </template>
 
-<script setup lang="ts">
-import { provide, watch } from 'vue'
-import { useLiveRoom } from '../composables/useLiveRoom'
-import { LiveRoomInjectionKey, type LiveRoomContext } from '../composables/useLiveRoomContext'
-import { useLivePiPStore } from '@/store'
+<script lang="ts" setup>
+import {provide, watch} from 'vue'
+import {useLiveRoom} from '../composables/useLiveRoom'
+import {type LiveRoomContext, LiveRoomInjectionKey} from '../composables/useLiveRoomContext'
+import {useLivePiPStore} from '@/store'
 
 interface Props {
   roomIdProp?: string | null
@@ -59,7 +59,7 @@ const extractCurrentVideoStream = (room: any, participantId: string): MediaStrea
   } else {
     // 远端参与者
     const remoteParticipant = (room.remoteParticipants && room.remoteParticipants.get && room.remoteParticipants.get(participantId)) ||
-                              Array.from(room.remoteParticipants ? room.remoteParticipants.values() : []).find((p: any) => p.identity === participantId)
+        Array.from(room.remoteParticipants ? room.remoteParticipants.values() : []).find((p: any) => p.identity === participantId)
     if (remoteParticipant) {
       const videoPubs = Array.from(remoteParticipant.videoTrackPublications?.values?.() ?? [])
       for (const pub of videoPubs) {

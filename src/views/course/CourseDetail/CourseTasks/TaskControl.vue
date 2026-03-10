@@ -296,7 +296,8 @@
                     @click="handlePublish"
                 >
                   {{
-                    isEdit && currentEditingTask?.status === TaskStatusEnum.PUBLISHED ? t('course.tasks.updateTask') : t('course.tasks.publish')
+                  isEdit && currentEditingTask?.status === TaskStatusEnum.PUBLISHED ? t('course.tasks.updateTask') :
+                  t('course.tasks.publish')
                   }}
                 </n-button>
               </n-space>

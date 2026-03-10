@@ -46,7 +46,8 @@
                 <NTag :type="activeCard.practice.isRequired === IsRequiredEnum.REQUIRED ? 'success' : 'default'"
                       round size="small">
                   {{
-                    activeCard.practice.isRequired === IsRequiredEnum.REQUIRED ? t('classroom.practicePanel.required') : t('classroom.practicePanel.optional')
+                  activeCard.practice.isRequired === IsRequiredEnum.REQUIRED ? t('classroom.practicePanel.required') :
+                  t('classroom.practicePanel.optional')
                   }}
                 </NTag>
               </div>

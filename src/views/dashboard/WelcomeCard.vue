@@ -1,8 +1,8 @@
 <template>
   <n-card class="welcome-card">
     <canvas
-      ref="particleCanvas"
-      class="particle-canvas"
+        ref="particleCanvas"
+        class="particle-canvas"
     ></canvas>
     <div class="welcome-content">
       <div class="card-inner">
@@ -10,18 +10,18 @@
         <div class="text-section">
           <div class="top-row">
             <div class="greeting">{{ greeting }}</div>
-            
+
           </div>
 
-          
+
           <p class="welcome-message">{{ t('dashboard.welcome.message') }}</p>
         </div>
 
         <div class="image-section">
           <img
-            alt="Dashboard"
-            class="dashboard-image"
-            src="@/assets/image/dashboard.webp"
+              alt="Dashboard"
+              class="dashboard-image"
+              src="@/assets/image/dashboard.webp"
           />
         </div>
       </div>
@@ -30,11 +30,11 @@
 </template>
 
 <script lang="ts" setup>
-import { useI18n } from 'vue-i18n'
-import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { useUserStore } from '@/store'
+import {useI18n} from 'vue-i18n'
+import {computed, ref, onMounted, onUnmounted} from 'vue'
+import {useUserStore} from '@/store'
 
-const { t } = useI18n()
+const {t} = useI18n()
 const userStore = useUserStore()
 const particleCanvas = ref<HTMLCanvasElement>()
 let animationFrameId: number | null = null
@@ -129,8 +129,8 @@ class Particle {
     // 创建径向渐变光晕效果
     const glowRadius = Math.max(0.1, this.glowSize * lifeRatio)
     const glowGradient = ctx.createRadialGradient(
-      this.x, this.y, 0,
-      this.x, this.y, glowRadius
+        this.x, this.y, 0,
+        this.x, this.y, glowRadius
     )
     const colorMatch = this.color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/)
     if (colorMatch) {
@@ -233,8 +233,8 @@ const detectPerformance = () => {
   const isLowEndDevice = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4
   const connection = (navigator as any).connection
   const isSlowConnection = connection &&
-    (connection.effectiveType === 'slow-2g' ||
-     connection.effectiveType === '2g')
+      (connection.effectiveType === 'slow-2g' ||
+          connection.effectiveType === '2g')
 
   return isLowEndDevice || isSlowConnection
 }
@@ -289,16 +289,14 @@ const greeting = computed(() => {
   z-index: 10;
   width: 60%;
   height: 200px; /* 保持高度不变 */
-  background:
-    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
+  background: radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+  radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+  radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
     /* 混合 primary 与 background 颜色，第二项使用半透明以增加整体透明度 */
-    color-mix(in srgb, var(--primary-color) 30%, rgba(20,20,20,1) 70%);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.1),
-    0 2px 8px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  color-mix(in srgb, var(--primary-color) 30%, rgba(20, 20, 20, 1) 70%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
+  0 2px 8px rgba(0, 0, 0, 0.05),
+  inset 0 1px 0 rgba(255, 255, 255, 0.1);
   border: none;
   border-radius: 12px;
   transition: all 0.3s ease;
@@ -373,7 +371,7 @@ const greeting = computed(() => {
 }
 
 .dashboard-image {
-  height:280px; /* 继续增大图片高度 */
+  height: 280px; /* 继续增大图片高度 */
   width: auto;
   object-fit: contain;
   display: block;

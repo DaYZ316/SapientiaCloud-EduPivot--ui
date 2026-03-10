@@ -5,9 +5,9 @@
       <div class="celestial-hub-intro">
         <div class="intro-header">
           <n-text
-            size="24"
-            class="intro-title"
-            style="color: var(--primary-color);"
+              class="intro-title"
+              size="24"
+              style="color: var(--primary-color);"
           >
             {{ t('dashboard.aiChat.title') }}
           </n-text>
@@ -26,9 +26,10 @@
           <!-- 天枢问答 -->
           <n-grid-item>
             <div class="feature-item" @click="goToAi">
-              <n-icon size="32" class="feature-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+              <n-icon class="feature-icon" size="32">
+                <svg fill="currentColor" viewBox="0 0 24 24">
+                  <path
+                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
                 </svg>
               </n-icon>
               <div class="feature-content">
@@ -41,9 +42,10 @@
           <!-- 天枢出题 -->
           <n-grid-item>
             <div class="feature-item" @click="goToQuestionGenerator">
-              <n-icon size="32" class="feature-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+              <n-icon class="feature-icon" size="32">
+                <svg fill="currentColor" viewBox="0 0 24 24">
+                  <path
+                      d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
                 </svg>
               </n-icon>
               <div class="feature-content">
@@ -56,9 +58,10 @@
           <!-- 天枢教案 -->
           <n-grid-item>
             <div class="feature-item" @click="showInfo('lesson')">
-              <n-icon size="32" class="feature-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              <n-icon class="feature-icon" size="32">
+                <svg fill="currentColor" viewBox="0 0 24 24">
+                  <path
+                      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
               </n-icon>
               <div class="feature-content">
@@ -71,9 +74,10 @@
           <!-- 天枢批阅 -->
           <n-grid-item>
             <div class="feature-item" @click="showInfo('grading')">
-              <n-icon size="32" class="feature-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-1.99.9-1.99 2L3 20c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+              <n-icon class="feature-icon" size="32">
+                <svg fill="currentColor" viewBox="0 0 24 24">
+                  <path
+                      d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-1.99.9-1.99 2L3 20c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
                 </svg>
               </n-icon>
               <div class="feature-content">
@@ -97,14 +101,14 @@ import {
   NIcon,
 
 } from 'naive-ui'
-import { useI18n } from 'vue-i18n'
-import { getGlobalApis } from '@/utils/naiveUIHelper'
-import { useRouter } from 'vue-router'
+import {useI18n} from 'vue-i18n'
+import {getGlobalApis} from '@/utils/naiveUIHelper'
+import {useRouter} from 'vue-router'
 import eventBus from '@/utils/eventBus'
-import { useTransitionStore } from '@/store'
+import {useTransitionStore} from '@/store'
 
-const { t } = useI18n()
-const { message } = getGlobalApis()
+const {t} = useI18n()
+const {message} = getGlobalApis()
 const transitionStore = useTransitionStore()
 
 function showInfo(featureKey: string) {
@@ -114,7 +118,9 @@ function showInfo(featureKey: string) {
     message.info(text)
   }
 }
+
 const router = useRouter()
+
 function goToAi() {
   router.push('/ai').then(() => {
     // 请求创建新会话（全局侧边栏会监听）
@@ -144,9 +150,8 @@ function goToQuestionGenerator() {
   --ai-feature-height: 120px;
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
-  box-shadow:
-    0 8px 32px var(--shadow-color),
-    0 4px 16px var(--shadow-secondary-color);
+  box-shadow: 0 8px 32px var(--shadow-color),
+  0 4px 16px var(--shadow-secondary-color);
   user-select: none;
   transition: all 0.3s ease;
 
@@ -215,9 +220,8 @@ function goToQuestionGenerator() {
 
           &:hover {
             transform: translateY(-6px);
-            box-shadow:
-              0 12px 30px var(--shadow-secondary-color),
-              0 6px 18px var(--shadow-color);
+            box-shadow: 0 12px 30px var(--shadow-secondary-color),
+            0 6px 18px var(--shadow-color);
             background: color-mix(in srgb, var(--background-secondary-color) 8%, var(--background-color));
           }
 
@@ -255,7 +259,7 @@ function goToQuestionGenerator() {
             }
           }
 
- 
+
         }
       }
     }
@@ -268,9 +272,8 @@ function goToQuestionGenerator() {
     height: auto;
     min-height: 400px;
     margin-top: 12px;
-    box-shadow:
-      0 6px 24px var(--shadow-color),
-      0 3px 12px var(--shadow-secondary-color);
+    box-shadow: 0 6px 24px var(--shadow-color),
+    0 3px 12px var(--shadow-secondary-color);
 
     .celestial-hub-content {
       padding: 24px;

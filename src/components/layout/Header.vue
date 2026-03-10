@@ -142,7 +142,7 @@
 </template>
 
 <script lang="ts" setup>
-import {onMounted, onUnmounted, ref} from 'vue'
+import {computed, onMounted, onUnmounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {
   ContractOutline,
@@ -156,9 +156,8 @@ import {
   SettingsOutline,
   SunnyOutline
 } from '@vicons/ionicons5'
-import {computed} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {NDropdown, NButton, NInput, NTooltip} from 'naive-ui'
+import {NButton, NDropdown, NInput, NTooltip} from 'naive-ui'
 import Icon from '@/components/common/Icon.vue'
 import FastEnter from '@/components/common/FastEnter.vue'
 import {useThemeStore} from '@/store'

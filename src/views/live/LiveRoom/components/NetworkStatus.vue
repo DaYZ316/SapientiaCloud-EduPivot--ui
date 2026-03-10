@@ -1,10 +1,10 @@
 <template>
   <n-alert
-    v-if="showNetworkAlert"
-    :title="networkStatusTitle"
-    :type="networkStatusType"
-    closable
-    @close="dismissAlert"
+      v-if="showNetworkAlert"
+      :title="networkStatusTitle"
+      :type="networkStatusType"
+      closable
+      @close="dismissAlert"
   >
     {{ networkStatusMessage }}
     <div v-if="!isOnline" style="margin-top: 8px;">
@@ -15,13 +15,13 @@
   </n-alert>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { NAlert, NButton } from 'naive-ui'
-import { useLiveRoomContext } from '../composables/useLiveRoomContext'
+<script lang="ts" setup>
+import {computed, onBeforeUnmount, onMounted, ref, watch} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {NAlert, NButton} from 'naive-ui'
+import {useLiveRoomContext} from '../composables/useLiveRoomContext'
 
-const { t } = useI18n()
+const {t} = useI18n()
 
 // 使用注入的上下文
 const context = useLiveRoomContext()

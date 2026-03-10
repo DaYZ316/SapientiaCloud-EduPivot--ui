@@ -247,6 +247,35 @@
       height: 100%;
       justify-content: center;
 
+      // 大数字章节数显示样式
+      .chapter-count-display {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+
+        .chapter-count-number {
+          font-size: 72px;
+          font-weight: 700;
+          line-height: 1;
+          background: linear-gradient(135deg,
+                  var(--dynamic-border-color) 0%,
+                  var(--primary-color) 100%
+          );
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+
+        .chapter-count-unit {
+          font-size: 18px;
+          color: var(--text-secondary-color);
+          margin-top: 8px;
+          font-weight: 500;
+        }
+      }
+
       .progress-info {
         text-align: center;
         color: var(--text-color);

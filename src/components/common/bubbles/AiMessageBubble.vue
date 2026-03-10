@@ -108,8 +108,8 @@ const sanitizedContent = computed(() => {
   const content = props.message?.content || ''
   // 允许渲染 KaTeX 已生成的元素和常见标签，移除潜在危险内容
   return DOMPurify.sanitize(content, {
-    ALLOWED_TAGS: ['p','br','strong','em','u','del','code','pre','blockquote','h1','h2','h3','h4','h5','h6','ul','ol','li','table','thead','tbody','tr','th','td','a','img','hr','span','div'],
-    ALLOWED_ATTR: ['href','src','alt','title','class','id','data-*','aria-*'],
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'del', 'code', 'pre', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'a', 'img', 'hr', 'span', 'div'],
+    ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'id', 'data-*', 'aria-*'],
     KEEP_CONTENT: true
   })
 })

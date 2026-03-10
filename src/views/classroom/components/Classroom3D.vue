@@ -4,7 +4,8 @@
     <ClassroomToolbox :items="toolboxItems"/>
     <ChapterPanel :course-id="route.params.courseId as string || null" :show="showChapterPanel ?? false"
                   @close="closeChapterPanel"/>
-    <QuestionPanel :classroom-id="route.params.courseRecordId as string || null" :course-id="route.params.courseId as string || null"
+    <QuestionPanel :classroom-id="route.params.courseRecordId as string || null"
+                   :course-id="route.params.courseId as string || null"
                    :show="showQuestionPanel ?? false" @close="closeQuestionPanel"/>
     <PracticePanel
         :classroom-id="route.params.courseRecordId as string || null"
@@ -111,14 +112,6 @@ const {dialog, message} = getGlobalApis();
 const courseRecord = ref<CourseRecordVO | null>(null);
 const loadingRecord = ref(false);
 const recordError = ref<string | null>(null);
-const isClassroomOwner = computed(() => {
-  if (!courseRecord.value) {
-    return false;
-  }
-  const teacherId = courseRecord.value.teacherId;
-  const currentTeacherId = userStore.teacherInfo?.id || null;
-  return Boolean(teacherId && currentTeacherId && teacherId === currentTeacherId);
-});
 
 // 座位排布（仅小型 / 中型教室启用）
 const {
@@ -422,7 +415,7 @@ const confirmSeatSelection = async () => {
   }
 
   // API调用成功后更新前端显示
-    const applyTextureToSprite = (texture: Texture, shouldDisposeFallback = true) => {
+  const applyTextureToSprite = (texture: Texture, shouldDisposeFallback = true) => {
     if (!texture) {
       resetSeatConfirmState();
       return;
@@ -709,7 +702,7 @@ let camera: PerspectiveCamera | null = null;
 let controls: PointerLockControls | null = null;
 let classroomModel: THREE.Group | null = null;
 let loader: GLTFLoader | null = null;
-let textureLoader: THREE.TextureLoader| null = null;
+let textureLoader: THREE.TextureLoader | null = null;
 let spritePositions: THREE.Vector3[] = [];
 const initThree = () => {
   //窗口大小信息
@@ -824,7 +817,7 @@ const initThree = () => {
       camera.setRotationFromEuler(frontConfig.initialRotation);
       camera.updateProjectionMatrix();
     }
-  }, { immediate: true });
+  }, {immediate: true});
 
   // 添加指针锁定错误处理
   if (canvas && controls) {
@@ -890,28 +883,28 @@ const initThree = () => {
     // 滚轮缩放功能
     const handleWheel = (event: WheelEvent) => {
       if (!camera || !canvas) return;
-      
+
       // 只在指针锁定状态下才能缩放视角
       if (document.pointerLockElement !== canvas) {
         return;
       }
-      
+
       // 阻止默认滚动行为
       event.preventDefault();
-      
+
       // 缩放速度系数
       const zoomSpeed = 0.1;
       // FOV范围限制：最小值为初始FOV（只能放大，不能缩小），最大值为30度（放大后的最小FOV）
       const minFov = 30;
       const maxFov = initialFov;
-      
+
       // 反转滚轮方向：滚轮向上（deltaY < 0）时放大视角（减小FOV），滚轮向下（deltaY > 0）时缩小视角（增大FOV）
       const deltaFov = event.deltaY * zoomSpeed;
       const newFov = camera.fov + deltaFov;
-      
+
       // 限制FOV：最小值为30度（最大放大），最大值为初始FOV（原始大小，不能缩小）
       camera.fov = Math.max(minFov, Math.min(maxFov, newFov));
-      
+
       // 更新相机投影矩阵
       camera.updateProjectionMatrix();
     };
@@ -919,7 +912,7 @@ const initThree = () => {
     if (canvas) {
       canvas.addEventListener('dblclick', handleCanvasDoubleClick);
       canvas.addEventListener('click', handleCanvasClick);
-      canvas.addEventListener('wheel', handleWheel, { passive: false });
+      canvas.addEventListener('wheel', handleWheel, {passive: false});
     }
 
     // 存储事件处理函数以便后续清理
@@ -927,7 +920,7 @@ const initThree = () => {
       window.pointerLockHandlers = [];
     }
     const pointerLockHandlers = ((window as any).pointerLockHandlers as PointerLockHandler[]) || [];
-    
+
     // 将滚轮事件处理器添加到清理列表
     pointerLockHandlers.push({
       wheelHandler: handleWheel,
@@ -998,7 +991,6 @@ const initThree = () => {
   spritePositions = [];
 
 
-
   /**
    * 加载教室模型
    */
@@ -1016,7 +1008,7 @@ const initThree = () => {
           reject(new Error('TextureLoader not initialized'));
           return;
         }
-        
+
         classroomTexture = textureLoader.load(getClassroomModelTexturePathByRecord(courseRecord.value))
         deskChairTexture = textureLoader.load(getdeskChairModelTexturePathByRecord(courseRecord.value))
         classroomTexture.flipY = false;
@@ -1037,61 +1029,61 @@ const initThree = () => {
         }
 
         loader.load(
-          getClassroomModelPathByRecord(courseRecord.value),
-          (gltf: GLTF) => {
-            classroomModel = gltf.scene;
-            // 调整模型大小和位置
-            classroomModel.position.set(0, 0, 0);
-            classroomModel.rotation.y = Math.PI / 2; // 根据需要调整旋转
+            getClassroomModelPathByRecord(courseRecord.value),
+            (gltf: GLTF) => {
+              classroomModel = gltf.scene;
+              // 调整模型大小和位置
+              classroomModel.position.set(0, 0, 0);
+              classroomModel.rotation.y = Math.PI / 2; // 根据需要调整旋转
 
-            // 计算并输出模型尺寸
-            const box = new THREE.Box3().setFromObject(classroomModel);
-            const size = new THREE.Vector3();
-            box.getSize(size);
+              // 计算并输出模型尺寸
+              const box = new THREE.Box3().setFromObject(classroomModel);
+              const size = new THREE.Vector3();
+              box.getSize(size);
 
-            classroomXLenghtRef.value = size.x;
-            classroomYLenghtRef.value = size.y;
-            classroomZLenghtRef.value = size.z;
+              classroomXLenghtRef.value = size.x;
+              classroomYLenghtRef.value = size.y;
+              classroomZLenghtRef.value = size.z;
 
-            // 根据最新的教室模型尺寸重新计算相机位置
-            window.cameraPositions = computeCameraPositionsBySize(
-                classroomXLenghtRef.value,
-                classroomYLenghtRef.value,
-                classroomZLenghtRef.value,
-                courseRecord.value?.classroomType
-            );
-
-            // 模型加载完成后，将相机初始位置设置为相机组中的 front 视角
-            const frontConfig = window.cameraPositions?.front;
-            if (camera && frontConfig) {
-              camera.position.set(
-                  frontConfig.position.x,
-                  frontConfig.position.y,
-                  frontConfig.position.z
+              // 根据最新的教室模型尺寸重新计算相机位置
+              window.cameraPositions = computeCameraPositionsBySize(
+                  classroomXLenghtRef.value,
+                  classroomYLenghtRef.value,
+                  classroomZLenghtRef.value,
+                  courseRecord.value?.classroomType
               );
-              camera.setRotationFromEuler(frontConfig.initialRotation);
-            }
 
-            // 遍历模型，应用纹理
-            classroomModel.traverse((child) => {
-              if ((child as THREE.Mesh).isMesh) {
-                const mesh = child as THREE.Mesh;
-                mesh.material = bakedMaterial;
-                mesh.material.needsUpdate = true;
+              // 模型加载完成后，将相机初始位置设置为相机组中的 front 视角
+              const frontConfig = window.cameraPositions?.front;
+              if (camera && frontConfig) {
+                camera.position.set(
+                    frontConfig.position.x,
+                    frontConfig.position.y,
+                    frontConfig.position.z
+                );
+                camera.setRotationFromEuler(frontConfig.initialRotation);
               }
-            });
 
-            if (scene && classroomModel) {
-              scene.add(classroomModel);
+              // 遍历模型，应用纹理
+              classroomModel.traverse((child) => {
+                if ((child as THREE.Mesh).isMesh) {
+                  const mesh = child as THREE.Mesh;
+                  mesh.material = bakedMaterial;
+                  mesh.material.needsUpdate = true;
+                }
+              });
+
+              if (scene && classroomModel) {
+                scene.add(classroomModel);
+              }
+              resolve();
+            },
+            () => {
+              // 加载进度处理
+            },
+            (error) => {
+              reject(error);
             }
-            resolve();
-          },
-          () => {
-            // 加载进度处理
-          },
-          (error) => {
-            reject(error);
-          }
         );
 
       });
@@ -1128,9 +1120,9 @@ const initThree = () => {
 
                 // 3. 创建整体模型的实例化网格集合
                 const instancedMeshGroups = modelInstanceManager.createGroupedInstancedMeshes(
-                  subComponents, 
-                  maxAllowedInstances,
-                  deskChairTexture
+                    subComponents,
+                    maxAllowedInstances,
+                    deskChairTexture
                 );
 
                 // 4. 批量计算位置和设置矩阵（优化内存使用）
@@ -1206,6 +1198,55 @@ const initThree = () => {
                         currentSeatIndex.value = null;
                       }
                     },
+                    onSeatContextMenu: async (seatIndex) => {
+                      // 教师（无学生身份）右键桌椅直接无响应
+                      const currentStudentId = userStore.studentInfo?.id || null;
+                      if (!currentStudentId) {
+                        return;
+                      }
+
+                      // 处理座位右键（站起/退座）
+                      const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
+                      if (!recordId) return;
+
+                      // 检查该座位是否被当前学生占用
+                      const occupant = studentsList.value.find(s => s.seatIndex === seatIndex) || null;
+
+                      // 只有座位上的学生自己可以右键站起
+                      if (!occupant || occupant.studentId !== currentStudentId) {
+                        return;
+                      }
+
+                      // 弹出确认框
+                      dialog.warning({
+                        title: t('classroom.standUp.confirm.title'),
+                        content: t('classroom.standUp.confirm.content'),
+                        positiveText: t('classroom.standUp.confirm.confirm'),
+                        negativeText: t('classroom.standUp.confirm.cancel'),
+                        onPositiveClick: async () => {
+                          // 执行退座操作
+                          const apiResponse = await removeStudentSeat(recordId, occupant.studentId);
+                          const isSuccess = typeof apiResponse === 'boolean' ? apiResponse : Boolean(apiResponse && (apiResponse.success === true || apiResponse.code === 200));
+
+                          if (!isSuccess) {
+                            return;
+                          }
+
+                          // 更新前端显示：移除精灵数据并刷新列表
+                          try {
+                            if (spriteManager && spriteManager.isInitialized) {
+                              spriteManager.removeUserData(occupant.studentId);
+                            }
+                          } catch (e) {
+                            // 静默处理
+                          }
+                          await fetchStudentsList(recordId);
+                          if (message) {
+                            message.success(t('classroom.standUp.success'));
+                          }
+                        }
+                      });
+                    },
                     onSeatClick: (seatIndex) => {
                       // 处理座位点击（入座）
                       const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
@@ -1241,48 +1282,6 @@ const initThree = () => {
                         displayName
                       });
                     },
-                    onSeatContextMenu: async (seatIndex) => {
-                      // 处理座位右键（退座）
-                      const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
-                      if (!recordId) return;
-
-                      const occupant = studentsList.value.find(s => s.seatIndex === seatIndex) || null;
-                      const currentUser = userStore.userInfo;
-
-                      if (!occupant) {
-                        if (message) {
-                          message.info(t('classroom.noStudentOnSeat'));
-                        }
-                        return;
-                      }
-
-                      const canRemove = (currentUser && occupant.studentId === currentUser.id) || isClassroomOwner.value;
-                      if (!canRemove) {
-                        if (message) {
-                          message.info(t('classroom.noPermissionToRemove'));
-                        }
-                        return;
-                      }
-
-                      // 直接执行退座操作
-                      const apiResponse = await removeStudentSeat(recordId, occupant.studentId);
-                      const isSuccess = typeof apiResponse === 'boolean' ? apiResponse : Boolean(apiResponse && (apiResponse.success === true || apiResponse.code === 200));
-                      if (!isSuccess) {
-                        return;
-                      }
-                      // 更新前端显示：移除精灵数据并刷新列表
-                      try {
-                        if (spriteManager && spriteManager.isInitialized) {
-                          spriteManager.removeUserData(occupant.studentId);
-                        }
-                      } catch (e) {
-                        // 静默处理
-                      }
-                      await fetchStudentsList(recordId);
-                      if (message) {
-                        message.success(t('classroom.removeSeatSuccess'));
-                      }
-                    }
                   });
                 }
 
@@ -1306,7 +1305,7 @@ const initThree = () => {
               reject(error);
             }
         );
-    });
+      });
 
       await new Promise<void>((resolve) => {
         // 初始化精灵管理器
@@ -1425,7 +1424,7 @@ const initThree = () => {
 
     // 基于当前相机预设视角，限制旋转角度在 ±60°
     const maxDelta = Math.PI / 3; // 60度
-    
+
     // 计算角度差值，考虑 -π 到 π 的循环，选择最短路径
     const getAngleDelta = (current: number, initial: number): number => {
       let delta = current - initial;
@@ -1434,7 +1433,7 @@ const initThree = () => {
       while (delta < -Math.PI) delta += 2 * Math.PI;
       return delta;
     };
-    
+
     // 限制角度差值在 ±60° 范围内
     const clampDelta = (delta: number): number => {
       if (delta > maxDelta) {

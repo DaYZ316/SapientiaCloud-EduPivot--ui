@@ -932,7 +932,7 @@ const togglePostLock = async () => {
         await setPostLock(post.value!.id, newLockStatus)
         post.value!.isLocked = newLockStatus
         message.success(isCurrentlyLocked ? t('course.forum.unlockPostSuccess') : t('course.forum.lockPostSuccess'))
-        } catch (error) {
+      } catch (error) {
       } finally {
         lockLoading.value = false
       }

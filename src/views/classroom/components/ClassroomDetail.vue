@@ -27,18 +27,6 @@
                 {{ t('classroom.detail.deleteCourse') }}
               </n-button>
               <n-button
-                  v-if="isEditMode"
-                  :loading="isCancelling"
-                  @click="handleCancelCourseRecord"
-              >
-                <template #icon>
-                  <n-icon>
-                    <CloseOutline/>
-                  </n-icon>
-                </template>
-                {{ t('classroom.detail.cancelCourse') }}
-              </n-button>
-              <n-button
                   :loading="isSubmitting"
                   type="info"
                   @click="submitForm"
@@ -141,7 +129,7 @@
           <!-- 教室规格选择 -->
           <div class="form-group">
             <label class="form-label required">{{ t('classroom.detail.classroomSize') }}</label>
-            <n-radio-group v-model:value="selectedClassroomSize" @change="onClassroomSizeChange">
+            <n-radio-group v-model:value="selectedClassroomSize" @update:value="onClassroomSizeChange">
               <div class="classroom-specs-container">
                 <div v-for="spec in classroomSpecs" :key="spec.value" class="classroom-spec-card">
                   <n-radio-button :class="['spec-radio', { 'active': selectedClassroomSize === spec.value }]"
@@ -183,8 +171,8 @@
                     <n-input-number
                         v-model:value="rows"
                         :min="1"
-                        style="width:100%;"
                         :placeholder="t('classroom.detail.rowsPlaceholder')"
+                        style="width:100%;"
                         @update:value="computeCellSizeDetail"
                     />
                   </div>
@@ -193,9 +181,9 @@
                     <n-input-number
                         v-model:value="componentCols"
                         :min="1"
+                        :placeholder="t('classroom.detail.columnsPlaceholder')"
                         :step="inputStep"
                         style="width:100%;"
-                        :placeholder="t('classroom.detail.columnsPlaceholder')"
                         @update:value="computeCellSizeDetail"
                     />
                   </div>
@@ -204,18 +192,18 @@
               <!-- 座位预览部分 (75% 宽度) -->
               <div class="seating-preview-section">
                 <label class="form-label required">{{ t('classroom.detail.seatingPreview') }}</label>
-                <div v-if="rows > 0 && cols > 0" class="seating-preview" ref="seatingPreviewRef">
+                <div v-if="rows > 0 && cols > 0" ref="seatingPreviewRef" class="seating-preview">
                   <template v-if="classroomType === ClassroomTypeEnum.EXTRA_LARGE">
                     <div class="preview-extra-large-container">
                       <div
-                        v-for="(seat, index) in getExtraLargeSeatPositions()"
-                        :key="`seat-${index}`"
-                        class="preview-extra-large-seat"
-                        :style="{
+                          v-for="(seat, index) in getExtraLargeSeatPositions()"
+                          :key="`seat-${index}`"
+                          :style="{
                           left: seat.x + 'px',
                           top: seat.y + 'px'
                         }"
-                        :title="`${t('classroom.detail.seat')}: ${seat.label}`"
+                          :title="`${t('classroom.detail.seat')}: ${seat.label}`"
+                          class="preview-extra-large-seat"
                       >
                         {{ seat.label }}
                       </div>
@@ -231,19 +219,19 @@
                           :key="`row-${rowIndex}`"
                           class="preview-large-row"
                       >
+                        <div
+                            v-for="(_col, colIndex) in (cols/4)"
+                            :key="`seat-${rowIndex}-${colIndex}`"
+                            class="preview-large-col"
+                        >
                           <div
-                              v-for="(_col, colIndex) in (cols/4)"
-                              :key="`seat-${rowIndex}-${colIndex}`"
-                              class="preview-large-col"
-                          >
-                            <div
                               v-for="local in 4"
                               :key="local"
                               class="preview-large-seat"
-                            >
-                              {{ String.fromCharCode(65 + colIndex) }}{{ rowIndex + 1 }}
-                            </div>
+                          >
+                            {{ String.fromCharCode(65 + colIndex) }}{{ rowIndex + 1 }}
                           </div>
+                        </div>
                       </div>
                     </div>
                     <p class="preview-info" style="text-align:center;margin-top:8px;">
@@ -260,9 +248,9 @@
                         <div
                             v-for="(_col, colIndex) in cols"
                             :key="`seat-${rowIndex}-${colIndex}`"
+                            :style="{ width: cellSizeDetail + 'px', height: cellSizeDetail + 'px' }"
                             :title="`${t('classroom.detail.seat')}: ${String.fromCharCode(65 + colIndex)}${rowIndex + 1}`"
                             class="preview-seat"
-                            :style="{ width: cellSizeDetail + 'px', height: cellSizeDetail + 'px' }"
                         >
                           {{ String.fromCharCode(65 + colIndex) }}{{ rowIndex + 1 }}
                         </div>
@@ -289,7 +277,6 @@ import {
   Book,
   BusinessOutline,
   CheckmarkOutline,
-  CloseOutline,
   CreateOutline,
   Grid,
   HomeOutline,
@@ -306,11 +293,11 @@ import {
   removeCourseRecordById,
   updateCourseRecord
 } from '@/api/classroom/courseRecord'
+import {listStudentsByRecordId} from '@/api/classroom/courseRecordStudent'
 import {useCourseStore, useUserStore} from '@/store'
 import {useTransitionStore} from '@/store/modules/transition'
 import type {CourseRecordDTO, CourseRecordVO} from '@/types/classroom'
 import {getClassroomTypeFromString, getClassroomTypeString, ClassroomTypeEnum} from '@/enum/classroom/classroomTypeEnum'
-import {CourseRecordStatusEnum} from '@/enum/classroom/courseRecordStatusEnum'
 import {runViewTransition} from '@/utils/themeAnimation'
 import {getExtraLargeTotalSeats} from '@/views/classroom/composables/useSeatLayout'
 
@@ -341,7 +328,7 @@ const cols = ref(3) // 默认3列
 const classroomType = ref<number | null>(null)
 const isSubmitting = ref(false)
 const isDeleting = ref(false)
-const isCancelling = ref(false)
+const lastConfirmedClassroomSize = ref<string>('classroomMini')
 
 // 课程记录ID，用于区分创建和修改状态
 const courseRecordId = ref<string | null>(null)
@@ -450,8 +437,7 @@ const isFormValid = computed(() => {
 })
 
 // 教室大小变化处理
-function onClassroomSizeChange(/* newSize param may be unreliable; read from reactive selectedClassroomSize */) {
-  const newSize = String(selectedClassroomSize.value);
+function applyClassroomSizeChange(newSize: string) {
   // 根据教室大小调整默认座位数
   switch (newSize) {
     case 'classroomMini':
@@ -478,6 +464,44 @@ function onClassroomSizeChange(/* newSize param may be unreliable; read from rea
   classroomType.value = getClassroomTypeFromString(newSize)
   // 重新计算预览格子尺寸以响应式适配新规格
   computeCellSizeDetail()
+}
+
+async function onClassroomSizeChange(newSize: string) {
+  const prevSize = String(lastConfirmedClassroomSize.value || 'classroomMini')
+  const nextSize = String(newSize || selectedClassroomSize.value || 'classroomMini')
+
+  if (prevSize === nextSize) {
+    return
+  }
+
+  // 仅在“修改模式”下拦截：若已有学生入座，切换教室类型会初始化座位情况
+  if (isEditMode.value && courseRecordId.value) {
+    try {
+      const resp = await listStudentsByRecordId(courseRecordId.value)
+      const list: any[] = (resp as any)?.data ?? (resp as any) ?? []
+      const hasSeatedStudents = list.some((s: any) => s?.seatIndex !== null && typeof s?.seatIndex !== 'undefined')
+      if (hasSeatedStudents) {
+        selectedClassroomSize.value = prevSize
+        dialog.warning({
+          title: t('classroom.detail.changeClassroomTypeConfirmTitle'),
+          content: t('classroom.detail.changeClassroomTypeConfirmContent'),
+          positiveText: t('classroom.detail.changeClassroomTypeConfirmContinue'),
+          negativeText: t('common.cancel'),
+          onPositiveClick: () => {
+            lastConfirmedClassroomSize.value = nextSize
+            selectedClassroomSize.value = nextSize
+            applyClassroomSizeChange(nextSize)
+          }
+        })
+        return
+      }
+    } catch {
+      // 静默处理：查询失败时不阻断用户操作
+    }
+  }
+
+  lastConfirmedClassroomSize.value = nextSize
+  applyClassroomSizeChange(nextSize)
 }
 
 // 提交表单
@@ -560,6 +584,7 @@ function resetFormData() {
 
   // 重置教室配置
   selectedClassroomSize.value = 'classroomMini'
+  lastConfirmedClassroomSize.value = 'classroomMini'
   rows.value = 4
   cols.value = 3
 
@@ -629,35 +654,17 @@ const componentCols = computed<number>({
   }
 });
 
-const componentCount = computed(() => {
-  if (classroomType.value === ClassroomTypeEnum.LARGE) {
-    return Math.max(1, componentCols.value || 1);
-  }
-  return Math.max(1, cols.value || 1);
-});
-
 const inputStep = computed(() => {
   if (classroomType.value === ClassroomTypeEnum.LARGE) {
     return 4;
-  }else if (classroomType.value === ClassroomTypeEnum.EXTRA_LARGE) {
+  } else if (classroomType.value === ClassroomTypeEnum.EXTRA_LARGE) {
     return 2;
   }
   return 1;
 });
 
-// For LARGE classroom: compute seat label from component row/col and local seat index (0..3)
-const getSeatLabelFromComp = (compRow: number, compCol: number, localIndex: number): string | null => {
-  const globalRow = compRow;
-  const globalCol = compCol * 4 + localIndex;
-  const totalRows = rows.value;
-  const totalCols = cols.value || 1;
-  if (globalRow < 0 || globalRow >= totalRows || globalCol < 0 || globalCol >= totalCols) return null;
-  return `${String.fromCharCode(65 + globalCol)}${globalRow + 1}`;
-};
-
-// For EXTRA_LARGE classroom: compute seat positions for fan-shaped layout
 const getExtraLargeSeatPositions = () => {
-  const positions: Array<{x: number, y: number, label: string, ring: number}> = [];
+  const positions: Array<{ x: number, y: number, label: string, ring: number }> = [];
 
   // Parameters based on calculateExtraLargeSeatPosition logic
   const outerRadius = 29.6;
@@ -721,15 +728,15 @@ const getExtraLargeSeatPositions = () => {
       }
 
       // Convert polar to cartesian (for 2D preview)
-      const x = Math.cos(angle) * radius+2;
-      const z = -Math.sin(angle) * radius+14;
+      const x = Math.cos(angle) * radius + 2;
+      const z = -Math.sin(angle) * radius + 14;
 
       const previewX = centerX + x * scale * 4;
       const previewY = centerY - z * scale * 4; // Flip Y axis for screen coordinates
 
       // Generate seat label
       const rowNum = ring;
-      const colNum = remaining+0.5;
+      const colNum = remaining + 0.5;
       const label = `${String.fromCharCode(65 + (rowNum % 26))}${colNum}`;
 
       positions.push({
@@ -818,49 +825,6 @@ function handleDeleteCourseRecord() {
   })
 }
 
-// 处理取消课程记录
-function handleCancelCourseRecord() {
-  if (!courseRecordId.value) {
-    return
-  }
-
-  dialog.warning({
-    title: t('classroom.detail.cancelCourse'),
-    content: t('classroom.detail.cancelConfirm'),
-    positiveText: t('classroom.detail.cancelConfirmText'),
-    negativeText: t('common.cancel'),
-    onPositiveClick: async () => {
-      isCancelling.value = true
-      try {
-        // 构建课程记录数据，使用表单中已有的数据
-        const courseRecordData: CourseRecordDTO = getDefaultCourseRecordDTO()
-        courseRecordData.id = courseRecordId.value
-        courseRecordData.courseId = courseStore.currentCourseId
-        courseRecordData.teacherId = userStore.teacherInfo?.id || null
-        courseRecordData.courseName = courseName.value.trim() || null
-        courseRecordData.courseDescription = courseDescription.value.trim() || null
-        courseRecordData.layoutRows = rows.value
-        courseRecordData.layoutColumns = cols.value
-        courseRecordData.classroomType = getClassroomTypeFromString(selectedClassroomSize.value)
-        courseRecordData.startTime = startTime.value ? new Date(startTime.value).toISOString() : null
-        courseRecordData.overTime = endTime.value ? new Date(endTime.value).toISOString() : null
-        // 更新状态为取消
-        courseRecordData.status = CourseRecordStatusEnum.CANCELLED
-
-        await updateCourseRecord(courseRecordData)
-        message.success(t('classroom.detail.cancelSuccess'))
-        // 触发事件，更新课程历史记录列表
-        eventBus.emit('refreshClassroomHistory')
-        return true
-      } catch (error) {
-        return false
-      } finally {
-        isCancelling.value = false
-      }
-    }
-  })
-}
-
 
 // 加载课程记录数据
 async function loadCourseRecordData(id: string) {
@@ -875,13 +839,14 @@ async function loadCourseRecordData(id: string) {
     endTime.value = data.overTime ? new Date(data.overTime).getTime() : null
     // 填充其他相关数据
     selectedClassroomSize.value = getClassroomTypeString(data.classroomType)
+    lastConfirmedClassroomSize.value = String(selectedClassroomSize.value || 'classroomMini')
     if (data.layoutRows) {
       rows.value = data.layoutRows
     }
     if (data.layoutColumns) {
       cols.value = data.layoutColumns
     }
-  classroomType.value = data.classroomType ?? classroomType.value
+    classroomType.value = data.classroomType ?? classroomType.value
   } catch (error) {
     console.error('加载课程数据失败:', error)
     // 加载失败时重置表单

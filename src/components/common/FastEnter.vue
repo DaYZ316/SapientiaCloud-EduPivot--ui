@@ -144,6 +144,7 @@ const handleQuickLinkClick = (quickLink: FastEnterQuickLink): void => {
           h3 {
             color: var(--n-primary-color);
           }
+
           p {
             color: var(--n-text-color);
           }
@@ -192,7 +193,7 @@ const handleQuickLinkClick = (quickLink: FastEnterQuickLink): void => {
       color: var(--n-text-color);
     }
 
-      ul {
+    ul {
       margin: 0;
       padding: 0;
       list-style: none;
@@ -206,6 +207,7 @@ const handleQuickLinkClick = (quickLink: FastEnterQuickLink): void => {
         &:hover {
           background-color: var(--n-color-hover);
           padding-left: 12px;
+
           span {
             color: var(--n-primary-color);
             font-weight: 500;

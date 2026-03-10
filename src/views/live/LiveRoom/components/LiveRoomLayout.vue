@@ -6,65 +6,65 @@
     'chat-collapsed-with-video': isChatCollapsedWithVideo
   }]">
     <!-- 网络状态提示 -->
-    <network-status />
+    <network-status/>
 
     <section class="video-panel">
       <!-- 顶部状态栏 -->
       <div class="video-panel-header">
         <connection-status
-          :room-status="context.roomInfo.value?.status || null"
-          :online-count="context.onlineCount.value"
-          :current-user-role="context.currentUserRole.value"
-          :is-recording="context.recording.isRecording.value"
-          :recording-status-label="context.recording.recordingStatusLabel.value"
-          :connection-state-label="context.connectionStateLabel.value"
-          :connection-error="context.connectionError.value"
-          :show-leave-button="context.connectionIsConnected.value"
-          @leave="context.handleLeave()"
+            :connection-error="context.connectionError.value"
+            :connection-state-label="context.connectionStateLabel.value"
+            :current-user-role="context.currentUserRole.value"
+            :is-recording="context.recording.isRecording.value"
+            :online-count="context.onlineCount.value"
+            :recording-status-label="context.recording.recordingStatusLabel.value"
+            :room-status="context.roomInfo.value?.status || null"
+            :show-leave-button="context.connectionIsConnected.value"
+            @leave="context.handleLeave()"
         />
       </div>
 
       <div class="video-panel-content">
         <video-panel
-          ref="videoPanelRef"
-          :is-connected="context.connectionIsConnected.value"
-          :connecting="context.connectionConnecting.value"
-          :connection-state-label="context.connectionStateLabel.value"
-          :remote-participants="context.remoteParticipants.value"
-          :layout-mode="context.layoutMode.value"
-          :main-participant-id="context.activeMainParticipantId.value"
-          :speaker-volume="speakerVolumeValue"
-          :local-video-track="context.localVideoTrack.value"
-          :local-screen-share-track="context.localScreenShareTrack.value"
-          :speaking-states="context.speakingStates"
-          :sorted-speaking-ids="context.sortedSpeakingIds"
-          :local-participant-identity="context.localParticipantIdentity.value"
-          @select-main="handleSelectMain"
+            ref="videoPanelRef"
+            :connecting="context.connectionConnecting.value"
+            :connection-state-label="context.connectionStateLabel.value"
+            :is-connected="context.connectionIsConnected.value"
+            :layout-mode="context.layoutMode.value"
+            :local-participant-identity="context.localParticipantIdentity.value"
+            :local-screen-share-track="context.localScreenShareTrack.value"
+            :local-video-track="context.localVideoTrack.value"
+            :main-participant-id="context.activeMainParticipantId.value"
+            :remote-participants="context.remoteParticipants.value"
+            :sorted-speaking-ids="context.sortedSpeakingIds"
+            :speaker-volume="speakerVolumeValue"
+            :speaking-states="context.speakingStates"
+            @select-main="handleSelectMain"
         />
       </div>
 
       <div v-if="context.connectionIsConnected.value" class="video-overlay">
         <media-controls
-          :camera-enabled="context.cameraEnabled.value"
-          :microphone-enabled="context.microphoneEnabled.value"
-          :screen-share-enabled="context.screenShareEnabled.value"
-          :can-share-screen="context.canShareScreen.value"
-          :is-recording="context.recording.isRecording.value"
-          :recording-loading="context.recordingLoading.value"
-          :current-user-role="context.currentUserRole.value"
-          :can-record="context.recording.canRecord(context.roomInfo.value, context.currentUserRole.value)"
-          :speaker-volume="speakerVolumeValue"
-          :icon-only="true"
-          :is-overlay="true"
-          :show-recording="true"
-          :is-hand-raised="context.isHandRaised.value"
-          :hand-raise-cooldown="context.handRaiseCooldown.value"
-          @toggle-camera="handleToggleCamera"
-          @toggle-microphone="handleToggleMicrophone"
-          @toggle-screen-share="handleToggleScreenShare"
-          @toggle-recording="handleToggleRecording"
-          @update-speaker-volume="handleSpeakerVolumeChange"
-          @raise-hand="handleRaiseHand"
+            :camera-enabled="context.cameraEnabled.value"
+            :can-record="context.recording.canRecord(context.roomInfo.value, context.currentUserRole.value)"
+            :can-share-screen="context.canShareScreen.value"
+            :current-user-role="context.currentUserRole.value"
+            :hand-raise-cooldown="context.handRaiseCooldown.value"
+            :icon-only="true"
+            :is-hand-raised="context.isHandRaised.value"
+            :is-overlay="true"
+            :is-recording="context.recording.isRecording.value"
+            :microphone-enabled="context.microphoneEnabled.value"
+            :recording-loading="context.recordingLoading.value"
+            :screen-share-enabled="context.screenShareEnabled.value"
+            :show-recording="true"
+            :speaker-volume="speakerVolumeValue"
+            @toggle-camera="handleToggleCamera"
+            @toggle-microphone="handleToggleMicrophone"
+            @toggle-screen-share="handleToggleScreenShare"
+            @toggle-recording="handleToggleRecording"
+            @update-speaker-volume="handleSpeakerVolumeChange"
+            @raise-hand="handleRaiseHand"
         />
 
         <!-- 布局控制按钮 -->
@@ -74,7 +74,7 @@
             <template #trigger>
               <n-button quaternary size="small" @click="handleToggleLayoutMode">
                 <template #icon>
-                  <n-icon :component="context.layoutMode.value === 'grid' ? PersonOutline : GridOutline" />
+                  <n-icon :component="context.layoutMode.value === 'grid' ? PersonOutline : GridOutline"/>
                 </template>
               </n-button>
             </template>
@@ -86,7 +86,7 @@
             <template #trigger>
               <n-button quaternary size="small" @click="handleToggleFullscreen">
                 <template #icon>
-                  <n-icon :component="context.isFullscreen.value ? ContractOutline : ExpandOutline" />
+                  <n-icon :component="context.isFullscreen.value ? ContractOutline : ExpandOutline"/>
                 </template>
               </n-button>
             </template>
@@ -99,43 +99,44 @@
 
     </section>
 
-    <section v-show="!context.isFullscreen.value || !context.isChatCollapsed.value" :class="['chat-panel', {'chat-panel-connected': context.connectionIsConnected.value, 'chat-panel-collapsed': context.isChatCollapsed.value}]">
+    <section v-show="!context.isFullscreen.value || !context.isChatCollapsed.value"
+             :class="['chat-panel', {'chat-panel-connected': context.connectionIsConnected.value, 'chat-panel-collapsed': context.isChatCollapsed.value}]">
       <div class="chat-panel-top">
       </div>
 
       <ChatPanel
-        ref="chatPanelRef"
-        :can-send="true"
-        :extra="`${context.chatOnlineCount.value} ${t('live.room.members')}`"
-        :fixed-footer="true"
-        :loading="false"
-        :messages="context.chatMessages.value"
-        :placeholder="t('live.room.chatPlaceholder')"
-        :show-header="true"
-        :sub-title="t('live.room.chatDescription')"
-        :title="t('live.room.chatTitle')"
-        :is-collapsed="context.isChatCollapsed.value"
-        :unread-count="context.unreadMessageCount.value"
-        @send="handleSendMessage"
-        @toggle-collapse="handleToggleChatCollapse"
-        style="height: 100%; flex: 1 1 auto; min-height: 0;"
+          ref="chatPanelRef"
+          :can-send="true"
+          :extra="`${context.chatOnlineCount.value} ${t('live.room.members')}`"
+          :fixed-footer="true"
+          :is-collapsed="context.isChatCollapsed.value"
+          :loading="false"
+          :messages="context.chatMessages.value"
+          :placeholder="t('live.room.chatPlaceholder')"
+          :show-header="true"
+          :sub-title="t('live.room.chatDescription')"
+          :title="t('live.room.chatTitle')"
+          :unread-count="context.unreadMessageCount.value"
+          style="height: 100%; flex: 1 1 auto; min-height: 0;"
+          @send="handleSendMessage"
+          @toggle-collapse="handleToggleChatCollapse"
       />
     </section>
   </div>
 </template>
 
-<script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { NButton, NIcon, NTooltip } from 'naive-ui'
-import { ContractOutline, ExpandOutline, GridOutline, PersonOutline } from '@vicons/ionicons5'
+<script lang="ts" setup>
+import {computed, onMounted, onUnmounted, ref} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {NButton, NIcon, NTooltip} from 'naive-ui'
+import {ContractOutline, ExpandOutline, GridOutline, PersonOutline} from '@vicons/ionicons5'
 import ChatPanel from '@/components/common/ChatPanel.vue'
 import VideoPanel from './VideoPanel.vue'
 import MediaControls from './MediaControls.vue'
 import NetworkStatus from './NetworkStatus.vue'
-import { useLiveRoomContext } from '../composables/useLiveRoomContext'
+import {useLiveRoomContext} from '../composables/useLiveRoomContext'
 
-const { t } = useI18n()
+const {t} = useI18n()
 
 // 使用注入的上下文
 const context = useLiveRoomContext()
@@ -212,7 +213,7 @@ const videoPanelRef = ref<any>(null)
 onMounted(() => {
   // 将 videoPanelRef 注册到 liveRoom context（useLiveRoom 中会处理附加逻辑）
   context.registerVideoPanel?.(videoPanelRef)
-  
+
   // 添加键盘快捷键监听
   window.addEventListener('keydown', handleKeydown)
 })
@@ -270,9 +271,9 @@ onUnmounted(() => {
   box-sizing: border-box;
   /* 添加聊天面板折叠动画 */
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.3s ease;
+  min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+  max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+  opacity 0.3s ease;
 }
 
 /* 将 video-overlay 放到底部，默认隐藏，hover 时显示 */
@@ -288,6 +289,7 @@ onUnmounted(() => {
   opacity: 0;
   transition: opacity 0.18s ease;
 }
+
 .room-layout .video-panel:hover .video-overlay {
   opacity: 1;
 }
@@ -300,12 +302,12 @@ onUnmounted(() => {
 
 .layout-controls .n-button {
   transition: all 0.2s ease;
-  
+
   &:hover {
     background: var(--background-color-3);
     transform: scale(1.05);
   }
-  
+
   &:active {
     transform: scale(0.95);
   }

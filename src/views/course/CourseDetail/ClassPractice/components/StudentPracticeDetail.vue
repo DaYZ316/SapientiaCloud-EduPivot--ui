@@ -1,7 +1,7 @@
 <template>
   <div class="student-practice-panel">
     <n-card class="practice-detail-card">
-      <template #header v-if="selectedPractice">
+      <template v-if="selectedPractice" #header>
         <div class="practice-detail-header">
           <div class="practice-detail-title">
             <span class="practice-number">{{ selectedPractice.publishOrder }}.</span>
@@ -11,7 +11,7 @@
             <n-space>
               <n-text depth="3">
                 <template #icon>
-                  <n-icon size="16" color="#52c41a">
+                  <n-icon color="#52c41a" size="16">
                     <CalendarOutline/>
                   </n-icon>
                 </template>
@@ -19,7 +19,7 @@
               </n-text>
               <n-text depth="3">
                 <template #icon>
-                  <n-icon size="16" color="#fa541c">
+                  <n-icon color="#fa541c" size="16">
                     <CalendarOutline/>
                   </n-icon>
                 </template>
@@ -29,8 +29,8 @@
           </div>
           <n-tag
               :type="selectedPractice.isRequired === IsRequiredEnum.REQUIRED ? 'success' : 'default'"
-              size="small"
               round
+              size="small"
           >
             {{ getIsRequiredLabel(selectedPractice.isRequired, isEn) }}
           </n-tag>
@@ -39,7 +39,7 @@
 
       <!-- 题目详情 -->
       <div v-if="loadingAll" class="loading-container">
-        <n-spin size="large" />
+        <n-spin size="large"/>
       </div>
       <div v-else-if="questionDetail" class="question-detail-content">
         <!-- 题目元信息 -->
@@ -77,16 +77,16 @@
         <!-- 题目内容 -->
         <div class="detail-section">
           <div class="section-block">
-          <div class="section-body">
+            <div class="section-body">
               <!-- 标题已移除，只展示题目内容 -->
               <div class="detail-content-row">
                 <div class="detail-content" v-html="questionDetail.questionContent"></div>
                 <n-tag
-                  v-if="studentSubmission && studentSubmission.isCorrect !== null && studentSubmission.isCorrect !== undefined"
-                  :type="getSubmissionStatusType(studentSubmission.isCorrect)"
-                  size="small"
-                  round
-                  class="submission-status-tag content-submission-status"
+                    v-if="studentSubmission && studentSubmission.isCorrect !== null && studentSubmission.isCorrect !== undefined"
+                    :type="getSubmissionStatusType(studentSubmission.isCorrect)"
+                    class="submission-status-tag content-submission-status"
+                    round
+                    size="small"
                 >
                   {{ getSubmissionStatusLabel(studentSubmission.isCorrect) }}
                 </n-tag>
@@ -479,21 +479,21 @@
 </template>
 
 <script lang="ts" setup>
-import { CalendarOutline } from '@vicons/ionicons5'
-import { computed, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { NRadioGroup, NRadio, NCheckboxGroup, NCheckbox } from 'naive-ui'
-import type { ClassroomQuestionVO } from '@/types/classroom'
-import type { QuestionVO } from '@/types/course/question'
-import type { AnswerPayload, QuestionStudent } from '@/types/student'
-import { IsRequiredEnum } from '@/enum/classroom/isRequiredEnum'
-import { getQuestionById } from '@/api/course/question'
-import { getDefaultQuestionStudentAddDTO, addPractice, listPracticeByPracticeAndStudent } from '@/api/student/practice'
-import { getIsRequiredLabel } from '@/enum/classroom/isRequiredEnum'
-import { getQuestionBankDifficultyLabel } from '@/enum/course/questionBankDifficultyEnum'
-import { getQuestionTypeLabel, QuestionTypeEnum } from '@/enum/course/questionTypeEnum'
-import { useUserStore } from '@/store'
-import { getAnswerStatusLabel } from '@/enum/student/answerStatusEnum'
+import {CalendarOutline} from '@vicons/ionicons5'
+import {computed, ref, watch} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {NRadioGroup, NRadio, NCheckboxGroup, NCheckbox} from 'naive-ui'
+import type {ClassroomQuestionVO} from '@/types/classroom'
+import type {QuestionVO} from '@/types/course/question'
+import type {AnswerPayload, QuestionStudent} from '@/types/student'
+import {IsRequiredEnum} from '@/enum/classroom/isRequiredEnum'
+import {getQuestionById} from '@/api/course/question'
+import {getDefaultQuestionStudentAddDTO, addPractice, listPracticeByPracticeAndStudent} from '@/api/student/practice'
+import {getIsRequiredLabel} from '@/enum/classroom/isRequiredEnum'
+import {getQuestionBankDifficultyLabel} from '@/enum/course/questionBankDifficultyEnum'
+import {getQuestionTypeLabel, QuestionTypeEnum} from '@/enum/course/questionTypeEnum'
+import {useUserStore} from '@/store'
+import {getAnswerStatusLabel} from '@/enum/student/answerStatusEnum'
 
 // Props
 interface Props {
@@ -504,7 +504,7 @@ interface Props {
 const props = defineProps<Props>()
 
 // 国际化
-const { locale, t: t } = useI18n()
+const {locale, t: t} = useI18n()
 const isEn = computed(() => locale.value === 'en-US')
 
 // 用户权限
@@ -596,10 +596,14 @@ const getSubmissionStatusLabel = (isCorrect?: number | null) => {
 const getSubmissionStatusType = (isCorrect?: number | null) => {
   if (isCorrect === null || isCorrect === undefined) return 'info'
   switch (isCorrect) {
-    case 1: return 'success'
-    case 2: return 'warning'
-    case 3: return 'info'
-    default: return 'error'
+    case 1:
+      return 'success'
+    case 2:
+      return 'warning'
+    case 3:
+      return 'info'
+    default:
+      return 'error'
   }
 }
 
@@ -621,7 +625,7 @@ const formatEstimatedTime = (time?: number | null) => {
 
 // 构建默认答案
 const buildDefaultAnswerByQuestion = (question: QuestionVO | null | undefined): AnswerPayload => {
-  const base = { options: [], blanks: [], content: null }
+  const base = {options: [], blanks: [], content: null}
   if (!question) {
     return base
   }
@@ -721,8 +725,8 @@ const loadFullQuestionDetail = async () => {
   loadingQuestion.value = true
   const response = await getQuestionById(props.selectedPractice.questionId)
   const questionData = (response.success || response.code === 200)
-    ? response.data
-    : (props.selectedPractice.questionVO as QuestionVO || null)
+      ? response.data
+      : (props.selectedPractice.questionVO as QuestionVO || null)
 
   if (questionData) {
     questionDetailCache.set(props.selectedPractice.questionId, questionData)
@@ -853,13 +857,13 @@ const normalizeAnswer = (question: QuestionVO, answer: AnswerPayload | null) => 
     if (payload.blanks) {
       payload.blanks = payload.blanks.map(item => item ?? '')
     }
-    return { blanks: payload.blanks || [] }
+    return {blanks: payload.blanks || []}
   } else if (isShort(question.questionType)) {
     // 简答题只传递 content 数据
-    return { content: payload.content || null }
+    return {content: payload.content || null}
   } else if (isSingle(question.questionType) || isMultiple(question.questionType)) {
     // 选择题只传递 options 数据
-    return { options: payload.options || [] }
+    return {options: payload.options || []}
   } else {
     // 其他题型传递所有数据（保持兼容性）
     return payload
@@ -906,7 +910,7 @@ watch(() => props.selectedPractice, async (newPractice) => {
     studentSubmission.value = null
   }
   loadingAll.value = false
-}, { immediate: true })
+}, {immediate: true})
 
 // 方法
 const formatTime = (time: string) => {

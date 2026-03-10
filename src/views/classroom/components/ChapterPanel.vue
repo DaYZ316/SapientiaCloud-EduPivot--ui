@@ -34,7 +34,7 @@
           <NSpin size="small"/>
         </div>
         <div v-else-if="!visibleChapters.length" class="chapter-panel__empty">{{
-            t('classroom.chapterPanel.empty')
+          t('classroom.chapterPanel.empty')
           }}
         </div>
       </div>

@@ -42,7 +42,7 @@
       </Transition>
     </div>
     <div class="beian-footer">
-      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">
+      <a href="https://beian.miit.gov.cn/" rel="noopener noreferrer" target="_blank">
         冀ICP备2025141309号
       </a>
     </div>

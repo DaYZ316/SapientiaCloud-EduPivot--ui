@@ -107,7 +107,7 @@
 
 <script lang="ts" setup>
 import {useRouter} from 'vue-router'
-import { useI18n } from 'vue-i18n'
+import {useI18n} from 'vue-i18n'
 import {
   BookOutline,
   ChatbubbleOutline,
@@ -126,7 +126,7 @@ interface Props {
 const props = defineProps<Props>()
 
 // 国际化
-const { t } = useI18n()
+const {t} = useI18n()
 
 // 路由
 const router = useRouter()

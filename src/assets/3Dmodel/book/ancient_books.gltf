@@ -16,10 +16,6 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"\u4e66\u9875"
-		},
-		{
-			"mesh":1,
 			"name":"\u4e66\u58f3",
 			"scale":[
 				1,
@@ -31,11 +27,15 @@
 				0.11600000411272049,
 				0
 			]
+		},
+		{
+			"mesh":1,
+			"name":"\u4e66\u9875"
 		}
 	],
 	"meshes":[
 		{
-			"name":"\u5e73\u9762",
+			"name":"\u7acb\u65b9\u4f53",
 			"primitives":[
 				{
 					"attributes":{
@@ -48,7 +48,7 @@
 			]
 		},
 		{
-			"name":"\u7acb\u65b9\u4f53",
+			"name":"\u5e73\u9762.002",
 			"primitives":[
 				{
 					"attributes":{
@@ -65,40 +65,6 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":6076,
-			"max":[
-				0.900000274181366,
-				1.2610175609588623,
-				1.5966254472732544
-			],
-			"min":[
-				-0.900000274181366,
-				0.01736481301486492,
-				-1.5964853763580322
-			],
-			"type":"VEC3"
-		},
-		{
-			"bufferView":1,
-			"componentType":5126,
-			"count":6076,
-			"type":"VEC3"
-		},
-		{
-			"bufferView":2,
-			"componentType":5126,
-			"count":6076,
-			"type":"VEC2"
-		},
-		{
-			"bufferView":3,
-			"componentType":5123,
-			"count":13386,
-			"type":"SCALAR"
-		},
-		{
-			"bufferView":4,
-			"componentType":5126,
 			"count":336,
 			"max":[
 				1,
@@ -113,77 +79,111 @@
 			"type":"VEC3"
 		},
 		{
-			"bufferView":5,
+			"bufferView":1,
 			"componentType":5126,
 			"count":336,
 			"type":"VEC3"
 		},
 		{
-			"bufferView":6,
+			"bufferView":2,
 			"componentType":5126,
 			"count":336,
 			"type":"VEC2"
 		},
 		{
-			"bufferView":7,
+			"bufferView":3,
 			"componentType":5123,
 			"count":852,
+			"type":"SCALAR"
+		},
+		{
+			"bufferView":4,
+			"componentType":5126,
+			"count":10680,
+			"max":[
+				0.900000274181366,
+				1.3254938125610352,
+				1.5966254472732544
+			],
+			"min":[
+				-0.900000274181366,
+				0.01736481301486492,
+				-1.5964853763580322
+			],
+			"type":"VEC3"
+		},
+		{
+			"bufferView":5,
+			"componentType":5126,
+			"count":10680,
+			"type":"VEC3"
+		},
+		{
+			"bufferView":6,
+			"componentType":5126,
+			"count":10680,
+			"type":"VEC2"
+		},
+		{
+			"bufferView":7,
+			"componentType":5123,
+			"count":22914,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":72912,
+			"byteLength":4032,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":72912,
-			"byteOffset":72912,
-			"target":34962
-		},
-		{
-			"buffer":0,
-			"byteLength":48608,
-			"byteOffset":145824,
-			"target":34962
-		},
-		{
-			"buffer":0,
-			"byteLength":26772,
-			"byteOffset":194432,
-			"target":34963
-		},
-		{
-			"buffer":0,
 			"byteLength":4032,
-			"byteOffset":221204,
-			"target":34962
-		},
-		{
-			"buffer":0,
-			"byteLength":4032,
-			"byteOffset":225236,
+			"byteOffset":4032,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":2688,
-			"byteOffset":229268,
+			"byteOffset":8064,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":1704,
-			"byteOffset":231956,
+			"byteOffset":10752,
+			"target":34963
+		},
+		{
+			"buffer":0,
+			"byteLength":128160,
+			"byteOffset":12456,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":128160,
+			"byteOffset":140616,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":85440,
+			"byteOffset":268776,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":45828,
+			"byteOffset":354216,
 			"target":34963
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":233660,
+			"byteLength":400044,
 			"uri":"ancient_books.bin"
 		}
 	]

@@ -86,6 +86,11 @@
     box-sizing: border-box;
     min-height: 0;
 
+    /* 当没有添加按钮时的上边距 */
+    &.record-list-no-add {
+      padding-top: 20px;
+    }
+
     /* 滚动条样式 */
     &::-webkit-scrollbar {
       width: 8px;

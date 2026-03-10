@@ -136,7 +136,8 @@ export default {
         ownerForbiddenMessage: '开课教室不允许坐下。',
         standUpSuccess: '已成功站起',
         standUpTitle: '是否站起？',
-        standUpContent: '站起后将释放当前座位，是否确认站起？'
+        standUpContent: '站起后将释放当前座位，是否确认站起？',
+        classEnded: '课程已结束，无法入座'
     },
     studentInfo: {
         avatar: '头像',

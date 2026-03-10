@@ -14,7 +14,7 @@
             </h4>
             <n-space>
               <n-button
-                  v-if="isEditMode"
+                  v-if="hasPermission && isEditMode"
                   :loading="isDeleting"
                   type="error"
                   @click="handleDeleteCourseRecord"
@@ -27,6 +27,7 @@
                 {{ t('classroom.detail.deleteCourse') }}
               </n-button>
               <n-button
+                  v-if="hasPermission"
                   :loading="isSubmitting"
                   type="info"
                   @click="submitForm"
@@ -63,6 +64,7 @@
             <label class="form-label required">{{ t('classroom.detail.courseName') }}</label>
             <n-input
                 v-model:value="courseName"
+                :disabled="!hasPermission"
                 :maxlength="50"
                 :placeholder="t('classroom.detail.courseNamePlaceholder')"
                 show-count
@@ -77,6 +79,7 @@
               <label class="form-label required">{{ t('classroom.detail.startTime') }}</label>
               <n-date-picker
                   v-model:value="startTime"
+                  :disabled="!hasPermission"
                   :placeholder="t('classroom.detail.startTimePlaceholder')"
                   style="width: 100%"
                   type="datetime"
@@ -88,6 +91,7 @@
               <label class="form-label required">{{ t('classroom.detail.endTime') }}</label>
               <n-date-picker
                   v-model:value="endTime"
+                  :disabled="!hasPermission"
                   :placeholder="t('classroom.detail.endTimePlaceholder')"
                   style="width: 100%"
                   type="datetime"
@@ -102,6 +106,7 @@
             <label class="form-label">{{ t('classroom.detail.courseDescription') }}</label>
             <n-input
                 v-model:value="courseDescription"
+                :disabled="!hasPermission"
                 :maxlength="200"
                 :minlength="0"
                 :placeholder="t('classroom.detail.courseDescriptionPlaceholder')"
@@ -129,7 +134,7 @@
           <!-- 教室规格选择 -->
           <div class="form-group">
             <label class="form-label required">{{ t('classroom.detail.classroomSize') }}</label>
-            <n-radio-group v-model:value="selectedClassroomSize" @update:value="onClassroomSizeChange">
+            <n-radio-group v-model:value="selectedClassroomSize" :disabled="!hasPermission" @update:value="onClassroomSizeChange">
               <div class="classroom-specs-container">
                 <div v-for="spec in classroomSpecs" :key="spec.value" class="classroom-spec-card">
                   <n-radio-button :class="['spec-radio', { 'active': selectedClassroomSize === spec.value }]"
@@ -170,6 +175,7 @@
                     <label class="input-label">{{ t('classroom.detail.rows') }}</label>
                     <n-input-number
                         v-model:value="rows"
+                        :disabled="!hasPermission"
                         :min="1"
                         :placeholder="t('classroom.detail.rowsPlaceholder')"
                         style="width:100%;"
@@ -180,6 +186,7 @@
                     <label class="input-label">{{ t('classroom.detail.columns') }}</label>
                     <n-input-number
                         v-model:value="componentCols"
+                        :disabled="!hasPermission"
                         :min="1"
                         :placeholder="t('classroom.detail.columnsPlaceholder')"
                         :step="inputStep"
@@ -314,6 +321,19 @@ const router = useRouter()
 const userStore = useUserStore()
 const courseStore = useCourseStore()
 const transitionStore = useTransitionStore()
+
+// 判断当前用户是否为管理员
+const isAdmin = computed(() => userStore.hasRole('ADMIN'))
+
+// 判断当前用户是否为课程的开课教师
+const isCourseTeacher = computed(() => {
+  const currentTeacherId = userStore.teacherInfo?.id
+  const courseTeacherId = courseStore.currentCourseInfo?.teacherId
+  return currentTeacherId && courseTeacherId && currentTeacherId === courseTeacherId
+})
+
+// 判断当前用户是否有权限操作（是开课教师或管理员）
+const hasPermission = computed(() => isAdmin.value || isCourseTeacher.value)
 
 // 表单数据
 const courseName = ref('')

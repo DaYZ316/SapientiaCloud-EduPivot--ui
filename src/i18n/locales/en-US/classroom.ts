@@ -134,7 +134,8 @@ export default {
         assignSuccess: 'Seat assigned successfully',
         updateSuccess: 'Seat updated successfully',
         ownerForbiddenMessage: 'Classroom owners cannot take a seat.',
-        standUpSuccess: 'You have stood up from your seat'
+        standUpSuccess: 'You have stood up from your seat',
+        classEnded: 'Class has ended, cannot take a seat'
     },
     studentInfo: {
         avatar: 'Avatar',

@@ -1,7 +1,7 @@
 <template>
   <div class="classroom-history">
     <!-- 添加课程按钮 - 固定在顶部 -->
-    <div v-if="!loading" class="add-course-header">
+    <div v-if="hasPermission && !loading" class="add-course-header">
       <div class="add-course-item" @click="handleAddCourse">
         <div class="add-course-content">
           <div class="add-icon">
@@ -43,7 +43,7 @@
     </div>
 
     <!-- 数据列表 -->
-    <div v-else ref="recordListRef" class="record-list" @scroll="handleScroll">
+    <div v-else ref="recordListRef" :class="['record-list', { 'record-list-no-add': !hasPermission }]" @scroll="handleScroll">
       <div
           v-for="item in records"
           :key="item.id"
@@ -88,7 +88,7 @@
 </template>
 
 <script lang="ts" setup>
-import {onBeforeUnmount, onMounted, ref, watch} from 'vue'
+import {onBeforeUnmount, onMounted, ref, watch, computed} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {
   AddOutline,
@@ -106,11 +106,25 @@ import {getCourseRecordStatusLabel, calculateCourseRecordStatus} from '@/enum/cl
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import Icon from '@/components/common/Icon.vue'
 import type {CourseRecordPageQueryDTO, CourseRecordVO} from '@/types/classroom'
-import {useCourseStore} from '@/store/modules/course'
+import {useCourseStore, useUserStore} from '@/store'
 import {formatDate} from '@/utils/dateUtil'
 
 const {t, locale} = useI18n()
 const courseStore = useCourseStore()
+const userStore = useUserStore()
+
+// 判断当前用户是否为管理员
+const isAdmin = computed(() => userStore.hasRole('ADMIN'))
+
+// 判断当前用户是否为课程的开课教师
+const isCourseTeacher = computed(() => {
+  const currentTeacherId = userStore.teacherInfo?.id
+  const courseTeacherId = courseStore.currentCourseInfo?.teacherId
+  return currentTeacherId && courseTeacherId && currentTeacherId === courseTeacherId
+})
+
+// 判断当前用户是否有权限操作（是开课教师或管理员）
+const hasPermission = computed(() => isAdmin.value || isCourseTeacher.value)
 
 const loading = ref(false)
 const loadingMore = ref(false)

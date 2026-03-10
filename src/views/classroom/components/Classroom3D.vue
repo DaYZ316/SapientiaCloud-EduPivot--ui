@@ -71,6 +71,7 @@ import type {AvatarIdentityProps} from '@/types/components/avatar';
 import type {CourseRecordStudentDTO, CourseRecordStudentVO, CourseRecordVO} from '@/types/classroom';
 import type {ClassroomToolboxItem} from '@/views/classroom/composables/toolbox';
 import {SeatStatusEnum} from '@/enum/classroom/seatStatusEnum';
+import {calculateCourseRecordStatus, CourseRecordStatusEnum} from '@/enum/classroom/courseRecordStatusEnum';
 import type {SeatAssignmentContext} from '@/types/components/seatConfirmModal';
 import {useTransitionStore} from '@/store/modules/transition';
 import {runViewTransition} from '@/utils/themeAnimation';
@@ -98,9 +99,9 @@ import {
   CreateOutline,
   HelpCircleOutline,
   LogOutOutline,
-  SchoolOutline,
   VideocamOutline
 } from '@vicons/ionicons5';
+import ClassPracticeIcon from '@/components/common/ClassPracticeIcon.vue';
 
 const {t} = useI18n();
 const route = useRoute();
@@ -385,6 +386,22 @@ const confirmSeatSelection = async () => {
   }
 
   const existingSeat = studentsList.value.find(student => student.studentId === currentStudentId) || null;
+
+  // 根据课程的开始时间和结束时间判断当前课堂状态
+  const courseStatus = calculateCourseRecordStatus(
+    courseRecord.value?.startTime ?? null,
+    courseRecord.value?.overTime ?? null
+  );
+
+  // 如果课堂已结束，不允许坐下
+  if (courseStatus === CourseRecordStatusEnum.ENDED) {
+    resetSeatConfirmState();
+    if (message) {
+      message.warning(t('classroom.seatConfirm.classEnded'));
+    }
+    return false;
+  }
+
   const seatData: CourseRecordStudentDTO = getDefaultCourseRecordStudentDTO();
   seatData.recordId = recordId;
   seatData.studentId = currentStudentId;
@@ -641,7 +658,7 @@ const toolboxItems = computed<ClassroomToolboxItem[]>(() => {
     key: 'class-practice',
     label: t('classroom.classPractice'),
     labelKey: 'classroom.classPractice',
-    icon: SchoolOutline,
+    icon: ClassPracticeIcon,
     handler: handlePracticeButton
   });
 

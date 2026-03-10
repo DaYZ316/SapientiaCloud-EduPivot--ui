@@ -116,8 +116,8 @@ const initThree = () => {
      */
     const textureLoader = new THREE.TextureLoader();
     const texturePath = import.meta.env.DEV
-        ? new URL('@/assets/3Dmodel/book/texture/baked.png', import.meta.url).href
-        : '/assets/baked.png';
+        ? new URL('@/assets/3Dmodel/book/texture/book_baked.jpg', import.meta.url).href
+        : '/assets/book_baked.jpg';
     const bookTexture = textureLoader.load(texturePath);
     bookTexture.flipY = false;
 

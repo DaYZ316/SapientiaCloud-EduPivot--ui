@@ -75,6 +75,8 @@ export default {
         courseNotesPlaceholder: '请输入备注信息（可选）',
         classroomConfig: '教室配置',
         classroomSize: '教室规格',
+        locked: '锁定',
+        unlocked: '解锁',
         capacity: '容量',
         people: '人',
         seatingArrangement: '座位排布设置',

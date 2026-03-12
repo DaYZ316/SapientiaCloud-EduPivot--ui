@@ -75,6 +75,8 @@ export default {
         courseNotesPlaceholder: 'Please enter notes (optional)',
         classroomConfig: 'Classroom Configuration',
         classroomSize: 'Classroom Size',
+        locked: 'Locked',
+        unlocked: 'Unlocked',
         capacity: 'Capacity',
         people: 'people',
         seatingArrangement: 'Seating Arrangement Settings',

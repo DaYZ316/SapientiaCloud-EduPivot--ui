@@ -132,7 +132,7 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
         const columnIndex = instanceId % actualColumns;
         // 3张座位均匀分布在5米内，间距 = 5 / (3+1) = 1.25米
         const spacing = availableWidth / (actualColumns + 1);
-        position.x = leftBound + spacing * (columnIndex + 1) - 0.4; // 整体向左移动0.4米
+        position.x = leftBound + spacing * (columnIndex + 1) - 0.8; // 整体向左移动0.6米
 
         // 前后方向：第一排距离前墙3米，每排间隔2米
         const frontWallZ = halfDepth; // 前墙z坐标（5米）
@@ -300,8 +300,9 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
     ): THREE.Vector3 => {
         if (classroomType.value === ClassroomTypeEnum.SMALL) {
             calculateSeatPosition(seatIndex, position, classroomXLength, classroomZLength);
-            position.x += 0.4;
-            position.y += 1.3;
+            position.x += 1.9;
+            position.y += 1.0;
+            position.z += 1.5;
             return position;
         }
         if (classroomType.value === ClassroomTypeEnum.MIDDLE) {

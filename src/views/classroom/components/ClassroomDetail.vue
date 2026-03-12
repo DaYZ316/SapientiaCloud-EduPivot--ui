@@ -124,17 +124,35 @@
 
         <!-- 教室配置区域 -->
         <div class="form-subsection">
-          <h4 class="subsection-title">
-            <n-icon>
-              <Grid/>
-            </n-icon>
-            {{ t('classroom.detail.classroomConfig') }}
-          </h4>
+          <div class="subsection-header">
+            <h4 class="subsection-title">
+              <n-icon>
+                <Grid/>
+              </n-icon>
+              {{ t('classroom.detail.classroomConfig') }}
+            </h4>
+            <n-switch
+                v-if="hasPermission && isEditMode"
+                v-model:value="isClassroomSizeUnlocked"
+                :disabled="!hasPermission"
+            >
+              <template #checked>
+                {{ t('classroom.detail.unlocked') }}
+              </template>
+              <template #unchecked>
+                {{ t('classroom.detail.locked') }}
+              </template>
+            </n-switch>
+          </div>
 
           <!-- 教室规格选择 -->
           <div class="form-group">
             <label class="form-label required">{{ t('classroom.detail.classroomSize') }}</label>
-            <n-radio-group v-model:value="selectedClassroomSize" :disabled="!hasPermission" @update:value="onClassroomSizeChange">
+            <n-radio-group
+                v-model:value="selectedClassroomSize"
+                :disabled="!hasPermission || !isClassroomSizeUnlocked"
+                @update:value="onClassroomSizeChange"
+            >
               <div class="classroom-specs-container">
                 <div v-for="spec in classroomSpecs" :key="spec.value" class="classroom-spec-card">
                   <n-radio-button :class="['spec-radio', { 'active': selectedClassroomSize === spec.value }]"
@@ -300,7 +318,7 @@ import {
   removeCourseRecordById,
   updateCourseRecord
 } from '@/api/classroom/courseRecord'
-import {listStudentsByRecordId} from '@/api/classroom/courseRecordStudent'
+import {listStudentsByRecordId, removeStudentSeatBatch} from '@/api/classroom/courseRecordStudent'
 import {useCourseStore, useUserStore} from '@/store'
 import {useTransitionStore} from '@/store/modules/transition'
 import type {CourseRecordDTO, CourseRecordVO} from '@/types/classroom'
@@ -343,6 +361,7 @@ const endTime = ref<number | null>(null)
 
 // 教室配置
 const selectedClassroomSize = ref('classroomMini') // 默认选中小型教室
+const isClassroomSizeUnlocked = ref(false) // 教室类型是否解封
 const rows = ref(4) // 默认4行
 const cols = ref(3) // 默认3列
 const classroomType = ref<number | null>(null)
@@ -507,7 +526,17 @@ async function onClassroomSizeChange(newSize: string) {
           content: t('classroom.detail.changeClassroomTypeConfirmContent'),
           positiveText: t('classroom.detail.changeClassroomTypeConfirmContinue'),
           negativeText: t('common.cancel'),
-          onPositiveClick: () => {
+          onPositiveClick: async () => {
+            // 删除该教室所有存在的座位信息
+            const studentsWithSeats = list
+              .filter((s: any) => s?.seatIndex !== null && typeof s?.seatIndex !== 'undefined')
+              .map((s: any) => ({
+                recordId: courseRecordId.value,
+                studentId: s.studentId
+              }))
+            if (studentsWithSeats.length > 0) {
+              await removeStudentSeatBatch(studentsWithSeats)
+            }
             lastConfirmedClassroomSize.value = nextSize
             selectedClassroomSize.value = nextSize
             applyClassroomSizeChange(nextSize)

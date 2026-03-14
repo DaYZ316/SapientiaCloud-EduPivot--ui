@@ -89,7 +89,7 @@ import {
   getDeskModelPathByRecord,
   getdeskChairModelTexturePathByRecord,
 } from '@/views/classroom/composables/useModelRouter';
-import {useSeatLayout} from '@/views/classroom/composables/useSeatLayout';
+import {useSeatLayout, getTeacherSeatPosition} from '@/views/classroom/composables/useSeatLayout';
 import {ClassroomTypeEnum} from '@/enum/classroom/classroomTypeEnum';
 import {ModelInstanceManager} from '@/views/classroom/composables/ModelInstanceManager';
 import {useClassroomInteraction} from '@/views/classroom/composables/useClassroomInteraction';
@@ -1320,6 +1320,48 @@ const initThree = () => {
             },
             (error) => {
               reject(error);
+            }
+        );
+      });
+
+      // 加载 cool_man 模型（教师模型）
+      await new Promise<void>((resolve, _reject) => {
+        // 创建新的 loader 实例以设置正确的路径
+        const coolManLoader = new GLTFLoader();
+        const basePath = import.meta.env.DEV 
+          ? '/src/assets/3Dmodel/cool_man/' 
+          : '/assets/3Dmodel/cool_man/';
+        
+        coolManLoader.setPath(basePath);
+
+        coolManLoader.load(
+            'scene.gltf',
+            (gltf: GLTF) => {
+              const coolManModel = gltf.scene;
+
+              // 根据教室类型获取老师座位位置
+              const teacherPosition = getTeacherSeatPosition(courseRecord.value?.classroomType ?? null);
+
+              // 调整模型大小和位置
+              coolManModel.position.copy(teacherPosition); // 放置在讲台位置
+              coolManModel.rotation.y = Math.PI; // 面向前方
+              // coolManModel.scale.set(0.5, 0.5, 0.5); // 调整大小
+
+              if (scene && coolManModel) {
+                scene.add(coolManModel);
+
+                // 在教师模型附近添加光照
+                const ambientLight = new THREE.AmbientLight(0xffffff, 2);
+                scene.add(ambientLight);
+              }
+              resolve();
+            },
+            () => {
+              // 加载进度处理
+            },
+            (error) => {
+              console.warn('加载 cool_man 模型失败:', error);
+              resolve(); // 即使失败也继续执行
             }
         );
       });

@@ -37,6 +37,40 @@ export const getExtraLargeTotalSeats = (rows: number, cols: number): number => {
     return rowNum * colNum + rowNum * (rowNum - 1);
 };
 
+/**
+ * 根据教室类型获取老师座位位置
+ * @param classroomType 教室类型枚举值
+ * @returns THREE.Vector3 老师座位位置
+ */
+export const getTeacherSeatPosition = (classroomType: ClassroomTypeEnum | null): THREE.Vector3 => {
+    const position = new THREE.Vector3();
+
+    switch (classroomType) {
+        case ClassroomTypeEnum.SMALL:
+            // 小型教室：老师坐在讲台位置
+            position.set(0, 0, 4.2);
+            break;
+        case ClassroomTypeEnum.MIDDLE:
+            // 中型教室：老师坐在讲台位置
+            position.set(2.8, 0, 7.6);
+            break;
+        case ClassroomTypeEnum.LARGE:
+            // 大型教室：老师坐在讲台位置
+            position.set(5, 1, 12);
+            break;
+        case ClassroomTypeEnum.EXTRA_LARGE:
+            // 超大型教室：老师坐在讲台位置
+            position.set(0, 0.3, 6);
+            break;
+        default:
+            // 默认小型教室位置
+            position.set(0, 0, 4);
+            break;
+    }
+
+    return position;
+};
+
 export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLayoutResult => {
 
     const classroomType = computed(() => courseRecord.value?.classroomType ?? null);
@@ -308,7 +342,8 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
         if (classroomType.value === ClassroomTypeEnum.MIDDLE) {
             calculateSeatPosition(seatIndex, position, classroomXLength, classroomZLength);
             position.x += 0.4;
-            position.y += 1.8;
+            position.y += 1.2;
+            position.z -= 0.2;
             return position;
         }
         if (classroomType.value === ClassroomTypeEnum.LARGE) {
@@ -327,13 +362,16 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
             const leftOffset = -modelWidth / 2; // 模型左边界
 
             // 计算座位在模型中的X偏移（从左到右：0, 1, 2, 3）
-            position.x += leftOffset + seatSpacing * (seatInModel + 1);
+            position.x += leftOffset + seatSpacing * (seatInModel + 1)-0.1;
+            position.y += 3;
+            position.z += 0.4;
 
             return position;
         }
         if (classroomType.value === ClassroomTypeEnum.EXTRA_LARGE) {
             calculateSeatPosition(seatIndex, position, classroomXLength, classroomZLength);
-            position.y += 0.5;
+            position.y += 1;
+            position.z -= 1;
             return position;
         }
         return position;

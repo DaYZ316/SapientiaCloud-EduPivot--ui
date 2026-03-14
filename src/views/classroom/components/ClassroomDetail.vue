@@ -132,7 +132,7 @@
               {{ t('classroom.detail.classroomConfig') }}
             </h4>
             <n-switch
-                v-if="hasPermission && isEditMode"
+                v-if="hasPermission"
                 v-model:value="isClassroomSizeUnlocked"
                 :disabled="!hasPermission"
             >
@@ -636,6 +636,8 @@ function resetFormData() {
   lastConfirmedClassroomSize.value = 'classroomMini'
   rows.value = 4
   cols.value = 3
+  // 默认开启教室类型选择，方便发布课程时选择
+  isClassroomSizeUnlocked.value = true
 
   // 清除错误提示
   errors.courseName = ''

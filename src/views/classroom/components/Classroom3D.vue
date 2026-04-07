@@ -53,6 +53,7 @@ import {getCourseRecordById} from '@/api/classroom/courseRecord';
 import {
   addStudentSeat,
   getDefaultCourseRecordStudentDTO,
+  issueSeatSyncWsToken,
   listStudentsByRecordId,
   updateStudentSeat,
   removeStudentSeat
@@ -102,6 +103,7 @@ import {
   VideocamOutline
 } from '@vicons/ionicons5';
 import ClassPracticeIcon from '@/components/common/ClassPracticeIcon.vue';
+import {defaultServerConfig} from '@/config/server';
 
 const {t} = useI18n();
 const route = useRoute();
@@ -176,6 +178,29 @@ const showPointerHintTemporarily = () => {
 const spriteManager = new SpriteManager();
 const speakingStore = useLiveSpeakingStore();
 const activeSpeakingSeats = new Set<number>();
+const seatSyncPrefix = defaultServerConfig.prefix.startsWith('/')
+    ? defaultServerConfig.prefix
+    : `/${defaultServerConfig.prefix}`;
+const seatSyncMessageEvents = new Set(['seat_snapshot', 'seat_upsert', 'seat_remove']);
+
+type SeatSyncPayload = {
+  event?: string;
+  recordId?: string;
+  version?: number;
+  data?: {
+    seats?: CourseRecordStudentVO[];
+    seat?: CourseRecordStudentVO;
+    studentId?: string | null;
+    seatIndex?: number | null;
+  };
+};
+
+let seatSyncSocket: WebSocket | null = null;
+let seatSyncReconnectTimer: number | null = null;
+let seatSyncReconnectAttempts = 0;
+let seatSyncLatestVersion = 0;
+let seatSyncConnecting = false;
+let seatSyncShouldReconnect = false;
 
 const resolveSeatIndexByStudentId = (studentId: string): number | null => {
   let seatIndex = spriteManager.getPositionIndexByUserId(studentId);
@@ -523,13 +548,48 @@ const openSeatConfirmModal = (context: SeatAssignmentContext) => {
 
 
 // 获取课程记录信息
+const getCurrentRecordId = (): string | null => {
+  const paramRecordId = route.params.courseRecordId as string | undefined;
+  const queryRecordId = route.query.recordId as string | undefined;
+  return paramRecordId || queryRecordId || null;
+};
+
+const buildSeatSyncWsUrl = (recordId: string, token: string): string => {
+  const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${wsProtocol}//${window.location.host}${seatSyncPrefix}/classroom/ws/seat?recordId=${encodeURIComponent(recordId)}&token=${encodeURIComponent(token)}`;
+};
+
+const clearSeatSyncReconnectTimer = () => {
+  if (seatSyncReconnectTimer !== null) {
+    clearTimeout(seatSyncReconnectTimer);
+    seatSyncReconnectTimer = null;
+  }
+};
+
+const closeSeatSyncSocket = () => {
+  if (!seatSyncSocket) {
+    return;
+  }
+  seatSyncSocket.onopen = null;
+  seatSyncSocket.onmessage = null;
+  seatSyncSocket.onerror = null;
+  seatSyncSocket.onclose = null;
+  if (
+      seatSyncSocket.readyState === WebSocket.OPEN
+      || seatSyncSocket.readyState === WebSocket.CONNECTING
+  ) {
+    seatSyncSocket.close();
+  }
+  seatSyncSocket = null;
+};
+
 const fetchCourseRecord = async () => {
   try {
     loadingRecord.value = true;
     recordError.value = null;
 
     // 从路由参数获取课程记录ID
-    const recordId = (route.params.courseRecordId as string) || (route.query.recordId as string);
+    const recordId = getCurrentRecordId();
     if (!recordId) {
       return;
     }
@@ -579,32 +639,242 @@ const renderStudentSprites = async (students: CourseRecordStudentVO[]) => {
 };
 
 // 获取学生列表
+const removeSpriteByStudentId = (studentId: string | number | null | undefined) => {
+  if (!spriteManager || !spriteManager.isInitialized || studentId === null || studentId === undefined) {
+    return;
+  }
+
+  const candidateIds: Array<string | number> = [studentId];
+  if (typeof studentId === 'string') {
+    const numericId = Number(studentId);
+    if (!Number.isNaN(numericId)) {
+      candidateIds.push(numericId);
+    }
+  } else if (typeof studentId === 'number') {
+    candidateIds.push(String(studentId));
+  }
+
+  for (const candidateId of candidateIds) {
+    try {
+      spriteManager.removeUserData(candidateId);
+      return;
+    } catch (_error) {
+      continue;
+    }
+  }
+};
+
+const rebuildSeatStudentMap = (students: CourseRecordStudentVO[]) => {
+  seatStudentMap.value.clear();
+  students.forEach((student) => {
+    if (student.seatIndex !== null && student.seatIndex !== undefined) {
+      seatStudentMap.value.set(student.seatIndex, student);
+    }
+  });
+};
+
+const applyStudentsState = async (nextStudents: CourseRecordStudentVO[]) => {
+  const normalizedStudents = Array.isArray(nextStudents) ? nextStudents : [];
+  const previousStudents = studentsList.value;
+  const nextStudentIdSet = new Set(normalizedStudents.map(student => String(student.studentId)));
+
+  if (spriteManager && spriteManager.isInitialized) {
+    previousStudents.forEach((student) => {
+      if (!nextStudentIdSet.has(String(student.studentId))) {
+        removeSpriteByStudentId(student.studentId);
+      }
+    });
+  }
+
+  studentsList.value = normalizedStudents;
+  rebuildSeatStudentMap(normalizedStudents);
+
+  if (normalizedStudents.length > 0 && spriteManager && spriteManager.isInitialized) {
+    await renderStudentSprites(normalizedStudents);
+  }
+};
+
 const fetchStudentsList = async (recordId: string) => {
   try {
     const response = await listStudentsByRecordId(recordId);
-    studentsList.value = response?.data || [];
-
-    // 建立座位索引到学生信息的映射，用于悬浮显示
-    seatStudentMap.value.clear();
-    studentsList.value.forEach(student => {
-      if (student.seatIndex !== null && student.seatIndex !== undefined) {
-        seatStudentMap.value.set(student.seatIndex, student);
-      }
-    });
-
-    // 渲染学生精灵模型
-    if (studentsList.value.length > 0 && spriteManager && spriteManager.isInitialized) {
-      await renderStudentSprites(studentsList.value);
-    }
+    await applyStudentsState(response?.data || []);
   } catch (error) {
-    studentsList.value = [];
-    seatStudentMap.value.clear();
+    await applyStudentsState([]);
   }
 };
 
 // 学生信息框展示逻辑移除悬停触发，保留基础状态，后续如需点击展示可在此扩展
 
 // 退出教室，使用全局过渡动画
+const tryParseSeatSyncPayload = (rawPayload: string): SeatSyncPayload | null => {
+  try {
+    const parsed = JSON.parse(rawPayload) as SeatSyncPayload;
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch (_error) {
+    return null;
+  }
+};
+
+const applySeatSyncPayload = async (recordId: string, payload: SeatSyncPayload) => {
+  if (!payload || typeof payload !== 'object') {
+    return;
+  }
+  if (payload.recordId && payload.recordId !== recordId) {
+    return;
+  }
+
+  if (typeof payload.version === 'number') {
+    if (payload.version <= seatSyncLatestVersion) {
+      return;
+    }
+    seatSyncLatestVersion = payload.version;
+  }
+
+  if (!payload.event || !seatSyncMessageEvents.has(payload.event)) {
+    return;
+  }
+
+  if (payload.event === 'seat_snapshot') {
+    const seats = Array.isArray(payload.data?.seats) ? payload.data.seats : [];
+    await applyStudentsState(seats);
+    return;
+  }
+
+  if (payload.event === 'seat_upsert') {
+    const seat = payload.data?.seat;
+    if (!seat || !seat.studentId) {
+      return;
+    }
+
+    const nextStudents = studentsList.value.filter((student) => {
+      return student.studentId !== seat.studentId && student.seatIndex !== seat.seatIndex;
+    });
+    nextStudents.push(seat);
+    await applyStudentsState(nextStudents);
+    return;
+  }
+
+  if (payload.event === 'seat_remove') {
+    const studentId = payload.data?.studentId ? String(payload.data.studentId) : null;
+    const rawSeatIndex = payload.data?.seatIndex;
+    const seatIndex = typeof rawSeatIndex === 'number'
+        ? rawSeatIndex
+        : Number.parseInt(String(rawSeatIndex ?? ''), 10);
+    const hasSeatIndex = !Number.isNaN(seatIndex);
+
+    const nextStudents = studentsList.value.filter((student) => {
+      const hitStudent = studentId !== null && String(student.studentId) === studentId;
+      const hitSeat = hasSeatIndex && student.seatIndex === seatIndex;
+      return !(hitStudent || hitSeat);
+    });
+    await applyStudentsState(nextStudents);
+  }
+};
+
+const scheduleSeatSyncReconnect = (recordId: string) => {
+  if (!seatSyncShouldReconnect || seatSyncReconnectTimer !== null || seatSyncReconnectAttempts >= 8) {
+    return;
+  }
+
+  const delay = Math.min(1000 * (2 ** seatSyncReconnectAttempts), 15000);
+  seatSyncReconnectAttempts += 1;
+  seatSyncReconnectTimer = window.setTimeout(() => {
+    seatSyncReconnectTimer = null;
+    void connectSeatSync(recordId);
+  }, delay);
+};
+
+const connectSeatSync = async (recordId: string) => {
+  if (!seatSyncShouldReconnect || seatSyncConnecting || !recordId) {
+    return;
+  }
+  if (
+      seatSyncSocket
+      && (
+          seatSyncSocket.readyState === WebSocket.OPEN
+          || seatSyncSocket.readyState === WebSocket.CONNECTING
+      )
+  ) {
+    return;
+  }
+
+  seatSyncConnecting = true;
+  try {
+    const tokenResponse = await issueSeatSyncWsToken(recordId);
+    const token = tokenResponse?.data;
+    if (!token) {
+      throw new Error('Seat sync websocket token is empty');
+    }
+
+    const wsUrl = buildSeatSyncWsUrl(recordId, token);
+    const socket = new WebSocket(wsUrl);
+    seatSyncSocket = socket;
+
+    socket.onopen = () => {
+      seatSyncReconnectAttempts = 0;
+    };
+
+    socket.onmessage = (event) => {
+      if (typeof event.data !== 'string') {
+        return;
+      }
+      if (event.data === 'pong') {
+        return;
+      }
+
+      const payload = tryParseSeatSyncPayload(event.data);
+      if (!payload) {
+        return;
+      }
+      void applySeatSyncPayload(recordId, payload);
+    };
+
+    socket.onerror = () => {
+      if (
+          socket.readyState === WebSocket.OPEN
+          || socket.readyState === WebSocket.CONNECTING
+      ) {
+        socket.close();
+      }
+    };
+
+    socket.onclose = () => {
+      if (seatSyncSocket === socket) {
+        seatSyncSocket = null;
+      }
+      if (seatSyncShouldReconnect) {
+        scheduleSeatSyncReconnect(recordId);
+      }
+    };
+  } catch (_error) {
+    if (seatSyncShouldReconnect) {
+      scheduleSeatSyncReconnect(recordId);
+    }
+  } finally {
+    seatSyncConnecting = false;
+  }
+};
+
+const startSeatSync = (recordId: string) => {
+  if (!recordId) {
+    return;
+  }
+  seatSyncShouldReconnect = true;
+  seatSyncLatestVersion = 0;
+  seatSyncReconnectAttempts = 0;
+  clearSeatSyncReconnectTimer();
+  void connectSeatSync(recordId);
+};
+
+const stopSeatSync = () => {
+  seatSyncShouldReconnect = false;
+  seatSyncLatestVersion = 0;
+  seatSyncReconnectAttempts = 0;
+  seatSyncConnecting = false;
+  clearSeatSyncReconnectTimer();
+  closeSeatSyncSocket();
+};
+
 const handleExit = (e: MouseEvent) => {
   transitionStore.show();
   const courseId = route.params.courseId as string;
@@ -1553,6 +1823,10 @@ onMounted(async () => {
   showChapterPanel.value = false;
   showQuestionPanel.value = false;
   await fetchCourseRecord();
+  const recordId = getCurrentRecordId();
+  if (recordId) {
+    startSeatSync(recordId);
+  }
   initThree();
   // 监听座位布局更新事件，刷新页面或重新拉取数据
   (eventBus as any).on && (eventBus as any).on('classroomLayoutUpdated', async () => {
@@ -1562,6 +1836,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  stopSeatSync();
   activeSpeakingSeats.clear();
 
   if (spriteManager && spriteManager.isInitialized) {

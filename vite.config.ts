@@ -128,6 +128,7 @@ export default defineConfig({
                 target: getProxyTarget(defaultServerConfig),
                 changeOrigin: true,
                 secure: false,
+                ws: true,
                 rewrite: (path) => path,
                 bypass(req) {
                     // 检查请求头，区分API请求和浏览器直接访问

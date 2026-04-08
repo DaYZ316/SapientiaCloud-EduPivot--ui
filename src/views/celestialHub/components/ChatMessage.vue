@@ -32,11 +32,13 @@
         <!-- AI消息 -->
         <AiMessageBubble
             v-else-if="messageRole === 'assistant'"
+            :audio-action-status="props.audioActionStatus"
             :is-streaming="props.isStreaming"
             :message="message"
             @copy="handleCopy"
             @feedback="handleFeedback"
             @resend="handleResend"
+            @virtual-teacher="handleVirtualTeacher"
         />
       </div>
     </template>
@@ -55,6 +57,7 @@ import {UserMessageBubble, AiMessageBubble, SystemMessageBubble} from '@/compone
 const props = defineProps<{
   message: ChatMessage
   isStreaming?: boolean
+  audioActionStatus?: 'idle' | 'generating' | 'playing' | 'failed'
   activeQuestionMessageId?: string | null
   activeQuestionIndex?: number | null
 }>()
@@ -64,6 +67,7 @@ const emit = defineEmits<{
   feedback: [messageId: string, feedback: number]
   copy: []
   resend: []
+  'virtual-teacher': [message: ChatMessage]
   'view-questions': [{
     messageId: string | null
     questions: QuestionResponseDTO[]
@@ -106,6 +110,10 @@ const handleCopy = () => {
 // 重新提问
 const handleResend = () => {
   emit('resend')
+}
+
+const handleVirtualTeacher = (message: ChatMessage) => {
+  emit('virtual-teacher', message)
 }
 </script>
 

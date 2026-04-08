@@ -71,6 +71,14 @@ export function feedbackMessage(id: string, feedback: number) {
 }
 
 /**
+ * 手动触发AI回复的虚拟教师语音生成
+ * @param id 消息ID
+ */
+export function generateMessageAudio(id: string) {
+    return http.post<ChatMessage>(`/celestial-hub/message/${id}/audio/generate`, null)
+}
+
+/**
  * 发送消息给AI助手并获取回复
  * @param data 聊天请求DTO
  */

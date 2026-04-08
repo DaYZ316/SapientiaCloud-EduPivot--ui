@@ -40,6 +40,22 @@ export interface ChatMessage {
     questionRequest?: string | null
     /** AI出题生成结果（JSON），当角色为出题者时使用 */
     questionResponse?: string | null
+    /** 音频状态: 0-无音频, 1-待生成, 2-生成中, 3-可播放, 4-生成失败, 5-已取消 */
+    audioStatus?: number | null
+    /** 音频播放地址 */
+    audioUrl?: string | null
+    /** 音频格式 */
+    audioFormat?: string | null
+    /** 音频时长（毫秒） */
+    audioDurationMs?: number | null
+    /** TTS任务ID */
+    audioTaskId?: string | null
+    /** 音频生成失败信息 */
+    audioErrorMessage?: string | null
+    /** 音频生成完成时间 */
+    audioGenerateTime?: string | null
+    /** 音色编码 */
+    audioVoiceCode?: string | null
 }
 
 /**
@@ -122,6 +138,14 @@ export interface ChatResponseVO {
     finished?: boolean | null
     /** 元数据 */
     metadata?: any | null
+    /** 音频状态: 0-无音频, 1-待生成, 2-生成中, 3-可播放, 4-生成失败, 5-已取消 */
+    audioStatus?: number | null
+    /** 音频播放地址 */
+    audioUrl?: string | null
+    /** 音频格式 */
+    audioFormat?: string | null
+    /** TTS任务ID */
+    audioTaskId?: string | null
 }
 
 /**

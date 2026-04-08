@@ -100,6 +100,28 @@
     }
   }
 
+  .empty-state-actions {
+    position: absolute;
+    top: 24px;
+    right: 28px;
+    z-index: 220;
+
+    :deep(.n-button) {
+      color: var(--text-secondary-color);
+      background: rgba(255, 255, 255, 0.66);
+      border: 1px solid var(--border-secondary-color);
+      box-shadow: 0 12px 28px rgba(40, 99, 170, 0.12);
+      backdrop-filter: blur(14px);
+
+      &:hover,
+      &.active {
+        color: var(--warning-color);
+        border-color: rgba(255, 179, 71, 0.55);
+        background: rgba(255, 247, 229, 0.78);
+      }
+    }
+  }
+
   .chat-content-wrapper {
     flex: 1;
     display: flex;
@@ -107,6 +129,13 @@
     overflow: hidden;
     gap: 0;
     position: relative;
+  }
+
+  .virtual-teacher-floating-panel {
+    position: absolute;
+    right: 28px;
+    bottom: 28px;
+    z-index: 80;
   }
   
   // 聊天切换过渡动画
@@ -529,6 +558,28 @@
       .input-wrapper {
         width: 100%;
       }
+    }
+  }
+}
+
+@media (max-width: 1200px) {
+  .main-content {
+    .virtual-teacher-floating-panel {
+      width: 220px;
+      height: 320px;
+      right: 16px;
+      bottom: 18px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    .virtual-teacher-floating-panel {
+      width: 170px;
+      height: 250px;
+      right: 12px;
+      bottom: 96px;
     }
   }
 }

@@ -85,11 +85,13 @@
                         :key="message.id ?? `msg-${index}`"
                         :active-question-index="activeQuestionIndex"
                         :active-question-message-id="activeQuestionMessageId"
+                        :audio-action-status="getAudioActionStatus(message)"
                         :is-streaming="getIsAssistantStreaming(message)"
                         :message="message"
                         @copy="handleCopy"
                         @feedback="handleFeedback"
                         @resend="handleResend(index)"
+                        @virtual-teacher="handleVirtualTeacher"
                         @view-questions="handleViewQuestions"
                     />
                   </div>
@@ -213,6 +215,14 @@
         </div>
       </n-drawer-content>
     </n-drawer>
+    <Live2DTeacherPanel
+        v-if="teacherPanelVisible"
+        :audio-url="teacherAudioUrl"
+        :enabled="teacherPanelVisible"
+        class="virtual-teacher-floating-panel"
+        @ended="handleTeacherPlaybackEnded"
+        @error="handleTeacherPlaybackError"
+    />
   </div>
 </template>
 
@@ -225,11 +235,13 @@ import {DocumentsOutline, Pin, Star} from '@vicons/ionicons5'
 import ChatSidebar from './components/ChatSidebar.vue'
 import ChatMessage from './components/ChatMessage.vue'
 import ChatInputBox from './components/ChatInputBox.vue'
+import Live2DTeacherPanel from './components/Live2DTeacherPanel.vue'
 import {useThemeStore, useUserStore} from '@/store'
 import {useCelestialChat} from '@/views/celestialHub/composables/useCelestialChat'
 import {useQuestionGeneration} from '@/views/celestialHub/composables/useQuestionGeneration'
 import {useFileManagement} from '@/views/celestialHub/composables/useFileManagement'
 import {favoriteSession, pinSession} from '@/api/celestialHub/chatSession'
+import {generateMessageAudio, listMessagesBySessionId} from '@/api/celestialHub/chatMessage'
 import FileInfoList from '@/components/common/FileInfoList.vue'
 import SmartQuestionModal from '@/views/celestialHub/components/SmartQuestionModal.vue'
 import type {ChatMessage as ChatMessageEntity} from '@/types/celestialHub/chatMessage'
@@ -238,6 +250,8 @@ import type {FileInfoDTO} from '@/types/minIO/file'
 import PreviewPanel from '@/views/celestialHub/components/QuestionPreviewPanel.vue'
 import eventBus from '@/utils/eventBus'
 import type {ChatSessionVO} from '@/types/celestialHub/chatSession'
+
+type AudioActionStatus = 'idle' | 'generating' | 'playing' | 'failed'
 
 // 路由
 const route = useRoute()
@@ -249,6 +263,11 @@ const themeStore = useThemeStore()
 // 状态
 const chatSidebarRef = ref<InstanceType<typeof ChatSidebar> | null>(null)
 const wasQuestionToolsVisible = ref(false)
+const audioPollingTimer = ref<number | null>(null)
+const activeTeacherMessageId = ref<string | null>(null)
+const teacherAudioUrl = ref<string | null>(null)
+const teacherPanelVisible = ref(false)
+const audioActionStatusMap = ref<Record<string, AudioActionStatus>>({})
 
 // 计算属性：是否在全局侧边栏展开时隐藏ChatSidebar
 const shouldHideChatSidebar = computed(() => {
@@ -377,9 +396,15 @@ const getIsAssistantStreaming = (messageItem: ChatMessageEntity) => {
   if (messageItem.role !== 1) {
     return false
   }
+  if (!isSending.value) {
+    return false
+  }
   const lastAssistant = [...messages.value].reverse().find(msg => msg.role === 1)
   if (!lastAssistant) {
     return false
+  }
+  if (messageItem.id && lastAssistant.id) {
+    return messageItem.id === lastAssistant.id
   }
   return messageItem === lastAssistant && isSending.value
 }
@@ -456,6 +481,203 @@ watch(messages, () => {
   })
 }, {deep: true})
 
+const stopAudioPolling = () => {
+  if (audioPollingTimer.value !== null) {
+    window.clearInterval(audioPollingTimer.value)
+    audioPollingTimer.value = null
+  }
+}
+
+const setAudioActionStatus = (
+    messageId: string,
+    status: AudioActionStatus
+) => {
+  audioActionStatusMap.value = {
+    ...audioActionStatusMap.value,
+    [messageId]: status
+  }
+}
+
+const updateMessageInList = (updatedMessage: ChatMessageEntity) => {
+  if (!updatedMessage.id) {
+    return
+  }
+  const targetIndex = messages.value.findIndex(item => item.id === updatedMessage.id)
+  if (targetIndex >= 0) {
+    messages.value[targetIndex] = {
+      ...messages.value[targetIndex],
+      ...updatedMessage
+    }
+  }
+}
+
+const isAudioGenerationPending = (audioStatus?: number | null) => {
+  return audioStatus === 1 || audioStatus === 2
+}
+
+const resolvePersistedAssistantMessage = async (messageItem: ChatMessageEntity) => {
+  if (messageItem.id) {
+    return messageItem
+  }
+  if (!activeSessionId.value || messageItem.role !== 1 || !messageItem.content) {
+    return null
+  }
+
+  const response = await listMessagesBySessionId(activeSessionId.value)
+  if (!response.data) {
+    return null
+  }
+
+  messages.value = response.data
+  const targetContent = messageItem.content.trim()
+  return [...response.data].reverse().find(item => {
+    return item.role === 1
+        && Boolean(item.id)
+        && (item.content ?? '').trim() === targetContent
+  }) ?? null
+}
+
+const playTeacherAudio = (messageItem: ChatMessageEntity) => {
+  if (!messageItem.id || !messageItem.audioUrl) {
+    return
+  }
+  stopAudioPolling()
+  activeTeacherMessageId.value = messageItem.id
+  teacherAudioUrl.value = messageItem.audioUrl
+  teacherPanelVisible.value = true
+  setAudioActionStatus(messageItem.id, 'playing')
+}
+
+const startAudioPolling = (messageId: string) => {
+  if (!activeSessionId.value) return
+  stopAudioPolling()
+
+  let attempts = 0
+  audioPollingTimer.value = window.setInterval(async () => {
+    if (!activeSessionId.value) {
+      stopAudioPolling()
+      return
+    }
+
+    attempts += 1
+    const response = await listMessagesBySessionId(activeSessionId.value)
+    if (response.data) {
+      messages.value = response.data
+    }
+
+    const targetMessage = response.data?.find(item => item.id === messageId)
+    if (targetMessage?.audioStatus === 3 && targetMessage.audioUrl) {
+      playTeacherAudio(targetMessage)
+      return
+    }
+
+    if (targetMessage?.audioStatus === 4) {
+      stopAudioPolling()
+      setAudioActionStatus(messageId, 'failed')
+      message.error(targetMessage.audioErrorMessage || '语音生成失败')
+      return
+    }
+
+    if (attempts >= 20) {
+      stopAudioPolling()
+      setAudioActionStatus(messageId, 'failed')
+      message.error('语音生成超时，请稍后重试')
+    }
+  }, 1500)
+}
+
+const getAudioActionStatus = (messageItem: ChatMessageEntity): AudioActionStatus => {
+  if (!messageItem.id) {
+    return 'idle'
+  }
+  const status = audioActionStatusMap.value[messageItem.id]
+  if (status) {
+    return status
+  }
+  if (messageItem.audioStatus === 1 || messageItem.audioStatus === 2) {
+    return 'generating'
+  }
+  if (messageItem.audioStatus === 4) {
+    return 'failed'
+  }
+  return 'idle'
+}
+
+const handleVirtualTeacher = async (messageItem: ChatMessageEntity) => {
+  if (messageItem.role !== 1) {
+    return
+  }
+
+  let targetMessage: ChatMessageEntity | null = null
+  try {
+    targetMessage = await resolvePersistedAssistantMessage(messageItem)
+  } catch (error) {
+    message.error('获取消息状态失败，请稍后重试')
+    return
+  }
+
+  if (!targetMessage?.id) {
+    message.warning('消息仍在保存中，请稍后再试')
+    return
+  }
+
+  if (getAudioActionStatus(targetMessage) === 'generating') {
+    return
+  }
+
+  if (targetMessage.audioStatus === 3 && targetMessage.audioUrl) {
+    playTeacherAudio(targetMessage)
+    return
+  }
+
+  setAudioActionStatus(targetMessage.id, 'generating')
+  try {
+    const response = await generateMessageAudio(targetMessage.id)
+    if (response.data) {
+      updateMessageInList(response.data)
+      if (response.data.audioStatus === 3 && response.data.audioUrl) {
+        playTeacherAudio(response.data)
+        return
+      }
+      if (response.data.audioStatus === 4 || response.data.audioStatus === 5 || !isAudioGenerationPending(response.data.audioStatus)) {
+        setAudioActionStatus(targetMessage.id, 'failed')
+        message.error(response.data.audioErrorMessage || '语音生成未开始，请稍后重试')
+        return
+      }
+    }
+    startAudioPolling(targetMessage.id)
+  } catch (error) {
+    setAudioActionStatus(targetMessage.id, 'failed')
+    message.error('语音生成请求失败，请稍后重试')
+  }
+}
+
+const handleTeacherPlaybackEnded = () => {
+  const messageId = activeTeacherMessageId.value
+  if (messageId) {
+    setAudioActionStatus(messageId, 'idle')
+  }
+  activeTeacherMessageId.value = null
+  teacherAudioUrl.value = null
+  teacherPanelVisible.value = false
+}
+
+const handleTeacherPlaybackError = (errorMessage: string) => {
+  const messageId = activeTeacherMessageId.value
+  if (messageId) {
+    setAudioActionStatus(messageId, 'failed')
+  }
+  activeTeacherMessageId.value = null
+  teacherAudioUrl.value = null
+  teacherPanelVisible.value = false
+  message.warning(errorMessage)
+}
+
+watch(activeSessionId, () => {
+  stopAudioPolling()
+  handleTeacherPlaybackEnded()
+})
+
 
 // 包装 selectSession 以添加动画效果
 const selectSessionWithAnimation = async (session: ChatSessionVO) => {
@@ -502,6 +724,8 @@ onUnmounted(() => {
   eventBus.off('aiSelectSession')
   eventBus.off('aiNewChat')
   eventBus.off('aiMyFavorites')
+  stopAudioPolling()
+  handleTeacherPlaybackEnded()
 })
 
 // 监听 isQuestionToolsVisible 变化，用于控制动画

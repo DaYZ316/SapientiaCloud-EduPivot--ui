@@ -47,6 +47,17 @@
         </template>
         {{ t('chat.copy') }}
       </n-tooltip>
+      <n-tooltip trigger="hover">
+        <template #trigger>
+          <n-icon
+              :class="['action-icon', virtualTeacherIconClass]"
+              :component="virtualTeacherIcon"
+              size="16"
+              @click="handleVirtualTeacher"
+          />
+        </template>
+        {{ virtualTeacherTooltip }}
+      </n-tooltip>
     </div>
   </div>
 </template>
@@ -54,7 +65,15 @@
 <script lang="ts" setup>
 import {computed} from 'vue'
 import {NIcon, NTooltip, useMessage} from 'naive-ui'
-import {CopyOutline, RefreshOutline, ThumbsDownOutline, ThumbsUpOutline} from '@vicons/ionicons5'
+import {
+  CopyOutline,
+  PlayCircleOutline,
+  RefreshOutline,
+  SyncOutline,
+  ThumbsDownOutline,
+  ThumbsUpOutline,
+  VolumeHighOutline
+} from '@vicons/ionicons5'
 import {useI18n} from 'vue-i18n'
 import type {ChatMessage} from '@/types/celestialHub/chatMessage'
 import {feedbackMessage} from '@/api/celestialHub/chatMessage'
@@ -65,6 +84,7 @@ import DOMPurify from 'dompurify'
 const props = defineProps<{
   message: ChatMessage
   isStreaming?: boolean
+  audioActionStatus?: 'idle' | 'generating' | 'playing' | 'failed'
 }>()
 
 // Emits
@@ -72,6 +92,7 @@ const emit = defineEmits<{
   feedback: [messageId: string, feedback: number]
   copy: []
   resend: []
+  'virtual-teacher': [message: ChatMessage]
 }>()
 
 // 国际化
@@ -95,6 +116,38 @@ const isPositiveFeedback = computed(() => {
 
 const isNegativeFeedback = computed(() => {
   return props.message.isFeedback === -1
+})
+
+const resolvedAudioActionStatus = computed(() => {
+  if (props.audioActionStatus) {
+    return props.audioActionStatus
+  }
+  if (props.message.audioStatus === 1 || props.message.audioStatus === 2) {
+    return 'generating'
+  }
+  return 'idle'
+})
+
+const virtualTeacherIcon = computed(() => {
+  if (resolvedAudioActionStatus.value === 'generating') return SyncOutline
+  if (resolvedAudioActionStatus.value === 'playing') return PlayCircleOutline
+  return VolumeHighOutline
+})
+
+const virtualTeacherIconClass = computed(() => {
+  return {
+    'is-generating': resolvedAudioActionStatus.value === 'generating',
+    'is-playing': resolvedAudioActionStatus.value === 'playing',
+    'is-failed': resolvedAudioActionStatus.value === 'failed'
+  }
+})
+
+const virtualTeacherTooltip = computed(() => {
+  if (resolvedAudioActionStatus.value === 'generating') return '语音合成中'
+  if (resolvedAudioActionStatus.value === 'playing') return '虚拟教师正在讲解'
+  if (resolvedAudioActionStatus.value === 'failed') return '语音生成失败，点击重试'
+  if (props.message.audioStatus === 3 && props.message.audioUrl) return '播放虚拟教师讲解'
+  return '虚拟教师'
 })
 
 // 如果 message.content 已经包含 KaTeX 渲染后的 HTML（例如 <span class="katex">），
@@ -131,6 +184,13 @@ const handleCopy = () => {
 // 重新提问
 const handleResend = () => {
   emit('resend')
+}
+
+const handleVirtualTeacher = () => {
+  if (resolvedAudioActionStatus.value === 'generating') {
+    return
+  }
+  emit('virtual-teacher', props.message)
 }
 </script>
 
@@ -210,6 +270,19 @@ const handleResend = () => {
       &.feedback-negative {
         color: var(--error-color);
       }
+
+      &.is-generating {
+        color: var(--color-primary);
+        animation: rotate 1s linear infinite;
+      }
+
+      &.is-playing {
+        color: var(--color-primary);
+      }
+
+      &.is-failed {
+        color: var(--error-color);
+      }
     }
   }
 }
@@ -222,6 +295,15 @@ const handleResend = () => {
   30% {
     opacity: 1;
     transform: translateY(-8px);
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 </style>

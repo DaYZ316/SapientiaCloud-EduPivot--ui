@@ -1,5 +1,15 @@
-<template>
-  <div class="live2d-teacher-panel">
+﻿<template>
+  <div
+      :style="panelStyle"
+      class="live2d-teacher-panel"
+  >
+    <button
+        class="teacher-drag-handle"
+        type="button"
+        @pointerdown="handleDragStart"
+    >
+      移动
+    </button>
     <div class="teacher-stage">
       <div ref="stageRef" class="teacher-canvas"></div>
       <div v-if="loadError" class="teacher-overlay error">
@@ -13,7 +23,7 @@
 </template>
 
 <script lang="ts" setup>
-import {nextTick, onBeforeUnmount, ref, watch} from 'vue'
+import {computed, nextTick, onBeforeUnmount, onMounted, ref, watch} from 'vue'
 import * as PIXI from 'pixi.js'
 
 declare global {
@@ -30,7 +40,7 @@ const props = withDefaults(defineProps<{
   cubismCoreUrl?: string
 }>(), {
   audioUrl: null,
-  modelUrl: '/teacher/kei_en/kei_vowels_pro/runtime/kei_vowels_pro.model3.json',
+  modelUrl: '/teacher/kei_en/kei_basic_free/runtime/kei_basic_free.model3.json',
   cubismCoreUrl: '/teacher/live2dcubismcore.min.js'
 })
 
@@ -41,10 +51,13 @@ const emit = defineEmits<{
 
 const stageRef = ref<HTMLDivElement | null>(null)
 const isLoadingModel = ref(false)
+const isModelReady = ref(false)
 const isSpeaking = ref(false)
 const loadError = ref<string | null>(null)
 const playbackError = ref<string | null>(null)
 const mouthOpenValue = ref(0)
+const offsetX = ref(0)
+const offsetY = ref(0)
 
 let app: PIXI.Application | null = null
 let live2dModel: any | null = null
@@ -54,6 +67,21 @@ let analyser: AnalyserNode | null = null
 let sourceNode: MediaElementAudioSourceNode | null = null
 let animationFrameId: number | null = null
 let fallbackMouthTimer: number | null = null
+let dragPointerId: number | null = null
+let dragStartX = 0
+let dragStartY = 0
+let dragOriginX = 0
+let dragOriginY = 0
+let initPromise: Promise<void> | null = null
+let audioRequestToken = 0
+
+const panelStyle = computed(() => ({
+  transform: `translate(${offsetX.value}px, ${offsetY.value}px)`
+}))
+
+const wait = (ms: number) => new Promise<void>((resolve) => {
+  window.setTimeout(resolve, ms)
+})
 
 const loadScript = (src: string) => {
   return new Promise<void>((resolve, reject) => {
@@ -81,6 +109,16 @@ const loadScript = (src: string) => {
   })
 }
 
+const getLoadErrorMessage = (error: unknown) => {
+  if (error instanceof Error && error.message) {
+    return error.message
+  }
+  if (typeof error === 'string' && error) {
+    return error
+  }
+  return '虚拟教师加载失败'
+}
+
 const resizeModel = () => {
   if (!stageRef.value || !live2dModel) return
 
@@ -93,10 +131,14 @@ const resizeModel = () => {
   const modelWidth = Number.isFinite(bounds?.width) && bounds.width > 0 ? bounds.width : live2dModel.width
   const modelHeight = Number.isFinite(bounds?.height) && bounds.height > 0 ? bounds.height : live2dModel.height
   if (!Number.isFinite(modelWidth) || !Number.isFinite(modelHeight) || modelWidth <= 0 || modelHeight <= 0) {
+    loadError.value = 'Live2D model size is invalid'
     return
   }
 
   const scale = Math.min(width / modelWidth * 0.92, height / modelHeight * 0.92)
+  const modelX = Number.isFinite(bounds?.x) ? bounds.x : 0
+  const modelY = Number.isFinite(bounds?.y) ? bounds.y : 0
+  live2dModel.pivot?.set?.(modelX + modelWidth / 2, modelY + modelHeight / 2)
   live2dModel.scale.set(scale)
   live2dModel.position.set(width / 2, height / 2)
   live2dModel.visible = true
@@ -116,52 +158,106 @@ const attachMouthDriver = (model: any) => {
   })
 }
 
+const patchCubismCore6RenderOrder = (model: any) => {
+  const coreModel = model.internalModel?.coreModel
+  const nativeModel = coreModel?.getModel?.()
+  if (!coreModel || !nativeModel?.renderOrders || nativeModel?.drawables?.renderOrders) return
+
+  coreModel.getDrawableRenderOrders = () => nativeModel.renderOrders
+}
+
+const handleDragMove = (event: PointerEvent) => {
+  if (dragPointerId !== event.pointerId) return
+  offsetX.value = dragOriginX + event.clientX - dragStartX
+  offsetY.value = dragOriginY + event.clientY - dragStartY
+}
+
+const handleDragEnd = (event: PointerEvent) => {
+  if (dragPointerId !== event.pointerId) return
+  const currentTarget = event.currentTarget as HTMLElement | null
+  currentTarget?.releasePointerCapture?.(event.pointerId)
+  dragPointerId = null
+  window.removeEventListener('pointermove', handleDragMove)
+  window.removeEventListener('pointerup', handleDragEnd)
+  window.removeEventListener('pointercancel', handleDragEnd)
+}
+
+const handleDragStart = (event: PointerEvent) => {
+  if (event.button !== 0) return
+  dragPointerId = event.pointerId
+  dragStartX = event.clientX
+  dragStartY = event.clientY
+  dragOriginX = offsetX.value
+  dragOriginY = offsetY.value
+  const currentTarget = event.currentTarget as HTMLElement | null
+  currentTarget?.setPointerCapture?.(event.pointerId)
+  window.addEventListener('pointermove', handleDragMove)
+  window.addEventListener('pointerup', handleDragEnd)
+  window.addEventListener('pointercancel', handleDragEnd)
+}
+
 const initLive2D = async () => {
-  if (!stageRef.value || app || isLoadingModel.value) return
-
-  isLoadingModel.value = true
-  loadError.value = null
-
-  try {
-    window.PIXI = PIXI
-    if (!window.Live2DCubismCore) {
-      await loadScript(props.cubismCoreUrl)
-    }
-    if (!window.Live2DCubismCore) {
-      throw new Error('缺少 live2dcubismcore.min.js')
-    }
-
-    await nextTick()
-    if (!stageRef.value) return
-
-    app = new PIXI.Application({
-      resizeTo: stageRef.value,
-      backgroundAlpha: 0,
-      antialias: true,
-      autoStart: true
-    })
-    stageRef.value.appendChild(app.view as HTMLCanvasElement)
-
-    const {Live2DModel} = await import('pixi-live2d-display/cubism4')
-    live2dModel = await Live2DModel.from(props.modelUrl, {
-      autoInteract: true,
-      autoUpdate: true
-    })
-    attachMouthDriver(live2dModel)
-    live2dModel.anchor.set(0.5, 0.5)
-    live2dModel.visible = false
-    app.stage.addChild(live2dModel)
-    resizeModel()
-    window.requestAnimationFrame(resizeModel)
-    window.setTimeout(resizeModel, 250)
-    window.addEventListener('resize', resizeModel)
-  } catch (error) {
-    loadError.value = error instanceof Error
-        ? error.message
-        : 'Live2D 模型加载失败'
-  } finally {
-    isLoadingModel.value = false
+  if (app && live2dModel && !loadError.value) {
+    isModelReady.value = true
+    return
   }
+  if (initPromise) {
+    return initPromise
+  }
+
+  initPromise = (async () => {
+    isLoadingModel.value = true
+    isModelReady.value = false
+    loadError.value = null
+
+    try {
+      await nextTick()
+      if (!stageRef.value) return
+
+      window.PIXI = PIXI
+      if (!window.Live2DCubismCore) {
+        await loadScript(props.cubismCoreUrl)
+      }
+      if (!window.Live2DCubismCore) {
+        throw new Error('缺少 live2dcubismcore.min.js')
+      }
+
+      app = new PIXI.Application({
+        resizeTo: stageRef.value,
+        backgroundAlpha: 0,
+        antialias: true,
+        autoStart: true
+      })
+      stageRef.value.appendChild(app.view as HTMLCanvasElement)
+
+      const {Live2DModel} = await import('pixi-live2d-display/cubism4')
+      live2dModel = await Live2DModel.from(props.modelUrl, {
+        autoInteract: true,
+        autoUpdate: true
+      })
+      patchCubismCore6RenderOrder(live2dModel)
+      attachMouthDriver(live2dModel)
+      live2dModel.visible = false
+      app.stage.addChild(live2dModel)
+      resizeModel()
+      window.requestAnimationFrame(resizeModel)
+      window.setTimeout(resizeModel, 250)
+      window.addEventListener('resize', resizeModel)
+      await wait(180)
+
+      if (!loadError.value && live2dModel) {
+        isModelReady.value = true
+      }
+    } catch (error) {
+      loadError.value = getLoadErrorMessage(error)
+      isModelReady.value = false
+    } finally {
+      isLoadingModel.value = false
+      initPromise = null
+    }
+  })()
+
+  return initPromise
 }
 
 const stopMouthAnimation = () => {
@@ -244,7 +340,7 @@ const playAudio = async (url: string) => {
     emit('ended')
   }, {once: true})
   nextAudio.addEventListener('error', () => {
-    const errorMessage = '语音播放失败'
+    const errorMessage = '浏览器阻止自动播放，请重新点击虚拟教师'
     playbackError.value = errorMessage
     cleanupAudio()
     emit('error', errorMessage)
@@ -280,6 +376,15 @@ const playAudio = async (url: string) => {
 }
 
 const destroyLive2D = () => {
+  audioRequestToken += 1
+  initPromise = null
+  isModelReady.value = false
+  if (dragPointerId !== null) {
+    dragPointerId = null
+    window.removeEventListener('pointermove', handleDragMove)
+    window.removeEventListener('pointerup', handleDragEnd)
+    window.removeEventListener('pointercancel', handleDragEnd)
+  }
   cleanupAudio()
   window.removeEventListener('resize', resizeModel)
   if (live2dModel) {
@@ -301,11 +406,24 @@ watch(() => props.enabled, (enabled) => {
   } else {
     destroyLive2D()
   }
-}, {immediate: true})
+}, {immediate: true, flush: 'post'})
+
+onMounted(() => {
+  if (props.enabled) {
+    initLive2D()
+  }
+})
 
 watch(() => props.audioUrl, (audioUrl) => {
   if (!props.enabled || !audioUrl) return
-  playAudio(audioUrl)
+
+  const currentToken = ++audioRequestToken
+  ;(async () => {
+    await initLive2D()
+    if (!props.enabled || !audioUrl || currentToken !== audioRequestToken) return
+    if (props.audioUrl !== audioUrl || !isModelReady.value || !live2dModel || loadError.value) return
+    await playAudio(audioUrl)
+  })()
 }, {immediate: true})
 
 onBeforeUnmount(() => {
@@ -317,19 +435,54 @@ onBeforeUnmount(() => {
 @use '@/assets/styles' as *;
 
 .live2d-teacher-panel {
+  --teacher-panel-highlight: color-mix(in srgb, var(--warning-color-light) 22%, transparent);
+  --teacher-panel-surface-start: color-mix(in srgb, var(--background-color) 18%, var(--text-color) 82%);
+  --teacher-panel-surface-end: color-mix(in srgb, var(--background-color) 28%, var(--text-color) 72%);
+  --teacher-panel-border-color: color-mix(in srgb, var(--text-color) 16%, transparent);
+  --teacher-panel-shadow-color: color-mix(in srgb, var(--shadow-color) 72%, transparent);
+  --teacher-handle-border-color: color-mix(in srgb, var(--text-color) 18%, transparent);
+  --teacher-handle-bg: color-mix(in srgb, var(--background-color) 18%, var(--text-color) 82%);
+  --teacher-handle-text-color: color-mix(in srgb, var(--background-color) 8%, var(--text-color) 92%);
+  --teacher-overlay-text-color: color-mix(in srgb, var(--background-color) 16%, var(--text-color) 84%);
+  --teacher-overlay-bg: color-mix(in srgb, var(--background-color) 42%, var(--text-color) 58%);
+  --teacher-overlay-error-color: color-mix(in srgb, var(--error-color) 78%, var(--background-color));
+  position: relative;
   width: 280px;
   height: 326px;
   border-radius: 24px;
   overflow: hidden;
   background:
-      radial-gradient(circle at 50% 16%, rgba(255, 213, 128, 0.22), transparent 34%),
-      linear-gradient(155deg, rgba(16, 22, 34, 0.92), rgba(28, 39, 58, 0.88));
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+      radial-gradient(circle at 50% 16%, var(--teacher-panel-highlight), transparent 34%),
+      linear-gradient(155deg, var(--teacher-panel-surface-start), var(--teacher-panel-surface-end));
+  border: 1px solid var(--teacher-panel-border-color);
+  box-shadow: 0 24px 80px var(--teacher-panel-shadow-color);
   backdrop-filter: blur(18px);
   display: flex;
   flex-direction: column;
   pointer-events: auto;
+}
+
+.teacher-drag-handle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+  min-width: 52px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--teacher-handle-border-color);
+  border-radius: 8px;
+  background: var(--teacher-handle-bg);
+  color: var(--teacher-handle-text-color);
+  font-size: 12px;
+  line-height: 1;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+
+  &:active {
+    cursor: grabbing;
+  }
 }
 
 .teacher-stage {
@@ -357,13 +510,16 @@ onBeforeUnmount(() => {
   justify-content: center;
   padding: 24px;
   text-align: center;
-  color: rgba(255, 255, 255, 0.84);
+  color: var(--teacher-overlay-text-color);
   font-size: 13px;
   line-height: 1.7;
-  background: rgba(12, 17, 26, 0.42);
+  background: var(--teacher-overlay-bg);
 
   &.error {
-    color: #ffd4d4;
+    color: var(--teacher-overlay-error-color);
   }
 }
 </style>
+
+
+

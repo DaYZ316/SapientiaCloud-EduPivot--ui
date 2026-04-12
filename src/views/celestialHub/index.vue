@@ -216,12 +216,14 @@
       </n-drawer-content>
     </n-drawer>
     <Live2DTeacherPanel
-        v-if="teacherPanelVisible"
+        v-if="teacherPanelMounted"
         :audio-url="teacherAudioUrl"
-        :enabled="teacherPanelVisible"
+        :enabled="teacherPanelMounted"
+        :visible="teacherPanelVisible"
         class="virtual-teacher-floating-panel"
         @ended="handleTeacherPlaybackEnded"
         @error="handleTeacherPlaybackError"
+        @ready="handleTeacherPanelReady"
     />
   </div>
 </template>
@@ -266,6 +268,9 @@ const wasQuestionToolsVisible = ref(false)
 const audioPollingTimer = ref<number | null>(null)
 const activeTeacherMessageId = ref<string | null>(null)
 const teacherAudioUrl = ref<string | null>(null)
+const pendingTeacherAudioUrl = ref<string | null>(null)
+const pendingTeacherMessageId = ref<string | null>(null)
+const teacherPanelMounted = ref(false)
 const teacherPanelVisible = ref(false)
 const audioActionStatusMap = ref<Record<string, AudioActionStatus>>({})
 
@@ -537,15 +542,47 @@ const resolvePersistedAssistantMessage = async (messageItem: ChatMessageEntity) 
   }) ?? null
 }
 
+const resetTeacherPanelState = () => {
+  pendingTeacherMessageId.value = null
+  pendingTeacherAudioUrl.value = null
+  activeTeacherMessageId.value = null
+  teacherAudioUrl.value = null
+  teacherPanelVisible.value = false
+  teacherPanelMounted.value = false
+}
+
+const stopTeacherPlayback = (status: AudioActionStatus = 'idle') => {
+  stopAudioPolling()
+  const messageId = activeTeacherMessageId.value ?? pendingTeacherMessageId.value
+  if (messageId) {
+    setAudioActionStatus(messageId, status)
+  }
+  resetTeacherPanelState()
+}
+
 const playTeacherAudio = (messageItem: ChatMessageEntity) => {
   if (!messageItem.id || !messageItem.audioUrl) {
     return
   }
   stopAudioPolling()
+  pendingTeacherMessageId.value = messageItem.id
+  pendingTeacherAudioUrl.value = messageItem.audioUrl
   activeTeacherMessageId.value = messageItem.id
-  teacherAudioUrl.value = messageItem.audioUrl
-  teacherPanelVisible.value = true
+  teacherAudioUrl.value = null
+  teacherPanelVisible.value = false
+  teacherPanelMounted.value = true
   setAudioActionStatus(messageItem.id, 'playing')
+}
+
+const handleTeacherPanelReady = () => {
+  if (!teacherPanelMounted.value || !pendingTeacherMessageId.value || !pendingTeacherAudioUrl.value) {
+    return
+  }
+  activeTeacherMessageId.value = pendingTeacherMessageId.value
+  teacherPanelVisible.value = true
+  teacherAudioUrl.value = pendingTeacherAudioUrl.value
+  pendingTeacherMessageId.value = null
+  pendingTeacherAudioUrl.value = null
 }
 
 const startAudioPolling = (messageId: string) => {
@@ -608,6 +645,16 @@ const handleVirtualTeacher = async (messageItem: ChatMessageEntity) => {
     return
   }
 
+  if ((activeTeacherMessageId.value === messageItem.id || pendingTeacherMessageId.value === messageItem.id)
+      && teacherPanelMounted.value) {
+    stopTeacherPlayback('idle')
+    return
+  }
+
+  if (teacherPanelMounted.value) {
+    stopTeacherPlayback('idle')
+  }
+
   let targetMessage: ChatMessageEntity | null = null
   try {
     targetMessage = await resolvePersistedAssistantMessage(messageItem)
@@ -653,23 +700,11 @@ const handleVirtualTeacher = async (messageItem: ChatMessageEntity) => {
 }
 
 const handleTeacherPlaybackEnded = () => {
-  const messageId = activeTeacherMessageId.value
-  if (messageId) {
-    setAudioActionStatus(messageId, 'idle')
-  }
-  activeTeacherMessageId.value = null
-  teacherAudioUrl.value = null
-  teacherPanelVisible.value = false
+  stopTeacherPlayback('idle')
 }
 
 const handleTeacherPlaybackError = (errorMessage: string) => {
-  const messageId = activeTeacherMessageId.value
-  if (messageId) {
-    setAudioActionStatus(messageId, 'failed')
-  }
-  activeTeacherMessageId.value = null
-  teacherAudioUrl.value = null
-  teacherPanelVisible.value = false
+  stopTeacherPlayback('failed')
   message.warning(errorMessage)
 }
 

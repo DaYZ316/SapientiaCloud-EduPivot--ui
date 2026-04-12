@@ -24,6 +24,7 @@
 
 <script lang="ts" setup>
 import {computed, nextTick, onBeforeUnmount, onMounted, ref, watch} from 'vue'
+import type {CSSProperties} from 'vue'
 import * as PIXI from 'pixi.js'
 
 declare global {
@@ -35,10 +36,12 @@ declare global {
 
 const props = withDefaults(defineProps<{
   enabled: boolean
+  visible?: boolean
   audioUrl?: string | null
   modelUrl?: string
   cubismCoreUrl?: string
 }>(), {
+  visible: true,
   audioUrl: null,
   modelUrl: '/teacher/kei_en/kei_basic_free/runtime/kei_basic_free.model3.json',
   cubismCoreUrl: '/teacher/live2dcubismcore.min.js'
@@ -47,6 +50,7 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   ended: []
   error: [message: string]
+  ready: []
 }>()
 
 const stageRef = ref<HTMLDivElement | null>(null)
@@ -75,8 +79,11 @@ let dragOriginY = 0
 let initPromise: Promise<void> | null = null
 let audioRequestToken = 0
 
-const panelStyle = computed(() => ({
-  transform: `translate(${offsetX.value}px, ${offsetY.value}px)`
+const panelStyle = computed<CSSProperties>(() => ({
+  transform: `translate(${offsetX.value}px, ${offsetY.value}px)`,
+  opacity: props.visible ? 1 : 0,
+  visibility: props.visible ? 'visible' : 'hidden',
+  pointerEvents: props.visible ? 'auto' as const : 'none' as const
 }))
 
 const wait = (ms: number) => new Promise<void>((resolve) => {
@@ -247,10 +254,12 @@ const initLive2D = async () => {
 
       if (!loadError.value && live2dModel) {
         isModelReady.value = true
+        emit('ready')
       }
     } catch (error) {
       loadError.value = getLoadErrorMessage(error)
       isModelReady.value = false
+      emit('error', loadError.value)
     } finally {
       isLoadingModel.value = false
       initPromise = null

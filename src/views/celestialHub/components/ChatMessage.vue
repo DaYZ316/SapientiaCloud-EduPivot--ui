@@ -48,7 +48,7 @@
 <script lang="ts" setup>
 import {computed} from 'vue'
 import type {ChatMessage} from '@/types/celestialHub/chatMessage'
-import type {QuestionResponseDTO} from '@/types/celestialHub/question'
+import type {QuestionGenerationMode, QuestionResponseDTO} from '@/types/celestialHub/question'
 import QuestionRequesterMessage from './QuestionRequesterMessage.vue'
 import QuestionGeneratorMessage from './QuestionGeneratorMessage.vue'
 import {UserMessageBubble, AiMessageBubble, SystemMessageBubble} from '@/components/common/bubbles'
@@ -72,6 +72,8 @@ const emit = defineEmits<{
     messageId: string | null
     questions: QuestionResponseDTO[]
     activeIndex: number | null
+    panelTitle?: string | null
+    mode?: QuestionGenerationMode | null
   }]
 }>()
 
@@ -92,7 +94,9 @@ const isQuestionBubbleActive = computed(() => {
 const handleViewQuestions = (payload: {
   messageId: string | null;
   questions: QuestionResponseDTO[];
-  activeIndex: number | null
+  activeIndex: number | null;
+  panelTitle?: string | null
+  mode?: QuestionGenerationMode | null
 }) => {
   emit('view-questions', payload)
 }

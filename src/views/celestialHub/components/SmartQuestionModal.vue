@@ -6,8 +6,11 @@
     <div class="smart-question-panel-header">
       <div class="smart-question-panel-title">
         <span class="smart-question-panel-text">
-          {{ t('chat.toolsMenu.smartQuestion') }}
+          {{ panelTitle }}
         </span>
+        <n-tag :bordered="false" round size="small" type="info">
+          {{ panelTag }}
+        </n-tag>
       </div>
       <div class="smart-question-panel-actions">
         <n-button
@@ -32,6 +35,41 @@
           :rules="questionFormRules"
           label-placement="top"
       >
+        <div v-if="isPaperMode" class="smart-question-form-grid paper-grid">
+          <n-form-item :label="t('chat.toolsMenu.paperName')" path="paperName">
+            <n-input
+                v-model:value="questionForm.paperName"
+                :maxlength="100"
+                :placeholder="t('chat.toolsMenu.paperNamePlaceholder')"
+            />
+          </n-form-item>
+          <n-form-item :label="t('chat.toolsMenu.paperType')" path="paperType">
+            <n-input
+                v-model:value="questionForm.paperType"
+                :maxlength="50"
+                :placeholder="t('chat.toolsMenu.paperTypePlaceholder')"
+            />
+          </n-form-item>
+          <n-form-item :label="t('chat.toolsMenu.totalScore')" path="totalScore">
+            <n-input-number
+                v-model:value="questionForm.totalScore"
+                :max="1000"
+                :min="1"
+                :precision="0"
+                placeholder="1 - 1000"
+            />
+          </n-form-item>
+          <n-form-item :label="t('chat.toolsMenu.totalEstimatedTime')" path="totalEstimatedTime">
+            <n-input-number
+                v-model:value="questionForm.totalEstimatedTime"
+                :max="300"
+                :min="1"
+                :precision="0"
+                placeholder="1 - 300"
+            />
+          </n-form-item>
+        </div>
+
         <div class="smart-question-form-grid">
           <n-form-item :label="t('chat.toolsMenu.questionCount')" path="questionCount">
             <n-input-number
@@ -66,12 +104,34 @@
             />
           </n-form-item>
         </div>
+
+        <div v-if="isPaperMode" class="smart-question-form-grid paper-grid">
+          <n-form-item :label="t('chat.toolsMenu.knowledgePoints')" path="knowledgePoints">
+            <n-input
+                v-model:value="knowledgePointsInput"
+                :autosize="{ minRows: 2, maxRows: 4 }"
+                :maxlength="500"
+                :placeholder="t('chat.toolsMenu.tagsPlaceholder')"
+                type="textarea"
+            />
+          </n-form-item>
+          <n-form-item :label="t('chat.toolsMenu.abilityGoals')" path="abilityGoals">
+            <n-input
+                v-model:value="abilityGoalsInput"
+                :autosize="{ minRows: 2, maxRows: 4 }"
+                :maxlength="500"
+                :placeholder="t('chat.toolsMenu.tagsPlaceholder')"
+                type="textarea"
+            />
+          </n-form-item>
+        </div>
+
         <n-form-item :label="t('chat.toolsMenu.requirement')" path="requirement">
           <n-input
               v-model:value="questionForm.requirement"
               :autosize="{ minRows: 4, maxRows: 8 }"
               :maxlength="1000"
-              :placeholder="t('chat.toolsMenu.requirementPlaceholder')"
+              :placeholder="requirementPlaceholder"
               type="textarea"
           />
         </n-form-item>
@@ -80,7 +140,7 @@
             {{ t('common.cancel') }}
           </n-button>
           <n-button type="primary" @click="handleGenerateQuestions">
-            {{ t('common.confirm') }}
+            {{ panelTitle }}
           </n-button>
         </div>
       </n-form>
@@ -92,25 +152,31 @@
 import {computed, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
 import type {FormInst, FormRules} from 'naive-ui'
-import {NButton, NIcon} from 'naive-ui'
+import {NButton, NIcon, NTag} from 'naive-ui'
 import {CloseOutline} from '@vicons/ionicons5'
 import {getDefaultQuestionGenerateRequestDTO} from '@/api/celestialHub/question'
-import type {QuestionGenerateRequestDTO} from '@/types/celestialHub/question'
+import type {
+  QuestionGenerateRequestDTO,
+  QuestionGenerationMode,
+  QuestionGenerationSuccessPayload
+} from '@/types/celestialHub/question'
 import {useTransitionStore} from '@/store'
 
 interface Props {
   show: boolean
   sessionId?: string | number | null
+  mode?: QuestionGenerationMode
 }
 
 const props = withDefaults(defineProps<Props>(), {
   show: false,
-  sessionId: null
+  sessionId: null,
+  mode: 'question'
 })
 
 const emit = defineEmits<{
   (e: 'update:show', value: boolean): void
-  (e: 'question-request-success', payload: QuestionGenerateRequestDTO): void
+  (e: 'question-request-success', payload: QuestionGenerationSuccessPayload): void
 }>()
 
 const {t} = useI18n()
@@ -118,48 +184,21 @@ const transitionStore = useTransitionStore()
 
 const innerShow = ref(props.show)
 const skipCloseAnimation = ref(false)
-
-watch(() => props.show, (newValue) => {
-  if (newValue) {
-    // 等待过渡动画结束后再显示 SmartQuestionModal
-    if (transitionStore.showTransition) {
-      const unwatch = watch(() => transitionStore.showTransition, (transitioning) => {
-        if (!transitioning) {
-          unwatch()
-          innerShow.value = true
-          skipCloseAnimation.value = false
-        }
-      })
-    } else {
-      innerShow.value = true
-      skipCloseAnimation.value = false
-    }
-  } else {
-    if (skipCloseAnimation.value) {
-      // 通过确定按钮关闭，立即隐藏，不使用退出动画
-      innerShow.value = false
-      skipCloseAnimation.value = false
-    } else {
-      // 延迟隐藏，确保关闭动画完成
-      setTimeout(() => {
-        innerShow.value = false
-      }, 400)
-    }
-  }
-}, {immediate: true})
-
-const handleUpdateShow = (value: boolean, skipAnimation = false) => {
-  if (skipAnimation) {
-    skipCloseAnimation.value = true
-  }
-  // 立即更新状态，触发动画
-  emit('update:show', value)
-}
-
 const questionFormRef = ref<FormInst | null>(null)
-const questionForm = ref<QuestionGenerateRequestDTO>(getDefaultQuestionGenerateRequestDTO())
+const questionForm = ref<QuestionGenerateRequestDTO>(buildInitialForm(props.mode))
+const knowledgePointsInput = ref('')
+const abilityGoalsInput = ref('')
 
-const questionFormRules: FormRules = {
+const isPaperMode = computed(() => props.mode === 'paper')
+const panelTitle = computed(() => t(isPaperMode.value ? 'chat.toolsMenu.smartPaper' : 'chat.toolsMenu.smartQuestion'))
+const panelTag = computed(() => t(isPaperMode.value ? 'chat.toolsMenu.paperRequestTitle' : 'chat.toolsMenu.questionRequestTitle'))
+const requirementPlaceholder = computed(() => t(
+    isPaperMode.value
+        ? 'chat.toolsMenu.paperRequirementPlaceholder'
+        : 'chat.toolsMenu.requirementPlaceholder'
+))
+
+const questionFormRules = computed<FormRules>(() => ({
   questionCount: [
     {
       required: true,
@@ -197,8 +236,30 @@ const questionFormRules: FormRules = {
       message: '',
       trigger: ['blur', 'change']
     }
+  ],
+  paperName: isPaperMode.value ? [
+    {
+      required: true,
+      type: 'string',
+      message: '',
+      trigger: ['blur', 'change']
+    },
+    {
+      max: 100,
+      type: 'string',
+      message: '',
+      trigger: ['blur', 'change']
+    }
+  ] : [],
+  paperType: [
+    {
+      max: 50,
+      type: 'string',
+      message: '',
+      trigger: ['blur', 'change']
+    }
   ]
-}
+}))
 
 const questionTypeOptions = computed(() => [
   {label: t('chat.toolsMenu.questionTypeSingle'), value: 0},
@@ -216,63 +277,124 @@ const difficultyOptions = computed(() => [
   {label: t('chat.toolsMenu.difficultyHard'), value: 3}
 ])
 
-if (questionForm.value.questionCount == null) {
-  questionForm.value.questionCount = 1
-}
+watch(() => props.show, (newValue) => {
+  if (newValue) {
+    if (transitionStore.showTransition) {
+      const unwatch = watch(() => transitionStore.showTransition, (transitioning) => {
+        if (!transitioning) {
+          unwatch()
+          innerShow.value = true
+          skipCloseAnimation.value = false
+        }
+      })
+    } else {
+      innerShow.value = true
+      skipCloseAnimation.value = false
+    }
+  } else if (skipCloseAnimation.value) {
+    innerShow.value = false
+    skipCloseAnimation.value = false
+  } else {
+    setTimeout(() => {
+      innerShow.value = false
+    }, 400)
+  }
+}, {immediate: true})
 
 watch(
-    () => props.show,
-    (value) => {
-      if (!value) {
+    () => [props.show, props.mode, props.sessionId],
+    ([show]) => {
+      if (!show) {
         return
       }
-      const nextForm = getDefaultQuestionGenerateRequestDTO()
-      if (nextForm.questionCount == null) {
-        nextForm.questionCount = 1
-      }
-      if (props.sessionId) {
-        nextForm.sessionId = String(props.sessionId)
-      } else {
-        nextForm.sessionId = null
-      }
-      questionForm.value = nextForm
-      if (questionFormRef.value) {
-        questionFormRef.value.restoreValidation()
-      }
-    }
+      resetForm()
+    },
+    {immediate: true}
 )
 
 watch(
     () => props.sessionId,
     (value) => {
-      if (value) {
-        questionForm.value.sessionId = String(value)
-      } else {
-        questionForm.value.sessionId = null
-      }
+      questionForm.value.sessionId = value ? String(value) : null
     },
     {immediate: true}
 )
+
+const handleUpdateShow = (value: boolean, skipAnimation = false) => {
+  if (skipAnimation) {
+    skipCloseAnimation.value = true
+  }
+  emit('update:show', value)
+}
 
 const handleGenerateQuestions = () => {
   if (!questionFormRef.value) {
     return
   }
+
   questionFormRef.value.validate((errors) => {
     if (errors) {
       return
     }
-    const requestPayload: QuestionGenerateRequestDTO = {
-      ...questionForm.value
-    }
-    emit('question-request-success', requestPayload)
-    // 通过确定按钮关闭，跳过退出动画
+
+    const requestPayload = buildRequestPayload()
+    emit('question-request-success', {
+      mode: props.mode,
+      request: requestPayload
+    })
     handleUpdateShow(false, true)
   })
 }
 
 const handleClose = () => {
   handleUpdateShow(false)
+}
+
+function buildInitialForm(mode: QuestionGenerationMode): QuestionGenerateRequestDTO {
+  const nextForm = getDefaultQuestionGenerateRequestDTO()
+  nextForm.sessionId = props.sessionId ? String(props.sessionId) : null
+  nextForm.questionCount = mode === 'paper' ? 10 : 1
+  nextForm.questionType = mode === 'paper' ? 5 : null
+  nextForm.difficulty = mode === 'paper' ? 2 : null
+  return nextForm
+}
+
+function resetForm() {
+  questionForm.value = buildInitialForm(props.mode)
+  knowledgePointsInput.value = ''
+  abilityGoalsInput.value = ''
+  questionFormRef.value?.restoreValidation()
+}
+
+function buildRequestPayload(): QuestionGenerateRequestDTO {
+  const knowledgePoints = normalizeListInput(knowledgePointsInput.value)
+  const abilityGoals = normalizeListInput(abilityGoalsInput.value)
+
+  return {
+    ...questionForm.value,
+    paperName: isPaperMode.value ? normalizeText(questionForm.value.paperName) : null,
+    paperType: isPaperMode.value ? normalizeText(questionForm.value.paperType) : null,
+    totalScore: isPaperMode.value ? questionForm.value.totalScore ?? null : null,
+    totalEstimatedTime: isPaperMode.value ? questionForm.value.totalEstimatedTime ?? null : null,
+    knowledgePoints: isPaperMode.value ? knowledgePoints : null,
+    abilityGoals: isPaperMode.value ? abilityGoals : null,
+    requirement: normalizeText(questionForm.value.requirement),
+    useRag: questionForm.value.useRag ?? null
+  }
+}
+
+function normalizeText(value?: string | null) {
+  const trimmed = value?.trim()
+  return trimmed ? trimmed : null
+}
+
+function normalizeListInput(value: string) {
+  const items = value
+      .split(/[\n,，]/)
+      .map(item => item.trim())
+      .filter(Boolean)
+
+  return items.length ? items : null
 }
 </script>
 
@@ -313,7 +435,7 @@ const handleClose = () => {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        flex: 1;
+        flex: 0 1 auto;
         min-width: 0;
       }
     }
@@ -344,6 +466,10 @@ const handleClose = () => {
       gap: 16px 24px;
       margin-bottom: 16px;
 
+      &.paper-grid {
+        margin-bottom: 8px;
+      }
+
       @media (max-width: 960px) {
         grid-template-columns: 1fr;
       }
@@ -359,7 +485,4 @@ const handleClose = () => {
     }
   }
 }
-
 </style>
-
-

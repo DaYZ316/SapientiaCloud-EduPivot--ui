@@ -58,6 +58,38 @@
               size="small"
           />
         </div>
+        <div
+            v-if="isPaperMode"
+            class="answer-toggle"
+        >
+          <span class="answer-toggle-label">
+            {{ t('chat.toolsMenu.exportWithAnswers') }}
+          </span>
+          <n-switch
+              v-model:value="exportIncludeAnswers"
+              size="small"
+          />
+        </div>
+        <n-button
+            v-if="isPaperMode"
+            :loading="exportingPdf"
+            class="export-button"
+            size="small"
+            tertiary
+            @click="handleExportPdf"
+        >
+          {{ t('chat.toolsMenu.exportPdf') }}
+        </n-button>
+        <n-button
+            v-if="isPaperMode"
+            :loading="exportingWord"
+            class="export-button"
+            size="small"
+            tertiary
+            @click="handleExportWord"
+        >
+          {{ t('chat.toolsMenu.exportWord') }}
+        </n-button>
         <n-button
             v-if="canAddToQuestionBank"
             :title="t('course.question.addToQuestionBank')"
@@ -203,14 +235,20 @@
 
 <script lang="ts" setup>
 import {computed, ref, toRefs} from 'vue'
-import {NButton, NEmpty, NIcon, NSwitch, NTag} from 'naive-ui'
+import {NButton, NEmpty, NIcon, NSwitch, NTag, useMessage} from 'naive-ui'
 import {ChevronBack, ChevronForward, CloseOutline} from '@vicons/ionicons5'
 import {useI18n} from 'vue-i18n'
 import {useUserStore} from '@/store'
 import {useQuestionAnswerToggle} from '@/composables/useQuestionAnswerToggle'
+import {exportPaperPdf, exportPaperWord} from '@/api/celestialHub/question'
 import MarkdownRenderer from '@/components/common/MarkdownRenderer.vue'
 import AddToQuestionBankDialog from './AddToQuestionBankDialog.vue'
-import type {QuestionOptionSimpleDTO, QuestionResponseDTO} from '@/types/celestialHub/question'
+import type {
+  QuestionGenerationMode,
+  QuestionOptionSimpleDTO,
+  QuestionPaperExportRequestDTO,
+  QuestionResponseDTO
+} from '@/types/celestialHub/question'
 import {getQuestionTypeLabel} from '@/enum/course/questionTypeEnum'
 import {getQuestionBankDifficultyLabel} from '@/enum/course/questionBankDifficultyEnum'
 
@@ -219,17 +257,20 @@ const props = withDefaults(defineProps<{
   title: string
   closeLabel: string
   activeIndex?: number | null
+  mode?: QuestionGenerationMode | null
 }>(), {
   questions: () => [],
   title: '',
   closeLabel: '',
-  activeIndex: null
+  activeIndex: null,
+  mode: 'question'
 })
 
-const {questions, title, closeLabel, activeIndex} = toRefs(props)
+const {questions, title, closeLabel, activeIndex, mode} = toRefs(props)
 
 // 国际化
 const {t, locale} = useI18n()
+const message = useMessage()
 const isEnLocale = computed(() => locale.value === 'en-US')
 
 // 用户角色
@@ -240,6 +281,9 @@ const canAddToQuestionBank = computed(() => {
 
 // 加入题库对话框
 const showAddToBankDialog = ref(false)
+const exportingPdf = ref(false)
+const exportingWord = ref(false)
+const exportIncludeAnswers = ref(false)
 
 const getSafeActiveIndex = () => {
   if (!questions.value?.length) {
@@ -253,6 +297,7 @@ const getSafeActiveIndex = () => {
 }
 
 const hasQuestions = computed(() => Boolean(questions.value?.length))
+const isPaperMode = computed(() => mode.value === 'paper' && hasQuestions.value)
 
 const currentQuestion = computed<QuestionResponseDTO | null>(() => {
   if (!questions.value?.length) {
@@ -380,6 +425,65 @@ const handleAddToQuestionBank = () => {
 const handleAddToBankSuccess = () => {
   showAddToBankDialog.value = false
 }
+
+const buildPaperExportRequest = (): QuestionPaperExportRequestDTO => {
+  return {
+    paperName: title.value?.trim() || t('chat.toolsMenu.paperTitleFallback'),
+    questions: (questions.value ?? []).slice(),
+    includeAnswers: exportIncludeAnswers.value
+  }
+}
+
+const triggerDownload = (blob: Blob, fileName: string) => {
+  const objectUrl = window.URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = objectUrl
+  anchor.download = fileName
+  document.body.appendChild(anchor)
+  anchor.click()
+  anchor.remove()
+  window.URL.revokeObjectURL(objectUrl)
+}
+
+const handleExportPdf = async () => {
+  if (!isPaperMode.value || exportingPdf.value) {
+    return
+  }
+
+  exportingPdf.value = true
+  try {
+    const {blob, fileName} = await exportPaperPdf(buildPaperExportRequest())
+    triggerDownload(blob, fileName)
+  } catch (error) {
+    message.error(
+        error instanceof Error && error.message
+            ? error.message
+            : t('chat.toolsMenu.exportFailed')
+    )
+  } finally {
+    exportingPdf.value = false
+  }
+}
+
+const handleExportWord = async () => {
+  if (!isPaperMode.value || exportingWord.value) {
+    return
+  }
+
+  exportingWord.value = true
+  try {
+    const {blob, fileName} = await exportPaperWord(buildPaperExportRequest())
+    triggerDownload(blob, fileName)
+  } catch (error) {
+    message.error(
+        error instanceof Error && error.message
+            ? error.message
+            : t('chat.toolsMenu.exportFailed')
+    )
+  } finally {
+    exportingWord.value = false
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -465,6 +569,12 @@ const handleAddToBankSuccess = () => {
       }
 
       .add-to-bank-button {
+        height: 28px;
+        padding: 0 12px;
+        font-size: 12px;
+      }
+
+      .export-button {
         height: 28px;
         padding: 0 12px;
         font-size: 12px;

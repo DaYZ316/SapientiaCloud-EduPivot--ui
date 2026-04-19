@@ -1,9 +1,9 @@
 export default {
-    welcome: '你好！我是AI助手，有什么可以帮助你的吗？',
+    welcome: '你好！我是 AI 助手，有什么可以帮助你的吗？',
     greeting: '你好，{name}',
     aiName: '天枢',
-    placeholder: '输入问题询问天枢',
-    askPlaceholder: '输入问题询问天枢',
+    placeholder: '输入问题咨询天枢',
+    askPlaceholder: '输入问题咨询天枢',
     send: '发送',
     loading: '加载中...',
     retry: '重试',
@@ -17,9 +17,15 @@ export default {
     copySuccess: '已复制到剪贴板',
     resend: '重新提问',
     toolsMenu: {
-        smartQuestion: '智能出题',
-        needMainPage: '需跳转主页面使用',
-        questionCount: '出题数量',
+        smartQuestion: 'AI出题',
+        smartPaper: '整卷生成',
+        needMainPage: '需跳转主页使用',
+        questionRequestTitle: 'AI出题请求',
+        paperRequestTitle: '整卷生成请求',
+        questionResultTitle: '题目',
+        paperResultTitle: '试卷题目',
+        paperTitleFallback: '未命名试卷',
+        questionCount: '题目数量',
         questionCountUnit: '道',
         questionType: '题目类型',
         questionTypeSingle: '单选题',
@@ -34,10 +40,26 @@ export default {
         difficultyMedium: '中等',
         difficultyHard: '困难',
         scorePerQuestion: '每题分数',
+        paperName: '试卷名称',
+        paperType: '试卷类型',
+        totalScore: '试卷总分',
+        totalEstimatedTime: '总时长',
+        knowledgePoints: '知识点',
+        abilityGoals: '能力目标',
         requirement: '出题要求',
-        requirementPlaceholder: '例如：围绕高一上册函数章节，侧重考查基础计算与概念理解，可适当加入生活场景题。',
-        generatingTitle: '正在生成试题...',
-        generatingSubTitle: '通常只需要几秒钟，请稍候'
+        paperNamePlaceholder: '例如：Java基础阶段测验',
+        paperTypePlaceholder: '例如：阶段测试、单元测验、期末模拟',
+        tagsPlaceholder: '多个内容用逗号或换行分隔',
+        requirementPlaceholder: '例如：围绕高一函数章节，侧重考查基础计算与概念理解，可适当加入生活场景题。',
+        paperRequirementPlaceholder: '例如：覆盖集合、异常、泛型与IO，题型要均衡，避免与现有样题重复。',
+        generatingTitle: '正在生成题目...',
+        generatingSubTitle: '通常只需要几秒钟，请稍候。',
+        generatingPaperTitle: '正在生成整套试卷...',
+        generatingPaperSubTitle: '正在规划题型、分值和整卷结构，请稍候。',
+        exportPdf: '导出 PDF',
+        exportWord: '导出 Word',
+        exportFailed: '导出失败',
+        exportWithAnswers: '答案版'
     },
     sidebar: {
         newChat: '新聊天',
@@ -92,4 +114,3 @@ export default {
         error: '语音识别错误'
     }
 }
-

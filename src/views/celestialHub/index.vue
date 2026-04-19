@@ -126,6 +126,7 @@
                   v-show="isQuestionPanelActive"
                   :key="`${activeQuestionMessageId || 'question'}-${activeQuestionIndex ?? 0}`"
                   v-model:active-index="activeQuestionIndex"
+                  :mode="activeQuestionGenerationMode"
                   :close-label="t('common.cancel')"
                   :questions="questionPanelData"
                   :title="questionPanelTitle"
@@ -134,6 +135,7 @@
               <SmartQuestionModal
                   v-show="isQuestionToolsVisible && !isQuestionPanelActive"
                   v-model:show="isQuestionToolsVisible"
+                  :mode="generationToolMode"
                   :session-id="currentSession?.id ?? null"
                   @question-request-success="handleQuestionRequestSuccess"
               />
@@ -186,6 +188,7 @@
             >
               <SmartQuestionModal
                   v-model:show="isQuestionToolsVisible"
+                  :mode="generationToolMode"
                   :session-id="null"
                   @question-request-success="handleQuestionRequestSuccess"
               />
@@ -302,8 +305,10 @@ const {
 // 使用出题 composable
 const {
   isQuestionToolsVisible,
+  generationToolMode,
   activeQuestionMessageId,
   activeQuestionIndex,
+  activeQuestionGenerationMode,
   questionPanelData,
   questionPanelTitle,
   isQuestionPanelActive,

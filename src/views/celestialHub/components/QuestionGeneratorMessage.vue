@@ -4,7 +4,6 @@
       :data-message-id="message.id || null"
   >
     <div class="message-text">
-      <!-- 出题中状态：使用按钮样式 + 文案 + 右侧loading -->
       <div v-if="isPending" class="question-card pending-card">
         <n-icon :component="DocumentTextOutline" class="card-icon" size="20"/>
         <div class="card-content">
@@ -13,13 +12,17 @@
         </div>
         <n-spin class="card-loading" size="small"/>
       </div>
+
       <MarkdownRenderer
           v-else-if="message.content"
           :content="message.content"
           class="ai-content"
       />
-      <!-- 题目卡片按钮 -->
+
       <div v-if="hasQuestions" class="question-card-group">
+        <div class="result-label">
+          {{ resultTitle }}
+        </div>
         <div
             v-for="(questionItem, questionIndex) in questionList"
             :key="questionItem.id ?? `question-card-${questionIndex}`"
@@ -44,10 +47,9 @@ import {NIcon, NSpin} from 'naive-ui'
 import {useI18n} from 'vue-i18n'
 import {DocumentTextOutline} from '@vicons/ionicons5'
 import type {ChatMessage} from '@/types/celestialHub/chatMessage'
-import type {QuestionResponseDTO} from '@/types/celestialHub/question'
+import type {QuestionGenerationMode, QuestionResponseDTO} from '@/types/celestialHub/question'
 import MarkdownRenderer from '@/components/common/MarkdownRenderer.vue'
 
-// Props
 const props = defineProps<{
   message: ChatMessage
   isActive?: boolean
@@ -56,28 +58,42 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'view-questions', payload: {
-    messageId: string | null;
-    questions: QuestionResponseDTO[];
+    messageId: string | null
+    questions: QuestionResponseDTO[]
     activeIndex: number | null
+    panelTitle?: string | null
+    mode?: QuestionGenerationMode | null
   }): void
 }>()
 
 const {t} = useI18n()
 
-const isPending = computed(() => {
-  return props.message.metadata?.questionStatus === 'pending'
+const generationMode = computed<QuestionGenerationMode>(() => {
+  const mode = props.message.metadata?.generationMode
+  return mode === 'paper' ? 'paper' : 'question'
 })
+
+const paperName = computed(() => {
+  const value = props.message.metadata?.paperName
+  return typeof value === 'string' && value.trim() ? value.trim() : null
+})
+
+const isPending = computed(() => props.message.metadata?.questionStatus === 'pending')
 
 const pendingTitle = computed(() => {
   if (props.message.content) {
     return props.message.content
   }
-  return t('chat.toolsMenu.generatingTitle')
+  return generationMode.value === 'paper'
+      ? t('chat.toolsMenu.generatingPaperTitle')
+      : t('chat.toolsMenu.generatingTitle')
 })
 
-const pendingSubTitle = computed(() => t('chat.toolsMenu.generatingSubTitle'))
+const pendingSubTitle = computed(() => generationMode.value === 'paper'
+    ? t('chat.toolsMenu.generatingPaperSubTitle')
+    : t('chat.toolsMenu.generatingSubTitle')
+)
 
-// 解析出题响应数据
 const questions = computed<QuestionResponseDTO[] | null>(() => {
   if (!props.message.questionResponse) {
     return null
@@ -89,12 +105,15 @@ const questions = computed<QuestionResponseDTO[] | null>(() => {
   }
 })
 
-// 是否有题目数据
 const questionList = computed<QuestionResponseDTO[]>(() => questions.value ?? [])
-
 const hasQuestions = computed(() => questionList.value.length > 0)
+const resultTitle = computed(() => {
+  if (generationMode.value === 'paper') {
+    return paperName.value || t('chat.toolsMenu.paperTitleFallback')
+  }
+  return t('chat.toolsMenu.questionResultTitle')
+})
 
-// 格式化时间
 const formattedTime = computed(() => {
   if (!props.message.createTime) {
     return ''
@@ -115,7 +134,6 @@ const formattedTime = computed(() => {
   }
 })
 
-// 处理卡片点击
 const getQuestionCardTitle = (question: QuestionResponseDTO, index: number) => {
   if (question.questionTitle) {
     return question.questionTitle
@@ -123,7 +141,10 @@ const getQuestionCardTitle = (question: QuestionResponseDTO, index: number) => {
   if (question.questionContent) {
     return question.questionContent
   }
-  return `题目 ${index + 1}`
+  if (generationMode.value === 'paper') {
+    return `${t('chat.toolsMenu.paperResultTitle')} ${index + 1}`
+  }
+  return `${t('chat.toolsMenu.questionResultTitle')} ${index + 1}`
 }
 
 const handleCardClick = (index: number) => {
@@ -133,7 +154,9 @@ const handleCardClick = (index: number) => {
   emit('view-questions', {
     messageId: props.message.id ?? null,
     questions: questionList.value,
-    activeIndex: index
+    activeIndex: index,
+    panelTitle: generationMode.value === 'paper' ? resultTitle.value : null,
+    mode: generationMode.value
   })
 }
 </script>
@@ -154,21 +177,6 @@ const handleCardClick = (index: number) => {
     flex-direction: column;
     gap: 12px;
 
-    .pending-content {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 16px;
-      border-radius: 16px;
-      background: var(--background-secondary-color);
-      color: var(--text-secondary-color);
-
-      .pending-text {
-        font-size: 14px;
-        line-height: 1.4;
-      }
-    }
-
     .ai-content {
       max-width: 100%;
       padding: 0;
@@ -181,6 +189,13 @@ const handleCardClick = (index: number) => {
       display: flex;
       flex-direction: column;
       gap: 12px;
+    }
+
+    .result-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-primary);
+      letter-spacing: 0.04em;
     }
 
     .question-card {
@@ -198,16 +213,6 @@ const handleCardClick = (index: number) => {
       &:hover {
         background: var(--background-tertiary-color);
         border-color: var(--color-primary);
-      }
-
-      .card-icon {
-        color: var(--text-secondary-color);
-        flex-shrink: 0;
-        transition: color 0.2s ease;
-      }
-
-      .card-title {
-        transition: color 0.2s ease;
       }
 
       &.is-active {
@@ -228,6 +233,7 @@ const handleCardClick = (index: number) => {
       .card-icon {
         color: var(--text-secondary-color);
         flex-shrink: 0;
+        transition: color 0.2s ease;
       }
 
       .card-content {

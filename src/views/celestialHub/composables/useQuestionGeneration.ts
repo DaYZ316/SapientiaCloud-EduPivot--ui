@@ -1,17 +1,41 @@
 import type {Ref} from 'vue'
 import {computed, nextTick, onUnmounted, ref, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
+import {useMessage} from 'naive-ui'
 import {addChatSession} from '@/api/celestialHub/chatSession'
-import {listMessagesBySessionId} from '@/api/celestialHub/chatMessage'
-import {generateQuestions} from '@/api/celestialHub/question'
-import type {QuestionGenerateRequestDTO, QuestionResponseDTO} from '@/types/celestialHub/question'
+import type {SSEController} from '@/api/celestialHub/chatMessage'
+import {generateQuestionsStream} from '@/api/celestialHub/question'
+import type {
+    QuestionGenerateRequestDTO,
+    QuestionGenerationMode,
+    QuestionGenerationStreamEvent,
+    QuestionGenerationSuccessPayload,
+    QuestionResponseDTO
+} from '@/types/celestialHub/question'
+import {resolveQuestionGenerationMode} from '@/types/celestialHub/question'
 import type {ChatMessage as ChatMessageEntity} from '@/types/celestialHub/chatMessage'
 import type {ChatSessionVO} from '@/types/celestialHub/chatSession'
 
 interface PendingQuestionTask {
     id: string
     sessionId: string | null
+    requestId?: string | null
     createdAt: number
+    mode: QuestionGenerationMode
+    paperName?: string | null
+}
+
+interface GenerationContext {
+    mode: QuestionGenerationMode
+    paperName: string | null
+}
+
+interface ViewQuestionsPayload {
+    messageId: string | null
+    questions: QuestionResponseDTO[]
+    activeIndex: number | null
+    panelTitle?: string | null
+    mode?: QuestionGenerationMode | null
 }
 
 export function useQuestionGeneration(
@@ -23,44 +47,41 @@ export function useQuestionGeneration(
     selectSession: (session: ChatSessionVO) => Promise<void>
 ) {
     const {t} = useI18n()
+    const message = useMessage()
 
-    // 出题工具弹窗状态
     const isQuestionToolsVisible = ref(false)
+    const generationToolMode = ref<QuestionGenerationMode>('question')
 
-    // 题目预览面板状态
     const isQuestionPanelVisible = ref(false)
     const activeQuestionList = ref<QuestionResponseDTO[] | null>(null)
     const activeQuestionMessageId = ref<string | null>(null)
     const activeQuestionIndex = ref<number | null>(null)
+    const activeQuestionPanelTitle = ref<string | null>(null)
+    const activeQuestionGenerationMode = ref<QuestionGenerationMode>('question')
 
-    // 题目面板数据计算属性
     const questionPanelData = computed<QuestionResponseDTO[]>(() => activeQuestionList.value ?? [])
 
     const questionPanelTitle = computed<string>(() => {
+        if (activeQuestionPanelTitle.value) {
+            return activeQuestionPanelTitle.value
+        }
+
         const list = questionPanelData.value
         if (!list.length) {
             return ''
         }
+
         const index = activeQuestionIndex.value ?? 0
         const target = list[index] ?? list[0]
-        if (target.questionTitle) {
-            return target.questionTitle
-        }
-        if (target.questionContent) {
-            return target.questionContent
-        }
-        return ''
+        return target.questionTitle || target.questionContent || ''
     })
 
     const isQuestionPanelActive = computed(() => isQuestionPanelVisible.value && questionPanelData.value.length > 0)
 
-    // 待处理出题任务
     const pendingQuestionTasks = ref<PendingQuestionTask[]>([])
-    const isQuestionPolling = ref(false)
-    let questionPollingTimer: number | null = null
     const processedGeneratorMessageIds = new Set<string>()
+    const questionStreamControllers = new Map<string, SSEController>()
 
-    // 创建待处理任务ID
     const createPendingTaskId = () => {
         if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
             return crypto.randomUUID()
@@ -68,148 +89,110 @@ export function useQuestionGeneration(
         return `${Date.now()}-${Math.random().toString(16).slice(2)}`
     }
 
-    // 停止轮询
-    const stopQuestionPolling = () => {
-        if (questionPollingTimer !== null && typeof window !== 'undefined') {
-            window.clearInterval(questionPollingTimer)
-            questionPollingTimer = null
-        }
-        isQuestionPolling.value = false
-    }
-
-    // 开始轮询
-    const startQuestionPolling = () => {
-        if (questionPollingTimer !== null || typeof window === 'undefined') {
-            return
-        }
-        questionPollingTimer = window.setInterval(() => {
-            if (isQuestionPolling.value) {
-                return
-            }
-            if (!currentSession.value?.id) {
-                return
-            }
-            isQuestionPolling.value = true
-            const sessionId = String(currentSession.value.id)
-            const currentPendingTasks = pendingQuestionTasks.value.filter(task => task.sessionId === sessionId)
-            const hasPendingTasks = currentPendingTasks.length > 0
-
-            listMessagesBySessionId(sessionId, undefined, {
-                meta: {
-                    hideLoading: true,
-                    hideBusinessError: true,
-                    hideHttpError: true
-                }
-            })
-                .then((response) => {
-                    if (!response.data) {
-                        return
-                    }
-                    const newMessages = response.data
-
-                    // 检查是否有新的出题消息（role === 4）
-                    const newQuestionMessages = newMessages.filter(msg =>
-                        msg.role === 4 &&
-                        msg.id &&
-                        !processedGeneratorMessageIds.has(msg.id)
-                    )
-                    const hasNewQuestionMessage = newQuestionMessages.length > 0
-
-                    // 如果没有pending任务，说明是最后一次调用，需要更新页面
-                    const isLastCall = !hasPendingTasks
-
-                    // 只有当检测到新的出题消息，或者是最后一次调用时，才更新messages并渲染页面
-                    if (hasNewQuestionMessage || isLastCall) {
-                        messages.value = newMessages
-                        // 更新已处理的消息ID集合
-                        newQuestionMessages.forEach(msg => {
-                            if (msg.id) {
-                                processedGeneratorMessageIds.add(msg.id)
-                            }
-                        })
-                        // 移除对应的pending任务
-                        if (hasNewQuestionMessage) {
-                            newQuestionMessages.forEach(msg => {
-                                removePendingTaskBySession(msg.sessionId ?? null)
-                            })
-                        }
-                        nextTick(() => {
-                            scrollToBottom()
-                            // 出题完成后默认打开第一题
-                            if (hasNewQuestionMessage && newQuestionMessages.length > 0) {
-                                const firstQuestionMessage = newQuestionMessages[0]
-                                if (firstQuestionMessage.id && firstQuestionMessage.questionResponse) {
-                                    try {
-                                        const questions = JSON.parse(firstQuestionMessage.questionResponse) as QuestionResponseDTO[]
-                                        if (questions && questions.length > 0) {
-                                            handleViewQuestions({
-                                                messageId: firstQuestionMessage.id,
-                                                questions,
-                                                activeIndex: 0
-                                            })
-                                        }
-                                    } catch {
-                                        // 解析失败时忽略
-                                    }
-                                }
-                            }
-                        })
-                    }
-                })
-                .finally(() => {
-                    isQuestionPolling.value = false
-                })
-        }, 4000)
-    }
-
-    // 添加待处理出题任务
-    const addPendingQuestionTask = (sessionId: string | null) => {
+    const addPendingQuestionTask = (
+        sessionId: string | null,
+        mode: QuestionGenerationMode,
+        paperName?: string | null
+    ): string | null => {
         if (!sessionId) {
-            return
+            return null
         }
+
+        const id = createPendingTaskId()
         pendingQuestionTasks.value.push({
-            id: createPendingTaskId(),
+            id,
             sessionId,
-            createdAt: Date.now()
+            requestId: null,
+            createdAt: Date.now(),
+            mode,
+            paperName: paperName ?? null
         })
+        return id
     }
 
-    // 移除待处理任务
-    const removePendingTaskBySession = (sessionId: string | null) => {
-        if (!sessionId) {
+    const bindPendingTaskRequestId = (taskId: string | null, requestId: string | null) => {
+        if (!taskId || !requestId) {
             return
         }
-        const index = pendingQuestionTasks.value.findIndex(task => task.sessionId === sessionId)
+        const task = pendingQuestionTasks.value.find(item => item.id === taskId)
+        if (task) {
+            task.requestId = requestId
+        }
+    }
+
+    const removePendingTaskById = (taskId: string | null) => {
+        if (!taskId) {
+            return
+        }
+        const index = pendingQuestionTasks.value.findIndex(task => task.id === taskId)
         if (index !== -1) {
             pendingQuestionTasks.value.splice(index, 1)
         }
     }
 
-    // 处理工具选择
-    const handleToolsSelect = (key: string | number) => {
-        if (key === 'smartQuestion') {
-            // 如果 QuestionPreviewPanel 是打开的，先关闭它
-            if (isQuestionPanelVisible.value) {
-                isQuestionPanelVisible.value = false
-                activeQuestionMessageId.value = null
-                activeQuestionIndex.value = null
-            }
-            isQuestionToolsVisible.value = true
+    const removePendingTaskByRequestId = (requestId: string | null) => {
+        if (!requestId) {
+            return
+        }
+        const index = pendingQuestionTasks.value.findIndex(task => task.requestId === requestId)
+        if (index !== -1) {
+            pendingQuestionTasks.value.splice(index, 1)
         }
     }
 
-    // 查看题目
-    const handleViewQuestions = (payload: {
-        messageId: string | null;
-        questions: QuestionResponseDTO[];
-        activeIndex: number | null
-    }) => {
-        // 如果 SmartQuestionModal 是打开的，先关闭它
+    const removePendingTaskBySession = (sessionId: string | null) => {
+        if (!sessionId) {
+            return
+        }
+        pendingQuestionTasks.value = pendingQuestionTasks.value.filter(task => task.sessionId !== sessionId)
+    }
+
+    const registerQuestionStream = (taskId: string, controller: SSEController) => {
+        questionStreamControllers.set(taskId, controller)
+    }
+
+    const closeQuestionStream = (taskId: string | null) => {
+        if (!taskId) {
+            return
+        }
+        const controller = questionStreamControllers.get(taskId)
+        if (controller) {
+            controller.close()
+            questionStreamControllers.delete(taskId)
+        }
+    }
+
+    const closeAllQuestionStreams = () => {
+        questionStreamControllers.forEach(controller => controller.close())
+        questionStreamControllers.clear()
+    }
+
+    const handleToolsSelect = (key: string | number) => {
+        if (key !== 'smartQuestion' && key !== 'smartPaper') {
+            return
+        }
+
+        if (isQuestionPanelVisible.value) {
+            isQuestionPanelVisible.value = false
+            activeQuestionMessageId.value = null
+            activeQuestionIndex.value = null
+            activeQuestionPanelTitle.value = null
+        }
+
+        generationToolMode.value = key === 'smartPaper' ? 'paper' : 'question'
+        isQuestionToolsVisible.value = true
+    }
+
+    const handleViewQuestions = (payload: ViewQuestionsPayload) => {
         if (isQuestionToolsVisible.value) {
             isQuestionToolsVisible.value = false
         }
+
         activeQuestionMessageId.value = payload.messageId
         activeQuestionList.value = (payload.questions ?? []).slice()
+        activeQuestionPanelTitle.value = payload.panelTitle ?? null
+        activeQuestionGenerationMode.value = payload.mode === 'paper' ? 'paper' : 'question'
+
         if (activeQuestionList.value.length) {
             if (payload.activeIndex !== null && payload.activeIndex >= 0 && payload.activeIndex < activeQuestionList.value.length) {
                 activeQuestionIndex.value = payload.activeIndex
@@ -219,21 +202,22 @@ export function useQuestionGeneration(
         } else {
             activeQuestionIndex.value = null
         }
+
         isQuestionPanelVisible.value = activeQuestionList.value.length > 0
     }
 
-    // 关闭题目面板
     const handleCloseQuestionPanel = () => {
         isQuestionPanelVisible.value = false
         activeQuestionMessageId.value = null
         activeQuestionIndex.value = null
+        activeQuestionPanelTitle.value = null
+        activeQuestionGenerationMode.value = 'question'
     }
 
-    // 处理出题请求成功
-    const handleQuestionRequestSuccess = async (request: QuestionGenerateRequestDTO) => {
+    const handleQuestionRequestSuccess = async (payload: QuestionGenerationSuccessPayload) => {
+        const {mode, request} = payload
         let targetSessionId = request.sessionId || currentSession.value?.id || null
 
-        // 如果是在新对话页面发起出题请求，先创建对话
         if (!targetSessionId) {
             const sessionResponse = await addChatSession({
                 sessionType: 0,
@@ -244,40 +228,158 @@ export function useQuestionGeneration(
                 return
             }
             targetSessionId = sessionResponse.data.id
-            // 跳转到新创建的对话页面
             await selectSession(sessionResponse.data)
         }
 
-        addPendingQuestionTask(targetSessionId)
-        await loadMessages(targetSessionId)
         const resolvedSessionId = String(targetSessionId)
+        const pendingTaskId = addPendingQuestionTask(resolvedSessionId, mode, request.paperName ?? null)
+
+        await loadMessages(resolvedSessionId)
+
         const requestPayload: QuestionGenerateRequestDTO = {
             ...request,
             sessionId: resolvedSessionId
         }
+
         const requestMessage: ChatMessageEntity = {
             role: 3,
             content: requestPayload.requirement ?? '',
             sessionId: resolvedSessionId,
             messageType: 0,
-            questionRequest: JSON.stringify(requestPayload)
+            questionRequest: JSON.stringify(requestPayload),
+            metadata: {
+                generationMode: mode,
+                paperName: requestPayload.paperName ?? null
+            }
         }
+
         messages.value.push(requestMessage)
         nextTick(() => {
             scrollToBottom()
         })
 
-        // 调用出题API
-        generateQuestions(requestPayload, {
-            meta: {
-                hideLoading: true,
-                hideBusinessError: true,
-                hideHttpError: true
-            }
-        })
+        if (!pendingTaskId) {
+            return
+        }
+
+        let settled = false
+        try {
+            const streamController = generateQuestionsStream(requestPayload, {
+                onMessage: (event) => {
+                    if (event.status === 'submitted') {
+                        bindPendingTaskRequestId(pendingTaskId, event.requestId ?? null)
+                        if (event.requestId) {
+                            requestMessage.requestId = event.requestId
+                        }
+                        return
+                    }
+
+                    if (event.status === 'completed' || event.status === 'error') {
+                        if (settled) {
+                            return
+                        }
+                        settled = true
+                        closeQuestionStream(pendingTaskId)
+                        void finalizeQuestionStream(pendingTaskId, event)
+                    }
+                },
+                onError: () => {
+                    if (settled) {
+                        return
+                    }
+                    settled = true
+                    closeQuestionStream(pendingTaskId)
+                    removePendingTaskById(pendingTaskId)
+                    message.error(t('common.error'))
+                },
+                onClose: () => {
+                    questionStreamControllers.delete(pendingTaskId)
+                }
+            })
+
+            registerQuestionStream(pendingTaskId, streamController)
+        } catch {
+            closeQuestionStream(pendingTaskId)
+            removePendingTaskById(pendingTaskId)
+            message.error(t('common.error'))
+        }
     }
 
-    // 滚动到激活的题目消息
+    const finalizeQuestionStream = async (taskId: string, event: QuestionGenerationStreamEvent) => {
+        const eventRequestId = event.requestId ?? null
+        const eventSessionId = event.sessionId ?? getPendingTaskSessionId(taskId)
+
+        if (eventRequestId) {
+            removePendingTaskByRequestId(eventRequestId)
+        } else {
+            removePendingTaskById(taskId)
+        }
+
+        const currentSessionId = currentSession.value?.id ? String(currentSession.value.id) : null
+        if (eventSessionId && currentSessionId === eventSessionId) {
+            await loadMessages(eventSessionId)
+            await nextTick()
+            scrollToBottom()
+
+            if (event.status === 'completed') {
+                const generatedMessage = findGeneratedMessage(eventRequestId, eventSessionId)
+                const questions = parseQuestionResponse(generatedMessage)
+                if (generatedMessage?.id && questions.length > 0) {
+                    if (generatedMessage.id) {
+                        processedGeneratorMessageIds.add(generatedMessage.id)
+                    }
+                    handleViewQuestions({
+                        messageId: generatedMessage.id,
+                        questions,
+                        activeIndex: 0,
+                        panelTitle: generatedMessage.metadata?.paperName ?? null,
+                        mode: generatedMessage.metadata?.generationMode === 'paper' ? 'paper' : 'question'
+                    })
+                }
+            }
+        }
+
+        if (event.status === 'error') {
+            message.error(event.message || t('common.error'))
+        }
+    }
+
+    const getPendingTaskSessionId = (taskId: string | null) => {
+        if (!taskId) {
+            return null
+        }
+        return pendingQuestionTasks.value.find(task => task.id === taskId)?.sessionId ?? null
+    }
+
+    const findGeneratedMessage = (requestId: string | null, sessionId: string | null) => {
+        const enrichedMessages = enrichGenerationMessages(messages.value)
+
+        if (requestId) {
+            const target = enrichedMessages.find(msg => msg.role === 4 && msg.requestId === requestId)
+            if (target) {
+                return target
+            }
+        }
+
+        const fallbackMessages = enrichedMessages.filter(msg =>
+            msg.role === 4
+            && (!sessionId || msg.sessionId === sessionId)
+        )
+        return fallbackMessages[fallbackMessages.length - 1] ?? null
+    }
+
+    const parseQuestionResponse = (targetMessage: ChatMessageEntity | null | undefined) => {
+        if (!targetMessage?.questionResponse) {
+            return [] as QuestionResponseDTO[]
+        }
+
+        try {
+            return JSON.parse(targetMessage.questionResponse) as QuestionResponseDTO[]
+        } catch {
+            return [] as QuestionResponseDTO[]
+        }
+    }
+
     const scrollToActiveQuestionMessage = () => {
         if (!activeQuestionMessageId.value) {
             return
@@ -289,36 +391,40 @@ export function useQuestionGeneration(
         scrollIntoViewInMessages(selector, 'center')
     }
 
-    // 获取显示的消息列表（包含待处理的出题消息）
     const getDisplayMessages = (sessionId: string | null): ChatMessageEntity[] => {
-        if (!sessionId) {
-            return messages.value
-        }
         const pendingMessages: ChatMessageEntity[] = []
-        pendingQuestionTasks.value
-            .filter(task => task.sessionId === sessionId)
-            .forEach((task) => {
-                const createTime = new Date(task.createdAt).toISOString()
-                pendingMessages.push({
-                    id: task.id,
-                    role: 4,
-                    content: 'AI正在出题，请稍候...',
-                    sessionId,
-                    createTime,
-                    messageType: 0,
-                    metadata: {
-                        questionStatus: 'pending'
-                    },
-                    questionResponse: null
+
+        if (sessionId) {
+            pendingQuestionTasks.value
+                .filter(task => task.sessionId === sessionId)
+                .forEach((task) => {
+                    const createTime = new Date(task.createdAt).toISOString()
+                    pendingMessages.push({
+                        id: task.id,
+                        requestId: task.requestId ?? null,
+                        role: 4,
+                        content: task.mode === 'paper'
+                            ? t('chat.toolsMenu.generatingPaperTitle')
+                            : t('chat.toolsMenu.generatingTitle'),
+                        sessionId,
+                        createTime,
+                        messageType: 0,
+                        metadata: {
+                            questionStatus: 'pending',
+                            generationMode: task.mode,
+                            paperName: task.paperName ?? null
+                        },
+                        questionResponse: null
+                    })
                 })
-            })
-        if (!pendingMessages.length) {
-            return messages.value
         }
-        return [...messages.value, ...pendingMessages]
+
+        return enrichGenerationMessages([
+            ...messages.value,
+            ...pendingMessages
+        ])
     }
 
-    // 监听当前会话变化：切换会话或关闭当前会话时关闭题目预览面板
     watch(
         currentSession,
         (newSession, oldSession) => {
@@ -329,50 +435,36 @@ export function useQuestionGeneration(
                 activeQuestionMessageId.value = null
                 activeQuestionIndex.value = null
                 activeQuestionList.value = null
+                activeQuestionPanelTitle.value = null
+                activeQuestionGenerationMode.value = 'question'
             }
         }
     )
 
-    // 监听两个面板状态，确保互斥
     watch(isQuestionToolsVisible, (newValue) => {
         if (newValue && isQuestionPanelVisible.value) {
-            // 如果 SmartQuestionModal 打开，关闭 QuestionPreviewPanel
             isQuestionPanelVisible.value = false
             activeQuestionMessageId.value = null
             activeQuestionIndex.value = null
+            activeQuestionPanelTitle.value = null
+            activeQuestionGenerationMode.value = 'question'
         }
     })
 
     watch(isQuestionPanelVisible, (newValue) => {
         if (newValue && isQuestionToolsVisible.value) {
-            // 如果 QuestionPreviewPanel 打开，关闭 SmartQuestionModal
             isQuestionToolsVisible.value = false
         }
     })
 
-    // 监听待处理任务数量变化
-    watch(
-        () => pendingQuestionTasks.value.length,
-        (length) => {
-            if (length > 0) {
-                startQuestionPolling()
-            } else {
-                stopQuestionPolling()
-            }
-        }
-    )
-
-    // 监听消息变化，处理出题消息
     watch(messages, (newMessages) => {
         newMessages.forEach((msg) => {
-            if (msg.role === 4 && msg.id && !processedGeneratorMessageIds.has(msg.id)) {
+            if (msg.role === 4 && msg.id) {
                 processedGeneratorMessageIds.add(msg.id)
-                removePendingTaskBySession(msg.sessionId ?? null)
             }
         })
     }, {deep: true})
 
-    // 监听题目面板激活状态和当前题目索引变化，自动滚动到对应题目
     watch(
         [activeQuestionMessageId, activeQuestionIndex, isQuestionPanelActive],
         () => {
@@ -385,24 +477,22 @@ export function useQuestionGeneration(
         }
     )
 
-    // 组件卸载时停止轮询
     onUnmounted(() => {
-        stopQuestionPolling()
+        closeAllQuestionStreams()
     })
 
     return {
-        // 状态
         isQuestionToolsVisible,
+        generationToolMode,
         isQuestionPanelVisible,
         activeQuestionList,
         activeQuestionMessageId,
         activeQuestionIndex,
+        activeQuestionGenerationMode,
         questionPanelData,
         questionPanelTitle,
         isQuestionPanelActive,
         pendingQuestionTasks,
-
-        // 方法
         handleToolsSelect,
         handleViewQuestions,
         handleCloseQuestionPanel,
@@ -412,5 +502,78 @@ export function useQuestionGeneration(
         addPendingQuestionTask,
         removePendingTaskBySession
     }
-}
 
+    function enrichGenerationMessages(sourceMessages: ChatMessageEntity[]) {
+        const requestContextByRequestId = new Map<string, GenerationContext>()
+        const requestContextByIndex = new Map<number, GenerationContext>()
+
+        sourceMessages.forEach((msg, index) => {
+            if (msg.role !== 3) {
+                return
+            }
+            const context = getGenerationContextFromRequestMessage(msg)
+            if (!context) {
+                return
+            }
+            requestContextByIndex.set(index, context)
+            if (msg.requestId) {
+                requestContextByRequestId.set(msg.requestId, context)
+            }
+        })
+
+        return sourceMessages.map((msg, index) => {
+            const metadata = typeof msg.metadata === 'object' && msg.metadata !== null
+                ? {...msg.metadata as Record<string, unknown>}
+                : {}
+
+            if (msg.role === 3) {
+                const context = requestContextByIndex.get(index)
+                if (context) {
+                    metadata.generationMode = context.mode
+                    metadata.paperName = context.paperName
+                }
+                return {...msg, metadata}
+            }
+
+            if (msg.role === 4) {
+                const context = msg.requestId
+                    ? requestContextByRequestId.get(msg.requestId) ?? findNearestRequestContext(index, requestContextByIndex)
+                    : findNearestRequestContext(index, requestContextByIndex)
+
+                if (context) {
+                    metadata.generationMode = metadata.generationMode ?? context.mode
+                    metadata.paperName = metadata.paperName ?? context.paperName
+                }
+                return {...msg, metadata}
+            }
+
+            return msg
+        })
+    }
+
+    function getGenerationContextFromRequestMessage(message: ChatMessageEntity): GenerationContext | null {
+        if (!message.questionRequest) {
+            return null
+        }
+
+        try {
+            const request = JSON.parse(message.questionRequest) as QuestionGenerateRequestDTO
+            return {
+                mode: resolveQuestionGenerationMode(request),
+                paperName: request.paperName?.trim() || null
+            }
+        } catch {
+            return null
+        }
+    }
+
+    function findNearestRequestContext(index: number, contextByIndex: Map<number, GenerationContext>) {
+        for (let i = index - 1; i >= 0; i--) {
+            const context = contextByIndex.get(i)
+            if (context) {
+                return context
+            }
+        }
+        return null
+    }
+}

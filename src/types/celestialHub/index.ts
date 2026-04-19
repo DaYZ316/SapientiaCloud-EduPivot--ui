@@ -35,6 +35,8 @@ export type {
 
 // AI出题类型
 export type {
+    QuestionGenerationMode,
+    QuestionGenerationSuccessPayload,
     QuestionGenerateRequestDTO,
     QuestionOptionSimpleDTO,
     QuestionAnswerSimpleDTO,

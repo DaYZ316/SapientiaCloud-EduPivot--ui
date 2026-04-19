@@ -1734,6 +1734,7 @@
 
 
 ## generateQuestions
+**Status**:`Deprecated. Use /api/celestial-hub/question/stream`
 
 
 **接口地址**:`/api/celestial-hub/question/generate`
@@ -1926,6 +1927,7 @@
 
 
 ## checkKafkaRequest
+**Status**:`Deprecated. Use /api/celestial-hub/question/stream instead of polling`
 
 
 **接口地址**:`/api/celestial-hub/question/status/{requestId}`

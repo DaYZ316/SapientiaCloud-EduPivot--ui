@@ -248,12 +248,16 @@ const handleDrop = (event: DragEvent) => {
 
 const toolsOptions = computed(() => {
   const showNote = router.currentRoute.value.path !== '/ai'
+  const suffix = showNote ? ` (${t('chat.toolsMenu.needMainPage')})` : ''
+
   return [
     {
-      label: showNote
-          ? `${t('chat.toolsMenu.smartQuestion')} (${t('chat.toolsMenu.needMainPage')})`
-          : t('chat.toolsMenu.smartQuestion'),
+      label: `${t('chat.toolsMenu.smartQuestion')}${suffix}`,
       key: 'smartQuestion'
+    },
+    {
+      label: `${t('chat.toolsMenu.smartPaper')}${suffix}`,
+      key: 'smartPaper'
     }
   ]
 })
@@ -332,7 +336,7 @@ const handleSendClick = () => {
 }
 
 const handleToolsSelect = (key: string | number) => {
-  if (key === 'smartQuestion') {
+  if (key === 'smartQuestion' || key === 'smartPaper') {
     emit('open-tools', key)
     return
   }
@@ -579,4 +583,3 @@ const handleToolsSelect = (key: string | number) => {
   }
 }
 </style>
-

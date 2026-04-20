@@ -183,6 +183,20 @@ const handleCardClick = (index: number) => {
       color: var(--text-color);
       line-height: 1.6;
       display: inline-block;
+
+      :deep(.markdown-renderer) {
+        max-width: none;
+        margin: 0;
+      }
+
+      :deep(.markdown-body) {
+        margin: 0;
+        background: transparent;
+      }
+
+      :deep(.markdown-body > *:last-child) {
+        margin-bottom: 0;
+      }
     }
 
     .question-card-group {

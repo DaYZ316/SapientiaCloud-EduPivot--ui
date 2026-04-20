@@ -51,6 +51,7 @@ const userFileReferences = computed<FileReference[] | null>(() => {
   align-items: flex-end;
   gap: 8px;
   width: 100%;
+  font-family: var(--markdown-font-family);
 
   .file-references-above {
     width: fit-content;
@@ -69,17 +70,24 @@ const userFileReferences = computed<FileReference[] | null>(() => {
   }
 
   .user-content {
-    max-width: 70%;
-    padding: 12px 16px;
-    background: var(--color-primary);
+    max-width: min(74%, 760px);
+    padding: 14px 18px;
+    background:
+      linear-gradient(135deg,
+        color-mix(in srgb, var(--color-primary) 94%, white 6%) 0%,
+        color-mix(in srgb, var(--color-primary-dark) 88%, var(--color-primary) 12%) 100%);
     color: white;
-    border-radius: 16px 4px 16px 16px;
+    border-radius: 24px 10px 24px 24px;
     white-space: pre-wrap;
     word-break: break-word;
-    line-height: 1.6;
+    line-height: 1.82;
+    letter-spacing: 0.012em;
+    box-shadow: 0 18px 38px color-mix(in srgb, var(--color-primary-dark) 26%, transparent);
 
     .message-text-content {
       margin-bottom: 0;
+      font-size: 15px;
+      font-weight: 500;
     }
   }
 }

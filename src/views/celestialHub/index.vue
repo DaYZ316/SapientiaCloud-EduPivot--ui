@@ -1,7 +1,7 @@
-<template>
+﻿<template>
   <div class="celestial-hub-page">
     <div class="celestial-hub-container">
-      <!-- 聊天侧边栏 (全局侧边栏展开时隐藏) -->
+      <!-- 聊天侧边栏（全局侧边栏展开时隐藏） -->
       <ChatSidebar
           v-if="shouldHideChatSidebar === false"
           ref="chatSidebarRef"
@@ -77,7 +77,7 @@
           >
             <div class="chat-main-column">
               <div ref="chatContentRef" class="chat-content">
-                <!-- 消息列表容器 - Gemini风格 -->
+                <!-- 消息列表容器 -->
                 <div class="messages-wrapper">
                   <div class="messages-container">
                     <ChatMessage
@@ -141,19 +141,19 @@
               />
             </div>
           </div>
-          <!-- 空状态 - Gemini 风格 -->
+          <!-- 空状态 -->
           <div
               v-else
               :key="'empty'"
               class="empty-state-wrapper"
           >
             <div class="gemini-empty-state">
-              <!-- AI名称 -->
+              <!-- AI 名称 -->
               <div class="ai-name-container">
                 <div class="ai-name-text">{{ t('chat.aiName') }}</div>
               </div>
 
-              <!-- 内容区域 - 限制宽度 -->
+              <!-- 问候区域 -->
               <div
                   :class="['greeting-wrapper', { 'slide-out-left': isQuestionToolsVisible, 'slide-in-left': !isQuestionToolsVisible && wasQuestionToolsVisible }]"
               >
@@ -162,7 +162,7 @@
               </div>
             </div>
 
-            <!-- 输入区域 - 空状态下居中展示 -->
+            <!-- 输入区域（空状态下居中展示） -->
             <div
                 :class="['input-container', { 'empty-state-input': true, 'slide-out-left': isQuestionToolsVisible, 'slide-in-left': !isQuestionToolsVisible && wasQuestionToolsVisible }]"
             >
@@ -182,7 +182,7 @@
               </div>
             </div>
 
-            <!-- SmartQuestionModal - 空状态下显示 -->
+            <!-- SmartQuestionModal 空状态展示 -->
             <div
                 :class="['smart-question-modal-container', { 'slide-in-right': isQuestionToolsVisible, 'slide-out-right': !isQuestionToolsVisible && wasQuestionToolsVisible }]"
             >
@@ -262,10 +262,10 @@ type AudioActionStatus = 'idle' | 'generating' | 'playing' | 'failed'
 const route = useRoute()
 const router = useRouter()
 
-// 状态管理
+// 主题状态
 const themeStore = useThemeStore()
 
-// 状态
+// 页面状态
 const chatSidebarRef = ref<InstanceType<typeof ChatSidebar> | null>(null)
 const wasQuestionToolsVisible = ref(false)
 const audioPollingTimer = ref<number | null>(null)
@@ -277,7 +277,7 @@ const teacherPanelMounted = ref(false)
 const teacherPanelVisible = ref(false)
 const audioActionStatusMap = ref<Record<string, AudioActionStatus>>({})
 
-// 计算属性：是否在全局侧边栏展开时隐藏ChatSidebar
+// 计算属性：全局侧边栏展开时隐藏聊天侧边栏
 const shouldHideChatSidebar = computed(() => {
   return !themeStore.sidebarCollapsed
 })
@@ -326,12 +326,12 @@ const {
     selectSession
 )
 
-// 处理文件上传成功后的回调，自动添加到文件引用列表
+// 文件上传成功后，自动追加到文件引用列表
 const handleFilesUploaded = (newFileReferences: FileReference[]) => {
   if (!fileReferences.value) {
     fileReferences.value = []
   }
-  // 合并新上传的文件到文件引用列表（避免重复）
+  // 合并新上传的文件，避免重复
   const existingIds = new Set(fileReferences.value.map(f => f.id).filter(Boolean))
   const newFiles = newFileReferences.filter(f => f.id && !existingIds.has(f.id))
   if (newFiles.length > 0) {
@@ -339,12 +339,12 @@ const handleFilesUploaded = (newFileReferences: FileReference[]) => {
   }
 }
 
-// 处理文件拖拽开始，关闭侧边栏以便拖放
+// 开始拖拽文件时关闭抽屉，避免遮挡
 const handleFileDragStart = () => {
   isFileDrawerVisible.value = false
 }
 
-// 处理文件拖拽到输入框，直接使用拖拽的 FileInfoDTO 生成文件引用
+// 将拖拽的 FileInfoDTO 转成会话文件引用
 const handleFileDrop = (fileInfo: FileInfoDTO) => {
   if (!currentSession.value?.id) {
     return
@@ -424,7 +424,7 @@ const displayMessages = computed<ChatMessageEntity[]>(() => {
   return getDisplayMessages(sessionId)
 })
 
-// 用户store
+// 用户信息
 const userStore = useUserStore()
 
 // 国际化
@@ -434,13 +434,13 @@ const {t} = useI18n()
 const message = useMessage()
 
 
-// 获取用户显示名称（优先级：真名 > 昵称 > 用户名）
+// 获取用户显示名称，优先级：真实姓名 > 昵称 > 用户名
 const userDisplayName = computed(() => {
   const studentInfo = userStore.studentInfo
   const teacherInfo = userStore.teacherInfo
   const userInfo = userStore.userInfo
 
-  // 优先使用真名（学生或教师）
+  // 优先使用真实姓名
   if (studentInfo?.realName) {
     return studentInfo.realName
   }
@@ -470,11 +470,11 @@ const userDisplayName = computed(() => {
     return userInfo.username
   }
 
-  // 如果都没有，返回默认值
+  // 都没有时返回空字符串
   return ''
 })
 
-// 将可空的 useRag 转换为开关可用的布尔状态（默认开启）
+// 将可空的 useRag 转成开关可用的布尔值，默认开启
 const useRagSwitch = computed<boolean>({
   get() {
     return useRag.value === true
@@ -484,12 +484,12 @@ const useRagSwitch = computed<boolean>({
   }
 })
 
-// 监听消息变化，自动滚动到底部
-watch(messages, () => {
+// 监听消息数量变化，新增消息后滚到底部
+watch(() => displayMessages.value.length, () => {
   nextTick(() => {
-    scrollToBottom()
+    scrollToBottom('settled')
   })
-}, {deep: true})
+})
 
 const stopAudioPolling = () => {
   if (audioPollingTimer.value !== null) {
@@ -719,27 +719,27 @@ watch(activeSessionId, () => {
 })
 
 
-// 包装 selectSession 以添加动画效果
+// 包装 selectSession，统一走切换动画
 const selectSessionWithAnimation = async (session: ChatSessionVO) => {
-  // 如果点击的是当前已选中的会话，则不执行任何操作
+  // 点击当前会话时不重复切换
   if (activeSessionId.value === session.id) {
     return
   }
 
-  // 直接切换会话，transition 组件会自动处理动画
+  // 直接切换会话，由 transition 组件处理动画
   await selectSession(session)
 }
 
-// 监听会话ID变化，创建新会话时刷新侧边栏
+// 监听会话 ID 变化，必要时刷新侧边栏
 watch(activeSessionId, (newId, oldId) => {
-  // 通知全局侧边栏activeSessionId变化
+  // 同步当前会话 ID 给全局侧边栏
   eventBus.emit('aiActiveSessionIdChanged', newId)
 
-  // 当从null变为有值时，说明创建了新会话，需要刷新侧边栏
+  // 从空会话进入有效会话时，刷新侧边栏列表
   if (!oldId && newId) {
     chatSidebarRef.value?.loadSessions()
   }
-  // 切换对话时关闭 SmartQuestionModal（包括切换到新会话和新建会话）
+  // 切换对话时关闭 SmartQuestionModal
   if (oldId !== newId && isQuestionToolsVisible.value) {
     isQuestionToolsVisible.value = false
   }
@@ -768,22 +768,22 @@ onUnmounted(() => {
   handleTeacherPlaybackEnded()
 })
 
-// 监听 isQuestionToolsVisible 变化，用于控制动画
+// 监听 isQuestionToolsVisible，用于控制过渡动画
 watch(isQuestionToolsVisible, (newValue) => {
   if (newValue) {
     wasQuestionToolsVisible.value = true
   } else {
-    // 延迟重置，确保动画完成
+    // 延迟重置，等待动画结束
     setTimeout(() => {
       wasQuestionToolsVisible.value = false
     }, 400)
   }
 })
 
-// 标记是否需要打开出题模态框
+// 标记是否需要自动打开智能出题
 const shouldOpenSmartQuestion = ref(false)
 
-// 监听路由 query 参数，如果存在 openSmartQuestion 参数，则标记需要打开
+// 监听 query.openSmartQuestion，命中时标记打开
 watch(
     () => route.query.openSmartQuestion,
     (value) => {
@@ -802,12 +802,12 @@ watch(
     {immediate: true}
 )
 
-// 监听 currentSession，确保在空状态时打开模态框
+// 监听 currentSession，确保空状态下也能打开弹窗
 watch(
     () => [currentSession.value, shouldOpenSmartQuestion.value],
     ([session, shouldOpen]) => {
       if (shouldOpen && !session) {
-        // 延迟打开，确保组件完全渲染
+        // 延迟打开，确保组件完成渲染
         nextTick(() => {
           nextTick(() => {
             setTimeout(() => {
@@ -822,7 +822,7 @@ watch(
 )
 
 
-// 组件挂载时检查 query 参数并自动选择会话
+// 组件挂载时检查 query 参数，并按需初始化
 onMounted(async () => {
   if (route.query.openSmartQuestion === 'true') {
     shouldOpenSmartQuestion.value = true
@@ -836,12 +836,12 @@ onMounted(async () => {
     })
   }
 
-  // 每次进入页面都执行滚动逻辑
+  // 每次进入页面都重新执行会话初始化逻辑
   if (activeSessionId.value) {
-    // 如果有活跃会话，重新加载消息并滚动到最后用户消息
+    // 有激活会话时，重新加载消息
     await loadMessages(activeSessionId.value)
   } else {
-    // 如果没有活跃会话，默认进入“新对话”页面而不是自动选择历史会话
+    // 没有激活会话时默认进入新对话
     newChat()
   }
 })
@@ -858,7 +858,7 @@ const handleFeedback = (messageId: string, feedback: number) => {
 
 // 处理复制
 const handleCopy = () => {
-  // 收集所有消息内容
+  // 收集当前会话中的所有消息内容
   const allContent = messages.value
       .filter(msg => msg.content)
       .map(msg => {
@@ -877,20 +877,20 @@ const handleCopy = () => {
   }
 }
 
-// 处理重新提问（删除对应用户提问和AI回复后再重新请求）
+// 处理重新提问：删除原问答后重新发送
 const handleResend = (messageIndex: number) => {
-  // 安全检查：索引是否在当前消息列表范围内
+  // 安全检查：索引必须在消息范围内
   if (messageIndex < 0 || messageIndex >= messages.value.length) {
     return
   }
 
   const targetMessage = messages.value[messageIndex]
-  // 仅对AI消息生效
+  // 仅对 AI 消息生效
   if (!targetMessage || targetMessage.role !== 1) {
     return
   }
 
-  // 从当前AI消息往前找到最近的一条用户消息
+  // 向前查找最近一条用户消息
   let userIndex = -1
   for (let i = messageIndex - 1; i >= 0; i--) {
     const msg = messages.value[i]
@@ -924,13 +924,13 @@ const handleResend = (messageIndex: number) => {
     return
   }
 
-  // 删除用户提问到当前AI回复之间的所有消息（包含两端）
+  // 删除用户提问到当前 AI 回复之间的所有消息
   const deleteCount = messageIndex - userIndex + 1
   if (deleteCount > 0) {
     messages.value.splice(userIndex, deleteCount)
   }
 
-  // 使用原始用户内容重新请求
+  // 使用原始用户内容重新发起请求
   resendMessage(userMessageContent, userFileReferences)
 }
 
@@ -987,3 +987,4 @@ const handleToggleFavorite = async () => {
 <style lang="scss" scoped>
 @use './index.scss' as *;
 </style>
+

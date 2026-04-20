@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="ai-message-bubble">
     <div v-if="isThinking" class="thinking-dots">
       <span></span>
@@ -8,6 +8,7 @@
     <MarkdownRenderer
         v-else-if="!isThinking && !contentHasKatex"
         :content="message.content || ''"
+        :streaming="isStreaming"
         class="ai-content"
     />
     <div v-else-if="!isThinking && contentHasKatex" class="ai-content" v-html="sanitizedContent"></div>
@@ -80,14 +81,12 @@ import {feedbackMessage} from '@/api/celestialHub/chatMessage'
 import MarkdownRenderer from '@/components/common/MarkdownRenderer.vue'
 import DOMPurify from 'dompurify'
 
-// Props
 const props = defineProps<{
   message: ChatMessage
   isStreaming?: boolean
   audioActionStatus?: 'idle' | 'generating' | 'playing' | 'failed'
 }>()
 
-// Emits
 const emit = defineEmits<{
   feedback: [messageId: string, feedback: number]
   copy: []
@@ -95,13 +94,13 @@ const emit = defineEmits<{
   'virtual-teacher': [message: ChatMessage]
 }>()
 
-// 国际化
+// 国际化。
 const {t} = useI18n()
 
-// 消息提示
+// 全局消息提示。
 const messageApi = useMessage()
 
-// 计算属性
+// 计算消息的显示状态。
 const isThinking = computed(() => {
   return !props.message.content
 })
@@ -143,15 +142,14 @@ const virtualTeacherIconClass = computed(() => {
 })
 
 const virtualTeacherTooltip = computed(() => {
-  if (resolvedAudioActionStatus.value === 'generating') return '语音合成中'
+  if (resolvedAudioActionStatus.value === 'generating') return '语音生成中'
   if (resolvedAudioActionStatus.value === 'playing') return '虚拟教师正在讲解'
   if (resolvedAudioActionStatus.value === 'failed') return '语音生成失败，点击重试'
   if (props.message.audioStatus === 3 && props.message.audioUrl) return '播放虚拟教师讲解'
   return '虚拟教师'
 })
 
-// 如果 message.content 已经包含 KaTeX 渲染后的 HTML（例如 <span class="katex">），
-// 则避免再次通过 MarkdownRenderer 使用 markdown-it-katex 渲染，防止重复渲染。
+// 如果内容已经是 KaTeX 渲染后的 HTML，就跳过 Markdown 二次渲染。
 const contentHasKatex = computed(() => {
   const content = props.message?.content || ''
   return /<span\s+class=(?:"|')katex(?:"|')|<katex\b/i.test(content)
@@ -159,7 +157,7 @@ const contentHasKatex = computed(() => {
 
 const sanitizedContent = computed(() => {
   const content = props.message?.content || ''
-  // 允许渲染 KaTeX 已生成的元素和常见标签，移除潜在危险内容
+  // 允许 KaTeX 的必要标签和属性，同时过滤潜在的危险内容。
   return DOMPurify.sanitize(content, {
     ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'del', 'code', 'pre', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'a', 'img', 'hr', 'span', 'div'],
     ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'id', 'data-*', 'aria-*'],
@@ -167,7 +165,7 @@ const sanitizedContent = computed(() => {
   })
 })
 
-// 处理反馈
+// 提交反馈。
 const handleFeedback = async (feedbackType: number) => {
   if (!props.message.id) return
 
@@ -176,12 +174,12 @@ const handleFeedback = async (feedbackType: number) => {
   emit('feedback', props.message.id, feedbackType)
 }
 
-// 复制内容
+// 复制消息。
 const handleCopy = () => {
   emit('copy')
 }
 
-// 重新提问
+// 重新发送当前问答。
 const handleResend = () => {
   emit('resend')
 }
@@ -198,16 +196,39 @@ const handleVirtualTeacher = () => {
 @use '@/assets/styles' as *;
 
 .ai-message-bubble {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: var(--markdown-font-family);
+
   .ai-content {
     max-width: 100%;
-    padding: 12px 16px;
-    border-radius: 16px;
+    padding: 16px 20px;
+    border-radius: 24px 24px 24px 10px;
     display: inline-block;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+
+    :deep(.markdown-renderer) {
+      margin: 0;
+      max-width: none;
+    }
+
+    :deep(.markdown-body) {
+      margin: 0;
+      background: transparent;
+    }
   }
 
   .ai-content-empty {
-    padding: 12px 16px;
-    border-radius: 16px;
+    padding: 16px 20px;
+    border-radius: 24px 24px 24px 10px;
+    color: var(--text-secondary-color);
+    background: transparent;
+    border: 1px solid color-mix(in srgb, var(--border-color) 54%, transparent);
+    letter-spacing: 0.01em;
   }
 
   .thinking-dots {
@@ -238,9 +259,11 @@ const handleVirtualTeacher = () => {
   }
 
   .message-actions {
-    margin-top: 4px;
+    margin-top: 2px;
     display: flex;
     gap: 8px;
+    padding-left: 6px;
+    opacity: 0.88;
 
     .action-icon {
       cursor: pointer;
@@ -253,10 +276,15 @@ const handleVirtualTeacher = () => {
       display: flex;
       align-items: center;
       justify-content: center;
+      background: color-mix(in srgb, var(--background-color) 84%, transparent);
+      border: 1px solid transparent;
+      backdrop-filter: blur(10px);
 
       &:hover {
         color: var(--color-primary);
-        background-color: var(--background-tertiary-color);
+        background-color: color-mix(in srgb, var(--background-tertiary-color) 88%, var(--background-color));
+        border-color: color-mix(in srgb, var(--color-primary) 20%, transparent);
+        transform: translateY(-1px);
       }
 
       &:active {

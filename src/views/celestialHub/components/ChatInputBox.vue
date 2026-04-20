@@ -361,12 +361,13 @@ const handleToolsSelect = (key: string | number) => {
     .gemini-input-wrapper {
       display: flex;
       flex-direction: column;
-      background-color: var(--background-color);
-      border: 1px solid var(--border-color);
-      border-radius: 24px;
-      padding: 16px;
+      background: transparent;
+      border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
+      border-radius: 30px;
+      padding: 18px 18px 16px;
       transition: all 0.3s ease;
       box-shadow: none;
+      backdrop-filter: none;
 
       .file-references-inline {
         margin-bottom: 12px;
@@ -374,17 +375,18 @@ const handleToolsSelect = (key: string | number) => {
 
       &.drag-over {
         border-color: var(--color-primary);
-        background-color: color-mix(in srgb, var(--color-primary) 5%, var(--background-color));
+        background-color: transparent;
       }
 
       &:hover {
         border-color: var(--color-primary);
-        box-shadow: 0 4px 16px color-mix(in srgb, var(--color-primary) 15%, transparent);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 14%, transparent);
       }
 
       &:focus-within {
         border-color: var(--color-primary);
-        box-shadow: 0 4px 16px color-mix(in srgb, var(--color-primary) 25%, transparent);
+        box-shadow:
+          0 0 0 4px color-mix(in srgb, var(--color-primary) 8%, transparent);
       }
 
       :deep(.gemini-textarea) {
@@ -392,6 +394,15 @@ const handleToolsSelect = (key: string | number) => {
         border: none;
         box-shadow: none;
         margin-bottom: 8px;
+
+        &,
+        .n-input-wrapper,
+        .n-input__textarea,
+        .n-input__textarea-mirror,
+        .n-input__textarea-el {
+          background: transparent !important;
+          box-shadow: none !important;
+        }
 
         .n-input__border,
         .n-input__state-border {
@@ -404,11 +415,19 @@ const handleToolsSelect = (key: string | number) => {
           box-shadow: none;
           outline: none;
           font-size: 16px;
+          line-height: 1.86;
+          letter-spacing: 0.013em;
+          font-weight: 500;
+          font-family: var(--markdown-font-family);
           color: var(--text-color);
           resize: none;
+          text-rendering: optimizeLegibility;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
 
           &::placeholder {
             color: var(--text-disabled-color);
+            letter-spacing: 0.018em;
           }
 
           &:hover,
@@ -451,6 +470,8 @@ const handleToolsSelect = (key: string | number) => {
           .tool-text {
             font-size: 14px;
             color: var(--text-secondary-color);
+            font-weight: 500;
+            letter-spacing: 0.01em;
             transition: color 0.2s ease;
           }
 
@@ -542,6 +563,7 @@ const handleToolsSelect = (key: string | number) => {
           display: flex;
           align-items: center;
           justify-content: center;
+          box-shadow: 0 10px 24px color-mix(in srgb, var(--color-primary) 24%, transparent);
         }
       }
     }

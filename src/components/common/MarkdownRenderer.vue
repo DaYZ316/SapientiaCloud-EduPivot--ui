@@ -1,15 +1,27 @@
-<template>
+﻿<template>
   <div class="markdown-renderer">
     <div
-        ref="contentRef"
-        class="markdown-body custom-markdown"
-        v-html="renderedContent"
+      v-if="props.streaming === true"
+      ref="contentRef"
+      class="markdown-body custom-markdown"
+    >
+      <div
+        v-if="stableRenderedContent"
+        class="markdown-stream-stable"
+        v-html="stableRenderedContent"
+      ></div><span v-for="segment in streamTailSegments" :key="segment.id" class="markdown-stream-tail">{{ segment.text }}</span>
+    </div>
+    <div
+      v-else
+      ref="contentRef"
+      class="markdown-body custom-markdown"
+      v-html="renderedContent"
     ></div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import {computed, nextTick, onMounted, ref, watch} from 'vue'
+import {nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useMessage} from 'naive-ui'
 import {useI18n} from 'vue-i18n'
 import type {Options} from 'markdown-it'
@@ -20,57 +32,58 @@ import markdownItKatex from '@traptitech/markdown-it-katex'
 import 'katex/dist/katex.min.css'
 import 'github-markdown-css/github-markdown.css'
 
-// Props
 const props = defineProps<{
   content: string
   options?: Options
   enableSanitize?: boolean
   maxLength?: number
+  streaming?: boolean
 }>()
 
-// Refs
 const contentRef = ref<HTMLElement>()
-
-// 国际化
+const renderedContent = ref('')
+const stableRenderedContent = ref('')
+const lastRenderedSourceContent = ref('')
+const committedSourceContent = ref('')
+const tailSourceContent = ref('')
+const streamTailSegments = ref<Array<{ id: number; text: string }>>([])
 const {t} = useI18n()
-
-// 消息提示
 const messageApi = useMessage()
+const STREAM_RENDER_INTERVAL = 48
+let pendingRenderedSource = ''
+let streamRenderTimerId: number | null = null
+let streamTailSegmentId = 0
 
-// 静态代码高亮函数
 const highlightCode = (str: string, lang?: string): string => {
   if (lang && hljs.getLanguage(lang)) {
     try {
       const highlighted = hljs.highlight(str, {language: lang}).value
       return `<pre class="hljs" data-lang="${lang}"><code class="language-${lang}">${highlighted}</code><button class="copy-button" type="button" title="复制代码"><svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button></pre>`
-    } catch (err) {
+    } catch {
       const escaped = str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       return `<pre class="hljs"><code>${escaped}</code></pre>`
     }
   }
+
   const escaped = str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   return `<pre class="hljs"><code>${escaped}</code></pre>`
 }
 
-// Markdown渲染器配置（静态渲染，禁用HTML）
 const defaultOptions: Options = {
-  html: false,        // 禁用HTML标签，提高安全性
-  linkify: true,      // 自动识别URL
-  typographer: true,  // 美化排版
-  breaks: true,       // 换行符转换为<br>
+  html: false,
+  linkify: true,
+  typographer: true,
+  breaks: true,
   highlight: highlightCode
 }
 
-// 创建markdown-it实例
 const md = new MarkdownIt({
   ...defaultOptions,
   ...props.options
 })
 
-// 启用 KaTeX 数学公式渲染
 md.use(markdownItKatex)
 
-// XSS 防护配置
 const sanitizeConfig = {
   ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'del', 'code', 'pre', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'a', 'img', 'hr', 'span', 'div'],
   ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'id', 'data-*', 'aria-*'],
@@ -79,7 +92,6 @@ const sanitizeConfig = {
   ADD_ATTR: ['target', 'rel']
 }
 
-// 内容长度限制
 const truncateContent = (content: string): string => {
   if (props.maxLength && content.length > props.maxLength) {
     return content.substring(0, props.maxLength) + '...'
@@ -87,32 +99,32 @@ const truncateContent = (content: string): string => {
   return content
 }
 
-// 规范化数学公式分隔符：允许 `$ ... $`、`$$ ... $$` 两端有多余空格
 const normalizeMathDelimiters = (content: string): string => {
-  if (!content) return content
+  if (!content) {
+    return content
+  }
 
-  // 保护三反引号代码块不被处理
   const fenceParts = content.split(/(```[\s\S]*?```)/g)
 
   return fenceParts
       .map((part) => {
-        // 代码块直接返回
-        if (part.startsWith('```')) return part
+        if (part.startsWith('```')) {
+          return part
+        }
 
-        // 保护内联反引号
         const inlineParts = part.split(/(`[^`]*`)/g)
         return inlineParts
-            .map((p) => {
-              if (p.startsWith('`')) return p
+            .map((piece) => {
+              if (piece.startsWith('`')) {
+                return piece
+              }
 
-              // 处理 $$...$$（展示公式），去除两端多余空白并保持换行
-              let processed = p.replace(/\$\$\s*([\s\S]*?)\s*\$\$/g, (_m, g1) => {
-                return `$$\n${g1.trim()}\n$$`
+              let processed = piece.replace(/\$\$\s*([\s\S]*?)\s*\$\$/g, (_match, group1) => {
+                return `$$\n${group1.trim()}\n$$`
               })
 
-              // 处理 $...$（行内公式），避免匹配已转义的 \$，去掉开/闭两端空格
-              processed = processed.replace(/(^|[^\\])\$\s*([^\n\$][^\$]*?)\s*\$/g, (_m, pre, inner) => {
-                return `${pre}$${inner.trim()}$`
+              processed = processed.replace(/(^|[^\\])\$\s*([^\n\$][^\$]*?)\s*\$/g, (_match, prefix, inner) => {
+                return `${prefix}$${inner.trim()}$`
               })
 
               return processed
@@ -122,48 +134,178 @@ const normalizeMathDelimiters = (content: string): string => {
       .join('')
 }
 
-// 静态渲染内容（不处理流式更新）
-const renderedContent = computed(() => {
-  if (!props.content) {
-    return ''
-  }
-
+const renderMarkdownContent = (content: string): string => {
   try {
-    // 内容长度限制
-    const truncatedContent = truncateContent(props.content)
-    // 规范化数学公式分隔符后再渲染 markdown
+    const truncatedContent = truncateContent(content)
     const normalizedContent = normalizeMathDelimiters(truncatedContent)
-
-    // 静态渲染 markdown
     let html = md.render(normalizedContent)
 
-    // XSS 防护
     if (props.enableSanitize !== false) {
       html = DOMPurify.sanitize(html, sanitizeConfig)
     }
 
     return html
-  } catch (e) {
-    // 如果解析失败，显示原始内容（经过XSS防护）
-    const safeContent = props.enableSanitize !== false
-        ? DOMPurify.sanitize(props.content, sanitizeConfig)
-        : props.content
-    return safeContent
+  } catch {
+    return props.enableSanitize !== false
+        ? DOMPurify.sanitize(content, sanitizeConfig)
+        : content
   }
-})
+}
 
-// 复制代码块内容
+const clearStreamRenderTimer = () => {
+  if (streamRenderTimerId !== null) {
+    window.clearTimeout(streamRenderTimerId)
+    streamRenderTimerId = null
+  }
+}
+
+const resetStreamingSegments = () => {
+  stableRenderedContent.value = ''
+  committedSourceContent.value = ''
+  tailSourceContent.value = ''
+  streamTailSegments.value = []
+}
+
+const appendStreamTailSegment = (content: string) => {
+  if (!content) {
+    return
+  }
+
+  streamTailSegments.value = [
+    ...streamTailSegments.value,
+    {
+      id: streamTailSegmentId++,
+      text: content
+    }
+  ]
+  tailSourceContent.value += content
+}
+
+const findSafeStreamingCommitIndex = (content: string): number => {
+  if (!content) {
+    return 0
+  }
+
+  let commitIndex = 0
+  const closedFencePattern = /```[\w-]*\n[\s\S]*?\n```(?:\n|$)/g
+  let match: RegExpExecArray | null = null
+
+  while ((match = closedFencePattern.exec(content)) !== null) {
+    commitIndex = Math.max(commitIndex, match.index + match[0].length)
+  }
+
+  const paragraphBoundaryIndex = content.lastIndexOf('\n\n')
+  if (paragraphBoundaryIndex >= 0) {
+    commitIndex = Math.max(commitIndex, paragraphBoundaryIndex + 2)
+  }
+
+  return commitIndex
+}
+
+const rebuildStreamingState = (content: string) => {
+  const nextSourceContent = content || ''
+  const nextCommitIndex = findSafeStreamingCommitIndex(nextSourceContent)
+  const nextCommittedSource = nextSourceContent.slice(0, nextCommitIndex)
+  const nextTailSource = nextSourceContent.slice(nextCommitIndex)
+
+  committedSourceContent.value = nextCommittedSource
+  stableRenderedContent.value = nextCommittedSource ? renderMarkdownContent(nextCommittedSource) : ''
+  tailSourceContent.value = nextTailSource
+  streamTailSegments.value = nextTailSource
+    ? [{id: streamTailSegmentId++, text: nextTailSource}]
+    : []
+  lastRenderedSourceContent.value = nextSourceContent
+}
+
+const applyStreamingRenderedContent = (content: string) => {
+  const nextSourceContent = content || ''
+
+  if (nextSourceContent === lastRenderedSourceContent.value) {
+    return
+  }
+
+  if (!nextSourceContent.startsWith(lastRenderedSourceContent.value)) {
+    rebuildStreamingState(nextSourceContent)
+    return
+  }
+
+  const nextCommitIndex = findSafeStreamingCommitIndex(nextSourceContent)
+  const nextCommittedSource = nextSourceContent.slice(0, nextCommitIndex)
+
+  if (!nextCommittedSource.startsWith(committedSourceContent.value)) {
+    rebuildStreamingState(nextSourceContent)
+    return
+  }
+
+  if (nextCommittedSource !== committedSourceContent.value) {
+    committedSourceContent.value = nextCommittedSource
+    stableRenderedContent.value = renderMarkdownContent(nextCommittedSource)
+
+    const nextTailSource = nextSourceContent.slice(nextCommitIndex)
+    if (nextTailSource.startsWith(tailSourceContent.value)) {
+      appendStreamTailSegment(nextTailSource.slice(tailSourceContent.value.length))
+    } else {
+      tailSourceContent.value = nextTailSource
+      streamTailSegments.value = nextTailSource
+        ? [{id: streamTailSegmentId++, text: nextTailSource}]
+        : []
+    }
+
+    lastRenderedSourceContent.value = nextSourceContent
+    return
+  }
+
+  appendStreamTailSegment(nextSourceContent.slice(lastRenderedSourceContent.value.length))
+  lastRenderedSourceContent.value = nextSourceContent
+}
+
+const applyRenderedContent = (content: string) => {
+  const nextSourceContent = content || ''
+
+  if (props.streaming === true) {
+    applyStreamingRenderedContent(nextSourceContent)
+    return
+  }
+
+  resetStreamingSegments()
+  const nextRenderedContent = nextSourceContent ? renderMarkdownContent(nextSourceContent) : ''
+  if (nextRenderedContent !== renderedContent.value) {
+    renderedContent.value = nextRenderedContent
+  }
+  lastRenderedSourceContent.value = nextSourceContent
+}
+
+const scheduleRenderedContent = (content: string, immediate = false) => {
+  pendingRenderedSource = content
+
+  if (immediate || props.streaming !== true) {
+    clearStreamRenderTimer()
+    applyRenderedContent(pendingRenderedSource)
+    return
+  }
+
+  if (streamRenderTimerId !== null) {
+    return
+  }
+
+  streamRenderTimerId = window.setTimeout(() => {
+    streamRenderTimerId = null
+    applyRenderedContent(pendingRenderedSource)
+  }, STREAM_RENDER_INTERVAL)
+}
+
 const copyCodeBlock = async (codeBlock: HTMLElement) => {
   const codeElement = codeBlock.querySelector('code')
-  if (!codeElement) return
+  if (!codeElement) {
+    return
+  }
 
   const codeText = codeElement.textContent || ''
 
   try {
     await navigator.clipboard.writeText(codeText)
     messageApi.success(t('chat.copySuccess'))
-  } catch (err) {
-    // 降级方案
+  } catch {
     const textArea = document.createElement('textarea')
     textArea.value = codeText
     textArea.style.position = 'fixed'
@@ -176,7 +318,7 @@ const copyCodeBlock = async (codeBlock: HTMLElement) => {
     try {
       document.execCommand('copy')
       messageApi.success(t('chat.copySuccess'))
-    } catch (fallbackErr) {
+    } catch {
       messageApi.error('复制失败')
     }
 
@@ -184,30 +326,58 @@ const copyCodeBlock = async (codeBlock: HTMLElement) => {
   }
 }
 
-// 生命周期钩子
-onMounted(() => {
-  addCopyButtonListeners()
-})
-
-// 监听内容变化，重新绑定事件
-watch(renderedContent, () => {
-  addCopyButtonListeners()
-})
-
-// 在内容更新后添加复制按钮事件监听
 const addCopyButtonListeners = () => {
   nextTick(() => {
-    if (!contentRef.value) return
+    if (!contentRef.value) {
+      return
+    }
 
     const codeBlocks = contentRef.value.querySelectorAll('pre[data-lang]')
     codeBlocks.forEach((block) => {
-      const copyButton = block.querySelector('.copy-button')
-      if (copyButton) {
-        copyButton.addEventListener('click', () => copyCodeBlock(block as HTMLElement))
+      const copyButton = block.querySelector('.copy-button') as HTMLButtonElement | null
+      if (!copyButton || copyButton.dataset.bound === 'true') {
+        return
       }
+
+      copyButton.dataset.bound = 'true'
+      copyButton.addEventListener('click', () => copyCodeBlock(block as HTMLElement))
     })
   })
 }
+
+onMounted(() => {
+  if (renderedContent.value) {
+    addCopyButtonListeners()
+  }
+})
+
+watch([renderedContent, stableRenderedContent], ([html, stableHtml]) => {
+  if (!html && !stableHtml) {
+    return
+  }
+  addCopyButtonListeners()
+})
+
+watch(
+    () => props.content,
+    (content) => {
+      scheduleRenderedContent(content || '')
+    },
+    {immediate: true}
+)
+
+watch(
+    () => props.streaming,
+    (streaming, previousStreaming) => {
+      if (streaming !== true && previousStreaming === true) {
+        scheduleRenderedContent(props.content || '', true)
+      }
+    }
+)
+
+onUnmounted(() => {
+  clearStreamRenderTimer()
+})
 </script>
 
 <style lang="scss">
@@ -215,88 +385,164 @@ const addCopyButtonListeners = () => {
 
 .markdown-renderer {
   width: 100%;
-  max-width: 900px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   box-sizing: border-box;
 
-  // 覆盖 GitHub Markdown 样式，使用项目定义的变量
   .markdown-body {
+    margin: 0;
     color: var(--markdown-text-color);
     background-color: var(--markdown-bg-color);
+    font-family: var(--markdown-font-family);
+    font-size: var(--markdown-font-size);
+    line-height: var(--markdown-line-height);
+    letter-spacing: var(--markdown-letter-spacing);
+    font-weight: 450;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 
-    // 标题样式
-    h1, h2, h3, h4, h5, h6 {
+    > *:first-child {
+      margin-top: 0;
+    }
+
+    > *:last-child {
+      margin-bottom: 0;
+    }
+
+    p,
+    ul,
+    ol,
+    blockquote,
+    table,
+    pre {
+      margin-top: 0;
+      margin-bottom: 1em;
+    }
+
+    p {
+      color: var(--markdown-text-color);
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
       color: var(--markdown-heading-color);
       border-bottom-color: var(--markdown-border-color);
+      font-family: var(--markdown-heading-font-family);
+      font-weight: 700;
+      line-height: 1.24;
+      letter-spacing: var(--markdown-heading-letter-spacing);
+      margin-top: 1.2em;
+      margin-bottom: 0.7em;
     }
 
-    // 代码块样式（带圆角、语言标签与复制按钮占位）
+    h1 {
+      font-size: clamp(28px, 1.4vw + 20px, 34px);
+    }
+
+    h2 {
+      font-size: clamp(24px, 1vw + 18px, 28px);
+    }
+
+    h3 {
+      font-size: clamp(20px, 0.7vw + 17px, 24px);
+    }
+
+    h4,
+    h5,
+    h6 {
+      font-size: clamp(17px, 0.3vw + 16px, 19px);
+    }
+
+    strong {
+      font-weight: 700;
+      color: var(--markdown-heading-color);
+    }
+
+    ul,
+    ol {
+      padding-left: 1.4em;
+    }
+
+    li + li {
+      margin-top: 0.28em;
+    }
+
     pre {
-      background-color: var(--markdown-code-bg);
-      border-radius: 10px;
-      padding: 12px;
-      padding-top: 34px; // 为语言标签和操作按钮留出空间
       position: relative;
       overflow: auto;
-      margin: 1em 0;
-
-      code {
-        color: var(--markdown-code-text);
-        background-color: transparent;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
-        font-size: 16px;
-        line-height: 1.7;
-        white-space: pre;
-      }
+      padding: 16px;
+      padding-top: 42px;
+      border: 1px solid color-mix(in srgb, var(--markdown-border-color) 86%, transparent);
+      border-radius: 18px;
+      background:
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--markdown-code-bg) 90%, var(--background-color)) 0%,
+          color-mix(in srgb, var(--markdown-code-bg) 100%, var(--background-color)) 100%
+        );
+      box-shadow: 0 16px 36px color-mix(in srgb, var(--shadow-secondary-color) 70%, transparent);
     }
 
-    // 顶部语言标签（使用 pre[data-lang] 的 data-lang 属性）
+    pre[data-lang='latex'] {
+      overflow: hidden;
+    }
+
+    pre[data-lang='latex'] code {
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
     pre[data-lang]::before {
-      /* 更明显的纯文字标签，使用主色并加大加粗、增加字间距与轻微阴影 */
       content: attr(data-lang);
       position: absolute;
-      top: 12px;
-      left: 14px;
-      font-size: 18px;
+      top: 14px;
+      left: 16px;
+      padding: 6px 10px;
+      border: 1px solid color-mix(in srgb, var(--color-primary) 18%, transparent);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+      color: var(--color-primary-dark);
+      font-size: 12px;
       line-height: 1;
-      padding: 0;
-      background: transparent;
-      color: var(--primary-color);
-      border: none;
-      /* box-shadow removed per request */
-      pointer-events: none;
+      font-weight: 700;
+      letter-spacing: 0.08em;
       z-index: 3;
-      font-weight: 800;
-      letter-spacing: 0.4px;
-      text-transform: none;
-      /* text-shadow removed per request */
+      pointer-events: none;
     }
 
-    // 复制按钮样式
     .copy-button {
       position: absolute;
-      top: 10px;
+      top: 12px;
       right: 12px;
-      padding: 2px;
-      border: none;
-      background: transparent;
-      color: var(--markdown-link-color);
-      cursor: pointer;
-      z-index: 3;
-      opacity: 0.7;
-      transition: all 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 6px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--background-color) 76%, transparent);
+      color: var(--markdown-link-color);
+      cursor: pointer;
+      z-index: 3;
+      opacity: 0.82;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(10px);
 
       &:hover {
         opacity: 1;
         color: var(--color-primary);
-        transform: scale(1.1);
+        border-color: color-mix(in srgb, var(--color-primary) 22%, transparent);
+        transform: translateY(-1px);
       }
 
       &:active {
-        transform: scale(0.95);
+        transform: scale(0.96);
       }
 
       .copy-icon {
@@ -306,130 +552,110 @@ const addCopyButtonListeners = () => {
       }
     }
 
-    // 小屏设备内边距微调
-    @media (max-width: 480px) {
-      pre {
-        padding: 12px;
-        padding-top: 40px;
-        border-radius: 12px;
-      }
-
-      pre[data-lang]::before,
-      pre[data-lang]::after {
-        top: 6px;
-        padding: 3px 6px;
-        font-size: 11px;
-      }
-    }
-
-    // Highlight.js 语法高亮颜色重写
     .hljs {
       background-color: var(--markdown-code-bg) !important;
       color: var(--markdown-code-text) !important;
-
-      // 注释
-      .hljs-comment,
-      .hljs-quote {
-        color: var(--text-secondary-color) !important;
-      }
-
-      // 关键字
-      .hljs-keyword,
-      .hljs-selector-tag,
-      .hljs-subst {
-        color: var(--color-primary) !important;
-      }
-
-      // 字符串
-      .hljs-string,
-      .hljs-doctag {
-        color: var(--success-color) !important;
-      }
-
-      // 数字
-      .hljs-number,
-      .hljs-literal {
-        color: var(--warning-color) !important;
-      }
-
-      // 函数名
-      .hljs-title,
-      .hljs-section,
-      .hljs-name,
-      .hljs-type,
-      .hljs-class .hljs-title {
-        color: var(--color-primary-light) !important;
-      }
-
-      // 变量名
-      .hljs-tag,
-      .hljs-name,
-      .hljs-attr {
-        color: var(--color-primary-dark) !important;
-      }
-
-      // 运算符
-      .hljs-operator,
-      .hljs-punctuation {
-        color: var(--text-secondary-color) !important;
-      }
-
-      // 内置函数/对象
-      .hljs-built_in,
-      .hljs-bullet {
-        color: var(--info-color) !important;
-      }
-
-      // 正则表达式
-      .hljs-regexp,
-      .hljs-symbol {
-        color: var(--error-color) !important;
-      }
-
-      // 强调/加粗
-      .hljs-strong {
-        font-weight: bold;
-        color: var(--text-color) !important;
-      }
-
-      // 斜体
-      .hljs-emphasis {
-        font-style: italic;
-        color: var(--text-color) !important;
-      }
-
-      // 删除线
-      .hljs-deletion {
-        text-decoration: line-through;
-        color: var(--error-color) !important;
-      }
-
-      // 添加
-      .hljs-addition {
-        text-decoration: underline;
-        color: var(--success-color) !important;
-      }
-
-      // 高亮
-      .hljs-highlight {
-        background-color: var(--background-secondary-color) !important;
-      }
     }
 
-    // 内联代码样式
+    .hljs-comment,
+    .hljs-quote {
+      color: var(--text-secondary-color) !important;
+    }
+
+    .hljs-keyword,
+    .hljs-selector-tag,
+    .hljs-subst {
+      color: var(--color-primary) !important;
+    }
+
+    .hljs-string,
+    .hljs-doctag {
+      color: var(--success-color) !important;
+    }
+
+    .hljs-number,
+    .hljs-literal {
+      color: var(--warning-color) !important;
+    }
+
+    .hljs-title,
+    .hljs-section,
+    .hljs-type,
+    .hljs-class .hljs-title {
+      color: var(--color-primary-light) !important;
+    }
+
+    .hljs-tag,
+    .hljs-name,
+    .hljs-attr {
+      color: var(--color-primary-dark) !important;
+    }
+
+    .hljs-operator,
+    .hljs-punctuation {
+      color: var(--text-secondary-color) !important;
+    }
+
+    .hljs-built_in,
+    .hljs-bullet {
+      color: var(--info-color) !important;
+    }
+
+    .hljs-regexp,
+    .hljs-symbol {
+      color: var(--error-color) !important;
+    }
+
+    .hljs-strong {
+      font-weight: 700;
+      color: var(--text-color) !important;
+    }
+
+    .hljs-emphasis {
+      font-style: italic;
+      color: var(--text-color) !important;
+    }
+
+    .hljs-deletion {
+      text-decoration: line-through;
+      color: var(--error-color) !important;
+    }
+
+    .hljs-addition {
+      text-decoration: underline;
+      color: var(--success-color) !important;
+    }
+
+    .hljs-highlight {
+      background-color: var(--background-secondary-color) !important;
+    }
+
     code {
       color: var(--markdown-code-text);
-      background-color: var(--markdown-code-bg);
+      background: color-mix(in srgb, var(--markdown-code-bg) 90%, var(--background-color));
+      font-family: var(--markdown-code-font-family);
+      padding: 0.16em 0.42em;
+      border-radius: 8px;
+      font-size: 0.92em;
     }
 
-    // 引用块样式
+    pre code {
+      padding: 0;
+      border-radius: 0;
+      background: transparent;
+      font-size: 14px;
+      line-height: 1.82;
+      white-space: pre;
+    }
+
     blockquote {
       color: var(--markdown-text-secondary-color);
-      border-left-color: var(--markdown-blockquote-border);
-      background-color: var(--markdown-blockquote-bg);
+      border-left: 4px solid var(--markdown-blockquote-border);
+      background: color-mix(in srgb, var(--markdown-blockquote-bg) 86%, var(--background-color));
+      border-radius: 0 14px 14px 0;
+      padding: 0.9em 1em;
     }
 
-    // 分割线样式
     hr {
       height: 1px;
       border: none;
@@ -437,49 +663,62 @@ const addCopyButtonListeners = () => {
       margin: 1em 0;
     }
 
-    // 链接样式
     a {
       color: var(--markdown-link-color);
+      text-decoration-thickness: 0.08em;
+      text-underline-offset: 0.14em;
 
       &:hover {
         color: var(--markdown-link-hover-color);
       }
     }
 
-    // 表格样式
     table {
+      width: 100%;
       border-collapse: collapse;
-      margin: 1em 0;
       border: 1px solid var(--markdown-table-border);
       background-color: var(--markdown-bg-color);
-
-      th, td {
-        border: 1px solid var(--markdown-table-border);
-        padding: 6px 13px;
-        text-align: left;
-      }
-
-      th {
-        background-color: var(--markdown-table-header-bg);
-        color: var(--markdown-text-color);
-        font-weight: 600;
-      }
-
-      td {
-        color: var(--markdown-text-color);
-      }
-
-      // 表格行交替背景色
-      tbody tr:nth-child(even) {
-        background-color: var(--background-secondary-color);
-      }
-
-      tbody tr:nth-child(odd) {
-        background-color: var(--markdown-bg-color);
-      }
+      border-radius: 14px;
+      overflow: hidden;
     }
 
-    // 容器样式 (适用于 ::: 语法块)
+    th,
+    td {
+      border: 1px solid var(--markdown-table-border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--markdown-table-header-bg);
+      color: var(--markdown-text-color);
+      font-weight: 600;
+    }
+
+    td {
+      color: var(--markdown-text-color);
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: var(--background-secondary-color);
+    }
+
+    tbody tr:nth-child(odd) {
+      background-color: var(--markdown-bg-color);
+    }
+
+    .markdown-stream-stable {
+      display: contents;
+    }
+
+    .markdown-stream-tail {
+      display: inline;
+      white-space: break-spaces;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      animation: stream-tail-fade-in 0.18s ease-out;
+    }
+
     .markdown-alert {
       &.markdown-alert-note {
         background-color: var(--markdown-container-note-bg);
@@ -517,46 +756,72 @@ const addCopyButtonListeners = () => {
         color: var(--markdown-container-success-text);
       }
     }
-  }
-}
 
-// KaTeX 数学公式样式调整
-.markdown-renderer {
+    @media (max-width: 480px) {
+      pre {
+        padding: 14px;
+        padding-top: 42px;
+        border-radius: 12px;
+      }
+
+      pre[data-lang]::before {
+        top: 10px;
+        left: 12px;
+        padding: 5px 8px;
+        font-size: 11px;
+      }
+    }
+  }
+
   .katex,
   .katex-display {
     color: var(--markdown-text-color);
     max-width: 100%;
     box-sizing: border-box;
+    font-size: 1.03em;
   }
 
-  /* 行内公式保持为 inline-block，不会强制换行；展示公式使用块级并可横向滚动 */
   .katex {
     display: inline-block;
     vertical-align: middle;
-    overflow-wrap: anywhere;
-    word-break: break-word;
     max-width: 100%;
   }
 
   .katex-display {
     display: block;
-    margin: 0.6em auto;
-    padding: 0 12px;
-    overflow-x: auto; /* 当公式过宽时允许横向滚动，避免撑破布局 */
-    overflow-y: hidden;
+    margin: 0.85em auto;
+    padding: 0.18em 12px 0.3em;
+    overflow-x: auto;
+    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* 限制 KaTeX 内部渲染的 HTML/PNG/SVG 等元素宽度 */
+  .katex-display > .katex {
+    display: inline-block;
+    min-width: max-content;
+  }
+
   .katex img,
   .katex svg,
-  .katex .katex-html,
   .katex-display img,
-  .katex-display svg,
-  .katex-display .katex-html {
+  .katex-display svg {
     max-width: 100%;
     height: auto;
     display: block;
   }
 }
+
+@keyframes stream-tail-fade-in {
+  from {
+    opacity: 0.48;
+    filter: blur(0.6px);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
 </style>
+
+

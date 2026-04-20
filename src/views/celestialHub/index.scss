@@ -1,13 +1,78 @@
 @use '@/assets/styles' as *;
 
+.celestial-hub-page {
+  --chat-font-family: "MiSans", "HarmonyOS Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI",
+    "Noto Sans CJK SC", "Source Han Sans SC", "Segoe UI Variable", "Segoe UI", sans-serif;
+  --chat-font-family-mono: "JetBrains Mono", "Cascadia Code", "SFMono-Regular", "SF Mono", "Roboto Mono",
+    "Source Code Pro", Consolas, "Liberation Mono", Menlo, Monaco, monospace;
+  --chat-bg-grid-color: color-mix(in srgb, var(--text-color) 6%, transparent);
+  --chat-bg-haze-primary: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  --chat-bg-haze-secondary: color-mix(in srgb, var(--info-color) 14%, transparent);
+  --chat-bg-haze-accent: color-mix(in srgb, var(--warning-color) 14%, transparent);
+  --chat-panel-surface: color-mix(in srgb, var(--background-color) 76%, transparent);
+  --chat-panel-surface-strong: color-mix(in srgb, var(--background-color) 88%, transparent);
+  --chat-panel-border: color-mix(in srgb, var(--border-color) 58%, transparent);
+  --markdown-font-family: var(--chat-font-family);
+  --markdown-heading-font-family: var(--chat-font-family);
+  --markdown-code-font-family: var(--chat-font-family-mono);
+  --markdown-font-size: clamp(15px, 0.2vw + 14px, 17px);
+  --markdown-line-height: 1.86;
+  --markdown-letter-spacing: 0.013em;
+  --markdown-heading-letter-spacing: -0.024em;
+}
 
 .celestial-hub-container {
   display: flex;
   height: 100vh;
-  background-color: var(--background-color);
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(58% 54% at 6% 2%, var(--chat-bg-haze-primary) 0%, transparent 68%),
+    radial-gradient(42% 36% at 94% 8%, var(--chat-bg-haze-secondary) 0%, transparent 72%),
+    radial-gradient(38% 34% at 54% 88%, var(--chat-bg-haze-accent) 0%, transparent 78%),
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--background-secondary-color) 78%, var(--background-color)) 0%,
+      color-mix(in srgb, var(--background-color) 92%, #08111d 8%) 48%,
+      var(--background-color) 100%
+    );
   margin: calc(-1 * 24px);
   padding: 0;
   overflow: hidden;
+  font-family: var(--chat-font-family);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 18%),
+      repeating-linear-gradient(90deg, var(--chat-bg-grid-color) 0 1px, transparent 1px 96px),
+      repeating-linear-gradient(180deg, var(--chat-bg-grid-color) 0 1px, transparent 1px 96px);
+    opacity: 0.34;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.55) 46%, rgba(0, 0, 0, 0.1) 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -16%;
+    background:
+      radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--color-primary) 26%, transparent) 0%, transparent 15%),
+      radial-gradient(circle at 82% 20%, color-mix(in srgb, var(--info-color) 24%, transparent) 0%, transparent 14%),
+      radial-gradient(circle at 50% 84%, color-mix(in srgb, var(--warning-color) 18%, transparent) 0%, transparent 16%);
+    filter: blur(84px);
+    opacity: 0.72;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 
   .chat-file-input {
     display: none;
@@ -62,20 +127,52 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background-color: var(--background-color);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--chat-panel-surface-strong) 92%, transparent) 0%,
+      color-mix(in srgb, var(--chat-panel-surface) 70%, transparent) 100%
+    );
   position: relative;
   transition: all 0.25s ease;
+  box-shadow:
+    inset 1px 0 0 color-mix(in srgb, var(--border-color) 30%, transparent),
+    0 0 0 1px color-mix(in srgb, rgba(255, 255, 255, 0.04) 100%, transparent);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(68% 48% at 50% 0%, rgba(255, 255, 255, 0.08) 0%, transparent 72%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 28%);
+    pointer-events: none;
+    z-index: 0;
+  }
 
   .chat-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 16px 24px;
-    background-color: var(--background-color);
+    position: relative;
+    z-index: 1;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--chat-panel-surface-strong) 96%, transparent) 0%,
+        color-mix(in srgb, var(--chat-panel-surface) 82%, transparent) 100%
+      );
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--chat-panel-border);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 18px 44px color-mix(in srgb, var(--shadow-secondary-color) 14%, transparent);
 
     .chat-title {
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 17px;
+      font-weight: 650;
+      letter-spacing: -0.015em;
       color: var(--text-color);
     }
 
@@ -129,6 +226,7 @@
     overflow: hidden;
     gap: 0;
     position: relative;
+    z-index: 1;
   }
 
   .virtual-teacher-floating-panel {
@@ -198,11 +296,11 @@
       }
 
       &::-webkit-scrollbar-track {
-        background: var(--background-tertiary-color);
+        background: color-mix(in srgb, var(--background-tertiary-color) 60%, transparent);
       }
 
       &::-webkit-scrollbar-thumb {
-        background: var(--border-color);
+        background: color-mix(in srgb, var(--border-color) 88%, transparent);
         border-radius: 4px;
         transition: background 0.3s ease;
       }
@@ -213,19 +311,21 @@
     }
 
     .messages-container {
-      width: 65%;
+      width: min(920px, 72%);
       margin: 0 auto;
-      padding: 16px 0 24px;
+      padding: 24px 0 32px;
+      position: relative;
+      z-index: 1;
       transition: width 0.25s ease;
     }
   }
 
   .input-container {
     padding: 16px 0 0;
-    background-color: var(--background-color);
+    background: transparent;
 
     .input-wrapper {
-      width: 60%;
+      width: min(960px, 74%);
       margin: 0 auto;
       transition: width 0.25s ease;
     }
@@ -253,6 +353,7 @@
     flex-direction: column;
     position: relative;
     min-height: 0;
+    z-index: 1;
   }
 
   .gemini-empty-state {
@@ -260,7 +361,11 @@
     display: flex;
     flex-direction: column;
     padding: 48px 24px;
-    background-color: var(--background-color);
+    background:
+      radial-gradient(circle at 50% 20%, color-mix(in srgb, var(--color-primary) 12%, transparent) 0%, transparent 24%),
+      radial-gradient(circle at 18% 78%, color-mix(in srgb, var(--info-color) 10%, transparent) 0%, transparent 18%),
+      radial-gradient(circle at 84% 72%, color-mix(in srgb, var(--warning-color) 10%, transparent) 0%, transparent 18%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 74%);
     position: relative;
     padding-bottom: 0;
     min-height: 0;
@@ -317,8 +422,10 @@
     }
 
     .greeting-text {
-      font-size: 36px;
-      font-weight: 500;
+      font-size: clamp(32px, 2.1vw, 42px);
+      font-weight: 650;
+      letter-spacing: -0.03em;
+      line-height: 1.18;
       color: var(--color-primary);
       margin-bottom: 0;
       text-align: center;
@@ -564,6 +671,18 @@
 
 @media (max-width: 1200px) {
   .main-content {
+    .chat-content {
+      .messages-container {
+        width: min(860px, 82%);
+      }
+    }
+
+    .input-container {
+      .input-wrapper {
+        width: min(880px, 84%);
+      }
+    }
+
     .virtual-teacher-floating-panel {
       width: 220px;
       height: 320px;
@@ -575,6 +694,31 @@
 
 @media (max-width: 768px) {
   .main-content {
+    .chat-header {
+      padding: 14px 16px;
+
+      .chat-title {
+        font-size: 16px;
+      }
+    }
+
+    .chat-main-column {
+      padding: 12px 12px 18px;
+    }
+
+    .chat-content {
+      .messages-container {
+        width: 100%;
+        padding: 16px 0 20px;
+      }
+    }
+
+    .input-container {
+      .input-wrapper {
+        width: 100%;
+      }
+    }
+
     .virtual-teacher-floating-panel {
       width: 170px;
       height: 250px;

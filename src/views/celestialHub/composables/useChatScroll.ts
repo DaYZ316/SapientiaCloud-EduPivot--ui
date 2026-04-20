@@ -1,11 +1,14 @@
-import {onUnmounted, ref} from 'vue'
+﻿import {onUnmounted, ref} from 'vue'
 import type {ChatMessage} from '@/types/celestialHub/chatMessage'
+
+type ScrollMode = 'sync' | 'settled'
 
 export function useChatScroll() {
     const chatContentRef = ref<HTMLElement | null>(null)
     const isAutoScroll = ref<boolean | null>(null)
     isAutoScroll.value = true
     let messagesWrapperEl: HTMLElement | null = null
+    let settleScrollTimers: number[] = []
 
     const isNearBottom = (el: HTMLElement) => {
         const threshold = 12
@@ -34,7 +37,38 @@ export function useChatScroll() {
         }
     }
 
-    const scrollToBottom = () => {
+    const clearSettleScrollTimers = () => {
+        settleScrollTimers.forEach((timerId) => {
+            window.clearTimeout(timerId)
+        })
+        settleScrollTimers = []
+    }
+
+    const applyBottomScroll = (container: HTMLElement, mode: ScrollMode, force = false) => {
+        container.scrollTop = container.scrollHeight
+
+        requestAnimationFrame(() => {
+            if (force || isAutoScroll.value !== false) {
+                container.scrollTop = container.scrollHeight
+            }
+        })
+
+        if (mode !== 'settled') {
+            return
+        }
+
+        clearSettleScrollTimers()
+        ;[96, 240].forEach((delay) => {
+            const timerId = window.setTimeout(() => {
+                if (force || isAutoScroll.value !== false) {
+                    container.scrollTop = container.scrollHeight
+                }
+            }, delay)
+            settleScrollTimers.push(timerId)
+        })
+    }
+
+    const scrollToBottom = (mode: ScrollMode = 'settled') => {
         ensureScrollListener()
         if (isAutoScroll.value === false) {
             return
@@ -42,45 +76,15 @@ export function useChatScroll() {
         if (!messagesWrapperEl) {
             return
         }
-        const container = messagesWrapperEl
-        const scrollHeight = container.scrollHeight
-
-        container.scrollTop = scrollHeight
-
-        requestAnimationFrame(() => {
-            container.scrollTop = scrollHeight
-        })
-
-        setTimeout(() => {
-            if (isAutoScroll.value !== false) {
-                container.scrollTop = container.scrollHeight
-            }
-        }, 100)
-
-        setTimeout(() => {
-            if (isAutoScroll.value !== false) {
-                container.scrollTop = container.scrollHeight
-            }
-        }, 300)
+        applyBottomScroll(messagesWrapperEl, mode)
     }
 
-    const scrollToBottomForce = () => {
+    const scrollToBottomForce = (mode: ScrollMode = 'settled') => {
         ensureScrollListener()
         if (!messagesWrapperEl) {
             return
         }
-        const container = messagesWrapperEl
-        const scrollHeight = container.scrollHeight
-        container.scrollTop = scrollHeight
-        requestAnimationFrame(() => {
-            container.scrollTop = scrollHeight
-        })
-        setTimeout(() => {
-            container.scrollTop = container.scrollHeight
-        }, 100)
-        setTimeout(() => {
-            container.scrollTop = container.scrollHeight
-        }, 300)
+        applyBottomScroll(messagesWrapperEl, mode, true)
     }
 
     const scrollIntoViewInMessages = (selector: string, align: 'start' | 'center' | 'end' = 'center') => {
@@ -109,7 +113,7 @@ export function useChatScroll() {
         })
     }
 
-    // 滚动到最后一条用户消息
+    // 滚动到最后一条用户消息。
     const scrollToLastUserMessage = (messages: ChatMessage[]) => {
         ensureScrollListener()
         if (!messagesWrapperEl) {
@@ -121,19 +125,18 @@ export function useChatScroll() {
             return
         }
 
-        // 查找最后一条用户消息（包括出题请求者消息 role=3）
+        // 查找最后一条用户消息，也包含出题请求消息 role=3。
         const lastUserLikeMessage = [...messages]
             .reverse()
             .find((msg) => msg.role === 0 || msg.role === 3)
 
         if (lastUserLikeMessage?.id) {
-            // 确保DOM元素存在后再滚动
             const selector = `.chat-message[data-message-id="${lastUserLikeMessage.id}"]`
             const targetElement = messagesWrapperEl.querySelector(selector) as HTMLElement | null
             if (targetElement) {
                 scrollIntoViewInMessages(selector, 'start')
             } else {
-                // 如果找不到元素，尝试滚动到底部
+                // 如果目标元素还没挂载，回退到底部。
                 scrollToBottom()
             }
         } else {
@@ -141,8 +144,9 @@ export function useChatScroll() {
         }
     }
 
-    // 重置滚动状态，用于切换对话时清理旧的DOM引用
+    // 切换会话时重置滚动状态，避免持有旧的 DOM 引用。
     const resetScrollState = () => {
+        clearSettleScrollTimers()
         if (messagesWrapperEl) {
             messagesWrapperEl.removeEventListener('scroll', handleWrapperScroll)
             messagesWrapperEl = null
@@ -151,6 +155,7 @@ export function useChatScroll() {
     }
 
     onUnmounted(() => {
+        clearSettleScrollTimers()
         if (messagesWrapperEl) {
             messagesWrapperEl.removeEventListener('scroll', handleWrapperScroll)
             messagesWrapperEl = null
@@ -166,5 +171,3 @@ export function useChatScroll() {
         resetScrollState
     }
 }
-
-

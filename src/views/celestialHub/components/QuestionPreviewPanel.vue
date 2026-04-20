@@ -187,7 +187,7 @@
                       v-if="showAnswers && option?.explanation"
                       class="option-explanation"
                   >
-                    {{ option.explanation }}
+                    <QuestionExplanationRenderer :content="option.explanation"/>
                   </div>
                 </div>
               </div>
@@ -208,14 +208,17 @@
                       #{{ answer.sortOrder ?? answerIndex + 1 }}
                     </div>
                     <div class="answer-content">
-                      <MarkdownRenderer :content="answer.answerContent || ''"/>
+                      <QuestionExplanationRenderer
+                          :content="answer.answerContent"
+                          :auto-wrap-bare-latex="isCurrentQuestionFillBlank"
+                      />
                     </div>
                     <div v-if="answer.score !== null && answer.score !== undefined" class="answer-score">
                       {{ answer.score }} 分
                     </div>
                   </div>
                   <div v-if="answer.explanation" class="answer-explanation">
-                    {{ answer.explanation }}
+                    <QuestionExplanationRenderer :content="answer.explanation"/>
                   </div>
                 </div>
               </div>
@@ -242,6 +245,7 @@ import {useUserStore} from '@/store'
 import {useQuestionAnswerToggle} from '@/composables/useQuestionAnswerToggle'
 import {exportPaperPdf, exportPaperWord} from '@/api/celestialHub/question'
 import MarkdownRenderer from '@/components/common/MarkdownRenderer.vue'
+import QuestionExplanationRenderer from '@/components/common/QuestionExplanationRenderer.vue'
 import AddToQuestionBankDialog from './AddToQuestionBankDialog.vue'
 import type {
   QuestionGenerationMode,
@@ -249,7 +253,7 @@ import type {
   QuestionPaperExportRequestDTO,
   QuestionResponseDTO
 } from '@/types/celestialHub/question'
-import {getQuestionTypeLabel} from '@/enum/course/questionTypeEnum'
+import {getQuestionTypeLabel, QuestionTypeEnum} from '@/enum/course/questionTypeEnum'
 import {getQuestionBankDifficultyLabel} from '@/enum/course/questionBankDifficultyEnum'
 
 const props = withDefaults(defineProps<{
@@ -309,6 +313,10 @@ const currentQuestion = computed<QuestionResponseDTO | null>(() => {
   }
   return questions.value[index] ?? null
 })
+
+const isCurrentQuestionFillBlank = computed(() =>
+    Number(currentQuestion.value?.questionType) === QuestionTypeEnum.FILL_BLANK
+)
 
 const currentQuestionOrder = computed<number | null>(() => {
   if (!questions.value?.length) {

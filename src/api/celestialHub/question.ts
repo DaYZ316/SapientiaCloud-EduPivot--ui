@@ -40,6 +40,10 @@ export interface QuestionStreamCallbacks {
     onClose?: () => void
 }
 
+function normalizeQuestionStreamError(error: unknown): Error {
+    return error instanceof Error ? error : new Error('Question stream request failed')
+}
+
 export function generateQuestionsStream(
     data: QuestionGenerateRequestDTO,
     callbacks: QuestionStreamCallbacks
@@ -65,13 +69,11 @@ export function generateQuestionsStream(
         openWhenHidden: true,
         credentials: 'include',
         async onopen(response) {
-            if (response.ok && response.headers.get('content-type')?.includes('text/event-stream')) {
-                callbacks.onOpen?.()
-                return
+            if (!response.ok || !response.headers.get('content-type')?.includes('text/event-stream')) {
+                throw new Error(`Failed to connect to question stream: ${response.status} ${response.statusText}`)
             }
 
-            callbacks.onError?.(new Error(`Failed to connect to question stream: ${response.status} ${response.statusText}`))
-            abortController.abort()
+            callbacks.onOpen?.()
         },
         onmessage(event) {
             if (!callbacks.onMessage) {
@@ -82,19 +84,21 @@ export function generateQuestionsStream(
                 const payload = JSON.parse(event.data) as QuestionGenerationStreamEvent
                 callbacks.onMessage(payload)
             } catch (error) {
-                callbacks.onError?.(error instanceof Error ? error : new Error('Failed to parse question stream payload'))
-                abortController.abort()
+                throw error instanceof Error ? error : new Error('Failed to parse question stream payload')
             }
         },
         onclose() {
             callbacks.onClose?.()
         },
         onerror(error) {
-            callbacks.onError?.(error)
-            abortController.abort()
+            // Throw to disable fetchEventSource automatic retries for long-running question tasks.
+            throw normalizeQuestionStreamError(error)
         }
     }).catch((error) => {
-        callbacks.onError?.(error)
+        if (abortController.signal.aborted) {
+            return
+        }
+        callbacks.onError?.(normalizeQuestionStreamError(error))
     })
 
     return controller
@@ -105,10 +109,30 @@ interface DownloadFileResult {
     fileName: string
 }
 
+async function resolveExportError(response: Response): Promise<Error> {
+    const contentType = response.headers.get('content-type') || ''
+    const rawText = await response.text()
+
+    if (contentType.includes('application/json')) {
+        try {
+            const payload = JSON.parse(rawText) as { message?: string; msg?: string }
+            const message = payload.message || payload.msg
+            if (message) {
+                return new Error(message)
+            }
+        } catch {
+            // Ignore JSON parsing failure and fall back to raw text.
+        }
+    }
+
+    return new Error(rawText || `Export request failed: ${response.status} ${response.statusText}`)
+}
+
 async function requestPaperExport(
     endpoint: string,
     data: QuestionPaperExportRequestDTO,
-    fallbackFileName: string
+    fallbackFileName: string,
+    expectedContentType: string
 ): Promise<DownloadFileResult> {
     const userStore = useUserStore()
     const token = userStore.token
@@ -126,8 +150,12 @@ async function requestPaperExport(
     })
 
     if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(errorText || `Export request failed: ${response.status} ${response.statusText}`)
+        throw await resolveExportError(response)
+    }
+
+    const contentType = response.headers.get('content-type') || ''
+    if (!contentType.includes(expectedContentType)) {
+        throw await resolveExportError(response)
     }
 
     return {
@@ -160,10 +188,15 @@ function resolveDownloadFileName(contentDisposition: string | null, fallbackFile
 
 export async function exportPaperPdf(data: QuestionPaperExportRequestDTO): Promise<DownloadFileResult> {
     const paperName = data.paperName?.trim() || 'AI-generated-paper'
-    return requestPaperExport('/celestial-hub/question/paper/export/pdf', data, `${paperName}.pdf`)
+    return requestPaperExport('/celestial-hub/question/paper/export/pdf', data, `${paperName}.pdf`, 'application/pdf')
 }
 
 export async function exportPaperWord(data: QuestionPaperExportRequestDTO): Promise<DownloadFileResult> {
     const paperName = data.paperName?.trim() || 'AI-generated-paper'
-    return requestPaperExport('/celestial-hub/question/paper/export/word', data, `${paperName}.docx`)
+    return requestPaperExport(
+        '/celestial-hub/question/paper/export/word',
+        data,
+        `${paperName}.docx`,
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    )
 }

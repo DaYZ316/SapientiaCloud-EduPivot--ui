@@ -1,11 +1,11 @@
 <template>
   <div v-if="questionDetail" class="question-display">
-    <!-- 题目详情 -->
+    <!-- 棰樼洰璇︽儏 -->
     <div v-if="loadingQuestion" class="loading-container">
       <n-spin size="large"/>
     </div>
     <div v-else class="question-detail-content">
-      <!-- 题目元信息 -->
+      <!-- 棰樼洰鍏冧俊鎭?-->
       <div class="detail-header">
         <div class="detail-meta">
           <div class="meta-item">
@@ -37,16 +37,16 @@
         </div>
       </div>
 
-      <!-- 题目内容 -->
+      <!-- 棰樼洰鍐呭 -->
       <div class="detail-section">
         <div class="section-block">
           <div class="section-body">
-            <!-- 标题已移除，只展示题目内容 -->
+            <!-- 鏍囬宸茬Щ闄わ紝鍙睍绀洪鐩唴瀹?-->
             <div class="detail-content" v-html="questionDetail.questionContent"></div>
           </div>
         </div>
 
-        <!-- 选项 -->
+        <!-- 閫夐」 -->
         <div
             v-if="questionDetail.options && questionDetail.options.length > 0"
             class="section-block"
@@ -75,13 +75,13 @@
                   v-if="option.explanation"
                   class="option-explanation"
               >
-                {{ option.explanation }}
+                <QuestionExplanationRenderer :content="option.explanation"/>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 答案 -->
+        <!-- 绛旀 -->
         <div
             v-if="questionDetail.answers && questionDetail.answers.length > 0"
             class="section-block"
@@ -97,14 +97,19 @@
                   #{{ answer.sortOrder ?? answerIndex + 1 }}
                 </div>
                 <div class="answer-content">
-                  <div v-if="answer.answerContent" v-html="answer.answerContent"></div>
+                  <QuestionExplanationRenderer
+                      v-if="isFillBlankAnswer"
+                      :content="answer.answerContent"
+                      auto-wrap-bare-latex
+                  />
+                  <div v-else-if="answer.answerContent" v-html="answer.answerContent"></div>
                 </div>
                 <div v-if="answer.score !== null && answer.score !== undefined" class="answer-score">
                   {{ answer.score }} {{ t('course.classPractice.pointUnit') }}
                 </div>
               </div>
               <div v-if="answer.explanation" class="answer-explanation">
-                {{ answer.explanation }}
+                <QuestionExplanationRenderer :content="answer.explanation"/>
               </div>
             </div>
           </div>
@@ -115,11 +120,12 @@
 </template>
 
 <script lang="ts" setup>
-import {computed} from 'vue'
+import {computed, toRefs} from 'vue'
 import {useI18n} from 'vue-i18n'
 import type {QuestionVO} from '@/types/course/question'
 import {getQuestionBankDifficultyLabel} from '@/enum/course/questionBankDifficultyEnum'
-import {getQuestionTypeLabel} from '@/enum/course/questionTypeEnum'
+import {getQuestionTypeLabel, QuestionTypeEnum} from '@/enum/course/questionTypeEnum'
+import QuestionExplanationRenderer from '@/components/common/QuestionExplanationRenderer.vue'
 
 // Props
 interface Props {
@@ -127,15 +133,20 @@ interface Props {
   loadingQuestion?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   loadingQuestion: false
 })
 
+const {questionDetail} = toRefs(props)
+
 // 国际化
 const {t: t} = useI18n()
-const isEn = computed(() => false) // 暂时设为false，后续可根据需要调整
+const isEn = computed(() => false)
+const isFillBlankAnswer = computed(() =>
+  Number(questionDetail.value?.questionType) === QuestionTypeEnum.FILL_BLANK
+)
 
-// 获取题目类型文本
+// 鑾峰彇棰樼洰绫诲瀷鏂囨湰
 const getQuestionTypeText = (type?: number | null) => {
   if (type === null || type === undefined) {
     return t('common.unknown')
@@ -143,7 +154,7 @@ const getQuestionTypeText = (type?: number | null) => {
   return getQuestionTypeLabel(type, isEn.value)
 }
 
-// 获取难度文本
+// 鑾峰彇闅惧害鏂囨湰
 const getDifficultyText = (difficulty?: number | null) => {
   if (difficulty === null || difficulty === undefined || difficulty === 0) {
     return t('common.unknown')
@@ -381,7 +392,7 @@ const formatEstimatedTime = (time?: number | null) => {
   }
 }
 
-// 响应式设计
+// 鍝嶅簲寮忚璁?
 @media (max-width: 768px) {
   .question-display {
     .detail-meta {
@@ -417,3 +428,4 @@ const formatEstimatedTime = (time?: number | null) => {
   }
 }
 </style>
+

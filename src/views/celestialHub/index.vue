@@ -131,6 +131,7 @@
                   :questions="questionPanelData"
                   :title="questionPanelTitle"
                   @close="handleCloseQuestionPanel"
+                  @export-state-change="handleQuestionExportStateChange"
               />
               <SmartQuestionModal
                   v-show="isQuestionToolsVisible && !isQuestionPanelActive"
@@ -228,6 +229,16 @@
         @error="handleTeacherPlaybackError"
         @ready="handleTeacherPanelReady"
     />
+    <div v-if="isQuestionExporting" class="question-export-page-overlay" aria-live="polite" aria-busy="true">
+      <div class="question-export-page-overlay__card">
+        <n-spin size="large"/>
+        <div class="question-export-page-overlay__title">{{ questionExportStatusText }}</div>
+        <div class="question-export-page-overlay__description">{{ exportOverlayDescription }}</div>
+        <div class="question-export-page-overlay__progress" role="presentation">
+          <span></span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -276,6 +287,8 @@ const pendingTeacherMessageId = ref<string | null>(null)
 const teacherPanelMounted = ref(false)
 const teacherPanelVisible = ref(false)
 const audioActionStatusMap = ref<Record<string, AudioActionStatus>>({})
+const isQuestionExporting = ref(false)
+const questionExportStatusText = ref('')
 
 // 计算属性：全局侧边栏展开时隐藏聊天侧边栏
 const shouldHideChatSidebar = computed(() => {
@@ -428,10 +441,24 @@ const displayMessages = computed<ChatMessageEntity[]>(() => {
 const userStore = useUserStore()
 
 // 国际化
-const {t} = useI18n()
+const {t, locale} = useI18n()
 
 // 消息提示
 const message = useMessage()
+const isEnLocale = computed(() => locale.value === 'en-US')
+const exportOverlayDescription = computed(() => {
+  return isEnLocale.value
+      ? 'Export is in progress. Other actions are temporarily disabled to keep the current session stable.'
+      : '导出进行中，已暂时禁用其他操作，避免重复提交或切换状态。'
+})
+
+const handleQuestionExportStateChange = (payload: { exporting: boolean; text: string }) => {
+  isQuestionExporting.value = payload.exporting
+  questionExportStatusText.value = payload.exporting ? payload.text : ''
+  if (payload.exporting) {
+    isFileDrawerVisible.value = false
+  }
+}
 
 
 // 获取用户显示名称，优先级：真实姓名 > 昵称 > 用户名

@@ -1,5 +1,5 @@
 <template>
-  <div class="question-panel">
+  <div :class="['question-panel', { 'is-exporting': isExporting }]">
     <div class="question-panel-header">
       <div class="question-panel-title">
         <span
@@ -18,7 +18,7 @@
             class="question-panel-navigation"
         >
           <n-button
-              :disabled="!canPrev"
+              :disabled="!canPrev || isExporting"
               :title="t('common.previous')"
               aria-label="previous-question"
               circle
@@ -32,7 +32,7 @@
             </template>
           </n-button>
           <n-button
-              :disabled="!canNext"
+              :disabled="!canNext || isExporting"
               :title="t('common.next')"
               aria-label="next-question"
               circle
@@ -55,6 +55,7 @@
           </span>
           <n-switch
               v-model:value="showAnswers"
+              :disabled="isExporting"
               size="small"
           />
         </div>
@@ -67,11 +68,13 @@
           </span>
           <n-switch
               v-model:value="exportIncludeAnswers"
+              :disabled="isExporting"
               size="small"
           />
         </div>
         <n-button
             v-if="isPaperMode"
+            :disabled="isExporting"
             :loading="exportingPdf"
             class="export-button"
             size="small"
@@ -82,6 +85,7 @@
         </n-button>
         <n-button
             v-if="isPaperMode"
+            :disabled="isExporting"
             :loading="exportingWord"
             class="export-button"
             size="small"
@@ -92,6 +96,7 @@
         </n-button>
         <n-button
             v-if="canAddToQuestionBank"
+            :disabled="isExporting"
             :title="t('course.question.addToQuestionBank')"
             aria-label="add-to-question-bank"
             class="add-to-bank-button"
@@ -102,6 +107,7 @@
           {{ t('course.question.addToQuestionBank') }}
         </n-button>
         <n-button
+            :disabled="isExporting"
             :title="closeLabel"
             aria-label="close"
             circle
@@ -187,7 +193,10 @@
                       v-if="showAnswers && option?.explanation"
                       class="option-explanation"
                   >
-                    <QuestionExplanationRenderer :content="option.explanation"/>
+                    <QuestionExplanationRenderer
+                        :content="option.explanation"
+                        variant="explanation"
+                    />
                   </div>
                 </div>
               </div>
@@ -211,6 +220,7 @@
                       <QuestionExplanationRenderer
                           :content="answer.answerContent"
                           :auto-wrap-bare-latex="isCurrentQuestionFillBlank"
+                          variant="answer"
                       />
                     </div>
                     <div v-if="answer.score !== null && answer.score !== undefined" class="answer-score">
@@ -218,7 +228,10 @@
                     </div>
                   </div>
                   <div v-if="answer.explanation" class="answer-explanation">
-                    <QuestionExplanationRenderer :content="answer.explanation"/>
+                    <QuestionExplanationRenderer
+                        :content="answer.explanation"
+                        variant="explanation"
+                    />
                   </div>
                 </div>
               </div>
@@ -227,6 +240,16 @@
         </div>
       </template>
       <n-empty v-else class="question-panel-empty"/>
+    </div>
+    <div v-if="isExporting" class="export-overlay" aria-live="polite" aria-busy="true">
+      <div class="export-overlay-card">
+        <n-spin size="large"/>
+        <div class="export-overlay-title">{{ exportingStatusText }}</div>
+        <div class="export-overlay-description">导出期间已锁定当前面板，避免重复操作和状态变更。</div>
+        <div class="export-overlay-progress" role="presentation">
+          <span></span>
+        </div>
+      </div>
     </div>
     <AddToQuestionBankDialog
         v-model:show="showAddToBankDialog"
@@ -237,8 +260,8 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, ref, toRefs} from 'vue'
-import {NButton, NEmpty, NIcon, NSwitch, NTag, useMessage} from 'naive-ui'
+import {computed, onBeforeUnmount, ref, toRefs, watch} from 'vue'
+import {NButton, NEmpty, NIcon, NSpin, NSwitch, NTag, useMessage} from 'naive-ui'
 import {ChevronBack, ChevronForward, CloseOutline} from '@vicons/ionicons5'
 import {useI18n} from 'vue-i18n'
 import {useUserStore} from '@/store'
@@ -288,6 +311,16 @@ const showAddToBankDialog = ref(false)
 const exportingPdf = ref(false)
 const exportingWord = ref(false)
 const exportIncludeAnswers = ref(false)
+const isExporting = computed(() => exportingPdf.value || exportingWord.value)
+const exportingStatusText = computed(() => {
+  if (exportingPdf.value) {
+    return `正在导出 ${t('chat.toolsMenu.exportPdf')}`
+  }
+  if (exportingWord.value) {
+    return `正在导出 ${t('chat.toolsMenu.exportWord')}`
+  }
+  return '正在导出'
+})
 
 const getSafeActiveIndex = () => {
   if (!questions.value?.length) {
@@ -340,9 +373,31 @@ const hasSolutions = computed(() => hasAnswers.value || hasOptions.value)
 const emit = defineEmits<{
   (e: 'close'): void
   (e: 'update:activeIndex', value: number | null): void
+  (e: 'export-state-change', payload: { exporting: boolean; text: string }): void
 }>()
 
+watch(
+    [isExporting, exportingStatusText],
+    ([exporting, statusText]) => {
+      emit('export-state-change', {
+        exporting,
+        text: exporting ? statusText : ''
+      })
+    },
+    {immediate: true}
+)
+
+onBeforeUnmount(() => {
+  emit('export-state-change', {
+    exporting: false,
+    text: ''
+  })
+})
+
 const handleClose = () => {
+  if (isExporting.value) {
+    return
+  }
   emit('close')
 }
 
@@ -366,7 +421,7 @@ const canNext = computed(() => {
 })
 
 const handlePrev = () => {
-  if (!questions.value?.length) {
+  if (isExporting.value || !questions.value?.length) {
     return
   }
   const index = getSafeActiveIndex()
@@ -377,7 +432,7 @@ const handlePrev = () => {
 }
 
 const handleNext = () => {
-  if (!questions.value?.length) {
+  if (isExporting.value || !questions.value?.length) {
     return
   }
   const index = getSafeActiveIndex()
@@ -427,6 +482,9 @@ const getOptionLabel = (option: QuestionOptionSimpleDTO | null, index: number) =
 }
 
 const handleAddToQuestionBank = () => {
+  if (isExporting.value) {
+    return
+  }
   showAddToBankDialog.value = true
 }
 
@@ -454,7 +512,7 @@ const triggerDownload = (blob: Blob, fileName: string) => {
 }
 
 const handleExportPdf = async () => {
-  if (!isPaperMode.value || exportingPdf.value) {
+  if (!isPaperMode.value || isExporting.value) {
     return
   }
 
@@ -474,7 +532,7 @@ const handleExportPdf = async () => {
 }
 
 const handleExportWord = async () => {
-  if (!isPaperMode.value || exportingWord.value) {
+  if (!isPaperMode.value || isExporting.value) {
     return
   }
 
@@ -498,12 +556,19 @@ const handleExportWord = async () => {
 @use '@/assets/styles' as *;
 
 .question-panel {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
   max-height: 100%;
   overflow: hidden;
   background: var(--background-color);
+
+  &.is-exporting {
+    .question-panel-body {
+      overflow: hidden;
+    }
+  }
 
   .question-panel-header {
     display: flex;
@@ -718,6 +783,19 @@ const handleExportWord = async () => {
         .option-label {
           color: var(--success-color);
         }
+
+        .option-explanation {
+          :deep(.question-explanation-renderer--explanation) {
+            --color-primary: var(--success-color);
+            --color-primary-dark: color-mix(in srgb, var(--success-color) 78%, var(--text-color));
+            --markdown-link-color: color-mix(in srgb, var(--success-color) 82%, var(--text-color));
+            --markdown-link-hover-color: var(--success-color);
+            --question-renderer-text-color: color-mix(in srgb, var(--text-color) 78%, var(--success-color) 22%);
+            --question-renderer-bg: color-mix(in srgb, var(--background-secondary-color) 74%, var(--success-color) 10%);
+            --question-renderer-border-color: color-mix(in srgb, var(--success-color) 24%, var(--border-color));
+            --question-renderer-katex-color: color-mix(in srgb, var(--text-color) 70%, var(--success-color) 30%);
+          }
+        }
       }
     }
 
@@ -754,9 +832,7 @@ const handleExportWord = async () => {
     }
 
     .option-explanation {
-      font-size: 13px;
-      color: var(--text-secondary-color);
-      line-height: 1.5;
+      margin-top: 2px;
     }
 
     .detail-answers {
@@ -805,9 +881,7 @@ const handleExportWord = async () => {
     }
 
     .answer-explanation {
-      font-size: 13px;
-      color: var(--text-secondary-color);
-      line-height: 1.5;
+      margin-top: 2px;
     }
 
     .question-panel-empty {
@@ -816,6 +890,75 @@ const handleExportWord = async () => {
       align-items: center;
       justify-content: center;
     }
+  }
+
+  .export-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 24;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: color-mix(in srgb, var(--background-color) 76%, transparent);
+    backdrop-filter: blur(8px);
+  }
+
+  .export-overlay-card {
+    width: min(360px, 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 24px 22px 20px;
+    border-radius: 20px;
+    border: 1px solid color-mix(in srgb, var(--color-primary) 18%, var(--border-color));
+    background: color-mix(in srgb, var(--background-color) 92%, var(--background-secondary-color));
+    box-shadow: 0 20px 48px color-mix(in srgb, var(--shadow-secondary-color) 72%, transparent);
+    text-align: center;
+  }
+
+  .export-overlay-title {
+    color: var(--text-color);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .export-overlay-description {
+    color: var(--text-secondary-color);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .export-overlay-progress {
+    width: 100%;
+    height: 6px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--color-primary) 12%, var(--background-secondary-color));
+
+    span {
+      display: block;
+      width: 42%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--color-primary-dark) 92%, transparent),
+        color-mix(in srgb, var(--color-primary-light) 88%, transparent)
+      );
+      animation: export-progress-slide 1.15s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes export-progress-slide {
+  0% {
+    transform: translateX(-115%);
+  }
+  100% {
+    transform: translateX(250%);
   }
 }
 </style>

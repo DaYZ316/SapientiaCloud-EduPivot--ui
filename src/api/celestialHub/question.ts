@@ -109,6 +109,24 @@ interface DownloadFileResult {
     fileName: string
 }
 
+function extractHtmlErrorText(rawHtml: string): string {
+    if (!rawHtml) {
+        return ''
+    }
+
+    const titleMatch = rawHtml.match(/<title[^>]*>([\s\S]*?)<\/title>/i)
+    if (titleMatch?.[1]) {
+        return titleMatch[1].replace(/\s+/g, ' ').trim()
+    }
+
+    return rawHtml
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+}
+
 async function resolveExportError(response: Response): Promise<Error> {
     const contentType = response.headers.get('content-type') || ''
     const rawText = await response.text()
@@ -123,6 +141,14 @@ async function resolveExportError(response: Response): Promise<Error> {
         } catch {
             // Ignore JSON parsing failure and fall back to raw text.
         }
+    }
+
+    if (contentType.includes('text/html') || /<!DOCTYPE html|<html\b/i.test(rawText)) {
+        const htmlErrorText = extractHtmlErrorText(rawText)
+        if (response.status === 504 || /gateway time-out/i.test(htmlErrorText)) {
+            return new Error('导出请求超时，请稍后重试')
+        }
+        return new Error(htmlErrorText || `Export request failed: ${response.status} ${response.statusText}`)
     }
 
     return new Error(rawText || `Export request failed: ${response.status} ${response.statusText}`)

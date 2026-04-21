@@ -9,7 +9,26 @@
         v-if="stableRenderedContent"
         class="markdown-stream-stable"
         v-html="stableRenderedContent"
-      ></div><span v-for="segment in streamTailSegments" :key="segment.id" class="markdown-stream-tail">{{ segment.text }}</span>
+      ></div>
+      <span v-for="segment in streamTailSegments" :key="segment.id" class="markdown-stream-tail">{{ segment.text }}</span>
+      <span
+        v-if="hasBlockedStreamTail && streamPlaceholderMode === 'inline'"
+        class="markdown-stream-placeholder markdown-stream-placeholder--inline"
+        aria-hidden="true"
+      >
+        <span class="markdown-stream-placeholder__chip markdown-stream-placeholder__chip--long"></span>
+        <span class="markdown-stream-placeholder__chip markdown-stream-placeholder__chip--medium"></span>
+        <span class="markdown-stream-placeholder__chip markdown-stream-placeholder__chip--short"></span>
+      </span>
+      <div
+        v-if="hasBlockedStreamTail && streamPlaceholderMode === 'block'"
+        class="markdown-stream-placeholder markdown-stream-placeholder--block"
+        aria-hidden="true"
+      >
+        <span class="markdown-stream-placeholder__line markdown-stream-placeholder__line--short"></span>
+        <span class="markdown-stream-placeholder__line markdown-stream-placeholder__line--long"></span>
+        <span class="markdown-stream-placeholder__line markdown-stream-placeholder__line--medium"></span>
+      </div>
     </div>
     <div
       v-else
@@ -21,7 +40,7 @@
 </template>
 
 <script lang="ts" setup>
-import {nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
+import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useMessage} from 'naive-ui'
 import {useI18n} from 'vue-i18n'
 import type {Options} from 'markdown-it'
@@ -46,6 +65,8 @@ const stableRenderedContent = ref('')
 const lastRenderedSourceContent = ref('')
 const committedSourceContent = ref('')
 const tailSourceContent = ref('')
+const blockedTailSourceContent = ref('')
+const blockedTailKind = ref<StreamBlockedKind | null>(null)
 const streamTailSegments = ref<Array<{ id: number; text: string }>>([])
 const {t} = useI18n()
 const messageApi = useMessage()
@@ -53,6 +74,15 @@ const STREAM_RENDER_INTERVAL = 48
 let pendingRenderedSource = ''
 let streamRenderTimerId: number | null = null
 let streamTailSegmentId = 0
+
+type StreamBlockedKind = 'fence' | 'inline-code' | 'math-block' | 'math-inline' | 'link'
+
+type StreamTailAnalysis = {
+  committedSource: string
+  visibleTailSource: string
+  blockedTailSource: string
+  blockedTailKind: StreamBlockedKind | null
+}
 
 const highlightCode = (str: string, lang?: string): string => {
   if (lang && hljs.getLanguage(lang)) {
@@ -134,11 +164,38 @@ const normalizeMathDelimiters = (content: string): string => {
       .join('')
 }
 
+const wrapTables = (html: string): string => {
+  if (!html || !html.includes('<table')) {
+    return html
+  }
+
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(`<div>${html}</div>`, 'text/html')
+  const root = doc.body.firstElementChild
+
+  if (!root) {
+    return html
+  }
+
+  root.querySelectorAll('table').forEach((table) => {
+    if (table.parentElement?.classList.contains('markdown-table-wrapper')) {
+      return
+    }
+
+    const wrapper = doc.createElement('div')
+    wrapper.className = 'markdown-table-wrapper'
+    table.parentNode?.insertBefore(wrapper, table)
+    wrapper.appendChild(table)
+  })
+
+  return root.innerHTML
+}
+
 const renderMarkdownContent = (content: string): string => {
   try {
     const truncatedContent = truncateContent(content)
     const normalizedContent = normalizeMathDelimiters(truncatedContent)
-    let html = md.render(normalizedContent)
+    let html = wrapTables(md.render(normalizedContent))
 
     if (props.enableSanitize !== false) {
       html = DOMPurify.sanitize(html, sanitizeConfig)
@@ -159,10 +216,20 @@ const clearStreamRenderTimer = () => {
   }
 }
 
+const hasBlockedStreamTail = computed(() => blockedTailSourceContent.value.length > 0)
+
+const streamPlaceholderMode = computed<'inline' | 'block'>(() => {
+  return blockedTailKind.value === 'fence' || blockedTailKind.value === 'math-block'
+      ? 'block'
+      : 'inline'
+})
+
 const resetStreamingSegments = () => {
   stableRenderedContent.value = ''
   committedSourceContent.value = ''
   tailSourceContent.value = ''
+  blockedTailSourceContent.value = ''
+  blockedTailKind.value = null
   streamTailSegments.value = []
 }
 
@@ -187,7 +254,7 @@ const findSafeStreamingCommitIndex = (content: string): number => {
   }
 
   let commitIndex = 0
-  const closedFencePattern = /```[\w-]*\n[\s\S]*?\n```(?:\n|$)/g
+  const closedFencePattern = /```[\w-]*\r?\n[\s\S]*?\r?\n```/g
   let match: RegExpExecArray | null = null
 
   while ((match = closedFencePattern.exec(content)) !== null) {
@@ -202,17 +269,227 @@ const findSafeStreamingCommitIndex = (content: string): number => {
   return commitIndex
 }
 
+const isEscapedCharacter = (content: string, index: number): boolean => {
+  if (index <= 0) {
+    return false
+  }
+
+  let slashCount = 0
+  for (let cursor = index - 1; cursor >= 0 && content[cursor] === '\\'; cursor--) {
+    slashCount += 1
+  }
+
+  return slashCount % 2 === 1
+}
+
+const isLikelyInlineMathDelimiter = (content: string, index: number): boolean => {
+  const prevChar = index > 0 ? content[index - 1] : ''
+  const nextChar = index + 1 < content.length ? content[index + 1] : ''
+
+  if (!nextChar || nextChar === '$' || /\s/.test(nextChar)) {
+    return false
+  }
+
+  if (/\d/.test(prevChar) && /\d/.test(nextChar)) {
+    return false
+  }
+
+  return true
+}
+
+const findBlockedStreamTail = (content: string): { start: number; kind: StreamBlockedKind } | null => {
+  if (!content) {
+    return null
+  }
+
+  let fenceStart: number | null = null
+  let inlineCodeStart: number | null = null
+  let mathBlockState: { start: number; closing: '$$' | '\\]' } | null = null
+  let mathInlineState: { start: number; closing: '$' | '\\)' } | null = null
+  let linkUrlStart: number | null = null
+  const linkLabelStarts: number[] = []
+
+  for (let index = 0; index < content.length; index++) {
+    if (fenceStart !== null) {
+      if (content.startsWith('```', index) && !isEscapedCharacter(content, index)) {
+        fenceStart = null
+        index += 2
+      }
+      continue
+    }
+
+    if (inlineCodeStart !== null) {
+      if (content[index] === '`' && !isEscapedCharacter(content, index)) {
+        inlineCodeStart = null
+      }
+      continue
+    }
+
+    if (mathBlockState !== null) {
+      if (mathBlockState.closing === '$$' && content.startsWith('$$', index) && !isEscapedCharacter(content, index)) {
+        mathBlockState = null
+        index += 1
+        continue
+      }
+      if (mathBlockState.closing === '\\]' && content.startsWith('\\]', index) && !isEscapedCharacter(content, index)) {
+        mathBlockState = null
+        index += 1
+        continue
+      }
+      continue
+    }
+
+    if (mathInlineState !== null) {
+      if (mathInlineState.closing === '$' && content[index] === '$' && !isEscapedCharacter(content, index)) {
+        mathInlineState = null
+        continue
+      }
+      if (mathInlineState.closing === '\\)' && content.startsWith('\\)', index) && !isEscapedCharacter(content, index)) {
+        mathInlineState = null
+        index += 1
+        continue
+      }
+      continue
+    }
+
+    if (linkUrlStart !== null) {
+      if (content[index] === ')' && !isEscapedCharacter(content, index)) {
+        linkUrlStart = null
+      }
+      continue
+    }
+
+    if (content.startsWith('```', index) && !isEscapedCharacter(content, index)) {
+      fenceStart = index
+      index += 2
+      continue
+    }
+
+    if (content.startsWith('$$', index) && !isEscapedCharacter(content, index)) {
+      mathBlockState = {
+        start: index,
+        closing: '$$'
+      }
+      index += 1
+      continue
+    }
+
+    if (content.startsWith('\\[', index) && !isEscapedCharacter(content, index)) {
+      mathBlockState = {
+        start: index,
+        closing: '\\]'
+      }
+      index += 1
+      continue
+    }
+
+    if (content.startsWith('\\(', index) && !isEscapedCharacter(content, index)) {
+      mathInlineState = {
+        start: index,
+        closing: '\\)'
+      }
+      index += 1
+      continue
+    }
+
+    if (content[index] === '$' && !isEscapedCharacter(content, index) && isLikelyInlineMathDelimiter(content, index)) {
+      mathInlineState = {
+        start: index,
+        closing: '$'
+      }
+      continue
+    }
+
+    if (content[index] === '`' && !isEscapedCharacter(content, index)) {
+      inlineCodeStart = index
+      continue
+    }
+
+    if (content[index] === '[' && !isEscapedCharacter(content, index)) {
+      linkLabelStarts.push(index)
+      continue
+    }
+
+    if (content[index] === ']' && !isEscapedCharacter(content, index) && linkLabelStarts.length > 0) {
+      const labelStart = linkLabelStarts.pop() ?? index
+      if (content[index + 1] === '(') {
+        linkUrlStart = labelStart
+        index += 1
+      }
+      continue
+    }
+  }
+
+  const blockedCandidates: Array<{ start: number; kind: StreamBlockedKind }> = []
+
+  if (fenceStart !== null) {
+    blockedCandidates.push({start: fenceStart, kind: 'fence'})
+  }
+  if (inlineCodeStart !== null) {
+    blockedCandidates.push({start: inlineCodeStart, kind: 'inline-code'})
+  }
+  if (mathBlockState !== null) {
+    blockedCandidates.push({start: mathBlockState.start, kind: 'math-block'})
+  }
+  if (mathInlineState !== null) {
+    blockedCandidates.push({start: mathInlineState.start, kind: 'math-inline'})
+  }
+  if (linkUrlStart !== null) {
+    blockedCandidates.push({start: linkUrlStart, kind: 'link'})
+  }
+  if (linkLabelStarts.length > 0) {
+    blockedCandidates.push({start: linkLabelStarts[linkLabelStarts.length - 1], kind: 'link'})
+  }
+
+  if (blockedCandidates.length === 0) {
+    return null
+  }
+
+  return blockedCandidates.reduce((earliest, candidate) => {
+    return candidate.start < earliest.start ? candidate : earliest
+  })
+}
+
+const analyzeStreamingTail = (content: string, minimumCommittedLength = 0): StreamTailAnalysis => {
+  const normalizedMinimumCommittedLength = Math.min(
+      Math.max(minimumCommittedLength, 0),
+      content.length
+  )
+  const incrementalTail = content.slice(normalizedMinimumCommittedLength)
+  const blockedTail = findBlockedStreamTail(incrementalTail)
+
+  if (blockedTail) {
+    const blockedStart = normalizedMinimumCommittedLength + blockedTail.start
+    return {
+      committedSource: content.slice(0, blockedStart),
+      visibleTailSource: '',
+      blockedTailSource: content.slice(blockedStart),
+      blockedTailKind: blockedTail.kind
+    }
+  }
+
+  const commitIndex = normalizedMinimumCommittedLength + findSafeStreamingCommitIndex(incrementalTail)
+  return {
+    committedSource: content.slice(0, commitIndex),
+    visibleTailSource: content.slice(commitIndex),
+    blockedTailSource: '',
+    blockedTailKind: null
+  }
+}
+
 const rebuildStreamingState = (content: string) => {
   const nextSourceContent = content || ''
-  const nextCommitIndex = findSafeStreamingCommitIndex(nextSourceContent)
-  const nextCommittedSource = nextSourceContent.slice(0, nextCommitIndex)
-  const nextTailSource = nextSourceContent.slice(nextCommitIndex)
+  const nextStreamState = analyzeStreamingTail(nextSourceContent)
 
-  committedSourceContent.value = nextCommittedSource
-  stableRenderedContent.value = nextCommittedSource ? renderMarkdownContent(nextCommittedSource) : ''
-  tailSourceContent.value = nextTailSource
-  streamTailSegments.value = nextTailSource
-    ? [{id: streamTailSegmentId++, text: nextTailSource}]
+  committedSourceContent.value = nextStreamState.committedSource
+  stableRenderedContent.value = nextStreamState.committedSource
+      ? renderMarkdownContent(nextStreamState.committedSource)
+      : ''
+  tailSourceContent.value = nextStreamState.visibleTailSource
+  blockedTailSourceContent.value = nextStreamState.blockedTailSource
+  blockedTailKind.value = nextStreamState.blockedTailKind
+  streamTailSegments.value = nextStreamState.visibleTailSource
+    ? [{id: streamTailSegmentId++, text: nextStreamState.visibleTailSource}]
     : []
   lastRenderedSourceContent.value = nextSourceContent
 }
@@ -229,33 +506,35 @@ const applyStreamingRenderedContent = (content: string) => {
     return
   }
 
-  const nextCommitIndex = findSafeStreamingCommitIndex(nextSourceContent)
-  const nextCommittedSource = nextSourceContent.slice(0, nextCommitIndex)
-
-  if (!nextCommittedSource.startsWith(committedSourceContent.value)) {
-    rebuildStreamingState(nextSourceContent)
-    return
-  }
+  // Keep the committed prefix monotonic to avoid rendered markdown regressing back to raw source.
+  const nextStreamState = analyzeStreamingTail(nextSourceContent, committedSourceContent.value.length)
+  const nextCommittedSource = nextStreamState.committedSource
 
   if (nextCommittedSource !== committedSourceContent.value) {
     committedSourceContent.value = nextCommittedSource
     stableRenderedContent.value = renderMarkdownContent(nextCommittedSource)
+  }
 
-    const nextTailSource = nextSourceContent.slice(nextCommitIndex)
-    if (nextTailSource.startsWith(tailSourceContent.value)) {
-      appendStreamTailSegment(nextTailSource.slice(tailSourceContent.value.length))
-    } else {
-      tailSourceContent.value = nextTailSource
-      streamTailSegments.value = nextTailSource
-        ? [{id: streamTailSegmentId++, text: nextTailSource}]
-        : []
-    }
+  blockedTailSourceContent.value = nextStreamState.blockedTailSource
+  blockedTailKind.value = nextStreamState.blockedTailKind
 
+  if (nextStreamState.blockedTailSource) {
+    tailSourceContent.value = ''
+    streamTailSegments.value = []
     lastRenderedSourceContent.value = nextSourceContent
     return
   }
 
-  appendStreamTailSegment(nextSourceContent.slice(lastRenderedSourceContent.value.length))
+  if (!nextStreamState.visibleTailSource.startsWith(tailSourceContent.value)) {
+    tailSourceContent.value = nextStreamState.visibleTailSource
+    streamTailSegments.value = nextStreamState.visibleTailSource
+      ? [{id: streamTailSegmentId++, text: nextStreamState.visibleTailSource}]
+      : []
+    lastRenderedSourceContent.value = nextSourceContent
+    return
+  }
+
+  appendStreamTailSegment(nextStreamState.visibleTailSource.slice(tailSourceContent.value.length))
   lastRenderedSourceContent.value = nextSourceContent
 }
 
@@ -414,8 +693,8 @@ onUnmounted(() => {
     ul,
     ol,
     blockquote,
-    table,
-    pre {
+    pre,
+    .markdown-table-wrapper {
       margin-top: 0;
       margin-bottom: 1em;
     }
@@ -673,13 +952,24 @@ onUnmounted(() => {
       }
     }
 
+    .markdown-table-wrapper {
+      display: inline-block;
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      vertical-align: top;
+      -webkit-overflow-scrolling: touch;
+    }
+
     table {
-      width: 100%;
+      width: max-content;
+      max-width: none;
       border-collapse: collapse;
       border: 1px solid var(--markdown-table-border);
       background-color: var(--markdown-bg-color);
       border-radius: 14px;
       overflow: hidden;
+      table-layout: auto;
     }
 
     th,
@@ -708,7 +998,11 @@ onUnmounted(() => {
     }
 
     .markdown-stream-stable {
-      display: contents;
+      display: block;
+
+      > :last-child {
+        animation: stream-stable-reveal 0.24s ease-out;
+      }
     }
 
     .markdown-stream-tail {
@@ -717,6 +1011,87 @@ onUnmounted(() => {
       word-break: break-word;
       overflow-wrap: anywhere;
       animation: stream-tail-fade-in 0.18s ease-out;
+    }
+
+    .markdown-stream-placeholder {
+      position: relative;
+      overflow: hidden;
+
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          90deg,
+          transparent 0%,
+          rgba(255, 255, 255, 0.22) 45%,
+          transparent 100%
+        );
+        transform: translateX(-140%);
+        animation: stream-placeholder-shimmer 1.35s ease-in-out infinite;
+        pointer-events: none;
+      }
+
+      &--inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: 6px;
+        padding: 0.14em 0;
+        vertical-align: middle;
+      }
+
+      &--block {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: min(360px, 100%);
+        margin-bottom: 1em;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.05);
+        animation: stream-stable-reveal 0.24s ease-out;
+      }
+    }
+
+    .markdown-stream-placeholder__chip,
+    .markdown-stream-placeholder__line {
+      display: block;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.18);
+      animation: stream-placeholder-breathe 1.6s ease-in-out infinite;
+    }
+
+    .markdown-stream-placeholder__chip {
+      height: 0.86em;
+
+      &--long {
+        width: 84px;
+      }
+
+      &--medium {
+        width: 56px;
+      }
+
+      &--short {
+        width: 34px;
+      }
+    }
+
+    .markdown-stream-placeholder__line {
+      height: 10px;
+
+      &--short {
+        width: 28%;
+      }
+
+      &--long {
+        width: 92%;
+      }
+
+      &--medium {
+        width: 68%;
+      }
     }
 
     .markdown-alert {
@@ -820,6 +1195,42 @@ onUnmounted(() => {
   to {
     opacity: 1;
     filter: blur(0);
+  }
+}
+
+@keyframes stream-stable-reveal {
+  from {
+    opacity: 0.58;
+    transform: translateY(4px);
+    filter: blur(1px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes stream-placeholder-shimmer {
+  0% {
+    transform: translateX(-140%);
+  }
+
+  100% {
+    transform: translateX(180%);
+  }
+}
+
+@keyframes stream-placeholder-breathe {
+  0%, 100% {
+    opacity: 0.62;
+    transform: scaleX(0.98);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scaleX(1);
   }
 }
 </style>

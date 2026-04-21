@@ -1,7 +1,11 @@
-﻿import {onUnmounted, ref} from 'vue'
+import {onUnmounted, ref} from 'vue'
 import type {ChatMessage} from '@/types/celestialHub/chatMessage'
 
 type ScrollMode = 'sync' | 'settled'
+
+const AUTO_SCROLL_THRESHOLD = 96
+const SMOOTH_FOLLOW_GUARD_THRESHOLD = 180
+const SMOOTH_FOLLOW_GUARD_MS = 220
 
 export function useChatScroll() {
     const chatContentRef = ref<HTMLElement | null>(null)
@@ -9,18 +13,30 @@ export function useChatScroll() {
     isAutoScroll.value = true
     let messagesWrapperEl: HTMLElement | null = null
     let settleScrollTimers: number[] = []
+    let smoothFollowGuardUntil = 0
+
+    const getDistanceFromBottom = (el: HTMLElement) => {
+        return el.scrollHeight - el.scrollTop - el.clientHeight
+    }
 
     const isNearBottom = (el: HTMLElement) => {
-        const threshold = 12
-        const distance = el.scrollHeight - el.scrollTop - el.clientHeight
-        return distance <= threshold
+        return getDistanceFromBottom(el) <= AUTO_SCROLL_THRESHOLD
     }
 
     const handleWrapperScroll = () => {
         if (!messagesWrapperEl) {
             return
         }
-        isAutoScroll.value = isNearBottom(messagesWrapperEl)
+
+        const distance = getDistanceFromBottom(messagesWrapperEl)
+
+        // 平滑自动跟随过程中，给一点缓冲，避免滚动动画尚未追到底部时被误判为用户已离开底部。
+        if (Date.now() < smoothFollowGuardUntil && distance <= SMOOTH_FOLLOW_GUARD_THRESHOLD) {
+            isAutoScroll.value = true
+            return
+        }
+
+        isAutoScroll.value = distance <= AUTO_SCROLL_THRESHOLD
     }
 
     const ensureScrollListener = () => {
@@ -44,12 +60,25 @@ export function useChatScroll() {
         settleScrollTimers = []
     }
 
+    const scrollContainerToBottom = (container: HTMLElement, mode: ScrollMode, force = false) => {
+        const behavior: ScrollBehavior = mode === 'sync' && !force ? 'smooth' : 'auto'
+
+        if (behavior === 'smooth') {
+            smoothFollowGuardUntil = Date.now() + SMOOTH_FOLLOW_GUARD_MS
+        }
+
+        container.scrollTo({
+            top: container.scrollHeight,
+            behavior
+        })
+    }
+
     const applyBottomScroll = (container: HTMLElement, mode: ScrollMode, force = false) => {
-        container.scrollTop = container.scrollHeight
+        scrollContainerToBottom(container, mode, force)
 
         requestAnimationFrame(() => {
             if (force || isAutoScroll.value !== false) {
-                container.scrollTop = container.scrollHeight
+                scrollContainerToBottom(container, mode, force)
             }
         })
 
@@ -61,7 +90,7 @@ export function useChatScroll() {
         ;[96, 240].forEach((delay) => {
             const timerId = window.setTimeout(() => {
                 if (force || isAutoScroll.value !== false) {
-                    container.scrollTop = container.scrollHeight
+                    scrollContainerToBottom(container, mode, force)
                 }
             }, delay)
             settleScrollTimers.push(timerId)
@@ -147,6 +176,7 @@ export function useChatScroll() {
     // 切换会话时重置滚动状态，避免持有旧的 DOM 引用。
     const resetScrollState = () => {
         clearSettleScrollTimers()
+        smoothFollowGuardUntil = 0
         if (messagesWrapperEl) {
             messagesWrapperEl.removeEventListener('scroll', handleWrapperScroll)
             messagesWrapperEl = null
@@ -156,6 +186,7 @@ export function useChatScroll() {
 
     onUnmounted(() => {
         clearSettleScrollTimers()
+        smoothFollowGuardUntil = 0
         if (messagesWrapperEl) {
             messagesWrapperEl.removeEventListener('scroll', handleWrapperScroll)
             messagesWrapperEl = null

@@ -19,7 +19,7 @@ export function getDefaultLiveRoomCreateDTO(): Partial<LiveRoomCreateDTO> {
     return {
         courseId: null,
         maxParticipants: null,
-        recordingEnabled: 0
+        recordingEnabled: 1
     }
 }
 
@@ -105,6 +105,13 @@ export function startRecording(id: string) {
  */
 export function stopRecording(id: string) {
     return http.post<LiveRoomVO>(`/live/live-room/${id}/record/stop`)
+}
+
+/**
+ * 废弃最后一次直播录制
+ */
+export function discardLiveRoomRecording(id: string) {
+    return http.post<LiveRoomVO>(`/live/live-room/${id}/record/discard`)
 }
 
 /**

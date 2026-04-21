@@ -57,12 +57,11 @@
             :microphone-enabled="context.microphoneEnabled.value"
             :recording-loading="context.recordingLoading.value"
             :screen-share-enabled="context.screenShareEnabled.value"
-            :show-recording="true"
+            :show-recording="false"
             :speaker-volume="speakerVolumeValue"
             @toggle-camera="handleToggleCamera"
             @toggle-microphone="handleToggleMicrophone"
             @toggle-screen-share="handleToggleScreenShare"
-            @toggle-recording="handleToggleRecording"
             @update-speaker-volume="handleSpeakerVolumeChange"
             @raise-hand="handleRaiseHand"
         />
@@ -160,10 +159,6 @@ const handleToggleMicrophone = () => {
 
 const handleToggleScreenShare = () => {
   context.handleToggleScreenShare()
-}
-
-const handleToggleRecording = () => {
-  context.handleToggleRecording()
 }
 
 const handleSpeakerVolumeChange = (value: number) => {

@@ -154,6 +154,38 @@ export interface LiveRoomChatMessage {
 }
 
 /**
+ * 直播聊天总结消息上下文
+ */
+export interface LiveChatSummaryMessagePayload {
+    /** 消息ID */
+    id: string | null
+    /** 发送者 */
+    sender: string | null
+    /** 消息内容 */
+    content: string | null
+    /** 时间戳 */
+    timestamp: string | null
+    /** 是否是本人发送的消息 */
+    isOwn: boolean | null
+}
+
+/**
+ * 直播聊天总结请求上下文
+ */
+export interface LiveChatSummaryRequestPayload {
+    /** 直播房间ID */
+    roomId: string | null
+    /** 课堂记录ID */
+    classroomId: string | null
+    /** 课程ID */
+    courseId: string | null
+    /** 总结类型 */
+    summaryType: 'brief' | 'detail' | 'questions' | 'actions' | 'teacher_review'
+    /** 消息列表 */
+    messages: LiveChatSummaryMessagePayload[]
+}
+
+/**
  * 远程参与者媒体信息
  */
 export interface RemoteParticipantMedia {

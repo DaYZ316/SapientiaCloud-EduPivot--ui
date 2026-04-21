@@ -1,6 +1,10 @@
 <template>
   <div class="classroom-3d-container">
     <canvas ref="canvasRef" class="webgl_7"></canvas>
+    <ClassroomLiveChatPanel
+        :classroom-id="route.params.courseRecordId as string || null"
+        :course-id="route.params.courseId as string || null"
+    />
     <ClassroomToolbox :items="toolboxItems"/>
     <ChapterPanel :course-id="route.params.courseId as string || null" :show="showChapterPanel ?? false"
                   @close="closeChapterPanel"/>
@@ -60,6 +64,7 @@ import {
 } from '@/api/classroom/courseRecordStudent';
 import StudentInfoPopup from './StudentInfoPopup.vue';
 import ClassroomToolbox from './ClassroomToolbox.vue';
+import ClassroomLiveChatPanel from './ClassroomLiveChatPanel.vue';
 import QuestionPanel from './QuestionPanel.vue';
 import ChapterPanel from './ChapterPanel.vue';
 import PracticePanel from './PracticePanel.vue';

@@ -35,18 +35,6 @@
             />
           </n-form-item>
         </n-gi>
-        <n-gi>
-          <n-form-item :label="t('live.form.recordingEnabled')" path="recordingEnabled">
-            <n-switch
-                v-model:value="formData.recordingEnabled"
-                :checked-value="1"
-                :unchecked-value="0"
-            >
-              <template #checked>{{ t('live.form.recordingEnabledOn') }}</template>
-              <template #unchecked>{{ t('live.form.recordingEnabledOff') }}</template>
-            </n-switch>
-          </n-form-item>
-        </n-gi>
       </n-grid>
       <div v-if="!courseRecordId" class="form-hint">
         <n-alert :title="t('live.form.courseRecordMissing')" type="warning">
@@ -66,7 +54,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, ref, watch} from 'vue'
+import {ref, watch} from 'vue'
 import type {FormInst, FormRules} from 'naive-ui'
 import type * as liveType from '@/types/live'
 import {useI18n} from 'vue-i18n'
@@ -103,16 +91,6 @@ const formRules: FormRules = {
   ]
 }
 
-const normalizedRecording = computed(() => {
-  if (!props.liveRoom) {
-    return 0
-  }
-  if (props.liveRoom.recordingEnabled === null || props.liveRoom.recordingEnabled === undefined) {
-    return 0
-  }
-  return props.liveRoom.recordingEnabled
-})
-
 watch(
     () => props.liveRoom,
     (room) => {
@@ -123,7 +101,7 @@ watch(
           roomName: defaultData.roomName ?? null,
           courseId: props.courseId,
           classroomId: props.courseRecordId,
-          recordingEnabled: defaultData.recordingEnabled ?? 0
+          recordingEnabled: 1
         }
         return
       }
@@ -131,7 +109,7 @@ watch(
       formData.value.courseId = room.courseId ?? props.courseId ?? null
       formData.value.classroomId = props.courseRecordId
       formData.value.maxParticipants = room.maxParticipants ?? null
-      formData.value.recordingEnabled = normalizedRecording.value
+      formData.value.recordingEnabled = 1
     },
     {immediate: true}
 )
@@ -149,7 +127,7 @@ async function handleSubmit() {
       courseId: props.courseId,
       classroomId: props.courseRecordId,
       maxParticipants: formData.value.maxParticipants ?? null,
-      recordingEnabled: formData.value.recordingEnabled ?? 0
+      recordingEnabled: 1
     }
 
     return liveApi.createLiveRoom(submitData).then((response) => {
@@ -168,19 +146,19 @@ async function handleSubmit() {
 function handleReset() {
   if (!props.liveRoom) {
     const defaultData = liveApi.getDefaultLiveRoomCreateDTO()
-    formData.value = {
-      ...defaultData,
-      roomName: defaultData.roomName ?? null,
-      courseId: props.courseId,
-      classroomId: props.courseRecordId,
-      recordingEnabled: defaultData.recordingEnabled ?? 0
+      formData.value = {
+        ...defaultData,
+        roomName: defaultData.roomName ?? null,
+        courseId: props.courseId,
+        classroomId: props.courseRecordId,
+        recordingEnabled: 1
+      }
+      formRef.value?.restoreValidation()
+      return
     }
-    formRef.value?.restoreValidation()
-    return
-  }
   formData.value.roomName = props.liveRoom.roomName
   formData.value.maxParticipants = props.liveRoom.maxParticipants ?? null
-  formData.value.recordingEnabled = normalizedRecording.value
+  formData.value.recordingEnabled = 1
   formRef.value?.restoreValidation()
 }
 </script>

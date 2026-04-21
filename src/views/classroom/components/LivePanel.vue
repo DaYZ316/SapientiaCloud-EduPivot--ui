@@ -52,6 +52,18 @@
               <span
                   :class="['live-panel__status-badge', getStatusClass(room.status)]">{{ getStatusLabel(room.status) }}</span>
             </div>
+            <div v-if="courseRecord?.startTime" class="room-row"><strong>{{ t('live.panel.courseStartTime') }}</strong> {{
+              formatLiveTime(courseRecord.startTime) }}
+            </div>
+            <div v-if="courseRecord?.overTime" class="room-row"><strong>{{ t('live.panel.courseEndTime') }}</strong> {{
+              formatLiveTime(courseRecord.overTime) }}
+            </div>
+            <div v-if="liveStartAllowedAt" class="room-row"><strong>{{ t('live.panel.liveStartAllowedAt') }}</strong> {{
+              formatLiveTime(liveStartAllowedAt) }}
+            </div>
+            <div v-if="liveAutoEndAt" class="room-row"><strong>{{ t('live.panel.liveAutoEndAt') }}</strong> {{
+              formatLiveTime(liveAutoEndAt) }}
+            </div>
             <div v-if="room.startTime" class="room-row"><strong>{{ t('live.panel.startTime') }}</strong> {{
               formatLiveTime(room.startTime) }}
             </div>
@@ -94,13 +106,16 @@
                   <NButton :loading="endingLoading" type="warning" @click="endLive">{{ t('live.room.stop') }}</NButton>
                 </template>
                 <template v-else-if="room">
-                  <NButton :loading="startingLoading" type="success" @click="startLive">{{ t('live.room.start') }}
+                  <NButton :disabled="!canStartLive" :loading="startingLoading" type="success" @click="startLive">{{ t('live.room.start') }}
                   </NButton>
                 </template>
               </template>
             </div>
 
-            <div v-if="!room" class="live-panel__action-tip">
+            <div v-if="startWindowTip" class="live-panel__action-tip">
+              {{ startWindowTip }}
+            </div>
+            <div v-else-if="!room" class="live-panel__action-tip">
               {{ isTeacher ? t('live.panel.noRoom') : t('classroom.waitingForTeacher') }}
             </div>
           </div>
@@ -123,15 +138,19 @@ import {useUserStore} from '@/store/modules/user';
 import {useErrorHandler} from '@/views/live/LiveRoom/composables/useErrorHandler';
 import {getGlobalApis} from '@/utils/naiveUIHelper';
 import {
+  discardLiveRoomRecording,
   getLatestLiveRoom,
+  getLiveRoomById,
   endLiveRoom,
   startLiveRoom,
   issueLiveRoomToken
 } from '@/api/live/liveRoom';
+import {getCourseRecordById} from '@/api/classroom/courseRecord';
 import {getStudentSeat} from '@/api/classroom/courseRecordStudent';
 import {getCourseById} from '@/api/course/course';
 import type {LiveRoomVO} from '@/types/live';
 import type {CourseVO} from '@/types/course';
+import type {CourseRecordVO} from '@/types/classroom';
 import {useLivePiPStore} from '@/store';
 
 const props = defineProps<{ show: boolean; classroomId: string | null; courseId?: string | null }>();
@@ -145,6 +164,7 @@ const loading = ref<boolean | null>(null);
 const ending = ref<boolean | null>(null);
 const room = ref<LiveRoomVO | null>(null);
 const courseInfo = ref<CourseVO | null>(null);
+const courseRecord = ref<CourseRecordVO | null>(null);
 const isTeacher = computed(() => {
   return userStore.hasRole && (userStore.hasRole('TEACHER') || userStore.hasRole('ADMIN'));
 });
@@ -158,6 +178,11 @@ const errorHandler = useErrorHandler();
 const joiningLoading = computed(() => Boolean(joining.value));
 const endingLoading = computed(() => Boolean(ending.value));
 const startingLoading = computed(() => Boolean(starting.value));
+const LIVE_START_ADVANCE_MS = 10 * 60 * 1000;
+const LIVE_END_GRACE_MS = 10 * 60 * 1000;
+const RECORDING_READY_POLL_MS = 3000;
+const RECORDING_READY_MAX_RETRY = 20;
+let recordingDecisionTimer: number | null = null;
 
 const formatLiveTime = (time: string | null | undefined): string => {
   if (!time) {
@@ -194,6 +219,69 @@ const formatLiveTime = (time: string | null | undefined): string => {
   return `${values.year}-${values.month}-${values.day} ${values.hour}:${values.minute}:${values.second}`;
 };
 
+const parseLiveTime = (time: string | null | undefined): Date | null => {
+  if (!time) {
+    return null;
+  }
+
+  const raw = String(time).trim();
+  const withT = raw.includes('T') ? raw : raw.replace(' ', 'T');
+  const hasTimezone = /([zZ]|[+\-]\d{2}:\d{2})$/.test(withT);
+  const parsedDate = new Date(hasTimezone ? withT : `${withT}+08:00`);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return null;
+  }
+
+  return parsedDate;
+};
+
+const liveStartAllowedAt = computed<string | null>(() => {
+  const startTime = parseLiveTime(courseRecord.value?.startTime ?? null);
+  return startTime ? new Date(startTime.getTime() - LIVE_START_ADVANCE_MS).toISOString() : null;
+});
+
+const liveAutoEndAt = computed<string | null>(() => {
+  const overTime = parseLiveTime(courseRecord.value?.overTime ?? null);
+  return overTime ? new Date(overTime.getTime() + LIVE_END_GRACE_MS).toISOString() : null;
+});
+
+const canStartLive = computed(() => {
+  if (!room.value || !courseRecord.value) {
+    return false;
+  }
+
+  const earliestStart = parseLiveTime(liveStartAllowedAt.value);
+  const latestEnd = parseLiveTime(liveAutoEndAt.value);
+  if (!earliestStart || !latestEnd) {
+    return false;
+  }
+
+  const now = Date.now();
+  return now >= earliestStart.getTime() && now <= latestEnd.getTime();
+});
+
+const startWindowTip = computed(() => {
+  if (!room.value || room.value.status === LiveRoomStatusEnum.LIVE) {
+    return '';
+  }
+
+  const earliestStart = parseLiveTime(liveStartAllowedAt.value);
+  const latestEnd = parseLiveTime(liveAutoEndAt.value);
+  if (!earliestStart || !latestEnd) {
+    return '';
+  }
+
+  const now = Date.now();
+  if (now < earliestStart.getTime()) {
+    return t('live.panel.startTooEarlyTip', {time: formatLiveTime(liveStartAllowedAt.value)});
+  }
+  if (now > latestEnd.getTime()) {
+    return t('live.panel.liveWindowExpiredTip', {time: formatLiveTime(liveAutoEndAt.value)});
+  }
+  return t('live.panel.liveAutoEndTip', {time: formatLiveTime(liveAutoEndAt.value)});
+});
+
 watch(() => props.show, async (val) => {
   if (val) {
     await loadRoom();
@@ -210,6 +298,7 @@ async function loadRoom() {
   loading.value = true;
   room.value = null;
   try {
+    await loadCourseRecord();
     const res: any = await getLatestLiveRoom(props.courseId ?? null, props.classroomId ?? null);
     const data = res?.data ?? null;
 
@@ -237,6 +326,17 @@ async function loadRoom() {
   }
 }
 
+async function loadCourseRecord() {
+  const recordId = props.classroomId ?? null;
+  if (!recordId) {
+    courseRecord.value = null;
+    return;
+  }
+
+  const res: any = await getCourseRecordById(recordId).catch(() => null);
+  courseRecord.value = res?.data ?? null;
+}
+
 async function onCreateSuccess() {
   await loadRoom();
 }
@@ -256,9 +356,14 @@ async function loadCourse(courseId: string) {
 
 async function endLive() {
   if (!room.value || !room.value.id) return;
+  const roomId = room.value.id;
   ending.value = true;
-  await endLiveRoom(room.value.id).then(async () => {
+  await endLiveRoom(roomId).then(async (res: any) => {
     await loadRoom();
+    const endedRoom = res?.data ?? null;
+    if (endedRoom?.recordingEnabled === 1) {
+      scheduleRecordingDecision(roomId, 0);
+    }
   }).catch((error) => {
     errorHandler.handleError(error, 'end_live', {
       showNotification: true,
@@ -267,6 +372,106 @@ async function endLive() {
     });
   }).finally(() => {
     ending.value = false;
+  });
+}
+
+function scheduleRecordingDecision(roomId: string, attempt: number) {
+  stopRecordingDecisionPolling();
+  recordingDecisionTimer = window.setTimeout(() => {
+    void checkRecordingDecision(roomId, attempt);
+  }, attempt === 0 ? 1200 : RECORDING_READY_POLL_MS);
+}
+
+async function checkRecordingDecision(roomId: string, attempt: number) {
+  await getLiveRoomById(roomId).then(async (res: any) => {
+    const latestRoom = res?.data ?? null;
+    if (!latestRoom || latestRoom.id !== roomId) {
+      return;
+    }
+    room.value = latestRoom;
+    const recordingUrl = latestRoom.recordingAssetUrl ?? null;
+    if (!recordingUrl) {
+      return;
+    }
+    const ready = await isRecordingReady(recordingUrl);
+    if (ready) {
+      stopRecordingDecisionPolling();
+      openRecordingDecisionDialog(roomId, recordingUrl);
+      return;
+    }
+    if (attempt + 1 < RECORDING_READY_MAX_RETRY) {
+      scheduleRecordingDecision(roomId, attempt + 1);
+    }
+  }, () => {
+    if (attempt + 1 < RECORDING_READY_MAX_RETRY) {
+      scheduleRecordingDecision(roomId, attempt + 1);
+    }
+  });
+}
+
+function isRecordingReady(recordingUrl: string): Promise<boolean> {
+  return fetch(recordingUrl, {
+    method: 'HEAD',
+    cache: 'no-store'
+  }).then((response) => {
+    return response.ok;
+  }, () => {
+    return false;
+  });
+}
+
+function openRecordingDecisionDialog(roomId: string, recordingUrl: string) {
+  const {dialog, message} = getGlobalApis();
+  if (!dialog) {
+    startRecordingDownload(recordingUrl);
+    if (message) {
+      message.success(t('live.panel.recordingDownloadStarted'));
+    }
+    return;
+  }
+
+  dialog.warning({
+    title: t('live.panel.recordingDecisionTitle'),
+    content: t('live.panel.recordingDecisionContent'),
+    positiveText: t('live.panel.recordingSave'),
+    negativeText: t('live.panel.recordingDiscard'),
+    closable: false,
+    maskClosable: false,
+    onPositiveClick: () => {
+      startRecordingDownload(recordingUrl);
+      if (message) {
+        message.success(t('live.panel.recordingDownloadStarted'));
+      }
+    },
+    onNegativeClick: () => {
+      void discardRecording(roomId);
+    }
+  });
+}
+
+function startRecordingDownload(recordingUrl: string) {
+  const link = document.createElement('a');
+  link.href = recordingUrl;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.download = '';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+async function discardRecording(roomId: string) {
+  const {message} = getGlobalApis();
+  await discardLiveRoomRecording(roomId).then(async () => {
+    await loadRoom();
+    if (message) {
+      message.success(t('live.panel.recordingDiscarded'));
+    }
+  }).catch((error) => {
+    errorHandler.handleError(error, 'discard_recording', {
+      showNotification: true,
+      customMessage: t('live.panel.recordingDiscardFailed')
+    });
   });
 }
 
@@ -350,6 +555,13 @@ async function joinLive() {
 
 async function startLive() {
   if (!room.value || !room.value.id) return;
+  if (!canStartLive.value) {
+    const {message} = getGlobalApis();
+    if (message && startWindowTip.value) {
+      message.warning(startWindowTip.value);
+    }
+    return;
+  }
   starting.value = true;
 
   await startLiveRoom(room.value.id).then(async () => {
@@ -391,6 +603,12 @@ function startStatusPolling() {
   statusPollingTimer = window.setInterval(async () => {
     if (props.classroomId) {
       await loadRoom();
+      if (room.value?.status === LiveRoomStatusEnum.LIVE && liveAutoEndAt.value) {
+        const latestEnd = parseLiveTime(liveAutoEndAt.value);
+        if (latestEnd && Date.now() > latestEnd.getTime() && !ending.value) {
+          await endLive();
+        }
+      }
     }
   }, 10000);
 }
@@ -402,8 +620,16 @@ function stopStatusPolling() {
   }
 }
 
+function stopRecordingDecisionPolling() {
+  if (recordingDecisionTimer) {
+    clearTimeout(recordingDecisionTimer);
+    recordingDecisionTimer = null;
+  }
+}
+
 onBeforeUnmount(() => {
   stopStatusPolling();
+  stopRecordingDecisionPolling();
 });
 </script>
 

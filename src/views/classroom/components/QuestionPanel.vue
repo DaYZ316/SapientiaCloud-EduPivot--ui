@@ -165,9 +165,17 @@
                 <div class="question-item__tag">{{ questionTypeText(question.questionType) }}</div>
               </div>
               <div class="question-item__header">
-                <div class="question-item__title is-clamped">{{ question.questionTitle }}</div>
+                <QuestionExplanationRenderer
+                  class="question-item__title is-clamped"
+                  :content="question.questionTitle || ''"
+                  auto-wrap-bare-latex
+              />
               </div>
-              <div class="question-item__content is-clamped-desc" v-html="question.questionContent || '暂无内容'"></div>
+              <QuestionExplanationRenderer
+                  class="question-item__content is-clamped-desc"
+                  :content="question.questionContent || '\u6682\u65e0\u5185\u5bb9'"
+                  auto-wrap-bare-latex
+              />
               <div class="question-item__meta">
                 <span>难度：{{ difficultyText(question.difficulty) }}</span>
                 <span>分值：{{ question.score ?? 0 }}</span>
@@ -185,7 +193,11 @@
         <div v-if="selectedQuestion" class="question-panel__detail">
           <div class="question-detail__header">
             <div class="question-detail__head-main">
-              <div class="question-detail__title">{{ selectedQuestion.questionTitle }}</div>
+              <QuestionExplanationRenderer
+                class="question-detail__title"
+                :content="selectedQuestion.questionTitle || ''"
+                auto-wrap-bare-latex
+            />
             </div>
             <div class="question-detail__meta">
               <span>{{ questionTypeText(selectedQuestion.questionType) }}</span>
@@ -193,7 +205,11 @@
               <span>分值：{{ selectedQuestion.score ?? 0 }}</span>
             </div>
           </div>
-          <div class="question-detail__content" v-html="selectedQuestion.questionContent || '暂无内容'"></div>
+          <QuestionExplanationRenderer
+            class="question-detail__content"
+            :content="selectedQuestion.questionContent || '\u6682\u65e0\u5185\u5bb9'"
+            auto-wrap-bare-latex
+        />
           <div v-if="hasOptions" class="question-detail__options">
             <div class="question-detail__section-title">选项</div>
             <div class="question-detail__option-list">
@@ -205,7 +221,11 @@
               >
                 <div class="option-item__main">
                   <span class="option-item__label">{{ getOptionLabel(option, optionIndex) }}</span>
-                  <div class="option-item__content" v-html="option.optionContent || '暂无内容'"></div>
+                  <QuestionExplanationRenderer
+                      class="option-item__content"
+                      :content="option.optionContent || '\u6682\u65e0\u5185\u5bb9'"
+                      auto-wrap-bare-latex
+                  />
                   <div
                       v-if="showAnswers && option.score !== null && option.score !== undefined"
                       class="option-item__score"
@@ -213,9 +233,12 @@
                     {{ option.score }} 分
                   </div>
                 </div>
-                <div v-if="showAnswers && option.explanation" class="option-item__explanation">
-                  {{ option.explanation }}
-                </div>
+                <QuestionExplanationRenderer
+                    v-if="showAnswers && option.explanation"
+                    class="option-item__explanation"
+                    :content="option.explanation"
+                    auto-wrap-bare-latex
+                />
               </div>
             </div>
           </div>
@@ -229,7 +252,12 @@
               >
                 <div class="answer-item__main">
                   <span class="answer-item__index">#{{ answer.sortOrder ?? answerIndex + 1 }}</span>
-                  <div class="answer-item__content" v-html="answer.answerContent || '暂无答案'"></div>
+                  <QuestionExplanationRenderer
+                      class="answer-item__content"
+                      :content="answer.answerContent || '\u6682\u65e0\u7b54\u6848'"
+                      auto-wrap-bare-latex
+                      variant="answer"
+                  />
                   <div
                       v-if="answer.score !== null && answer.score !== undefined"
                       class="answer-item__score"
@@ -237,9 +265,12 @@
                     {{ answer.score }} 分
                   </div>
                 </div>
-                <div v-if="answer.explanation" class="answer-item__explanation">
-                  {{ answer.explanation }}
-                </div>
+                <QuestionExplanationRenderer
+                    v-if="answer.explanation"
+                    class="answer-item__explanation"
+                    :content="answer.explanation"
+                    auto-wrap-bare-latex
+                />
               </div>
             </div>
           </div>
@@ -267,6 +298,7 @@ import {
 import type {ClassroomQuestionDTO, ClassroomQuestionVO} from '@/types/classroom';
 import {IsRequiredEnum, isRequiredOptions} from '@/enum/classroom';
 import {getQuestionTypeLabel} from '@/enum/course/questionTypeEnum';
+import QuestionExplanationRenderer from '@/components/common/QuestionExplanationRenderer.vue';
 
 const props = defineProps<{
   show: boolean;
@@ -1120,6 +1152,18 @@ watch(() => props.classroomId, (val) => {
   overflow: hidden;
 }
 
+
+
+.question-item__title,
+.question-item__content {
+  :deep(.markdown-renderer),
+  :deep(.markdown-body.custom-markdown),
+  :deep(.markdown-body.custom-markdown > p) {
+    display: inline;
+    margin: 0;
+  }
+}
+
 .question-item__meta {
   font-size: 12px;
   color: var(--text-secondary-color);
@@ -1367,16 +1411,34 @@ watch(() => props.classroomId, (val) => {
   line-height: 1.5;
 }
 
+.answer-item__explanation {
+  font-size: 12px;
+  color: var(--text-secondary-color);
+  line-height: 1.5;
+}
+
 .answer-item__score {
   font-size: 12px;
   color: var(--text-secondary-color);
   white-space: nowrap;
 }
 
+
+
+.question-item__title,
+.question-item__content,
+.question-detail__title,
+.question-detail__content,
+.option-item__content,
+.option-item__explanation,
+.answer-item__content,
 .answer-item__explanation {
-  font-size: 12px;
-  color: var(--text-secondary-color);
-  line-height: 1.5;
+  --question-renderer-font-family: inherit;
+  --question-renderer-font-size: inherit;
+  --question-renderer-line-height: inherit;
+  --question-renderer-letter-spacing: inherit;
+  --question-renderer-font-weight: inherit;
+  --question-renderer-text-color: inherit;
 }
 
 .question-panel__placeholder {

@@ -25,7 +25,11 @@
           >
             <div class="practice-sidebar__order">#{{ card.practice.publishOrder }}</div>
             <div class="practice-sidebar__title">
-              {{ card.practice.questionTitle || t('classroom.practicePanel.defaultQuestionTitle') }}
+              <QuestionExplanationRenderer
+                  class="practice-sidebar__title-renderer"
+                  :content="card.practice.questionTitle || t('classroom.practicePanel.defaultQuestionTitle')"
+                  auto-wrap-bare-latex
+              />
             </div>
           </div>
           <div v-if="loadingMore" class="practice-panel__loading-more">
@@ -41,7 +45,11 @@
               <div class="practice-card__title-wrapper">
                 <span class="practice-card__number">{{ activeCard.practice.publishOrder }}.</span>
                 <div class="practice-card__title">
-                  {{ activeCard.question?.questionTitle || t('classroom.practicePanel.defaultQuestionTitle') }}
+                  <QuestionExplanationRenderer
+                      class="practice-card__title-renderer"
+                      :content="activeCard.question?.questionTitle || t('classroom.practicePanel.defaultQuestionTitle')"
+                      auto-wrap-bare-latex
+                  />
                 </div>
                 <NTag :type="activeCard.practice.isRequired === IsRequiredEnum.REQUIRED ? 'success' : 'default'"
                       round size="small">
@@ -59,8 +67,13 @@
                 <span class="practice-card__info-item">分值:{{ activeCard.question.score ?? 0 }}</span>
               </div>
             </div>
-            <div class="practice-card__content"
-                 v-html="activeCard.question?.questionContent || t('classroom.practicePanel.noContent')"></div>
+            <div class="practice-card__content">
+              <QuestionExplanationRenderer
+                  class="practice-card__content-renderer"
+                  :content="activeCard.question?.questionContent || t('classroom.practicePanel.noContent')"
+                  auto-wrap-bare-latex
+              />
+            </div>
             <div v-if="activeCard.question" class="practice-card__answer">
               <template v-if="isSingle(activeCard.question.questionType)">
                 <template v-if="isAdminOrTeacher">
@@ -71,9 +84,19 @@
                   >
                     <div class="practice-option__row">
                       <span class="practice-option__label">{{ option.optionLabel }}</span>
-                      <span class="practice-option__content" v-html="option.optionContent || '选项'"></span>
+                      <QuestionExplanationRenderer
+                          class="practice-option__content"
+                          :content="option.optionContent || '\u9009\u9879'"
+                          auto-wrap-bare-latex
+                      />
                     </div>
-                    <div v-if="option.explanation" class="practice-option__explanation">{{ option.explanation }}</div>
+                    <div v-if="option.explanation" class="practice-option__explanation">
+                      <QuestionExplanationRenderer
+                          class="practice-option__explanation-renderer"
+                          :content="option.explanation"
+                          auto-wrap-bare-latex
+                      />
+                    </div>
                   </div>
                 </template>
                 <template v-else>
@@ -90,7 +113,11 @@
                       <NRadio :value="option.id">
                         <div class="practice-option__row">
                           <span class="practice-option__label">{{ option.optionLabel }}</span>
-                          <span class="practice-option__content" v-html="option.optionContent || '选项'"></span>
+                          <QuestionExplanationRenderer
+                              class="practice-option__content"
+                              :content="option.optionContent || '\u9009\u9879'"
+                              auto-wrap-bare-latex
+                          />
                         </div>
                       </NRadio>
                     </div>
@@ -103,9 +130,19 @@
                     >
                       <div class="practice-option__row">
                         <span class="practice-option__label">{{ option.optionLabel }}</span>
-                        <span class="practice-option__content" v-html="option.optionContent || '选项'"></span>
+                        <QuestionExplanationRenderer
+                            class="practice-option__content"
+                            :content="option.optionContent || '\u9009\u9879'"
+                            auto-wrap-bare-latex
+                        />
                       </div>
-                      <div v-if="option.explanation" class="practice-option__explanation">{{ option.explanation }}</div>
+                      <div v-if="option.explanation" class="practice-option__explanation">
+                      <QuestionExplanationRenderer
+                          class="practice-option__explanation-renderer"
+                          :content="option.explanation"
+                          auto-wrap-bare-latex
+                      />
+                    </div>
                     </div>
                   </template>
                 </template>
@@ -119,9 +156,19 @@
                   >
                     <div class="practice-option__row">
                       <span class="practice-option__label">{{ option.optionLabel }}</span>
-                      <span class="practice-option__content" v-html="option.optionContent || '选项'"></span>
+                      <QuestionExplanationRenderer
+                          class="practice-option__content"
+                          :content="option.optionContent || '\u9009\u9879'"
+                          auto-wrap-bare-latex
+                      />
                     </div>
-                    <div v-if="option.explanation" class="practice-option__explanation">{{ option.explanation }}</div>
+                    <div v-if="option.explanation" class="practice-option__explanation">
+                      <QuestionExplanationRenderer
+                          class="practice-option__explanation-renderer"
+                          :content="option.explanation"
+                          auto-wrap-bare-latex
+                      />
+                    </div>
                   </div>
                 </template>
                 <template v-else>
@@ -138,7 +185,11 @@
                       <NCheckbox :value="option.id">
                         <div class="practice-option__row">
                           <span class="practice-option__label">{{ option.optionLabel }}</span>
-                          <span class="practice-option__content" v-html="option.optionContent || '选项'"></span>
+                          <QuestionExplanationRenderer
+                              class="practice-option__content"
+                              :content="option.optionContent || '\u9009\u9879'"
+                              auto-wrap-bare-latex
+                          />
                         </div>
                       </NCheckbox>
                     </div>
@@ -151,9 +202,19 @@
                     >
                       <div class="practice-option__row">
                         <span class="practice-option__label">{{ option.optionLabel }}</span>
-                        <span class="practice-option__content" v-html="option.optionContent || '选项'"></span>
+                        <QuestionExplanationRenderer
+                            class="practice-option__content"
+                            :content="option.optionContent || '\u9009\u9879'"
+                            auto-wrap-bare-latex
+                        />
                       </div>
-                      <div v-if="option.explanation" class="practice-option__explanation">{{ option.explanation }}</div>
+                      <div v-if="option.explanation" class="practice-option__explanation">
+                      <QuestionExplanationRenderer
+                          class="practice-option__explanation-renderer"
+                          :content="option.explanation"
+                          auto-wrap-bare-latex
+                      />
+                    </div>
                     </div>
                   </template>
                 </template>
@@ -169,7 +230,12 @@
                           class="practice-card__answer-item"
                       >
                         <span class="practice-card__answer-index">填空 {{ index + 1 }}：</span>
-                        <span class="practice-card__answer-content">{{ answer.answerContent }}</span>
+                        <QuestionExplanationRenderer
+                            class="practice-card__answer-content"
+                            :content="answer.answerContent || ''"
+                            auto-wrap-bare-latex
+                            variant="answer"
+                        />
                       </div>
                     </div>
                   </div>
@@ -215,7 +281,12 @@
                           class="practice-card__answer-item"
                       >
                         <span class="practice-card__answer-index">填空 {{ index + 1 }}：</span>
-                        <span class="practice-card__answer-content">{{ answer.answerContent }}</span>
+                        <QuestionExplanationRenderer
+                            class="practice-card__answer-content"
+                            :content="answer.answerContent || ''"
+                            auto-wrap-bare-latex
+                            variant="answer"
+                        />
                       </div>
                     </div>
                   </div>
@@ -231,9 +302,18 @@
                           :key="answer.id || index"
                           class="practice-card__answer-item"
                       >
-                        <div class="practice-card__answer-content" v-html="answer.answerContent"></div>
+                        <QuestionExplanationRenderer
+                            class="practice-card__answer-content"
+                            :content="answer.answerContent || ''"
+                            auto-wrap-bare-latex
+                            variant="answer"
+                        />
                         <div v-if="answer.explanation" class="practice-card__answer-explanation">
-                          解析：{{ answer.explanation }}
+                          <QuestionExplanationRenderer
+                              class="practice-card__answer-explanation-renderer"
+                              :content="answer.explanation"
+                              auto-wrap-bare-latex
+                          />
                         </div>
                       </div>
                     </div>
@@ -268,9 +348,18 @@
                           :key="answer.id || index"
                           class="practice-card__answer-item"
                       >
-                        <div class="practice-card__answer-content" v-html="answer.answerContent"></div>
+                        <QuestionExplanationRenderer
+                            class="practice-card__answer-content"
+                            :content="answer.answerContent || ''"
+                            auto-wrap-bare-latex
+                            variant="answer"
+                        />
                         <div v-if="answer.explanation" class="practice-card__answer-explanation">
-                          解析：{{ answer.explanation }}
+                          <QuestionExplanationRenderer
+                              class="practice-card__answer-explanation-renderer"
+                              :content="answer.explanation"
+                              auto-wrap-bare-latex
+                          />
                         </div>
                       </div>
                     </div>
@@ -339,6 +428,7 @@ import {getQuestionTypeLabel, QuestionTypeEnum} from '@/enum/course/questionType
 import {getQuestionBankDifficultyLabel} from '@/enum/course/questionBankDifficultyEnum';
 import {IsRequiredEnum} from '@/enum/classroom/isRequiredEnum';
 import {useUserStore} from '@/store';
+import QuestionExplanationRenderer from '@/components/common/QuestionExplanationRenderer.vue';
 
 type PracticeCard = {
   practice: ClassroomQuestionVO;
@@ -1155,7 +1245,7 @@ watch(() => props.classroomId, (val) => {
 
 .practice-option__row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   flex-wrap: wrap;
 }
@@ -1165,8 +1255,9 @@ watch(() => props.classroomId, (val) => {
   color: var(--color-primary);
   min-width: 18px;
 }
-
 .practice-option__content {
+  flex: 1;
+  min-width: 0;
   color: var(--text-secondary-color);
   line-height: 1.4;
 }
@@ -1212,7 +1303,7 @@ watch(() => props.classroomId, (val) => {
 
 .practice-card__answer-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   flex-wrap: wrap;
   color: var(--text-secondary-color);
@@ -1223,9 +1314,29 @@ watch(() => props.classroomId, (val) => {
   color: var(--color-primary);
 }
 
-.practice-card__answer-content,
+.practice-card__answer-content {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.5;
+}
+
 .practice-card__answer-explanation {
   line-height: 1.5;
+}
+
+.practice-sidebar__title-renderer,
+.practice-card__title-renderer,
+.practice-card__content-renderer,
+.practice-option__content,
+.practice-option__explanation-renderer,
+.practice-card__answer-content,
+.practice-card__answer-explanation-renderer {
+  --question-renderer-font-family: inherit;
+  --question-renderer-font-size: inherit;
+  --question-renderer-line-height: inherit;
+  --question-renderer-letter-spacing: inherit;
+  --question-renderer-font-weight: inherit;
+  --question-renderer-text-color: inherit;
 }
 
 .practice-card__footer {

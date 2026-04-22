@@ -134,6 +134,7 @@ const normalizeMathDelimiters = (content: string): string => {
     return content
   }
 
+  const displayMathPattern = /(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\])/g
   const fenceParts = content.split(/(```[\s\S]*?```)/g)
 
   return fenceParts
@@ -149,15 +150,28 @@ const normalizeMathDelimiters = (content: string): string => {
                 return piece
               }
 
-              let processed = piece.replace(/\$\$\s*([\s\S]*?)\s*\$\$/g, (_match, group1) => {
-                return `$$\n${group1.trim()}\n$$`
-              })
+              const displayParts = piece.split(displayMathPattern)
+              return displayParts
+                  .map((segment) => {
+                    if (!segment) {
+                      return segment
+                    }
 
-              processed = processed.replace(/(^|[^\\])\$\s*([^\n\$][^\$]*?)\s*\$/g, (_match, prefix, inner) => {
-                return `${prefix}$${inner.trim()}$`
-              })
+                    if (segment.startsWith('$$') && segment.endsWith('$$')) {
+                      const mathContent = segment.slice(2, -2).trim()
+                      return `\n\n$$\n${mathContent}\n$$\n\n`
+                    }
 
-              return processed
+                    if (segment.startsWith('\\[') && segment.endsWith('\\]')) {
+                      const mathContent = segment.slice(2, -2).trim()
+                      return `\n\n\\[\n${mathContent}\n\\]\n\n`
+                    }
+
+                    return segment.replace(/(^|[^\\])\$\s*([^\n\$][^\$]*?)\s*\$/g, (_match, prefix, inner) => {
+                      return `${prefix}$${inner.trim()}$`
+                    })
+                  })
+                  .join('')
             })
             .join('')
       })

@@ -84,6 +84,7 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
             || type === ClassroomTypeEnum.EXTRA_LARGE;
     });
 
+    //行数计算
     const rowCount = computed(() => {
         if (!enabled.value) {
             return 0;
@@ -95,6 +96,7 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
         return Math.min(Math.max(rows, 1), 12);
     });
 
+    //列数计算
     const columnCount = computed(() => {
         if (!enabled.value) {
             return 0;
@@ -103,7 +105,7 @@ export const useSeatLayout = (courseRecord: Ref<CourseRecordVO | null>): SeatLay
         if (classroomType.value === ClassroomTypeEnum.LARGE || classroomType.value === ClassroomTypeEnum.EXTRA_LARGE) {
             const columns = courseRecord.value?.layoutColumns ?? null;
             if (columns !== null) {
-                return Math.min(Math.max(columns, 1), 12);
+                return Math.min(Math.max(columns, 1), 16);
             }
             return 4;
         }

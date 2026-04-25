@@ -4,15 +4,16 @@ import {useI18n} from 'vue-i18n'
 import {useMessage} from 'naive-ui'
 import {addChatSession} from '@/api/celestialHub/chatSession'
 import type {SSEController} from '@/api/celestialHub/chatMessage'
-import {generateQuestionsStream} from '@/api/celestialHub/question'
+import {checkQuestionRequestStatus, generateQuestionsStream} from '@/api/celestialHub/question'
 import type {
     QuestionGenerateRequestDTO,
     QuestionGenerationMode,
+    QuestionGenerationStage,
     QuestionGenerationStreamEvent,
     QuestionGenerationSuccessPayload,
     QuestionResponseDTO
 } from '@/types/celestialHub/question'
-import {resolveQuestionGenerationMode} from '@/types/celestialHub/question'
+import {QuestionGenerationStageEnum, resolveQuestionGenerationMode} from '@/types/celestialHub/question'
 import type {ChatMessage as ChatMessageEntity} from '@/types/celestialHub/chatMessage'
 import type {ChatSessionVO} from '@/types/celestialHub/chatSession'
 
@@ -21,7 +22,11 @@ interface PendingQuestionTask {
     sessionId: string | null
     requestId?: string | null
     createdAt: number
+    updatedAt: number
     mode: QuestionGenerationMode
+    status: 'pending' | 'processing'
+    stage?: QuestionGenerationStage | null
+    progressMessage?: string | null
     paperName?: string | null
 }
 
@@ -48,6 +53,30 @@ export function useQuestionGeneration(
 ) {
     const {t} = useI18n()
     const message = useMessage()
+    const stageI18nKeys: Record<QuestionGenerationStageEnum, string> = {
+        [QuestionGenerationStageEnum.RECEIVED]: 'chat.toolsMenu.stage.received',
+        [QuestionGenerationStageEnum.CONTEXT_READY]: 'chat.toolsMenu.stage.contextReady',
+        [QuestionGenerationStageEnum.PLANNED]: 'chat.toolsMenu.stage.planned',
+        [QuestionGenerationStageEnum.GENERATED]: 'chat.toolsMenu.stage.generated',
+        [QuestionGenerationStageEnum.VALIDATED]: 'chat.toolsMenu.stage.validated',
+        [QuestionGenerationStageEnum.REPAIRED]: 'chat.toolsMenu.stage.repaired',
+        [QuestionGenerationStageEnum.ASSEMBLED]: 'chat.toolsMenu.stage.assembled',
+        [QuestionGenerationStageEnum.RESPONDED]: 'chat.toolsMenu.stage.responded',
+        [QuestionGenerationStageEnum.FAILED]: 'chat.toolsMenu.stage.failed'
+    }
+
+    const resolveStageDescription = (stage?: QuestionGenerationStage | null) => {
+        if (!stage) {
+            return null
+        }
+
+        const key = stageI18nKeys[stage as QuestionGenerationStageEnum]
+        if (!key) {
+            return null
+        }
+
+        return t(key)
+    }
 
     const isQuestionToolsVisible = ref(false)
     const generationToolMode = ref<QuestionGenerationMode>('question')
@@ -81,6 +110,10 @@ export function useQuestionGeneration(
     const pendingQuestionTasks = ref<PendingQuestionTask[]>([])
     const processedGeneratorMessageIds = new Set<string>()
     const questionStreamControllers = new Map<string, SSEController>()
+    const manuallyClosedStreamTaskIds = new Set<string>()
+    const recoveringQuestionTaskIds = new Set<string>()
+    const streamRecoveryRetryIntervalMs = 1500
+    const streamRecoveryMaxAttempts = 16
 
     const createPendingTaskId = () => {
         if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -104,7 +137,11 @@ export function useQuestionGeneration(
             sessionId,
             requestId: null,
             createdAt: Date.now(),
+            updatedAt: Date.now(),
             mode,
+            status: 'pending',
+            stage: null,
+            progressMessage: null,
             paperName: paperName ?? null
         })
         return id
@@ -147,24 +184,177 @@ export function useQuestionGeneration(
         pendingQuestionTasks.value = pendingQuestionTasks.value.filter(task => task.sessionId !== sessionId)
     }
 
+    const resolveCurrentSessionId = () => currentSession.value?.id ? String(currentSession.value.id) : null
+
+    const getPendingTaskById = (taskId: string | null) => {
+        if (!taskId) {
+            return null
+        }
+        return pendingQuestionTasks.value.find(task => task.id === taskId) ?? null
+    }
+
+    const getPendingTaskByRequestId = (requestId: string | null) => {
+        if (!requestId) {
+            return null
+        }
+        return pendingQuestionTasks.value.find(task => task.requestId === requestId) ?? null
+    }
+
     const registerQuestionStream = (taskId: string, controller: SSEController) => {
         questionStreamControllers.set(taskId, controller)
     }
 
-    const closeQuestionStream = (taskId: string | null) => {
+    const closeQuestionStream = (taskId: string | null, isManualClose = true) => {
         if (!taskId) {
             return
         }
         const controller = questionStreamControllers.get(taskId)
         if (controller) {
+            if (isManualClose) {
+                manuallyClosedStreamTaskIds.add(taskId)
+            }
             controller.close()
             questionStreamControllers.delete(taskId)
         }
     }
 
     const closeAllQuestionStreams = () => {
-        questionStreamControllers.forEach(controller => controller.close())
+        questionStreamControllers.forEach((controller, taskId) => {
+            manuallyClosedStreamTaskIds.add(taskId)
+            controller.close()
+        })
         questionStreamControllers.clear()
+    }
+
+    const waitForRecoveryRetry = (delayMs: number) => new Promise<void>((resolve) => {
+        window.setTimeout(resolve, delayMs)
+    })
+
+    const resolvePendingTaskByIdentifiers = (taskId: string, requestId: string | null) => {
+        return getPendingTaskByRequestId(requestId) ?? getPendingTaskById(taskId)
+    }
+
+    const touchPendingTaskDuringRecovery = (taskId: string) => {
+        const task = getPendingTaskById(taskId)
+        if (!task) {
+            return
+        }
+        task.status = 'processing'
+        task.updatedAt = Date.now()
+    }
+
+    const resolveMessageTimestamp = (targetMessage: ChatMessageEntity | null | undefined) => {
+        if (!targetMessage?.createTime) {
+            return 0
+        }
+        const timestamp = new Date(targetMessage.createTime).getTime()
+        return Number.isFinite(timestamp) ? timestamp : 0
+    }
+
+    const syncCompletedQuestionResult = async (
+        taskId: string,
+        requestId: string | null,
+        sessionId: string | null
+    ) => {
+        const currentSessionId = resolveCurrentSessionId()
+        if (!sessionId || currentSessionId !== sessionId) {
+            return false
+        }
+
+        await loadMessages(sessionId)
+        await nextTick()
+        scrollToBottom()
+
+        const generatedMessage = findGeneratedMessage(requestId, sessionId)
+        if (!generatedMessage) {
+            return false
+        }
+
+        const pendingTask = resolvePendingTaskByIdentifiers(taskId, requestId)
+        if (!requestId && pendingTask) {
+            const generatedAt = resolveMessageTimestamp(generatedMessage)
+            if (generatedAt > 0 && generatedAt + 500 < pendingTask.createdAt) {
+                return false
+            }
+        }
+
+        const questions = parseQuestionResponse(generatedMessage)
+        if (!generatedMessage.id || questions.length === 0) {
+            return false
+        }
+
+        processedGeneratorMessageIds.add(generatedMessage.id)
+        handleViewQuestions({
+            messageId: generatedMessage.id,
+            questions,
+            activeIndex: 0,
+            panelTitle: generatedMessage.metadata?.paperName ?? null,
+            mode: generatedMessage.metadata?.generationMode === 'paper' ? 'paper' : 'question'
+        })
+
+        if (requestId) {
+            removePendingTaskByRequestId(requestId)
+        } else {
+            removePendingTaskById(taskId)
+        }
+        return true
+    }
+
+    const recoverQuestionStreamAfterDisconnect = (taskId: string) => {
+        if (!taskId || recoveringQuestionTaskIds.has(taskId)) {
+            return
+        }
+        if (!getPendingTaskById(taskId)) {
+            return
+        }
+
+        recoveringQuestionTaskIds.add(taskId)
+        touchPendingTaskDuringRecovery(taskId)
+
+        void (async () => {
+            try {
+                for (let attempt = 0; attempt < streamRecoveryMaxAttempts; attempt++) {
+                    const task = getPendingTaskById(taskId)
+                    if (!task) {
+                        return
+                    }
+
+                    const requestId = task.requestId ?? null
+                    const sessionId = task.sessionId ?? null
+
+                    const synced = await syncCompletedQuestionResult(taskId, requestId, sessionId)
+                    if (synced) {
+                        return
+                    }
+
+                    let isCompleted = false
+                    if (requestId) {
+                        try {
+                            const statusResponse = await checkQuestionRequestStatus(requestId)
+                            isCompleted = statusResponse.data === true
+                        } catch {
+                            isCompleted = false
+                        }
+                    }
+
+                    if (isCompleted && sessionId && resolveCurrentSessionId() !== sessionId) {
+                        removePendingTaskByRequestId(requestId)
+                        return
+                    }
+
+                    if (isCompleted) {
+                        const retriedSync = await syncCompletedQuestionResult(taskId, requestId, sessionId)
+                        if (retriedSync) {
+                            return
+                        }
+                    }
+
+                    await waitForRecoveryRetry(streamRecoveryRetryIntervalMs)
+                }
+            } finally {
+                recoveringQuestionTaskIds.delete(taskId)
+            }
+        })()
     }
 
     const handleToolsSelect = (key: string | number) => {
@@ -271,6 +461,12 @@ export function useQuestionGeneration(
                         if (event.requestId) {
                             requestMessage.requestId = event.requestId
                         }
+                        updatePendingTaskProgress(pendingTaskId, event)
+                        return
+                    }
+
+                    if (event.status === 'processing') {
+                        updatePendingTaskProgress(pendingTaskId, event)
                         return
                     }
 
@@ -289,58 +485,57 @@ export function useQuestionGeneration(
                     }
                     settled = true
                     closeQuestionStream(pendingTaskId)
-                    removePendingTaskById(pendingTaskId)
-                    message.error(t('common.error'))
+                    recoverQuestionStreamAfterDisconnect(pendingTaskId)
                 },
                 onClose: () => {
                     questionStreamControllers.delete(pendingTaskId)
+                    const isManualClose = manuallyClosedStreamTaskIds.delete(pendingTaskId)
+                    if (isManualClose || settled) {
+                        return
+                    }
+                    settled = true
+                    recoverQuestionStreamAfterDisconnect(pendingTaskId)
                 }
             })
 
             registerQuestionStream(pendingTaskId, streamController)
         } catch {
             closeQuestionStream(pendingTaskId)
-            removePendingTaskById(pendingTaskId)
+            if (getPendingTaskById(pendingTaskId)?.requestId) {
+                recoverQuestionStreamAfterDisconnect(pendingTaskId)
+            } else {
+                removePendingTaskById(pendingTaskId)
+            }
             message.error(t('common.error'))
         }
     }
 
     const finalizeQuestionStream = async (taskId: string, event: QuestionGenerationStreamEvent) => {
-        const eventRequestId = event.requestId ?? null
+        const eventRequestId = event.requestId ?? getPendingTaskRequestId(taskId)
         const eventSessionId = event.sessionId ?? getPendingTaskSessionId(taskId)
+
+        if (event.status === 'completed') {
+            const synced = await syncCompletedQuestionResult(taskId, eventRequestId, eventSessionId)
+            if (!synced) {
+                recoverQuestionStreamAfterDisconnect(taskId)
+            }
+            return
+        }
+
+        if (event.status === 'error') {
+            if (eventRequestId) {
+                removePendingTaskByRequestId(eventRequestId)
+            } else {
+                removePendingTaskById(taskId)
+            }
+            message.error(event.message || t('common.error'))
+            return
+        }
 
         if (eventRequestId) {
             removePendingTaskByRequestId(eventRequestId)
         } else {
             removePendingTaskById(taskId)
-        }
-
-        const currentSessionId = currentSession.value?.id ? String(currentSession.value.id) : null
-        if (eventSessionId && currentSessionId === eventSessionId) {
-            await loadMessages(eventSessionId)
-            await nextTick()
-            scrollToBottom()
-
-            if (event.status === 'completed') {
-                const generatedMessage = findGeneratedMessage(eventRequestId, eventSessionId)
-                const questions = parseQuestionResponse(generatedMessage)
-                if (generatedMessage?.id && questions.length > 0) {
-                    if (generatedMessage.id) {
-                        processedGeneratorMessageIds.add(generatedMessage.id)
-                    }
-                    handleViewQuestions({
-                        messageId: generatedMessage.id,
-                        questions,
-                        activeIndex: 0,
-                        panelTitle: generatedMessage.metadata?.paperName ?? null,
-                        mode: generatedMessage.metadata?.generationMode === 'paper' ? 'paper' : 'question'
-                    })
-                }
-            }
-        }
-
-        if (event.status === 'error') {
-            message.error(event.message || t('common.error'))
         }
     }
 
@@ -349,6 +544,60 @@ export function useQuestionGeneration(
             return null
         }
         return pendingQuestionTasks.value.find(task => task.id === taskId)?.sessionId ?? null
+    }
+
+    const getPendingTaskRequestId = (taskId: string | null) => {
+        if (!taskId) {
+            return null
+        }
+        return pendingQuestionTasks.value.find(task => task.id === taskId)?.requestId ?? null
+    }
+
+    const updatePendingTaskProgress = (taskId: string, event: QuestionGenerationStreamEvent) => {
+        const byRequestId = event.requestId
+            ? pendingQuestionTasks.value.find(item => item.requestId === event.requestId)
+            : null
+        const task = byRequestId ?? pendingQuestionTasks.value.find(item => item.id === taskId)
+        if (!task) {
+            return
+        }
+
+        if (event.requestId && !task.requestId) {
+            task.requestId = event.requestId
+        }
+        if (event.status === 'processing' || event.status === 'submitted') {
+            task.status = 'processing'
+        }
+        if (event.stage) {
+            task.stage = event.stage
+        }
+        if (event.message) {
+            task.progressMessage = event.message
+        }
+        task.updatedAt = typeof event.timestamp === 'number' ? event.timestamp : Date.now()
+    }
+
+    const resolvePendingStepMessage = (task: PendingQuestionTask) => {
+        if (task.progressMessage) {
+            return task.progressMessage
+        }
+        const stageDescription = resolveStageDescription(task.stage)
+        if (stageDescription) {
+            return stageDescription
+        }
+        return task.mode === 'paper'
+            ? t('chat.toolsMenu.generatingPaperTitle')
+            : t('chat.toolsMenu.generatingTitle')
+    }
+
+    const resolvePendingStepDescription = (task: PendingQuestionTask) => {
+        const stageDescription = resolveStageDescription(task.stage)
+        if (stageDescription) {
+            return stageDescription
+        }
+        return task.mode === 'paper'
+            ? t('chat.toolsMenu.generatingPaperSubTitle')
+            : t('chat.toolsMenu.generatingSubTitle')
     }
 
     const findGeneratedMessage = (requestId: string | null, sessionId: string | null) => {
@@ -380,6 +629,52 @@ export function useQuestionGeneration(
         }
     }
 
+    const cleanupResolvedPendingTasksInCurrentSession = () => {
+        const currentSessionId = resolveCurrentSessionId()
+        if (!currentSessionId || pendingQuestionTasks.value.length === 0) {
+            return
+        }
+
+        const resolvedRequestIds = new Set<string>()
+        enrichGenerationMessages(messages.value)
+            .filter(msg =>
+                msg.role === 4
+                && msg.sessionId === currentSessionId
+                && Boolean(msg.requestId)
+            )
+            .forEach((msg) => {
+                if (msg.requestId && parseQuestionResponse(msg).length > 0) {
+                    resolvedRequestIds.add(msg.requestId)
+                }
+            })
+
+        if (resolvedRequestIds.size === 0) {
+            return
+        }
+
+        const remainingTasks = pendingQuestionTasks.value.filter(task => {
+            if (task.sessionId !== currentSessionId) {
+                return true
+            }
+            if (!task.requestId) {
+                return true
+            }
+            return !resolvedRequestIds.has(task.requestId)
+        })
+
+        if (remainingTasks.length === pendingQuestionTasks.value.length) {
+            return
+        }
+
+        const remainingTaskIds = new Set(remainingTasks.map(task => task.id))
+        recoveringQuestionTaskIds.forEach((taskId) => {
+            if (!remainingTaskIds.has(taskId)) {
+                recoveringQuestionTaskIds.delete(taskId)
+            }
+        })
+        pendingQuestionTasks.value = remainingTasks
+    }
+
     const scrollToActiveQuestionMessage = () => {
         if (!activeQuestionMessageId.value) {
             return
@@ -398,19 +693,20 @@ export function useQuestionGeneration(
             pendingQuestionTasks.value
                 .filter(task => task.sessionId === sessionId)
                 .forEach((task) => {
-                    const createTime = new Date(task.createdAt).toISOString()
+                    const createTime = new Date(task.updatedAt || task.createdAt).toISOString()
                     pendingMessages.push({
                         id: task.id,
                         requestId: task.requestId ?? null,
                         role: 4,
-                        content: task.mode === 'paper'
-                            ? t('chat.toolsMenu.generatingPaperTitle')
-                            : t('chat.toolsMenu.generatingTitle'),
+                        content: resolvePendingStepMessage(task),
                         sessionId,
                         createTime,
                         messageType: 0,
                         metadata: {
-                            questionStatus: 'pending',
+                            questionStatus: task.status ?? 'pending',
+                            questionStage: task.stage ?? null,
+                            questionStepMessage: task.progressMessage ?? null,
+                            questionStepDescription: resolvePendingStepDescription(task),
                             generationMode: task.mode,
                             paperName: task.paperName ?? null
                         },
@@ -438,6 +734,7 @@ export function useQuestionGeneration(
                 activeQuestionPanelTitle.value = null
                 activeQuestionGenerationMode.value = 'question'
             }
+            cleanupResolvedPendingTasksInCurrentSession()
         }
     )
 
@@ -463,6 +760,7 @@ export function useQuestionGeneration(
                 processedGeneratorMessageIds.add(msg.id)
             }
         })
+        cleanupResolvedPendingTasksInCurrentSession()
     }, {deep: true})
 
     watch(
@@ -479,6 +777,8 @@ export function useQuestionGeneration(
 
     onUnmounted(() => {
         closeAllQuestionStreams()
+        manuallyClosedStreamTaskIds.clear()
+        recoveringQuestionTaskIds.clear()
     })
 
     return {

@@ -1,4 +1,4 @@
-import {apiConfig} from '@/utils/http'
+import http, {apiConfig} from '@/utils/http'
 import {useUserStore} from '@/store'
 import {fetchEventSource} from '@microsoft/fetch-event-source'
 import {SSEController} from '@/api/celestialHub/chatMessage'
@@ -102,6 +102,10 @@ export function generateQuestionsStream(
     })
 
     return controller
+}
+
+export function checkQuestionRequestStatus(requestId: string) {
+    return http.get<boolean>(`/celestial-hub/question/status/${requestId}`)
 }
 
 interface DownloadFileResult {

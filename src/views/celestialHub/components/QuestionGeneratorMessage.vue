@@ -4,11 +4,15 @@
       :data-message-id="message.id || null"
   >
     <div class="message-text">
-      <div v-if="isPending" class="question-card pending-card">
+      <div
+          v-if="isPending"
+          :class="['question-card', 'pending-card']"
+      >
         <n-icon :component="DocumentTextOutline" class="card-icon" size="20"/>
         <div class="card-content">
-          <div class="card-title">{{ pendingTitle }}</div>
-          <div class="card-time">{{ pendingSubTitle }}</div>
+          <transition mode="out-in" name="status-slide-fade">
+            <div :key="pendingTitle" class="card-title">{{ pendingTitle }}</div>
+          </transition>
         </div>
         <n-spin class="card-loading" size="small"/>
       </div>
@@ -78,9 +82,23 @@ const paperName = computed(() => {
   return typeof value === 'string' && value.trim() ? value.trim() : null
 })
 
-const isPending = computed(() => props.message.metadata?.questionStatus === 'pending')
+const isPending = computed(() => {
+  const status = props.message.metadata?.questionStatus
+  return status === 'pending' || status === 'processing'
+})
+
+const pendingStepMessage = computed(() => {
+  const value = props.message.metadata?.questionStepMessage
+  if (typeof value === 'string' && value.trim()) {
+    return value.trim()
+  }
+  return null
+})
 
 const pendingTitle = computed(() => {
+  if (pendingStepMessage.value) {
+    return pendingStepMessage.value
+  }
   if (props.message.content) {
     return props.message.content
   }
@@ -88,11 +106,6 @@ const pendingTitle = computed(() => {
       ? t('chat.toolsMenu.generatingPaperTitle')
       : t('chat.toolsMenu.generatingTitle')
 })
-
-const pendingSubTitle = computed(() => generationMode.value === 'paper'
-    ? t('chat.toolsMenu.generatingPaperSubTitle')
-    : t('chat.toolsMenu.generatingSubTitle')
-)
 
 const questions = computed<QuestionResponseDTO[] | null>(() => {
   if (!props.message.questionResponse) {
@@ -273,7 +286,38 @@ const handleCardClick = (index: number) => {
       .card-loading {
         flex-shrink: 0;
       }
+
+      &.pending-card {
+        max-width: 520px;
+        cursor: default;
+
+        &:hover {
+          background: var(--background-secondary-color);
+          border-color: var(--border-color);
+        }
+      }
     }
   }
+}
+
+.status-slide-fade-enter-active,
+.status-slide-fade-leave-active {
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
+.status-slide-fade-enter-from {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+.status-slide-fade-leave-to {
+  opacity: 0;
+  transform: translateX(10px);
+}
+
+.status-slide-fade-enter-to,
+.status-slide-fade-leave-from {
+  opacity: 1;
+  transform: translateX(0);
 }
 </style>

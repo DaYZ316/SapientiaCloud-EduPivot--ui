@@ -95,7 +95,7 @@ import {
   getDeskModelPathByRecord,
   getdeskChairModelTexturePathByRecord,
 } from '@/views/classroom/composables/useModelRouter';
-import {useSeatLayout, getTeacherSeatPosition} from '@/views/classroom/composables/useSeatLayout';
+import {useSeatLayout} from '@/views/classroom/composables/useSeatLayout';
 import {ClassroomTypeEnum} from '@/enum/classroom/classroomTypeEnum';
 import {ModelInstanceManager} from '@/views/classroom/composables/ModelInstanceManager';
 import {useClassroomInteraction} from '@/views/classroom/composables/useClassroomInteraction';

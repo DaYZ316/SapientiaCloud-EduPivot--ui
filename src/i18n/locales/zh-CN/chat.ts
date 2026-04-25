@@ -56,6 +56,17 @@ export default {
         generatingSubTitle: '通常只需要几秒钟，请稍候。',
         generatingPaperTitle: '正在生成整套试卷...',
         generatingPaperSubTitle: '正在规划题型、分值和整卷结构，请稍候。',
+        stage: {
+            received: '正在接收出题请求',
+            contextReady: '正在准备上下文',
+            planned: '正在规划试卷结构',
+            generated: '正在生成题目草稿',
+            validated: '正在校验题目质量',
+            repaired: '正在修复题目问题',
+            assembled: '正在组装最终试卷',
+            responded: '正在写入并返回结果',
+            failed: '题目生成失败'
+        },
         exportPdf: '导出 PDF',
         exportWord: '导出 Word',
         exportFailed: '导出失败',

@@ -36,14 +36,30 @@ export interface QuestionPaperExportRequestDTO {
     includeAnswers?: boolean | null
 }
 
-export type QuestionGenerationStreamStatus = 'submitted' | 'completed' | 'error'
+export type QuestionGenerationStreamStatus = 'submitted' | 'processing' | 'completed' | 'error'
+
+export enum QuestionGenerationStageEnum {
+    RECEIVED = 'RECEIVED',
+    CONTEXT_READY = 'CONTEXT_READY',
+    PLANNED = 'PLANNED',
+    GENERATED = 'GENERATED',
+    VALIDATED = 'VALIDATED',
+    REPAIRED = 'REPAIRED',
+    ASSEMBLED = 'ASSEMBLED',
+    RESPONDED = 'RESPONDED',
+    FAILED = 'FAILED'
+}
+
+export type QuestionGenerationStage = QuestionGenerationStageEnum | string
 
 export interface QuestionGenerationStreamEvent {
     requestId?: string | null
     sessionId?: string | null
     status?: QuestionGenerationStreamStatus | null
+    stage?: QuestionGenerationStage | null
     questionCount?: number | null
     message?: string | null
+    timestamp?: number | null
 }
 
 export interface QuestionOptionSimpleDTO {

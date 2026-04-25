@@ -56,6 +56,17 @@ export default {
         generatingSubTitle: 'This usually takes only a few seconds.',
         generatingPaperTitle: 'Generating the full paper...',
         generatingPaperSubTitle: 'Planning sections, question types and scores for the paper.',
+        stage: {
+            received: 'Receiving request',
+            contextReady: 'Preparing context',
+            planned: 'Planning paper structure',
+            generated: 'Generating question drafts',
+            validated: 'Validating question quality',
+            repaired: 'Repairing question issues',
+            assembled: 'Assembling final paper',
+            responded: 'Persisting and returning result',
+            failed: 'Question generation failed'
+        },
         exportPdf: 'Export PDF',
         exportWord: 'Export Word',
         exportFailed: 'Export failed',

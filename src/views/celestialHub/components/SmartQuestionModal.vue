@@ -353,6 +353,7 @@ const handleClose = () => {
 function buildInitialForm(mode: QuestionGenerationMode): QuestionGenerateRequestDTO {
   const nextForm = getDefaultQuestionGenerateRequestDTO()
   nextForm.sessionId = props.sessionId ? String(props.sessionId) : null
+  nextForm.generationMode = mode
   nextForm.questionCount = mode === 'paper' ? 10 : 1
   nextForm.questionType = mode === 'paper' ? 5 : null
   nextForm.difficulty = mode === 'paper' ? 2 : null
@@ -372,6 +373,7 @@ function buildRequestPayload(): QuestionGenerateRequestDTO {
 
   return {
     ...questionForm.value,
+    generationMode: props.mode,
     paperName: isPaperMode.value ? normalizeText(questionForm.value.paperName) : null,
     paperType: isPaperMode.value ? normalizeText(questionForm.value.paperType) : null,
     totalScore: isPaperMode.value ? questionForm.value.totalScore ?? null : null,

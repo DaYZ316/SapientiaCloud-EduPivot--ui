@@ -52,8 +52,8 @@ export default {
         tagsPlaceholder: '多个内容用逗号或换行分隔',
         requirementPlaceholder: '例如：围绕高一函数章节，侧重考查基础计算与概念理解，可适当加入生活场景题。',
         paperRequirementPlaceholder: '例如：覆盖集合、异常、泛型与IO，题型要均衡，避免与现有样题重复。',
-        generatingTitle: '正在生成题目...',
-        generatingSubTitle: '通常只需要几秒钟，请稍候。',
+        generatingTitle: '正在出题中...',
+        generatingSubTitle: '请稍候，题目生成后会自动显示。',
         generatingPaperTitle: '正在生成整套试卷...',
         generatingPaperSubTitle: '正在规划题型、分值和整卷结构，请稍候。',
         stage: {

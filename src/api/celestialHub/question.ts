@@ -11,6 +11,7 @@ import type {
 export function getDefaultQuestionGenerateRequestDTO(): QuestionGenerateRequestDTO {
     return {
         sessionId: null,
+        generationMode: null,
         courseId: null,
         questionBankId: null,
         chapterIds: null,

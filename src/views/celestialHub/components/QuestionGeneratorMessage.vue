@@ -95,8 +95,16 @@ const pendingStepMessage = computed(() => {
   return null
 })
 
+const showStageDetails = computed(() => {
+  const value = props.message.metadata?.questionShowStageDetails
+  if (typeof value === 'boolean') {
+    return value
+  }
+  return generationMode.value === 'paper'
+})
+
 const pendingTitle = computed(() => {
-  if (pendingStepMessage.value) {
+  if (showStageDetails.value && pendingStepMessage.value) {
     return pendingStepMessage.value
   }
   if (props.message.content) {

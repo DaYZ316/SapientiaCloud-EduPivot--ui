@@ -4,6 +4,7 @@ export type QuestionGenerationMode = 'question' | 'paper'
 
 export interface QuestionGenerateRequestDTO {
     sessionId?: string | null
+    generationMode?: QuestionGenerationMode | null
     courseId?: string | null
     questionBankId?: string | null
     chapterIds?: string[] | null
@@ -59,6 +60,8 @@ export interface QuestionGenerationStreamEvent {
     stage?: QuestionGenerationStage | null
     questionCount?: number | null
     message?: string | null
+    generationMode?: QuestionGenerationMode | null
+    showStageDetails?: boolean | null
     timestamp?: number | null
 }
 
@@ -98,6 +101,13 @@ export interface QuestionResponseDTO {
 
 export function isPaperGenerationRequest(request?: QuestionGenerateRequestDTO | null): boolean {
     if (!request) {
+        return false
+    }
+
+    if (request.generationMode === 'paper') {
+        return true
+    }
+    if (request.generationMode === 'question') {
         return false
     }
 

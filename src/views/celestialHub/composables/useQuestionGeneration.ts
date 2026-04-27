@@ -24,6 +24,7 @@ interface PendingQuestionTask {
     createdAt: number
     updatedAt: number
     mode: QuestionGenerationMode
+    showStageDetails?: boolean | null
     status: 'pending' | 'processing'
     stage?: QuestionGenerationStage | null
     progressMessage?: string | null
@@ -76,6 +77,14 @@ export function useQuestionGeneration(
         }
 
         return t(key)
+    }
+
+    const isPaperTask = (task: Pick<PendingQuestionTask, 'mode'>) => task.mode === 'paper'
+    const shouldShowDetailedProgress = (task: Pick<PendingQuestionTask, 'mode' | 'showStageDetails'>) => {
+        if (typeof task.showStageDetails === 'boolean') {
+            return task.showStageDetails
+        }
+        return isPaperTask(task)
     }
 
     const isQuestionToolsVisible = ref(false)
@@ -139,6 +148,7 @@ export function useQuestionGeneration(
             createdAt: Date.now(),
             updatedAt: Date.now(),
             mode,
+            showStageDetails: mode === 'paper',
             status: 'pending',
             stage: null,
             progressMessage: null,
@@ -428,6 +438,7 @@ export function useQuestionGeneration(
 
         const requestPayload: QuestionGenerateRequestDTO = {
             ...request,
+            generationMode: mode,
             sessionId: resolvedSessionId
         }
 
@@ -565,6 +576,12 @@ export function useQuestionGeneration(
         if (event.requestId && !task.requestId) {
             task.requestId = event.requestId
         }
+        if (event.generationMode) {
+            task.mode = event.generationMode === 'paper' ? 'paper' : 'question'
+        }
+        if (typeof event.showStageDetails === 'boolean') {
+            task.showStageDetails = event.showStageDetails
+        }
         if (event.status === 'processing' || event.status === 'submitted') {
             task.status = 'processing'
         }
@@ -578,6 +595,9 @@ export function useQuestionGeneration(
     }
 
     const resolvePendingStepMessage = (task: PendingQuestionTask) => {
+        if (!shouldShowDetailedProgress(task)) {
+            return t('chat.toolsMenu.generatingTitle')
+        }
         if (task.progressMessage) {
             return task.progressMessage
         }
@@ -585,19 +605,18 @@ export function useQuestionGeneration(
         if (stageDescription) {
             return stageDescription
         }
-        return task.mode === 'paper'
-            ? t('chat.toolsMenu.generatingPaperTitle')
-            : t('chat.toolsMenu.generatingTitle')
+        return t('chat.toolsMenu.generatingPaperTitle')
     }
 
     const resolvePendingStepDescription = (task: PendingQuestionTask) => {
+        if (!shouldShowDetailedProgress(task)) {
+            return t('chat.toolsMenu.generatingSubTitle')
+        }
         const stageDescription = resolveStageDescription(task.stage)
         if (stageDescription) {
             return stageDescription
         }
-        return task.mode === 'paper'
-            ? t('chat.toolsMenu.generatingPaperSubTitle')
-            : t('chat.toolsMenu.generatingSubTitle')
+        return t('chat.toolsMenu.generatingPaperSubTitle')
     }
 
     const findGeneratedMessage = (requestId: string | null, sessionId: string | null) => {
@@ -705,8 +724,9 @@ export function useQuestionGeneration(
                         metadata: {
                             questionStatus: task.status ?? 'pending',
                             questionStage: task.stage ?? null,
-                            questionStepMessage: task.progressMessage ?? null,
+                            questionStepMessage: shouldShowDetailedProgress(task) ? task.progressMessage ?? null : null,
                             questionStepDescription: resolvePendingStepDescription(task),
+                            questionShowStageDetails: shouldShowDetailedProgress(task),
                             generationMode: task.mode,
                             paperName: task.paperName ?? null
                         },

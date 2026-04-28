@@ -15,6 +15,7 @@
         :is-active="isQuestionBubbleActive"
         :message="message"
         @view-questions="handleViewQuestions"
+        @view-trace="handleViewTrace"
     />
     <!-- 系统消息 (role=2) -->
     <SystemMessageBubble
@@ -75,6 +76,13 @@ const emit = defineEmits<{
     panelTitle?: string | null
     mode?: QuestionGenerationMode | null
   }]
+  'view-trace': [{
+    taskId: string | null
+    requestId?: string | null
+    sessionId?: string | null
+    panelTitle?: string | null
+    mode?: QuestionGenerationMode | null
+  }]
 }>()
 
 // 计算属性
@@ -99,6 +107,16 @@ const handleViewQuestions = (payload: {
   mode?: QuestionGenerationMode | null
 }) => {
   emit('view-questions', payload)
+}
+
+const handleViewTrace = (payload: {
+  taskId: string | null;
+  requestId?: string | null;
+  sessionId?: string | null;
+  panelTitle?: string | null
+  mode?: QuestionGenerationMode | null
+}) => {
+  emit('view-trace', payload)
 }
 
 // 处理反馈

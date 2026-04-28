@@ -4,18 +4,38 @@
       :data-message-id="message.id || null"
   >
     <div class="message-text">
-      <div
+      <component
+          :is="canViewTrace ? 'button' : 'div'"
           v-if="isPending"
-          :class="['question-card', 'pending-card']"
+          :class="['question-card', 'pending-card', { 'is-clickable': canViewTrace }]"
+          :disabled="canViewTrace ? undefined : true"
+          :tabindex="canViewTrace ? 0 : undefined"
+          type="button"
+          @click.stop="handlePendingCardClick"
+          @mousedown.stop
+          @keydown.enter.prevent="handlePendingCardClick"
+          @keydown.space.prevent="handlePendingCardClick"
       >
-        <n-icon :component="DocumentTextOutline" class="card-icon" size="20"/>
+        <div class="card-icon-shell is-loading" aria-hidden="true">
+          <n-icon :component="DocumentTextOutline" class="card-icon" size="20"/>
+          <span class="card-icon-loader"></span>
+        </div>
         <div class="card-content">
           <transition mode="out-in" name="status-slide-fade">
             <div :key="pendingTitle" class="card-title">{{ pendingTitle }}</div>
           </transition>
+          <div v-if="showPendingProgress" class="card-progress">
+            <n-progress
+                :color="'var(--color-primary)'"
+                :percentage="pendingProgressPercentage"
+                :show-indicator="false"
+                class="card-progress-bar"
+                type="line"
+            />
+          </div>
+          <div v-else-if="pendingDescription" class="card-time">{{ pendingDescription }}</div>
         </div>
-        <n-spin class="card-loading" size="small"/>
-      </div>
+      </component>
 
       <MarkdownRenderer
           v-else-if="message.content"
@@ -47,11 +67,12 @@
 
 <script lang="ts" setup>
 import {computed} from 'vue'
-import {NIcon, NSpin} from 'naive-ui'
+import {NIcon, NProgress} from 'naive-ui'
 import {useI18n} from 'vue-i18n'
 import {DocumentTextOutline} from '@vicons/ionicons5'
 import type {ChatMessage} from '@/types/celestialHub/chatMessage'
 import type {QuestionGenerationMode, QuestionResponseDTO} from '@/types/celestialHub/question'
+import {QuestionGenerationStageEnum} from '@/types/celestialHub/question'
 import MarkdownRenderer from '@/components/common/MarkdownRenderer.vue'
 
 const props = defineProps<{
@@ -68,13 +89,31 @@ const emit = defineEmits<{
     panelTitle?: string | null
     mode?: QuestionGenerationMode | null
   }): void
+  (e: 'view-trace', payload: {
+    taskId: string | null
+    requestId?: string | null
+    sessionId?: string | null
+    panelTitle?: string | null
+    mode?: QuestionGenerationMode | null
+  }): void
 }>()
 
-const {t} = useI18n()
+const {t, locale} = useI18n()
 
 const generationMode = computed<QuestionGenerationMode>(() => {
-  const mode = props.message.metadata?.generationMode
-  return mode === 'paper' ? 'paper' : 'question'
+  const metadata = props.message.metadata
+  const mode = metadata?.generationMode
+  if (mode === 'paper') {
+    return 'paper'
+  }
+  if (
+      metadata?.questionShowStageDetails === true
+      || metadata?.questionCanViewTrace === true
+      || (typeof metadata?.paperName === 'string' && metadata.paperName.trim())
+  ) {
+    return 'paper'
+  }
+  return 'question'
 })
 
 const paperName = computed(() => {
@@ -95,12 +134,34 @@ const pendingStepMessage = computed(() => {
   return null
 })
 
+const pendingStage = computed(() => {
+  const value = props.message.metadata?.questionStage
+  if (typeof value === 'string' && value.trim()) {
+    return value.trim()
+  }
+  return null
+})
+
 const showStageDetails = computed(() => {
   const value = props.message.metadata?.questionShowStageDetails
   if (typeof value === 'boolean') {
     return value
   }
   return generationMode.value === 'paper'
+})
+
+const canViewTrace = computed(() => {
+  if (!isPending.value) {
+    return false
+  }
+  if (generationMode.value === 'paper') {
+    return true
+  }
+  const value = props.message.metadata?.questionCanViewTrace
+  if (typeof value === 'boolean') {
+    return value
+  }
+  return showStageDetails.value
 })
 
 const pendingTitle = computed(() => {
@@ -113,6 +174,47 @@ const pendingTitle = computed(() => {
   return generationMode.value === 'paper'
       ? t('chat.toolsMenu.generatingPaperTitle')
       : t('chat.toolsMenu.generatingTitle')
+})
+
+const pendingDescription = computed(() => {
+  if (!canViewTrace.value) {
+    return null
+  }
+  return t('chat.toolsMenu.generationTraceHint')
+})
+
+const showPendingProgress = computed(() => {
+  return canViewTrace.value && generationMode.value === 'paper'
+})
+
+const stageProgressMap: Record<string, number> = {
+  [QuestionGenerationStageEnum.RECEIVED]: 10,
+  [QuestionGenerationStageEnum.CONTEXT_READY]: 22,
+  [QuestionGenerationStageEnum.PLANNED]: 36,
+  [QuestionGenerationStageEnum.GENERATED]: 62,
+  [QuestionGenerationStageEnum.VALIDATED]: 78,
+  [QuestionGenerationStageEnum.REPAIRED]: 88,
+  [QuestionGenerationStageEnum.ASSEMBLED]: 96,
+  [QuestionGenerationStageEnum.RESPONDED]: 100,
+  [QuestionGenerationStageEnum.FAILED]: 100
+}
+
+const pendingProgressPercentage = computed(() => {
+  if (!showPendingProgress.value) {
+    return 0
+  }
+
+  const stage = pendingStage.value
+  if (stage && stageProgressMap[stage] !== undefined) {
+    return stageProgressMap[stage]
+  }
+
+  const traceEntryCount = props.message.metadata?.questionTraceEntryCount
+  if (typeof traceEntryCount === 'number' && traceEntryCount > 0) {
+    return Math.min(92, 12 + traceEntryCount * 8)
+  }
+
+  return 12
 })
 
 const questions = computed<QuestionResponseDTO[] | null>(() => {
@@ -141,15 +243,12 @@ const formattedTime = computed(() => {
   }
   try {
     const date = new Date(props.message.createTime)
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    const month = monthNames[date.getMonth()]
-    const day = date.getDate()
-    const hours = date.getHours()
-    const minutes = date.getMinutes()
-    const ampm = hours >= 12 ? 'PM' : 'AM'
-    const displayHours = hours % 12 || 12
-    const displayMinutes = minutes.toString().padStart(2, '0')
-    return `${month} ${day}, ${displayHours}:${displayMinutes} ${ampm}`
+    return new Intl.DateTimeFormat(locale.value, {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    }).format(date)
   } catch {
     return ''
   }
@@ -177,6 +276,19 @@ const handleCardClick = (index: number) => {
     questions: questionList.value,
     activeIndex: index,
     panelTitle: generationMode.value === 'paper' ? resultTitle.value : null,
+    mode: generationMode.value
+  })
+}
+
+const handlePendingCardClick = () => {
+  if (!canViewTrace.value) {
+    return
+  }
+  emit('view-trace', {
+    taskId: props.message.id ?? null,
+    requestId: props.message.requestId ?? null,
+    sessionId: props.message.sessionId ?? null,
+    panelTitle: paperName.value || t('chat.toolsMenu.generationTraceTitle'),
     mode: generationMode.value
   })
 }
@@ -244,6 +356,9 @@ const handleCardClick = (index: number) => {
       cursor: pointer;
       transition: all 0.2s ease;
       max-width: 400px;
+      width: 100%;
+      text-align: left;
+      font: inherit;
 
       &:hover {
         background: var(--background-tertiary-color);
@@ -262,6 +377,26 @@ const handleCardClick = (index: number) => {
         .card-content .card-title {
           color: var(--color-primary);
           font-weight: 600;
+        }
+      }
+
+      .card-icon-shell {
+        position: relative;
+        width: 20px;
+        height: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        .card-icon-loader {
+          position: absolute;
+          inset: -4px;
+          border: 2px solid transparent;
+          border-top-color: var(--color-primary);
+          border-radius: 999px;
+          animation: card-icon-loader-spin 0.9s linear infinite;
+          pointer-events: none;
         }
       }
 
@@ -291,17 +426,60 @@ const handleCardClick = (index: number) => {
         }
       }
 
-      .card-loading {
-        flex-shrink: 0;
-      }
-
       &.pending-card {
         max-width: 520px;
         cursor: default;
+        appearance: none;
+        outline: none;
 
         &:hover {
           background: var(--background-secondary-color);
           border-color: var(--border-color);
+        }
+
+        &.is-clickable {
+          cursor: pointer;
+
+          &:hover {
+            background: var(--background-tertiary-color);
+            border-color: var(--color-primary);
+          }
+
+          &:focus-visible {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 16%, transparent);
+          }
+        }
+
+        .card-progress {
+          display: flex;
+          flex-direction: column;
+          margin-top: 2px;
+          pointer-events: none;
+
+          .card-progress-bar {
+            :deep(.n-progress-rail) {
+              background: color-mix(in srgb, var(--color-primary) 12%, var(--background-tertiary-color));
+            }
+
+            :deep(.n-progress-rail__fill) {
+              background: var(--color-primary);
+              box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 12%, transparent);
+            }
+
+            :deep(.n-progress-content) {
+              margin: 0;
+            }
+
+            :deep(.n-progress-rail) {
+              height: 7px;
+              border-radius: 999px;
+            }
+
+            :deep(.n-progress-rail__fill) {
+              border-radius: 999px;
+            }
+          }
         }
       }
     }
@@ -311,6 +489,16 @@ const handleCardClick = (index: number) => {
 .status-slide-fade-enter-active,
 .status-slide-fade-leave-active {
   transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
+@keyframes card-icon-loader-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .status-slide-fade-enter-from {

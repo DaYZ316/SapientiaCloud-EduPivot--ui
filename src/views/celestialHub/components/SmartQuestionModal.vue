@@ -29,6 +29,9 @@
       </div>
     </div>
     <div class="smart-question-panel-body">
+      <div class="smart-question-form-hint">
+        {{ formHint }}
+      </div>
       <n-form
           ref="questionFormRef"
           :model="questionForm"
@@ -74,10 +77,10 @@
           <n-form-item :label="t('chat.toolsMenu.questionCount')" path="questionCount">
             <n-input-number
                 v-model:value="questionForm.questionCount"
-                :max="50"
+                :max="maxQuestionCount"
                 :min="1"
                 :precision="0"
-                placeholder="1 - 50"
+                :placeholder="questionCountPlaceholder"
             />
           </n-form-item>
           <n-form-item :label="t('chat.toolsMenu.questionType')" path="questionType">
@@ -190,12 +193,19 @@ const knowledgePointsInput = ref('')
 const abilityGoalsInput = ref('')
 
 const isPaperMode = computed(() => props.mode === 'paper')
+const maxQuestionCount = computed(() => isPaperMode.value ? 50 : 10)
 const panelTitle = computed(() => t(isPaperMode.value ? 'chat.toolsMenu.smartPaper' : 'chat.toolsMenu.smartQuestion'))
 const panelTag = computed(() => t(isPaperMode.value ? 'chat.toolsMenu.paperRequestTitle' : 'chat.toolsMenu.questionRequestTitle'))
+const questionCountPlaceholder = computed(() => `1 - ${maxQuestionCount.value}`)
 const requirementPlaceholder = computed(() => t(
     isPaperMode.value
         ? 'chat.toolsMenu.paperRequirementPlaceholder'
         : 'chat.toolsMenu.requirementPlaceholder'
+))
+const formHint = computed(() => t(
+    isPaperMode.value
+        ? 'chat.toolsMenu.paperFormHint'
+        : 'chat.toolsMenu.questionFormHint'
 ))
 
 const questionFormRules = computed<FormRules>(() => ({
@@ -203,6 +213,16 @@ const questionFormRules = computed<FormRules>(() => ({
     {
       required: true,
       type: 'number',
+      message: '',
+      trigger: ['blur', 'change']
+    },
+    {
+      validator: (_rule, value: number | null) => {
+        if (typeof value !== 'number') {
+          return true
+        }
+        return value >= 1 && value <= maxQuestionCount.value
+      },
       message: '',
       trigger: ['blur', 'change']
     }
@@ -461,6 +481,17 @@ function normalizeListInput(value: string) {
     padding: 24px;
     overflow-y: auto;
     background: var(--background-color);
+
+    .smart-question-form-hint {
+      margin-bottom: 20px;
+      padding: 12px 16px;
+      color: var(--text-color-2);
+      font-size: 14px;
+      line-height: 1.6;
+      background: color-mix(in srgb, var(--color-primary) 10%, var(--background-color) 90%);
+      border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+      border-radius: 14px;
+    }
 
     .smart-question-form-grid {
       display: grid;

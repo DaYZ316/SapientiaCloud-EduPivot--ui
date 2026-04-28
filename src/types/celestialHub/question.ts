@@ -5,6 +5,7 @@ export type QuestionGenerationMode = 'question' | 'paper'
 export interface QuestionGenerateRequestDTO {
     sessionId?: string | null
     generationMode?: QuestionGenerationMode | null
+    locale?: string | null
     courseId?: string | null
     questionBankId?: string | null
     chapterIds?: string[] | null
@@ -53,6 +54,17 @@ export enum QuestionGenerationStageEnum {
 
 export type QuestionGenerationStage = QuestionGenerationStageEnum | string
 
+export interface QuestionGenerationTraceEntry {
+    entryId?: string | null
+    stage?: QuestionGenerationStage | null
+    source?: string | null
+    detailType?: string | null
+    title?: string | null
+    summary?: string | null
+    payload?: unknown
+    timestamp?: number | null
+}
+
 export interface QuestionGenerationStreamEvent {
     requestId?: string | null
     sessionId?: string | null
@@ -62,6 +74,7 @@ export interface QuestionGenerationStreamEvent {
     message?: string | null
     generationMode?: QuestionGenerationMode | null
     showStageDetails?: boolean | null
+    traceEntry?: QuestionGenerationTraceEntry | null
     timestamp?: number | null
 }
 

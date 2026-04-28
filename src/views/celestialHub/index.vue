@@ -20,7 +20,7 @@
       />
 
       <!-- 主内容区域 -->
-      <div :class="['main-content', { 'with-question-panel': isQuestionPanelActive || isQuestionToolsVisible }]">
+      <div :class="['main-content', { 'with-question-panel': isQuestionPanelActive || isQuestionTracePanelActive || isQuestionToolsVisible }]">
         <!-- 聊天头部 -->
         <div v-if="currentSession" class="chat-header">
           <div class="chat-title">
@@ -93,6 +93,7 @@
                         @resend="handleResend(index)"
                         @virtual-teacher="handleVirtualTeacher"
                         @view-questions="handleViewQuestions"
+                        @view-trace="handleViewQuestionTrace"
                     />
                   </div>
                 </div>
@@ -119,7 +120,7 @@
               </div>
             </div>
             <div
-                :class="{ 'is-visible': isQuestionPanelActive || isQuestionToolsVisible }"
+                :class="{ 'is-visible': isQuestionPanelActive || isQuestionTracePanelActive || isQuestionToolsVisible }"
                 class="question-panel-wrapper"
             >
               <PreviewPanel
@@ -133,8 +134,18 @@
                   @close="handleCloseQuestionPanel"
                   @export-state-change="handleQuestionExportStateChange"
               />
+              <QuestionGenerationTracePanel
+                  v-show="isQuestionTracePanelActive && !isQuestionPanelActive"
+                  :close-label="t('common.cancel')"
+                  :entries="questionTraceEntries"
+                  :mode="activeTraceGenerationMode"
+                  :stage="questionTraceStage"
+                  :title="questionTracePanelTitle"
+                  :updated-at="questionTraceUpdatedAt"
+                  @close="handleCloseQuestionTracePanel"
+              />
               <SmartQuestionModal
-                  v-show="isQuestionToolsVisible && !isQuestionPanelActive"
+                  v-show="isQuestionToolsVisible && !isQuestionPanelActive && !isQuestionTracePanelActive"
                   v-model:show="isQuestionToolsVisible"
                   :mode="generationToolMode"
                   :session-id="currentSession?.id ?? null"
@@ -264,6 +275,7 @@ import type {ChatMessage as ChatMessageEntity} from '@/types/celestialHub/chatMe
 import type {FileReference} from '@/types/celestialHub/knowledge'
 import type {FileInfoDTO} from '@/types/minIO/file'
 import PreviewPanel from '@/views/celestialHub/components/QuestionPreviewPanel.vue'
+import QuestionGenerationTracePanel from '@/views/celestialHub/components/QuestionGenerationTracePanel.vue'
 import eventBus from '@/utils/eventBus'
 import type {ChatSessionVO} from '@/types/celestialHub/chatSession'
 
@@ -322,12 +334,20 @@ const {
   activeQuestionMessageId,
   activeQuestionIndex,
   activeQuestionGenerationMode,
+  activeTraceGenerationMode,
   questionPanelData,
   questionPanelTitle,
   isQuestionPanelActive,
+  isQuestionTracePanelActive,
+  questionTraceEntries,
+  questionTraceStage,
+  questionTraceUpdatedAt,
+  questionTracePanelTitle,
   handleToolsSelect,
   handleViewQuestions,
+  handleViewQuestionTrace,
   handleCloseQuestionPanel,
+  handleCloseQuestionTracePanel,
   handleQuestionRequestSuccess,
   getDisplayMessages
 } = useQuestionGeneration(

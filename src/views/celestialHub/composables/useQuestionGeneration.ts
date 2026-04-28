@@ -9,6 +9,7 @@ import type {
     QuestionGenerateRequestDTO,
     QuestionGenerationMode,
     QuestionGenerationStage,
+    QuestionGenerationTraceEntry,
     QuestionGenerationStreamEvent,
     QuestionGenerationSuccessPayload,
     QuestionResponseDTO
@@ -29,6 +30,7 @@ interface PendingQuestionTask {
     stage?: QuestionGenerationStage | null
     progressMessage?: string | null
     paperName?: string | null
+    traceEntries: QuestionGenerationTraceEntry[]
 }
 
 interface GenerationContext {
@@ -44,6 +46,26 @@ interface ViewQuestionsPayload {
     mode?: QuestionGenerationMode | null
 }
 
+interface ViewTracePayload {
+    taskId: string | null
+    requestId?: string | null
+    sessionId?: string | null
+    panelTitle?: string | null
+    mode?: QuestionGenerationMode | null
+}
+
+interface QuestionTraceArchive {
+    taskId: string | null
+    requestId: string | null
+    sessionId: string | null
+    mode: QuestionGenerationMode
+    paperName: string | null
+    stage?: QuestionGenerationStage | null
+    progressMessage?: string | null
+    updatedAt: number
+    traceEntries: QuestionGenerationTraceEntry[]
+}
+
 export function useQuestionGeneration(
     messages: Ref<ChatMessageEntity[]>,
     currentSession: Ref<ChatSessionVO | null>,
@@ -52,7 +74,7 @@ export function useQuestionGeneration(
     loadMessages: (sessionId: string) => Promise<void>,
     selectSession: (session: ChatSessionVO) => Promise<void>
 ) {
-    const {t} = useI18n()
+    const {t, locale} = useI18n()
     const message = useMessage()
     const stageI18nKeys: Record<QuestionGenerationStageEnum, string> = {
         [QuestionGenerationStageEnum.RECEIVED]: 'chat.toolsMenu.stage.received',
@@ -96,6 +118,13 @@ export function useQuestionGeneration(
     const activeQuestionIndex = ref<number | null>(null)
     const activeQuestionPanelTitle = ref<string | null>(null)
     const activeQuestionGenerationMode = ref<QuestionGenerationMode>('question')
+    const isQuestionTracePanelVisible = ref(false)
+    const activeTraceTaskId = ref<string | null>(null)
+    const activeTraceRequestId = ref<string | null>(null)
+    const activeTraceSessionId = ref<string | null>(null)
+    const activeTracePanelTitle = ref<string | null>(null)
+    const activeTraceGenerationMode = ref<QuestionGenerationMode>('paper')
+    const traceArchives = ref<Record<string, QuestionTraceArchive>>({})
 
     const questionPanelData = computed<QuestionResponseDTO[]>(() => activeQuestionList.value ?? [])
 
@@ -115,6 +144,72 @@ export function useQuestionGeneration(
     })
 
     const isQuestionPanelActive = computed(() => isQuestionPanelVisible.value && questionPanelData.value.length > 0)
+
+    const resolveTraceArchiveKey = (requestId?: string | null, taskId?: string | null) => {
+        if (requestId) {
+            return `request:${requestId}`
+        }
+        if (taskId) {
+            return `task:${taskId}`
+        }
+        return null
+    }
+
+    const activeTraceSource = computed<QuestionTraceArchive | PendingQuestionTask | null>(() => {
+        if (activeTraceRequestId.value) {
+            const task = getPendingTaskByRequestId(activeTraceRequestId.value)
+            if (task) {
+                return task
+            }
+            const requestArchiveKey = resolveTraceArchiveKey(activeTraceRequestId.value, null)
+            if (requestArchiveKey && traceArchives.value[requestArchiveKey]) {
+                return traceArchives.value[requestArchiveKey]
+            }
+        }
+
+        if (activeTraceTaskId.value) {
+            const task = getPendingTaskById(activeTraceTaskId.value)
+            if (task) {
+                return task
+            }
+            const taskArchiveKey = resolveTraceArchiveKey(null, activeTraceTaskId.value)
+            if (taskArchiveKey && traceArchives.value[taskArchiveKey]) {
+                return traceArchives.value[taskArchiveKey]
+            }
+        }
+
+        return null
+    })
+
+    const questionTraceEntries = computed<QuestionGenerationTraceEntry[]>(() => {
+        const source = activeTraceSource.value
+        if (!source) {
+            return []
+        }
+        return Array.isArray(source.traceEntries) ? source.traceEntries : []
+    })
+
+    const questionTraceStage = computed<QuestionGenerationStage | null>(() => {
+        return activeTraceSource.value?.stage ?? null
+    })
+
+    const questionTraceUpdatedAt = computed<number | null>(() => {
+        const source = activeTraceSource.value
+        return typeof source?.updatedAt === 'number' ? source.updatedAt : null
+    })
+
+    const questionTracePanelTitle = computed<string>(() => {
+        if (activeTracePanelTitle.value) {
+            return activeTracePanelTitle.value
+        }
+        const source = activeTraceSource.value
+        if (source?.paperName) {
+            return source.paperName
+        }
+        return t('chat.toolsMenu.generationTraceTitle')
+    })
+
+    const isQuestionTracePanelActive = computed(() => isQuestionTracePanelVisible.value)
 
     const pendingQuestionTasks = ref<PendingQuestionTask[]>([])
     const processedGeneratorMessageIds = new Set<string>()
@@ -152,9 +247,61 @@ export function useQuestionGeneration(
             status: 'pending',
             stage: null,
             progressMessage: null,
-            paperName: paperName ?? null
+            paperName: paperName ?? null,
+            traceEntries: []
         })
         return id
+    }
+
+    const cloneTraceEntries = (entries?: QuestionGenerationTraceEntry[] | null) => {
+        if (!entries?.length) {
+            return [] as QuestionGenerationTraceEntry[]
+        }
+        return entries.map(entry => ({...entry}))
+    }
+
+    const archiveTraceTask = (task: PendingQuestionTask | null | undefined) => {
+        if (!task) {
+            return
+        }
+        const archive: QuestionTraceArchive = {
+            taskId: task.id,
+            requestId: task.requestId ?? null,
+            sessionId: task.sessionId ?? null,
+            mode: task.mode,
+            paperName: task.paperName ?? null,
+            stage: task.stage ?? null,
+            progressMessage: task.progressMessage ?? null,
+            updatedAt: task.updatedAt || task.createdAt,
+            traceEntries: cloneTraceEntries(task.traceEntries)
+        }
+        const taskKey = resolveTraceArchiveKey(null, task.id)
+        if (taskKey) {
+            traceArchives.value = {
+                ...traceArchives.value,
+                [taskKey]: archive
+            }
+        }
+        const requestKey = resolveTraceArchiveKey(task.requestId ?? null, null)
+        if (requestKey) {
+            traceArchives.value = {
+                ...traceArchives.value,
+                [requestKey]: archive
+            }
+        }
+    }
+
+    const removeTraceArchivesBySession = (sessionId: string | null) => {
+        if (!sessionId) {
+            return
+        }
+        const nextArchives = {...traceArchives.value}
+        Object.entries(nextArchives).forEach(([key, archive]) => {
+            if (archive?.sessionId === sessionId) {
+                delete nextArchives[key]
+            }
+        })
+        traceArchives.value = nextArchives
     }
 
     const bindPendingTaskRequestId = (taskId: string | null, requestId: string | null) => {
@@ -164,34 +311,53 @@ export function useQuestionGeneration(
         const task = pendingQuestionTasks.value.find(item => item.id === taskId)
         if (task) {
             task.requestId = requestId
+            archiveTraceTask(task)
         }
+        if (activeTraceTaskId.value === taskId) {
+            activeTraceRequestId.value = requestId
+        }
+    }
+
+    const removePendingTasks = (predicate: (task: PendingQuestionTask) => boolean) => {
+        const removedTaskIds = new Set<string>()
+        const remainingTasks = pendingQuestionTasks.value.filter(task => {
+            if (!predicate(task)) {
+                return true
+            }
+            archiveTraceTask(task)
+            removedTaskIds.add(task.id)
+            return false
+        })
+        if (removedTaskIds.size > 0) {
+            recoveringQuestionTaskIds.forEach((taskId) => {
+                if (removedTaskIds.has(taskId)) {
+                    recoveringQuestionTaskIds.delete(taskId)
+                }
+            })
+        }
+        pendingQuestionTasks.value = remainingTasks
     }
 
     const removePendingTaskById = (taskId: string | null) => {
         if (!taskId) {
             return
         }
-        const index = pendingQuestionTasks.value.findIndex(task => task.id === taskId)
-        if (index !== -1) {
-            pendingQuestionTasks.value.splice(index, 1)
-        }
+        removePendingTasks(task => task.id === taskId)
     }
 
     const removePendingTaskByRequestId = (requestId: string | null) => {
         if (!requestId) {
             return
         }
-        const index = pendingQuestionTasks.value.findIndex(task => task.requestId === requestId)
-        if (index !== -1) {
-            pendingQuestionTasks.value.splice(index, 1)
-        }
+        removePendingTasks(task => task.requestId === requestId)
     }
 
     const removePendingTaskBySession = (sessionId: string | null) => {
         if (!sessionId) {
             return
         }
-        pendingQuestionTasks.value = pendingQuestionTasks.value.filter(task => task.sessionId !== sessionId)
+        removePendingTasks(task => task.sessionId === sessionId)
+        removeTraceArchivesBySession(sessionId)
     }
 
     const resolveCurrentSessionId = () => currentSession.value?.id ? String(currentSession.value.id) : null
@@ -208,6 +374,24 @@ export function useQuestionGeneration(
             return null
         }
         return pendingQuestionTasks.value.find(task => task.requestId === requestId) ?? null
+    }
+
+    const appendTraceEntry = (task: PendingQuestionTask, traceEntry: QuestionGenerationTraceEntry) => {
+        if (!traceEntry) {
+            return
+        }
+        const nextEntry = {...traceEntry}
+        if (nextEntry.entryId) {
+            const existedIndex = task.traceEntries.findIndex(item => item.entryId === nextEntry.entryId)
+            if (existedIndex !== -1) {
+                task.traceEntries.splice(existedIndex, 1, {
+                    ...task.traceEntries[existedIndex],
+                    ...nextEntry
+                })
+                return
+            }
+        }
+        task.traceEntries.push(nextEntry)
     }
 
     const registerQuestionStream = (taskId: string, controller: SSEController) => {
@@ -294,12 +478,17 @@ export function useQuestionGeneration(
         }
 
         processedGeneratorMessageIds.add(generatedMessage.id)
+        const completedMode = generatedMessage.metadata?.generationMode === 'paper'
+            ? 'paper'
+            : pendingTask?.mode === 'paper'
+                ? 'paper'
+                : 'question'
         handleViewQuestions({
             messageId: generatedMessage.id,
             questions,
             activeIndex: 0,
             panelTitle: generatedMessage.metadata?.paperName ?? null,
-            mode: generatedMessage.metadata?.generationMode === 'paper' ? 'paper' : 'question'
+            mode: completedMode
         })
 
         if (requestId) {
@@ -372,12 +561,8 @@ export function useQuestionGeneration(
             return
         }
 
-        if (isQuestionPanelVisible.value) {
-            isQuestionPanelVisible.value = false
-            activeQuestionMessageId.value = null
-            activeQuestionIndex.value = null
-            activeQuestionPanelTitle.value = null
-        }
+        handleCloseQuestionPanel()
+        handleCloseQuestionTracePanel()
 
         generationToolMode.value = key === 'smartPaper' ? 'paper' : 'question'
         isQuestionToolsVisible.value = true
@@ -386,6 +571,9 @@ export function useQuestionGeneration(
     const handleViewQuestions = (payload: ViewQuestionsPayload) => {
         if (isQuestionToolsVisible.value) {
             isQuestionToolsVisible.value = false
+        }
+        if (isQuestionTracePanelVisible.value) {
+            handleCloseQuestionTracePanel()
         }
 
         activeQuestionMessageId.value = payload.messageId
@@ -410,8 +598,34 @@ export function useQuestionGeneration(
         isQuestionPanelVisible.value = false
         activeQuestionMessageId.value = null
         activeQuestionIndex.value = null
+        activeQuestionList.value = null
         activeQuestionPanelTitle.value = null
         activeQuestionGenerationMode.value = 'question'
+    }
+
+    const handleViewQuestionTrace = (payload: ViewTracePayload) => {
+        if (isQuestionToolsVisible.value) {
+            isQuestionToolsVisible.value = false
+        }
+        if (isQuestionPanelVisible.value) {
+            handleCloseQuestionPanel()
+        }
+
+        activeTraceTaskId.value = payload.taskId ?? null
+        activeTraceRequestId.value = payload.requestId ?? null
+        activeTraceSessionId.value = payload.sessionId ?? null
+        activeTracePanelTitle.value = payload.panelTitle ?? null
+        activeTraceGenerationMode.value = payload.mode === 'paper' ? 'paper' : 'question'
+        isQuestionTracePanelVisible.value = true
+    }
+
+    const handleCloseQuestionTracePanel = () => {
+        isQuestionTracePanelVisible.value = false
+        activeTraceTaskId.value = null
+        activeTraceRequestId.value = null
+        activeTraceSessionId.value = null
+        activeTracePanelTitle.value = null
+        activeTraceGenerationMode.value = 'paper'
     }
 
     const handleQuestionRequestSuccess = async (payload: QuestionGenerationSuccessPayload) => {
@@ -439,6 +653,7 @@ export function useQuestionGeneration(
         const requestPayload: QuestionGenerateRequestDTO = {
             ...request,
             generationMode: mode,
+            locale: locale.value,
             sessionId: resolvedSessionId
         }
 
@@ -485,6 +700,7 @@ export function useQuestionGeneration(
                         if (settled) {
                             return
                         }
+                        updatePendingTaskProgress(pendingTaskId, event)
                         settled = true
                         closeQuestionStream(pendingTaskId)
                         void finalizeQuestionStream(pendingTaskId, event)
@@ -587,11 +803,19 @@ export function useQuestionGeneration(
         }
         if (event.stage) {
             task.stage = event.stage
+        } else if (event.status === 'completed') {
+            task.stage = QuestionGenerationStageEnum.RESPONDED
+        } else if (event.status === 'error') {
+            task.stage = QuestionGenerationStageEnum.FAILED
         }
         if (event.message) {
             task.progressMessage = event.message
         }
+        if (event.traceEntry) {
+            appendTraceEntry(task, event.traceEntry)
+        }
         task.updatedAt = typeof event.timestamp === 'number' ? event.timestamp : Date.now()
+        archiveTraceTask(task)
     }
 
     const resolvePendingStepMessage = (task: PendingQuestionTask) => {
@@ -648,6 +872,37 @@ export function useQuestionGeneration(
         }
     }
 
+    const tryOpenFirstQuestionFromActiveTrace = () => {
+        if (!isQuestionTracePanelVisible.value) {
+            return false
+        }
+
+        const requestId = activeTraceRequestId.value ?? activeTraceSource.value?.requestId ?? null
+        const sessionId = activeTraceSessionId.value ?? activeTraceSource.value?.sessionId ?? resolveCurrentSessionId()
+        if (!requestId || !sessionId) {
+            return false
+        }
+
+        const generatedMessage = findGeneratedMessage(requestId, sessionId)
+        if (!generatedMessage?.id) {
+            return false
+        }
+
+        const questions = parseQuestionResponse(generatedMessage)
+        if (!questions.length) {
+            return false
+        }
+
+        handleViewQuestions({
+            messageId: generatedMessage.id,
+            questions,
+            activeIndex: 0,
+            panelTitle: generatedMessage.metadata?.paperName ?? null,
+            mode: activeTraceGenerationMode.value === 'paper' ? 'paper' : 'question'
+        })
+        return true
+    }
+
     const cleanupResolvedPendingTasksInCurrentSession = () => {
         const currentSessionId = resolveCurrentSessionId()
         if (!currentSessionId || pendingQuestionTasks.value.length === 0) {
@@ -670,6 +925,12 @@ export function useQuestionGeneration(
         if (resolvedRequestIds.size === 0) {
             return
         }
+
+        pendingQuestionTasks.value.forEach((task) => {
+            if (task.sessionId === currentSessionId && task.requestId && resolvedRequestIds.has(task.requestId)) {
+                archiveTraceTask(task)
+            }
+        })
 
         const remainingTasks = pendingQuestionTasks.value.filter(task => {
             if (task.sessionId !== currentSessionId) {
@@ -727,6 +988,8 @@ export function useQuestionGeneration(
                             questionStepMessage: shouldShowDetailedProgress(task) ? task.progressMessage ?? null : null,
                             questionStepDescription: resolvePendingStepDescription(task),
                             questionShowStageDetails: shouldShowDetailedProgress(task),
+                            questionCanViewTrace: shouldShowDetailedProgress(task),
+                            questionTraceEntryCount: task.traceEntries.length,
                             generationMode: task.mode,
                             paperName: task.paperName ?? null
                         },
@@ -747,30 +1010,39 @@ export function useQuestionGeneration(
             const newId = newSession?.id ?? null
             const oldId = oldSession?.id ?? null
             if (newId !== oldId) {
-                isQuestionPanelVisible.value = false
-                activeQuestionMessageId.value = null
-                activeQuestionIndex.value = null
-                activeQuestionList.value = null
-                activeQuestionPanelTitle.value = null
-                activeQuestionGenerationMode.value = 'question'
+                handleCloseQuestionPanel()
+                handleCloseQuestionTracePanel()
             }
             cleanupResolvedPendingTasksInCurrentSession()
         }
     )
 
     watch(isQuestionToolsVisible, (newValue) => {
-        if (newValue && isQuestionPanelVisible.value) {
-            isQuestionPanelVisible.value = false
-            activeQuestionMessageId.value = null
-            activeQuestionIndex.value = null
-            activeQuestionPanelTitle.value = null
-            activeQuestionGenerationMode.value = 'question'
+        if (newValue) {
+            if (isQuestionPanelVisible.value) {
+                handleCloseQuestionPanel()
+            }
+            if (isQuestionTracePanelVisible.value) {
+                handleCloseQuestionTracePanel()
+            }
         }
     })
 
     watch(isQuestionPanelVisible, (newValue) => {
         if (newValue && isQuestionToolsVisible.value) {
             isQuestionToolsVisible.value = false
+        }
+        if (newValue && isQuestionTracePanelVisible.value) {
+            handleCloseQuestionTracePanel()
+        }
+    })
+
+    watch(isQuestionTracePanelVisible, (newValue) => {
+        if (newValue && isQuestionToolsVisible.value) {
+            isQuestionToolsVisible.value = false
+        }
+        if (newValue && isQuestionPanelVisible.value) {
+            handleCloseQuestionPanel()
         }
     })
 
@@ -780,6 +1052,7 @@ export function useQuestionGeneration(
                 processedGeneratorMessageIds.add(msg.id)
             }
         })
+        tryOpenFirstQuestionFromActiveTrace()
         cleanupResolvedPendingTasksInCurrentSession()
     }, {deep: true})
 
@@ -805,6 +1078,7 @@ export function useQuestionGeneration(
         isQuestionToolsVisible,
         generationToolMode,
         isQuestionPanelVisible,
+        isQuestionTracePanelVisible,
         activeQuestionList,
         activeQuestionMessageId,
         activeQuestionIndex,
@@ -812,10 +1086,18 @@ export function useQuestionGeneration(
         questionPanelData,
         questionPanelTitle,
         isQuestionPanelActive,
+        activeTraceGenerationMode,
+        questionTraceEntries,
+        questionTraceStage,
+        questionTraceUpdatedAt,
+        questionTracePanelTitle,
+        isQuestionTracePanelActive,
         pendingQuestionTasks,
         handleToolsSelect,
         handleViewQuestions,
+        handleViewQuestionTrace,
         handleCloseQuestionPanel,
+        handleCloseQuestionTracePanel,
         handleQuestionRequestSuccess,
         scrollToActiveQuestionMessage,
         getDisplayMessages,

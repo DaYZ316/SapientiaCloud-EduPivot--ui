@@ -12,6 +12,7 @@ export function getDefaultQuestionGenerateRequestDTO(): QuestionGenerateRequestD
     return {
         sessionId: null,
         generationMode: null,
+        locale: null,
         courseId: null,
         questionBankId: null,
         chapterIds: null,

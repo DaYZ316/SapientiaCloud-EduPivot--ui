@@ -24,7 +24,7 @@
         @click="toggleCollapsed"
     >
       <template #icon>
-        <n-icon :component="ChevronBackOutline"/>
+        <n-icon :component="ChevronForwardOutline"/>
       </template>
     </n-button>
 
@@ -52,14 +52,14 @@
             {{ t('live.room.chatSummary') }}
           </n-button>
 
-          <n-switch v-if="false" :value="barrageEnabledResolved" size="small" @update:value="handleBarrageSwitch">
+          <n-switch :value="barrageEnabledResolved" size="small" @update:value="handleBarrageSwitch">
             <template #checked>{{ t('live.room.barrage') }}</template>
             <template #unchecked>{{ t('live.room.barrage') }}</template>
           </n-switch>
 
           <n-button circle quaternary size="small" @click="toggleCollapsed">
             <template #icon>
-              <n-icon :component="ChevronForwardOutline"/>
+              <n-icon :component="ChevronBackOutline"/>
             </template>
           </n-button>
         </div>
@@ -173,8 +173,10 @@ const sidebarStyleResolved = computed(() => {
   }
 })
 const barrageLayerStyleResolved = computed(() => {
+  const leftOffset = collapsedResolved.value ? 52 : (panelWidth.value || 380) + 24
   return {
-    right: collapsedResolved.value ? '52px' : `${(panelWidth.value || 380) + 24}px`
+    left: `${leftOffset}px`,
+    width: `calc(100vw - ${leftOffset}px - 24px)`
   }
 })
 
@@ -288,7 +290,7 @@ const loadHistoryMessages = (roomId: string) => {
     const history = response?.data || []
     const currentUserId = userStore.userInfo?.id || null
     const currentNickName = userStore.userInfo?.nickName || null
-    messages.value = history.slice().reverse().map((item: LiveRoomMessagePayload) => {
+    const mappedMessages = history.slice().reverse().map((item: LiveRoomMessagePayload) => {
       const senderName = item.senderName || item.sender || t('live.room.unknown')
       const isOwn = senderName === currentNickName || item.senderId === currentUserId
       return mapMessage({
@@ -298,6 +300,12 @@ const loadHistoryMessages = (roomId: string) => {
         sendTime: item.sendTime || null
       }, isOwn)
     })
+    messages.value = mappedMessages
+
+    if (barrageEnabledResolved.value && mappedMessages.length > 0) {
+      const barrageCandidates = mappedMessages.slice(-Math.min(mappedMessages.length, 20))
+      barrageCandidates.forEach((msg) => addBarrageMessage(msg))
+    }
   }, () => {
     messages.value = []
   })
@@ -423,6 +431,7 @@ const handleSendMessage = (content: string) => {
   }
 
   appendMessage(localMessage)
+  addBarrageMessage(localMessage)
 
   appendLiveRoomMessage(roomId, {
     content: trimmed,
@@ -510,7 +519,7 @@ const handleResizeMove = (event: MouseEvent) => {
     return
   }
 
-  const delta = resizeStartX.value - event.clientX
+  const delta = event.clientX - resizeStartX.value
   panelWidth.value = clampPanelWidth(resizeStartWidth.value + delta)
 }
 
@@ -542,7 +551,7 @@ onMounted(() => {
   memberCount.value = 1
   statusText.value = t('live.room.noActiveLive')
   barrageItems.value = []
-  barrageEnabled.value = false
+  barrageEnabled.value = true
   collapsed.value = true
   panelWidth.value = 380
   barrageLaneCursor.value = 0
@@ -563,7 +572,7 @@ onBeforeUnmount(() => {
 .classroom-live-chat {
   position: fixed;
   top: 72px;
-  right: 0;
+  left: 0;
   bottom: 24px;
   z-index: 1003;
   pointer-events: none;
@@ -572,18 +581,18 @@ onBeforeUnmount(() => {
 .classroom-live-chat__sidebar {
   position: absolute;
   top: 0;
-  right: 0;
+  left: 0;
   bottom: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-top-left-radius: 12px;
-  border-bottom-left-radius: 12px;
-  border-left: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+  border-right: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
   border-top: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
   border-bottom: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
   background: color-mix(in srgb, var(--background-secondary-color) 94%, transparent);
-  box-shadow: -12px 0 28px color-mix(in srgb, var(--shadow-color) 52%, transparent);
+  box-shadow: 12px 0 28px color-mix(in srgb, var(--shadow-color) 52%, transparent);
   backdrop-filter: blur(12px);
   pointer-events: auto;
   transition: width 0.2s ease;
@@ -592,21 +601,21 @@ onBeforeUnmount(() => {
 .classroom-live-chat__collapsed-trigger {
   position: absolute;
   top: 50%;
-  right: 0;
+  left: 0;
   width: 34px;
   height: 68px;
   min-width: 34px;
   padding: 0;
   transform: translateY(-50%);
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  border-top-left-radius: 34px;
-  border-bottom-left-radius: 34px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 34px;
+  border-bottom-right-radius: 34px;
   border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
-  border-right: 0;
+  border-left: 0;
   color: var(--color-primary);
   background: color-mix(in srgb, var(--background-secondary-color) 94%, transparent);
-  box-shadow: -8px 0 20px color-mix(in srgb, var(--shadow-color) 42%, transparent);
+  box-shadow: 8px 0 20px color-mix(in srgb, var(--shadow-color) 42%, transparent);
   backdrop-filter: blur(12px);
   pointer-events: auto;
 }
@@ -614,7 +623,7 @@ onBeforeUnmount(() => {
 .classroom-live-chat__resize-handle {
   position: absolute;
   top: 0;
-  left: 0;
+  right: 0;
   width: 10px;
   height: 100%;
   border: 0;
@@ -680,12 +689,12 @@ onBeforeUnmount(() => {
   height: 200px;
   overflow: hidden;
   pointer-events: none;
-  z-index: 1002;
+  z-index: 1004;
 }
 
 .classroom-live-chat__barrage-item {
   position: absolute;
-  right: -24px;
+  left: 100%;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -736,7 +745,7 @@ onBeforeUnmount(() => {
   }
 
   to {
-    transform: translateX(calc(-100vw + 420px));
+    transform: translateX(calc(-100vw - 100%));
   }
 }
 

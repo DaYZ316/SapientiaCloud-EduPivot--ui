@@ -22,6 +22,7 @@ interface PendingQuestionTask {
     id: string
     sessionId: string | null
     requestId?: string | null
+    requestPayload: QuestionGenerateRequestDTO
     createdAt: number
     updatedAt: number
     mode: QuestionGenerationMode
@@ -64,6 +65,105 @@ interface QuestionTraceArchive {
     progressMessage?: string | null
     updatedAt: number
     traceEntries: QuestionGenerationTraceEntry[]
+}
+
+const PENDING_QUESTION_TASKS_STORAGE_KEY = 'celestialHub_pendingQuestionTasks'
+
+function cloneTraceEntries(entries?: QuestionGenerationTraceEntry[] | null): QuestionGenerationTraceEntry[] {
+    if (!entries?.length) {
+        return []
+    }
+    return entries.map(entry => ({...entry}))
+}
+
+function cloneQuestionRequestPayload(request?: QuestionGenerateRequestDTO | null): QuestionGenerateRequestDTO {
+    return {
+        sessionId: request?.sessionId ?? null,
+        requestId: request?.requestId ?? null,
+        generationMode: request?.generationMode ?? null,
+        locale: request?.locale ?? null,
+        courseId: request?.courseId ?? null,
+        questionBankId: request?.questionBankId ?? null,
+        chapterIds: request?.chapterIds ? [...request.chapterIds] : null,
+        questionCount: request?.questionCount ?? null,
+        questionType: request?.questionType ?? null,
+        difficulty: request?.difficulty ?? null,
+        scorePerQuestion: request?.scorePerQuestion ?? null,
+        totalScore: request?.totalScore ?? null,
+        totalEstimatedTime: request?.totalEstimatedTime ?? null,
+        paperName: request?.paperName ?? null,
+        paperType: request?.paperType ?? null,
+        requirement: request?.requirement ?? null,
+        useRag: request?.useRag ?? null,
+        fileReferences: request?.fileReferences ? request.fileReferences.map(item => ({...item})) : null,
+        referenceQuestionIds: request?.referenceQuestionIds ? [...request.referenceQuestionIds] : null,
+        knowledgePoints: request?.knowledgePoints ? [...request.knowledgePoints] : null,
+        abilityGoals: request?.abilityGoals ? [...request.abilityGoals] : null,
+        saveToQuestionBank: request?.saveToQuestionBank ?? null,
+        saveStatus: request?.saveStatus ?? null
+    }
+}
+
+function normalizePendingQuestionTask(raw: Partial<PendingQuestionTask> | null | undefined): PendingQuestionTask | null {
+    if (!raw?.id) {
+        return null
+    }
+
+    const requestPayload = cloneQuestionRequestPayload(raw.requestPayload)
+    const sessionId = raw.sessionId ?? requestPayload.sessionId ?? null
+    const requestId = raw.requestId ?? requestPayload.requestId ?? null
+    if (!sessionId || !requestId) {
+        return null
+    }
+
+    const mode: QuestionGenerationMode = raw.mode === 'paper' || requestPayload.generationMode === 'paper'
+        ? 'paper'
+        : 'question'
+    const createdAt = typeof raw.createdAt === 'number' ? raw.createdAt : Date.now()
+    const updatedAt = typeof raw.updatedAt === 'number' ? raw.updatedAt : createdAt
+
+    requestPayload.sessionId = sessionId
+    requestPayload.requestId = requestId
+    requestPayload.generationMode = mode
+
+    return {
+        id: raw.id,
+        sessionId,
+        requestId,
+        requestPayload,
+        createdAt,
+        updatedAt,
+        mode,
+        showStageDetails: typeof raw.showStageDetails === 'boolean' ? raw.showStageDetails : mode === 'paper',
+        status: 'processing',
+        stage: raw.stage ?? null,
+        progressMessage: raw.progressMessage ?? null,
+        paperName: raw.paperName ?? requestPayload.paperName ?? null,
+        traceEntries: cloneTraceEntries(raw.traceEntries)
+    }
+}
+
+function resolveStoredPendingQuestionTasks(): PendingQuestionTask[] {
+    if (typeof window === 'undefined') {
+        return []
+    }
+
+    const rawValue = window.sessionStorage.getItem(PENDING_QUESTION_TASKS_STORAGE_KEY)
+    if (!rawValue) {
+        return []
+    }
+
+    try {
+        const parsed = JSON.parse(rawValue) as Array<Partial<PendingQuestionTask>>
+        if (!Array.isArray(parsed)) {
+            return []
+        }
+        return parsed
+            .map(item => normalizePendingQuestionTask(item))
+            .filter((item): item is PendingQuestionTask => item !== null)
+    } catch {
+        return []
+    }
 }
 
 export function useQuestionGeneration(
@@ -211,7 +311,7 @@ export function useQuestionGeneration(
 
     const isQuestionTracePanelActive = computed(() => isQuestionTracePanelVisible.value)
 
-    const pendingQuestionTasks = ref<PendingQuestionTask[]>([])
+    const pendingQuestionTasks = ref<PendingQuestionTask[]>(resolveStoredPendingQuestionTasks())
     const processedGeneratorMessageIds = new Set<string>()
     const questionStreamControllers = new Map<string, SSEController>()
     const manuallyClosedStreamTaskIds = new Set<string>()
@@ -226,9 +326,26 @@ export function useQuestionGeneration(
         return `${Date.now()}-${Math.random().toString(16).slice(2)}`
     }
 
+    const syncPendingQuestionTasksStorage = () => {
+        if (typeof window === 'undefined') {
+            return
+        }
+
+        if (!pendingQuestionTasks.value.length) {
+            window.sessionStorage.removeItem(PENDING_QUESTION_TASKS_STORAGE_KEY)
+            return
+        }
+
+        window.sessionStorage.setItem(
+            PENDING_QUESTION_TASKS_STORAGE_KEY,
+            JSON.stringify(pendingQuestionTasks.value)
+        )
+    }
+
     const addPendingQuestionTask = (
         sessionId: string | null,
         mode: QuestionGenerationMode,
+        requestPayload: QuestionGenerateRequestDTO,
         paperName?: string | null
     ): string | null => {
         if (!sessionId) {
@@ -236,10 +353,11 @@ export function useQuestionGeneration(
         }
 
         const id = createPendingTaskId()
-        pendingQuestionTasks.value.push({
+        const task = normalizePendingQuestionTask({
             id,
             sessionId,
-            requestId: null,
+            requestId: requestPayload.requestId ?? null,
+            requestPayload: cloneQuestionRequestPayload(requestPayload),
             createdAt: Date.now(),
             updatedAt: Date.now(),
             mode,
@@ -250,14 +368,12 @@ export function useQuestionGeneration(
             paperName: paperName ?? null,
             traceEntries: []
         })
-        return id
-    }
-
-    const cloneTraceEntries = (entries?: QuestionGenerationTraceEntry[] | null) => {
-        if (!entries?.length) {
-            return [] as QuestionGenerationTraceEntry[]
+        if (!task) {
+            return null
         }
-        return entries.map(entry => ({...entry}))
+        pendingQuestionTasks.value.push(task)
+        syncPendingQuestionTasksStorage()
+        return id
     }
 
     const archiveTraceTask = (task: PendingQuestionTask | null | undefined) => {
@@ -311,7 +427,9 @@ export function useQuestionGeneration(
         const task = pendingQuestionTasks.value.find(item => item.id === taskId)
         if (task) {
             task.requestId = requestId
+            task.requestPayload.requestId = requestId
             archiveTraceTask(task)
+            syncPendingQuestionTasksStorage()
         }
         if (activeTraceTaskId.value === taskId) {
             activeTraceRequestId.value = requestId
@@ -336,6 +454,7 @@ export function useQuestionGeneration(
             })
         }
         pendingQuestionTasks.value = remainingTasks
+        syncPendingQuestionTasksStorage()
     }
 
     const removePendingTaskById = (taskId: string | null) => {
@@ -435,6 +554,7 @@ export function useQuestionGeneration(
         }
         task.status = 'processing'
         task.updatedAt = Date.now()
+        syncPendingQuestionTasksStorage()
     }
 
     const resolveMessageTimestamp = (targetMessage: ChatMessageEntity | null | undefined) => {
@@ -548,6 +668,10 @@ export function useQuestionGeneration(
                         }
                     }
 
+                    if (openQuestionStreamForTask(taskId)) {
+                        return
+                    }
+
                     await waitForRecoveryRetry(streamRecoveryRetryIntervalMs)
                 }
             } finally {
@@ -628,6 +752,80 @@ export function useQuestionGeneration(
         activeTraceGenerationMode.value = 'paper'
     }
 
+    const openQuestionStreamForTask = (taskId: string, requestMessage?: ChatMessageEntity | null) => {
+        const task = getPendingTaskById(taskId)
+        if (!task) {
+            return false
+        }
+        if (questionStreamControllers.has(taskId)) {
+            return true
+        }
+
+        const requestPayload = cloneQuestionRequestPayload(task.requestPayload)
+        requestPayload.sessionId = task.sessionId
+        requestPayload.requestId = task.requestId ?? task.requestPayload.requestId ?? null
+        requestPayload.generationMode = task.mode
+        requestPayload.locale = requestPayload.locale ?? locale.value
+
+        if (!requestPayload.sessionId || !requestPayload.requestId) {
+            return false
+        }
+
+        task.sessionId = requestPayload.sessionId
+        task.requestId = requestPayload.requestId
+        task.requestPayload = requestPayload
+        syncPendingQuestionTasksStorage()
+
+        let settled = false
+        const streamController = generateQuestionsStream(requestPayload, {
+            onMessage: (event) => {
+                if (event.status === 'submitted') {
+                    bindPendingTaskRequestId(taskId, event.requestId ?? null)
+                    if (event.requestId && requestMessage) {
+                        requestMessage.requestId = event.requestId
+                    }
+                    updatePendingTaskProgress(taskId, event)
+                    return
+                }
+
+                if (event.status === 'processing') {
+                    updatePendingTaskProgress(taskId, event)
+                    return
+                }
+
+                if (event.status === 'completed' || event.status === 'error') {
+                    if (settled) {
+                        return
+                    }
+                    updatePendingTaskProgress(taskId, event)
+                    settled = true
+                    closeQuestionStream(taskId)
+                    void finalizeQuestionStream(taskId, event)
+                }
+            },
+            onError: () => {
+                if (settled) {
+                    return
+                }
+                settled = true
+                closeQuestionStream(taskId)
+                recoverQuestionStreamAfterDisconnect(taskId)
+            },
+            onClose: () => {
+                questionStreamControllers.delete(taskId)
+                const isManualClose = manuallyClosedStreamTaskIds.delete(taskId)
+                if (isManualClose || settled) {
+                    return
+                }
+                settled = true
+                recoverQuestionStreamAfterDisconnect(taskId)
+            }
+        })
+
+        registerQuestionStream(taskId, streamController)
+        return true
+    }
+
     const handleQuestionRequestSuccess = async (payload: QuestionGenerationSuccessPayload) => {
         const {mode, request} = payload
         let targetSessionId = request.sessionId || currentSession.value?.id || null
@@ -646,22 +844,28 @@ export function useQuestionGeneration(
         }
 
         const resolvedSessionId = String(targetSessionId)
-        const pendingTaskId = addPendingQuestionTask(resolvedSessionId, mode, request.paperName ?? null)
-
-        await loadMessages(resolvedSessionId)
-
         const requestPayload: QuestionGenerateRequestDTO = {
-            ...request,
+            ...cloneQuestionRequestPayload(request),
+            requestId: request.requestId?.trim() || createPendingTaskId(),
             generationMode: mode,
             locale: locale.value,
             sessionId: resolvedSessionId
         }
+        const pendingTaskId = addPendingQuestionTask(
+            resolvedSessionId,
+            mode,
+            requestPayload,
+            requestPayload.paperName ?? null
+        )
+
+        await loadMessages(resolvedSessionId)
 
         const requestMessage: ChatMessageEntity = {
             role: 3,
             content: requestPayload.requirement ?? '',
             sessionId: resolvedSessionId,
             messageType: 0,
+            requestId: requestPayload.requestId ?? null,
             questionRequest: JSON.stringify(requestPayload),
             metadata: {
                 generationMode: mode,
@@ -678,54 +882,10 @@ export function useQuestionGeneration(
             return
         }
 
-        let settled = false
         try {
-            const streamController = generateQuestionsStream(requestPayload, {
-                onMessage: (event) => {
-                    if (event.status === 'submitted') {
-                        bindPendingTaskRequestId(pendingTaskId, event.requestId ?? null)
-                        if (event.requestId) {
-                            requestMessage.requestId = event.requestId
-                        }
-                        updatePendingTaskProgress(pendingTaskId, event)
-                        return
-                    }
-
-                    if (event.status === 'processing') {
-                        updatePendingTaskProgress(pendingTaskId, event)
-                        return
-                    }
-
-                    if (event.status === 'completed' || event.status === 'error') {
-                        if (settled) {
-                            return
-                        }
-                        updatePendingTaskProgress(pendingTaskId, event)
-                        settled = true
-                        closeQuestionStream(pendingTaskId)
-                        void finalizeQuestionStream(pendingTaskId, event)
-                    }
-                },
-                onError: () => {
-                    if (settled) {
-                        return
-                    }
-                    settled = true
-                    closeQuestionStream(pendingTaskId)
-                    recoverQuestionStreamAfterDisconnect(pendingTaskId)
-                },
-                onClose: () => {
-                    questionStreamControllers.delete(pendingTaskId)
-                    const isManualClose = manuallyClosedStreamTaskIds.delete(pendingTaskId)
-                    if (isManualClose || settled) {
-                        return
-                    }
-                    settled = true
-                    recoverQuestionStreamAfterDisconnect(pendingTaskId)
-                }
-            })
-
-            registerQuestionStream(pendingTaskId, streamController)
+            if (!openQuestionStreamForTask(pendingTaskId, requestMessage)) {
+                throw new Error('Failed to open question stream')
+            }
         } catch {
             closeQuestionStream(pendingTaskId)
             if (getPendingTaskById(pendingTaskId)?.requestId) {
@@ -742,6 +902,14 @@ export function useQuestionGeneration(
         const eventSessionId = event.sessionId ?? getPendingTaskSessionId(taskId)
 
         if (event.status === 'completed') {
+            if (eventSessionId && resolveCurrentSessionId() !== eventSessionId) {
+                if (eventRequestId) {
+                    removePendingTaskByRequestId(eventRequestId)
+                } else {
+                    removePendingTaskById(taskId)
+                }
+                return
+            }
             const synced = await syncCompletedQuestionResult(taskId, eventRequestId, eventSessionId)
             if (!synced) {
                 recoverQuestionStreamAfterDisconnect(taskId)
@@ -792,8 +960,18 @@ export function useQuestionGeneration(
         if (event.requestId && !task.requestId) {
             task.requestId = event.requestId
         }
+        if (event.requestId) {
+            task.requestPayload.requestId = event.requestId
+        }
+        if (event.sessionId && !task.sessionId) {
+            task.sessionId = event.sessionId
+        }
+        if (event.sessionId) {
+            task.requestPayload.sessionId = event.sessionId
+        }
         if (event.generationMode) {
             task.mode = event.generationMode === 'paper' ? 'paper' : 'question'
+            task.requestPayload.generationMode = task.mode
         }
         if (typeof event.showStageDetails === 'boolean') {
             task.showStageDetails = event.showStageDetails
@@ -816,6 +994,7 @@ export function useQuestionGeneration(
         }
         task.updatedAt = typeof event.timestamp === 'number' ? event.timestamp : Date.now()
         archiveTraceTask(task)
+        syncPendingQuestionTasksStorage()
     }
 
     const resolvePendingStepMessage = (task: PendingQuestionTask) => {
@@ -953,6 +1132,20 @@ export function useQuestionGeneration(
             }
         })
         pendingQuestionTasks.value = remainingTasks
+        syncPendingQuestionTasksStorage()
+    }
+
+    const resumePendingQuestionStreams = () => {
+        if (!currentSession.value?.id) {
+            return
+        }
+
+        pendingQuestionTasks.value.forEach((task) => {
+            if (!task.requestId || questionStreamControllers.has(task.id) || recoveringQuestionTaskIds.has(task.id)) {
+                return
+            }
+            openQuestionStreamForTask(task.id)
+        })
     }
 
     const scrollToActiveQuestionMessage = () => {
@@ -1014,8 +1207,16 @@ export function useQuestionGeneration(
                 handleCloseQuestionTracePanel()
             }
             cleanupResolvedPendingTasksInCurrentSession()
-        }
+            if (newSession?.id) {
+                resumePendingQuestionStreams()
+            }
+        },
+        {immediate: true}
     )
+
+    watch(pendingQuestionTasks, () => {
+        syncPendingQuestionTasksStorage()
+    }, {deep: true})
 
     watch(isQuestionToolsVisible, (newValue) => {
         if (newValue) {

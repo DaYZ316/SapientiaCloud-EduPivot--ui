@@ -4,6 +4,7 @@ export type QuestionGenerationMode = 'question' | 'paper'
 
 export interface QuestionGenerateRequestDTO {
     sessionId?: string | null
+    requestId?: string | null
     generationMode?: QuestionGenerationMode | null
     locale?: string | null
     courseId?: string | null

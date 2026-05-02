@@ -10,11 +10,12 @@ import {
     listMessagesBySessionId,
     type SSEController
 } from '@/api/celestialHub/chatMessage'
-import {addChatSession, getUserSessions} from '@/api/celestialHub/chatSession'
+import {addChatSession, getChatSessionById, getUserSessions} from '@/api/celestialHub/chatSession'
 import {useChatScroll} from '@/views/celestialHub/composables/useChatScroll'
 import {useUserStore} from '@/store'
 
 const RAG_PREFERENCE_STORAGE_KEY = 'celestialHub_useRag'
+const ACTIVE_SESSION_STORAGE_KEY = 'celestialHub_activeSessionId'
 
 type StreamUpdateController = {
     append: (chunk: string) => void
@@ -36,11 +37,20 @@ const resolveStoredUseRag = (): boolean => {
     return storedValue === 'true'
 }
 
+const resolveStoredActiveSessionId = (): string | null => {
+    if (typeof window === 'undefined') {
+        return null
+    }
+
+    const storedValue = window.sessionStorage.getItem(ACTIVE_SESSION_STORAGE_KEY)
+    return storedValue ? storedValue : null
+}
+
 export function useCelestialChat() {
     const messages = ref<ChatMessage[]>([])
     const input = ref('')
     const isLoading = ref(false)
-    const activeSessionId = ref<string | null>(null)
+    const activeSessionId = ref<string | null>(resolveStoredActiveSessionId())
     const currentSession = ref<ChatSessionVO | null>(null)
     const {
         chatContentRef,
@@ -77,6 +87,19 @@ export function useCelestialChat() {
         }
 
         window.localStorage.setItem(RAG_PREFERENCE_STORAGE_KEY, String(value))
+    }, {immediate: true})
+
+    watch(activeSessionId, (value) => {
+        if (typeof window === 'undefined') {
+            return
+        }
+
+        if (value) {
+            window.sessionStorage.setItem(ACTIVE_SESSION_STORAGE_KEY, value)
+            return
+        }
+
+        window.sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY)
     }, {immediate: true})
 
     const createRequestId = () => {
@@ -348,6 +371,25 @@ export function useCelestialChat() {
         }
     }
 
+    const restoreSessionById = async (sessionId: string | null) => {
+        if (!sessionId) {
+            return null
+        }
+
+        try {
+            const response = await getChatSessionById(sessionId)
+            if (!response.data) {
+                return null
+            }
+
+            await selectSession(response.data)
+            return response.data
+        } catch (error) {
+            console.warn('Failed to restore session by id:', error)
+            return null
+        }
+    }
+
     const autoSelectLastSession = async () => {
         try {
             const response = await getUserSessions()
@@ -393,6 +435,7 @@ export function useCelestialChat() {
         resendMessage,
         interruptStreaming,
         selectSession,
+        restoreSessionById,
         newChat,
         loadMessages,
         scrollToBottom,

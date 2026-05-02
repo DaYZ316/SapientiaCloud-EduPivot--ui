@@ -281,6 +281,7 @@ const {
   resendMessage,
   interruptStreaming,
   selectSession,
+  restoreSessionById,
   newChat,
   scrollToBottom,
   useRag,
@@ -662,7 +663,10 @@ onMounted(async () => {
   // 每次进入页面都执行滚动逻辑
   if (activeSessionId.value) {
     // 如果有活跃会话，重新加载消息并滚动到最后用户消息
-    await loadMessages(activeSessionId.value)
+    const restoredSession = await restoreSessionById(activeSessionId.value)
+    if (!restoredSession) {
+      newChat()
+    }
   } else {
     // 如果没有活跃会话，默认进入"新建对话"页面而不是自动选择历史会话
     newChat()

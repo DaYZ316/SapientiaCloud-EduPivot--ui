@@ -319,6 +319,7 @@ const {
   resendMessage,
   interruptStreaming,
   selectSession,
+  restoreSessionById,
   newChat,
   scrollToBottom,
   useRag,
@@ -885,8 +886,10 @@ onMounted(async () => {
 
   // 每次进入页面都重新执行会话初始化逻辑
   if (activeSessionId.value) {
-    // 有激活会话时，重新加载消息
-    await loadMessages(activeSessionId.value)
+    const restoredSession = await restoreSessionById(activeSessionId.value)
+    if (!restoredSession) {
+      newChat()
+    }
   } else {
     // 没有激活会话时默认进入新对话
     newChat()

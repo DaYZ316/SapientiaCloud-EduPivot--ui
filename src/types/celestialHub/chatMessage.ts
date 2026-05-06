@@ -1,174 +1,191 @@
 import type {FileReference} from './knowledge'
 
+export interface ChatMessageMetadata {
+    fileReferences?: FileReference[] | null
+    responseVariantGroupId?: string | null
+    responseVariantIndex?: number | null
+    responseVariantCount?: number | null
+    responseVariantSelectedIndex?: number | null
+    responseVariantSourceUserMessageId?: string | null
+    responseVariantSourceAssistantMessageId?: string | null
+    responseVariantSourceRequestId?: string | null
+    [key: string]: unknown
+}
+
 /**
- * 聊天消息实体
+ * 鑱婂ぉ娑堟伅瀹炰綋
  */
 export interface ChatMessage {
-    /** 创建时间 */
+    /** 鍒涘缓鏃堕棿 */
     createTime?: string | null
-    /** 更新时间 */
+    /** 鏇存柊鏃堕棿 */
     updateTime?: string | null
-    /** 删除标记 */
+    /** 鍒犻櫎鏍囪 */
     deleted?: number | null
-    /** 消息ID */
+    /** 娑堟伅ID */
     id?: string | null
-    /** 会话ID */
+    /** 浼氳瘽ID */
     sessionId?: string | null
-    /** 角色: 0-用户, 1-AI助手, 2-系统 */
+    /** 瑙掕壊: 0-鐢ㄦ埛, 1-AI鍔╂墜, 2-绯荤粺 */
     role?: number | null
-    /** 消息内容 */
+    /** 娑堟伅鍐呭 */
     content?: string | null
-    /** 消息类型: 0-文本, 1-代码, 2-图片, 3-文件 */
+    /** 娑堟伅绫诲瀷: 0-鏂囨湰, 1-浠ｇ爜, 2-鍥剧墖, 3-鏂囦欢 */
     messageType?: number | null
-    /** token数量 */
+    /** token鏁伴噺 */
     tokenCount?: number | null
-    /** 使用的模型名称 */
+    /** 浣跨敤鐨勬ā鍨嬪悕绉?*/
     modelName?: string | null
-    /** 引用的参考内容 */
+    /** 寮曠敤鐨勫弬鑰冨唴瀹?*/
     references?: any[] | null
-    /** 附件URL列表 */
+    /** 闄勪欢URL鍒楄〃 */
     attachments?: string[] | null
-    /** 引用文件数组（用于索引文件向量数据） */
+    /** 寮曠敤鏂囦欢鏁扮粍锛堢敤浜庣储寮曟枃浠跺悜閲忔暟鎹級 */
     fileReferences?: FileReference[] | null
-    /** 请求ID（用于幂等） */
+    /** 璇锋眰ID锛堢敤浜庡箓绛夛級 */
     requestId?: string | null
-    /** 用户反馈: 0-无, 1-有用, -1-无用 */
+    /** 鐢ㄦ埛鍙嶉: 0-鏃? 1-鏈夌敤, -1-鏃犵敤 */
     isFeedback?: number | null
-    /** 元数据 */
-    metadata?: any | null
-    /** 出题请求参数（JSON），当角色为出题请求者时使用 */
+    /** 鍏冩暟鎹?*/
+    metadata?: ChatMessageMetadata | null
+    /** 鍑洪璇锋眰鍙傛暟锛圝SON锛夛紝褰撹鑹蹭负鍑洪璇锋眰鑰呮椂浣跨敤 */
     questionRequest?: string | null
-    /** AI出题生成结果（JSON），当角色为出题者时使用 */
+    /** AI鍑洪鐢熸垚缁撴灉锛圝SON锛夛紝褰撹鑹蹭负鍑洪鑰呮椂浣跨敤 */
     questionResponse?: string | null
-    /** 音频状态: 0-无音频, 1-待生成, 2-生成中, 3-可播放, 4-生成失败, 5-已取消 */
+    /** 闊抽鐘舵€? 0-鏃犻煶棰? 1-寰呯敓鎴? 2-鐢熸垚涓? 3-鍙挱鏀? 4-鐢熸垚澶辫触, 5-宸插彇娑?*/
     audioStatus?: number | null
-    /** 音频播放地址 */
+    /** 闊抽鎾斁鍦板潃 */
     audioUrl?: string | null
-    /** 音频格式 */
+    /** 闊抽鏍煎紡 */
     audioFormat?: string | null
-    /** 音频时长（毫秒） */
+    /** 闊抽鏃堕暱锛堟绉掞級 */
     audioDurationMs?: number | null
-    /** TTS任务ID */
+    /** TTS浠诲姟ID */
     audioTaskId?: string | null
-    /** 音频生成失败信息 */
+    /** 闊抽鐢熸垚澶辫触淇℃伅 */
     audioErrorMessage?: string | null
-    /** 音频生成完成时间 */
+    /** 闊抽鐢熸垚瀹屾垚鏃堕棿 */
     audioGenerateTime?: string | null
-    /** 音色编码 */
+    /** 闊宠壊缂栫爜 */
     audioVoiceCode?: string | null
 }
 
 /**
- * 发送消息请求DTO
+ * 鍙戦€佹秷鎭姹侱TO
  */
 export interface ChatRequestDTO {
-    /** 会话ID（新对话时可为空） */
+    /** 浼氳瘽ID锛堟柊瀵硅瘽鏃跺彲涓虹┖锛?*/
     sessionId?: string | null
-    /** 用户ID（Kafka场景下需要） */
+    /** 鐢ㄦ埛ID锛圞afka鍦烘櫙涓嬮渶瑕侊級 */
     userId?: string | null
-    /** 用户消息内容 */
+    /** 鐢ㄦ埛娑堟伅鍐呭 */
     message: string | null
-    /** 课程ID（课程相关问答时提供） */
+    /** 璇剧▼ID锛堣绋嬬浉鍏抽棶绛旀椂鎻愪緵锛?*/
     courseId?: string | null
-    /** 章节ID（章节相关问答时提供） */
+    /** 绔犺妭ID锛堢珷鑺傜浉鍏抽棶绛旀椂鎻愪緵锛?*/
     chapterId?: string | null
-    /** 会话类型: 0-普通对话, 1-课程问答, 2-题目辅导, 3-知识检索 */
+    /** 浼氳瘽绫诲瀷: 0-鏅€氬璇? 1-璇剧▼闂瓟, 2-棰樼洰杈呭, 3-鐭ヨ瘑妫€绱?*/
     sessionType?: number | null
-    /** 是否使用RAG检索 */
+    /** 鏄惁浣跨敤RAG妫€绱?*/
     useRag?: boolean | null
-    /** 是否流式输出 */
+    /** 鏄惁娴佸紡杈撳嚭 */
     stream?: boolean | null
-    /** 温度参数(0.0-1.0) */
+    /** 娓╁害鍙傛暟(0.0-1.0) */
     temperature?: number | null
-    /** 最大token数 */
+    /** 鏈€澶oken鏁?*/
     maxTokens?: number | null
-    /** 附件URL列表 */
+    /** 闄勪欢URL鍒楄〃 */
     attachments?: string[] | null
-    /** 文件引用信息 */
+    /** 鏂囦欢寮曠敤淇℃伅 */
     fileReferences?: FileReference[] | null
+    /** 閲嶅彂鏃剁殑婧愮敤鎴锋秷鎭疘D */
+    resendSourceUserMessageId?: string | null
+    /** 閲嶅彂鏃剁殑婧怉I娑堟伅ID */
+    resendSourceAssistantMessageId?: string | null
+    /** 閲嶅彂鏃剁殑婧愯姹侷D */
+    resendSourceRequestId?: string | null
 }
 
 /**
- * Kafka流式聊天请求DTO
+ * Kafka娴佸紡鑱婂ぉ璇锋眰DTO
  */
 export interface KafkaChatRequestDTO extends ChatRequestDTO {
-    /** 请求ID（用于Kafka幂等及取消） */
+    /** 璇锋眰ID锛堢敤浜嶬afka骞傜瓑鍙婂彇娑堬級 */
     requestId?: string | null
 }
 
 /**
- * 引用内容VO
+ * 寮曠敤鍐呭VO
  */
 export interface ReferenceVO {
-    /** 内容ID */
+    /** 鍐呭ID */
     contentId?: string | null
-    /** 内容类型: 0-章节, 1-问题, 2-任务, 3-论坛 */
+    /** 鍐呭绫诲瀷: 0-绔犺妭, 1-闂, 2-浠诲姟, 3-璁哄潧 */
     contentType?: number | null
-    /** 标题 */
+    /** 鏍囬 */
     title?: string | null
-    /** 内容片段 */
+    /** 鍐呭鐗囨 */
     snippet?: string | null
-    /** 相似度分数 */
+    /** 鐩镐技搴﹀垎鏁?*/
     similarityScore?: number | null
-    /** 来源URL */
+    /** 鏉ユ簮URL */
     sourceUrl?: string | null
 }
 
 /**
- * 聊天响应VO
+ * 鑱婂ぉ鍝嶅簲VO
  */
 export interface ChatResponseVO {
-    /** 会话ID */
+    /** 浼氳瘽ID */
     sessionId?: string | null
-    /** 消息ID */
+    /** 娑堟伅ID */
     messageId?: string | null
-    /** AI回复内容 */
+    /** AI鍥炲鍐呭 */
     content?: string | null
-    /** 使用的模型 */
+    /** 浣跨敤鐨勬ā鍨?*/
     model?: string | null
-    /** token使用量 */
+    /** token浣跨敤閲?*/
     tokenCount?: number | null
-    /** 引用文件数组（用于索引文件向量数据） */
+    /** 寮曠敤鏂囦欢鏁扮粍锛堢敤浜庣储寮曟枃浠跺悜閲忔暟鎹級 */
     fileReferences?: FileReference[] | null
-    /** 引用内容 */
+    /** 寮曠敤鍐呭 */
     references?: ReferenceVO[] | null
-    /** 响应时间 */
+    /** 鍝嶅簲鏃堕棿 */
     responseTime?: string | null
-    /** 是否完成 */
+    /** 鏄惁瀹屾垚 */
     finished?: boolean | null
-    /** 元数据 */
-    metadata?: any | null
-    /** 音频状态: 0-无音频, 1-待生成, 2-生成中, 3-可播放, 4-生成失败, 5-已取消 */
+    /** 鍏冩暟鎹?*/
+    metadata?: ChatMessageMetadata | null
+    /** 闊抽鐘舵€? 0-鏃犻煶棰? 1-寰呯敓鎴? 2-鐢熸垚涓? 3-鍙挱鏀? 4-鐢熸垚澶辫触, 5-宸插彇娑?*/
     audioStatus?: number | null
-    /** 音频播放地址 */
+    /** 闊抽鎾斁鍦板潃 */
     audioUrl?: string | null
-    /** 音频格式 */
+    /** 闊抽鏍煎紡 */
     audioFormat?: string | null
-    /** TTS任务ID */
+    /** TTS浠诲姟ID */
     audioTaskId?: string | null
 }
 
 /**
- * 取消Kafka流式聊天请求DTO
+ * 鍙栨秷Kafka娴佸紡鑱婂ぉ璇锋眰DTO
  */
 export interface CancelChatStreamKafkaDTO {
-    /** 请求ID */
+    /** 璇锋眰ID */
     requestId?: string | null
-    /** 取消原因 */
+    /** 鍙栨秷鍘熷洜 */
     reason?: string | null
 }
 
 /**
- * SSE事件回调
+ * SSE浜嬩欢鍥炶皟
  */
 export interface SSEEventCallbacks {
-    /** 接收到数据事件时调用 */
+    /** 鎺ユ敹鍒版暟鎹簨浠舵椂璋冪敤 */
     onMessage?: (data: string) => void
-    /** 连接打开时调用 */
+    /** 杩炴帴鎵撳紑鏃惰皟鐢?*/
     onOpen?: () => void
-    /** 发生错误时调用 */
+    /** 鍙戠敓閿欒鏃惰皟鐢?*/
     onError?: (error: Error) => void
-    /** 连接关闭时调用 */
+    /** 杩炴帴鍏抽棴鏃惰皟鐢?*/
     onClose?: () => void
 }
-

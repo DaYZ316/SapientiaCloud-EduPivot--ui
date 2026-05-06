@@ -89,7 +89,8 @@
                         :message="message"
                         @copy="handleCopy"
                         @feedback="handleFeedback"
-                        @resend="handleResend(index)"
+                        @resend="handleResend"
+                        @variant-change="handleVariantChange"
                         @view-questions="handleViewQuestions"
                         @view-trace="handleViewQuestionTrace"
                     />
@@ -241,6 +242,12 @@ import ChatMessage from '@/views/celestialHub/components/ChatMessage.vue'
 import ChatInputBox from '@/views/celestialHub/components/ChatInputBox.vue'
 import {useThemeStore, useUserStore} from '@/store'
 import {useCelestialChat} from '@/views/celestialHub/composables/useCelestialChat'
+import {
+  buildResendDisplayMessages,
+  resolveResendFileReferences,
+  resolveResendSourceContext,
+  setVariantSelection
+} from '@/views/celestialHub/composables/useChatResendVariants'
 import {useQuestionGeneration} from '@/views/celestialHub/composables/useQuestionGeneration'
 import {useFileManagement} from '@/views/celestialHub/composables/useFileManagement'
 import FileInfoList from '@/components/common/FileInfoList.vue'
@@ -424,12 +431,24 @@ const getIsAssistantStreaming = (messageItem: ChatMessageEntity) => {
   if (!lastAssistant) {
     return false
   }
-  return messageItem === lastAssistant && isSending.value
+  if (!isSending.value) {
+    return false
+  }
+  if (messageItem.id && lastAssistant.id) {
+    return messageItem.id === lastAssistant.id
+  }
+  if (messageItem.requestId && lastAssistant.requestId) {
+    return messageItem.requestId === lastAssistant.requestId
+  }
+  return (
+      messageItem.metadata?.responseVariantGroupId === lastAssistant.metadata?.responseVariantGroupId
+      && messageItem.metadata?.responseVariantIndex === lastAssistant.metadata?.responseVariantIndex
+  )
 }
 
 const displayMessages = computed<ChatMessageEntity[]>(() => {
   const sessionId = currentSession.value?.id || null
-  return getDisplayMessages(sessionId)
+  return buildResendDisplayMessages(getDisplayMessages(sessionId))
 })
 
 // 用户store
@@ -684,9 +703,37 @@ const handleFeedback = (messageId: string, feedback: number) => {
 }
 
 // 处理复制
+const handleVariantChange = (payload: { message: ChatMessageEntity; variantIndex: number }) => {
+  const resendContext = resolveResendSourceContext(messages.value, payload.message)
+  if (!resendContext) {
+    return
+  }
+  setVariantSelection(messages.value, resendContext.groupId, payload.variantIndex)
+}
+
+const handleResend = async (targetMessage: ChatMessageEntity) => {
+  if (!targetMessage || targetMessage.role !== 1 || isSending.value) {
+    return
+  }
+
+  const resendContext = resolveResendSourceContext(messages.value, targetMessage)
+  if (!resendContext?.userMessage.content) {
+    return
+  }
+
+  await resendMessage(resendContext.userMessage.content, {
+    fileReferences: resolveResendFileReferences(resendContext.userMessage),
+    responseVariantGroupId: resendContext.groupId,
+    responseVariantIndex: resendContext.assistantMessages.length,
+    resendSourceUserMessageId: resendContext.userMessage.id ?? null,
+    resendSourceAssistantMessageId: resendContext.assistantMessage?.id ?? null,
+    resendSourceRequestId: resendContext.sourceRequestId
+  })
+}
+
 const handleCopy = () => {
   // 收集所有消息内容
-  const allContent = messages.value
+  const allContent = displayMessages.value
       .filter(msg => msg.content)
       .map(msg => {
         if (msg.role === 0) {
@@ -705,7 +752,7 @@ const handleCopy = () => {
 }
 
 // 处理重新提问（删除对应用户提问和AI回复后再重新请求）
-const handleResend = (messageIndex: number) => {
+const handleResendLegacy = (messageIndex: number) => {
   // 安全检查：索引是否在当前消息列表范围内
   if (messageIndex < 0 || messageIndex >= messages.value.length) {
     return
@@ -758,11 +805,15 @@ const handleResend = (messageIndex: number) => {
   }
 
   // 使用原始用户内容重新请求
-  resendMessage(userMessageContent, userFileReferences)
+  resendMessage(userMessageContent, {
+    fileReferences: userFileReferences
+  })
 }
 
 
 // 我的收藏
+void handleResendLegacy
+
 const handleMyFavorites = () => {
   // TODO: 实现我的收藏功能
 }

@@ -90,7 +90,8 @@
                         :message="message"
                         @copy="handleCopy"
                         @feedback="handleFeedback"
-                        @resend="handleResend(index)"
+                        @resend="handleResend"
+                        @variant-change="handleVariantChange"
                         @virtual-teacher="handleVirtualTeacher"
                         @view-questions="handleViewQuestions"
                         @view-trace="handleViewQuestionTrace"
@@ -265,6 +266,12 @@ import ChatInputBox from './components/ChatInputBox.vue'
 import Live2DTeacherPanel from './components/Live2DTeacherPanel.vue'
 import {useThemeStore, useUserStore} from '@/store'
 import {useCelestialChat} from '@/views/celestialHub/composables/useCelestialChat'
+import {
+  buildResendDisplayMessages,
+  resolveResendFileReferences,
+  resolveResendSourceContext,
+  setVariantSelection
+} from '@/views/celestialHub/composables/useChatResendVariants'
 import {useQuestionGeneration} from '@/views/celestialHub/composables/useQuestionGeneration'
 import {useFileManagement} from '@/views/celestialHub/composables/useFileManagement'
 import {favoriteSession, pinSession} from '@/api/celestialHub/chatSession'
@@ -450,12 +457,18 @@ const getIsAssistantStreaming = (messageItem: ChatMessageEntity) => {
   if (messageItem.id && lastAssistant.id) {
     return messageItem.id === lastAssistant.id
   }
-  return messageItem === lastAssistant && isSending.value
+  if (messageItem.requestId && lastAssistant.requestId) {
+    return messageItem.requestId === lastAssistant.requestId
+  }
+  return (
+      messageItem.metadata?.responseVariantGroupId === lastAssistant.metadata?.responseVariantGroupId
+      && messageItem.metadata?.responseVariantIndex === lastAssistant.metadata?.responseVariantIndex
+  )
 }
 
 const displayMessages = computed<ChatMessageEntity[]>(() => {
   const sessionId = currentSession.value?.id || null
-  return getDisplayMessages(sessionId)
+  return buildResendDisplayMessages(getDisplayMessages(sessionId))
 })
 
 // 用户信息
@@ -909,7 +922,7 @@ const handleFeedback = (messageId: string, feedback: number) => {
 // 处理复制
 const handleCopy = () => {
   // 收集当前会话中的所有消息内容
-  const allContent = messages.value
+  const allContent = displayMessages.value
       .filter(msg => msg.content)
       .map(msg => {
         if (msg.role === 0) {
@@ -927,61 +940,32 @@ const handleCopy = () => {
   }
 }
 
-// 处理重新提问：删除原问答后重新发送
-const handleResend = (messageIndex: number) => {
-  // 安全检查：索引必须在消息范围内
-  if (messageIndex < 0 || messageIndex >= messages.value.length) {
+const handleVariantChange = (payload: { message: ChatMessageEntity; variantIndex: number }) => {
+  const resendContext = resolveResendSourceContext(messages.value, payload.message)
+  if (!resendContext) {
+    return
+  }
+  setVariantSelection(messages.value, resendContext.groupId, payload.variantIndex)
+}
+
+const handleResend = async (targetMessage: ChatMessageEntity) => {
+  if (!targetMessage || targetMessage.role !== 1 || isSending.value) {
     return
   }
 
-  const targetMessage = messages.value[messageIndex]
-  // 仅对 AI 消息生效
-  if (!targetMessage || targetMessage.role !== 1) {
+  const resendContext = resolveResendSourceContext(messages.value, targetMessage)
+  if (!resendContext?.userMessage.content) {
     return
   }
 
-  // 向前查找最近一条用户消息
-  let userIndex = -1
-  for (let i = messageIndex - 1; i >= 0; i--) {
-    const msg = messages.value[i]
-    if (msg.role === 0 && msg.content) {
-      userIndex = i
-      break
-    }
-  }
-
-  if (userIndex === -1) {
-    return
-  }
-
-  const userMessage = messages.value[userIndex]
-  const userMessageContent = userMessage.content
-  const userFileReferences = (() => {
-    const metadataRefs = (userMessage.metadata as any)?.fileReferences as FileReference[] | null | undefined
-    const messageRefs = userMessage.fileReferences as FileReference[] | null | undefined
-    const merged = [...(metadataRefs || []), ...(messageRefs || [])]
-    if (!merged.length) return null
-    const seen = new Set<string>()
-    return merged.filter((item) => {
-      const key = item.id ?? `${item.fileName ?? ''}-${item.storagePath ?? ''}`
-      if (seen.has(key)) return false
-      seen.add(key)
-      return true
-    })
-  })()
-
-  if (!userMessageContent) {
-    return
-  }
-
-  // 删除用户提问到当前 AI 回复之间的所有消息
-  const deleteCount = messageIndex - userIndex + 1
-  if (deleteCount > 0) {
-    messages.value.splice(userIndex, deleteCount)
-  }
-
-  // 使用原始用户内容重新发起请求
-  resendMessage(userMessageContent, userFileReferences)
+  await resendMessage(resendContext.userMessage.content, {
+    fileReferences: resolveResendFileReferences(resendContext.userMessage),
+    responseVariantGroupId: resendContext.groupId,
+    responseVariantIndex: resendContext.assistantMessages.length,
+    resendSourceUserMessageId: resendContext.userMessage.id ?? null,
+    resendSourceAssistantMessageId: resendContext.assistantMessage?.id ?? null,
+    resendSourceRequestId: resendContext.sourceRequestId
+  })
 }
 
 

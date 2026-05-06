@@ -39,6 +39,7 @@
             @copy="handleCopy"
             @feedback="handleFeedback"
             @resend="handleResend"
+            @variant-change="handleVariantChange"
             @virtual-teacher="handleVirtualTeacher"
         />
       </div>
@@ -67,7 +68,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   feedback: [messageId: string, feedback: number]
   copy: []
-  resend: []
+  resend: [message: ChatMessage]
+  'variant-change': [payload: { message: ChatMessage; variantIndex: number }]
   'virtual-teacher': [message: ChatMessage]
   'view-questions': [{
     messageId: string | null
@@ -131,7 +133,11 @@ const handleCopy = () => {
 
 // 重新提问
 const handleResend = () => {
-  emit('resend')
+  emit('resend', props.message)
+}
+
+const handleVariantChange = (payload: { message: ChatMessage; variantIndex: number }) => {
+  emit('variant-change', payload)
 }
 
 const handleVirtualTeacher = (message: ChatMessage) => {

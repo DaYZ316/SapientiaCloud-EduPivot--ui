@@ -1,4 +1,5 @@
 import http from '@/utils/http'
+import type {AxiosRequestConfig} from 'axios'
 import type {CourseDTO, CourseQueryParams, CourseVO, PublicCourseVO} from '@/types/course'
 
 // 获取默认课程查询对象
@@ -62,8 +63,8 @@ export function removeCourseByIds(courseIds: string[]) {
  * @param id 课程ID
  * @returns 课程信息
  */
-export function getCourseById(id: string) {
-    return http.get<CourseVO>(`/course/${id}`)
+export function getCourseById(id: string, config?: AxiosRequestConfig) {
+    return http.get<CourseVO>(`/course/${id}`, undefined, config)
 }
 
 /**

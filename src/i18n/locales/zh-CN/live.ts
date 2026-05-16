@@ -62,7 +62,8 @@ export default {
         recordingDiscard: '废弃',
         recordingDiscarded: '最后一次直播录制已废弃',
         recordingDiscardFailed: '废弃最后一次直播录制失败',
-        recordingDownloadStarted: '已开始下载录制视频'
+        recordingDownloadStarted: '已开始下载录制视频',
+        recordingDownloadFailed: '录制下载失败，请稍后重试'
     },
     sse: {
         connecting: '正在连接SSE...',

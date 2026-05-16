@@ -110,6 +110,7 @@ export default {
         endTimePlaceholder: '请选择课程结束时间',
         endTimeRequired: '请选择课程结束时间',
         endTimeAfterStartTime: '结束时间必须晚于开始时间',
+        durationExceedsLimit: '课程总时长不能超过120分钟',
         enterClassroomTitle: '课程创建成功',
         enterClassroomContent: '课程已成功创建，是否立即进入智慧教室？',
         stayHere: '留在此页',

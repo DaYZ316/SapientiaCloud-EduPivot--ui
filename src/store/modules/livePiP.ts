@@ -104,7 +104,12 @@ export const useLivePiPStore = defineStore('livePiP', () => {
             const payload = liveApi.getDefaultLiveRoomSessionDTO()
             payload.roomId = activeSession.value.roomId
             payload.sessionId = activeSession.value.sessionId
-            await liveApi.leaveLiveRoom(payload)
+            await liveApi.leaveLiveRoom(payload, {
+                meta: {
+                    hideBusinessError: true,
+                    hideHttpError: true
+                }
+            }).catch(() => undefined)
         }
 
         closePiPWindow()

@@ -19,27 +19,31 @@ export interface RecordingResult {
     isRecording: boolean
     recordingStatusLabel: string | null
     recordingLoading: boolean
+    hasRecorded: boolean
 
     // 方法
     toggleRecording: (roomInfoRef: Ref<LiveRoomVO | null>, currentUserRole: LiveRoomRoleEnum) => Promise<void>
     canRecord: (roomInfo: LiveRoomVO | null, currentUserRole: LiveRoomRoleEnum) => boolean
 }
 
-export const useRecording = () => {
+export const useRecording = (roomInfoRef?: Ref<LiveRoomVO | null>) => {
     const {t} = useI18n()
     const errorHandler = useErrorHandler()
 
     // 状态
     const recordingLoading = ref<boolean>(false)
+    const hasRecorded = ref<boolean>(false)
 
-    // 计算属性
+    // 计算属性 - 基于 roomInfoRef 的 egressStatus 实时反映录制状态
     const isRecording = computed(() => {
-        // 从外部传入的 roomInfo ref 中获取状态
-        // 实际使用中以传入的 roomInfo.egressStatus 为准
-        return false
+        return roomInfoRef?.value?.egressStatus === EGRESS_STATUS.RECORDING
     })
 
     const recordingStatusLabel = computed(() => {
+        const status = roomInfoRef?.value?.egressStatus ?? null
+        if (status === EGRESS_STATUS.RECORDING) return t('live.room.recordingRunning')
+        if (status === EGRESS_STATUS.STOPPING) return t('live.room.recordingStopping')
+        if (status === EGRESS_STATUS.FAILED) return t('live.room.recordingFailed')
         return null
     })
 
@@ -80,6 +84,10 @@ export const useRecording = () => {
 
         const isCurrentlyRecording = roomInfo.egressStatus === EGRESS_STATUS.RECORDING
         const operation = isCurrentlyRecording ? 'stop' : 'start'
+
+        if (!isCurrentlyRecording) {
+            hasRecorded.value = true
+        }
         const apiCall = isCurrentlyRecording
             ? liveApi.stopRecording(roomInfo.id)
             : liveApi.startRecording(roomInfo.id)
@@ -128,6 +136,7 @@ export const useRecording = () => {
         isRecording,
         recordingStatusLabel,
         recordingLoading: readonly(recordingLoading),
+        hasRecorded: readonly(hasRecorded),
 
         // 方法
         toggleRecording,

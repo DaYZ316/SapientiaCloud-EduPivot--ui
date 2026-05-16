@@ -63,7 +63,7 @@
       <!-- 录制控制 -->
       <n-button
           v-if="canShowRecording && props.showRecording"
-          :disabled="!canRecord"
+          :disabled="!canRecord || (!props.cameraEnabled && !props.screenShareEnabled)"
           :loading="recordingLoading"
           :type="isRecording ? 'error' : 'default'"
           quaternary

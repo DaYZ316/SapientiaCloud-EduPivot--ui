@@ -61,6 +61,7 @@ export interface LiveRoomResult {
     isMediaLimitReached: Ref<boolean>
     speakerVolumeValue: Ref<number>
     canShowRecording: Ref<boolean>
+    hasRecorded: Ref<boolean>
     activeMainParticipantId: Ref<string | null>
     localVideoTrack: Ref<any | null>
     localScreenShareTrack: Ref<any | null>
@@ -261,7 +262,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     const connection = useLiveConnection()
     const media = useMediaDevices(connection.room as Ref<import('livekit-client').Room | null>)
     const chat = useChatMessages()
-    const recording = useRecording()
+    const recording = useRecording(roomInfo)
     const realtime = useLiveRealtime()
     // 使用全局 detector store
     const speakingDetectorStore = useSpeakingDetectorStore()
@@ -802,7 +803,8 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
     }
 
     const handleToggleRecording = async (): Promise<void> => {
-        const action = recording.isRecording ? t('live.common.recordingStop') : t('live.common.recordingStart')
+        const isCurrentlyRecording = recording.isRecording.value
+        const action = isCurrentlyRecording ? t('live.common.recordingStop') : t('live.common.recordingStart')
         loadingState.setLoading('recording', true, t('live.common.recordingInProgress', {action}))
 
         await recording.toggleRecording(roomInfo, currentUserRole.value)
@@ -1199,6 +1201,7 @@ export const useLiveRoom = (roomIdProp?: string | null, tokenProp?: string | nul
         isMediaLimitReached,
         speakerVolumeValue,
         canShowRecording,
+        hasRecorded: recording.hasRecorded as unknown as Ref<boolean>,
         activeMainParticipantId,
         localVideoTrack,
         localScreenShareTrack,

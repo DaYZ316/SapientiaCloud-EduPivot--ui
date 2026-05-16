@@ -36,8 +36,8 @@ export function getDefaultCourseRecordPageQueryDTO(): CourseRecordPageQueryDTO {
 }
 
 // 根据ID查询课程记录详细信息
-export function getCourseRecordById(id: string) {
-    return http.get<CourseRecordVO>(`/classroom/course-record/${id}`)
+export function getCourseRecordById(id: string, config?: AxiosRequestConfig) {
+    return http.get<CourseRecordVO>(`/classroom/course-record/${id}`, undefined, config)
 }
 
 // 根据ID删除课程记录

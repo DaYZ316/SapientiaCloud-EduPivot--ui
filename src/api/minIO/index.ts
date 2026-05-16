@@ -61,23 +61,24 @@ export function deleteFileByPath(params: MinioFilePathParams) {
 // 下载文件
 export function downloadFile(params: MinioObjectParams) {
     const {objectName, bucketCode} = params
-    return http.get('/minIO/file/download', {
-        params: {
+    return http.get(
+        '/minIO/file/download',
+        {
             objectName,
             ...buildBucketParams(bucketCode)
         },
-        responseType: 'blob'
-    })
+        {
+            responseType: 'blob'
+        }
+    )
 }
 
 // 获取文件详细信息
 export function getFileInfo(params: MinioObjectParams) {
     const {objectName, bucketCode} = params
     return http.get<FileInfoDTO>('/minIO/file/info', {
-        params: {
-            objectName,
-            ...buildBucketParams(bucketCode)
-        }
+        objectName,
+        ...buildBucketParams(bucketCode)
     })
 }
 
@@ -90,14 +91,16 @@ export function getBatchFileInfo(params: MinioBatchObjectParams) {
 }
 
 // 通过路径获取文件详细信息
-export function getFileInfoByPath(params: MinioFilePathParams) {
+export function getFileInfoByPath(params: MinioFilePathParams, config?: any) {
     const {filePath, bucketCode} = params
-    return http.get<FileInfoDTO>('/minIO/file/info/path', {
-        params: {
+    return http.get<FileInfoDTO>(
+        '/minIO/file/info/path',
+        {
             filePath,
             ...buildBucketParams(bucketCode)
-        }
-    })
+        },
+        config
+    )
 }
 
 // 通过路径数组批量获取文件详细信息
@@ -112,10 +115,8 @@ export function getBatchFileInfoByPath(params: MinioBatchPathParams) {
 export function listFiles(params?: MinioListFilesParams) {
     const {prefix, bucketCode} = params || {}
     return http.get('/minIO/file/list', {
-        params: {
-            prefix,
-            ...buildBucketParams(bucketCode)
-        }
+        prefix,
+        ...buildBucketParams(bucketCode)
     })
 }
 
@@ -149,13 +150,15 @@ export function uploadFile(file: File, options?: MinioUploadFileOptions | string
 }
 
 // 获取文件URL
-export function getFileUrl(params: MinioFileUrlParams) {
+export function getFileUrl(params: MinioFileUrlParams, config?: any) {
     const {objectName, expiry, bucketCode} = params
-    return http.get('/minIO/file/url', {
-        params: {
+    return http.get(
+        '/minIO/file/url',
+        {
             objectName,
             expiry,
             ...buildBucketParams(bucketCode)
-        }
-    })
+        },
+        config
+    )
 }

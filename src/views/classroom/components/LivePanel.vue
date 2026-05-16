@@ -73,10 +73,6 @@
             <div v-if="room.maxParticipants !== null && room.maxParticipants !== undefined" class="room-row">
               <strong>{{ t('live.panel.maxParticipants') }}</strong> {{ room.maxParticipants }}
             </div>
-            <div v-if="room.recordingAssetUrl" class="room-row">
-              <strong>{{ t('live.panel.recording') }}</strong>
-              <a :href="room.recordingAssetUrl" target="_blank">{{ t('live.panel.view') }}</a>
-            </div>
           </div>
 
           <div v-else class="live-panel__empty">{{ t('live.panel.noRoom') }}</div>
@@ -148,6 +144,8 @@ import {
 import {getCourseRecordById} from '@/api/classroom/courseRecord';
 import {getStudentSeat} from '@/api/classroom/courseRecordStudent';
 import {getCourseById} from '@/api/course/course';
+import {getFileInfoByPath, getFileUrl} from '@/api/minIO';
+import {BusinessBucketCodeEnum} from '@/enum/minIO/businessBucketEnum';
 import type {LiveRoomVO} from '@/types/live';
 import type {CourseVO} from '@/types/course';
 import type {CourseRecordVO} from '@/types/classroom';
@@ -183,6 +181,7 @@ const LIVE_END_GRACE_MS = 10 * 60 * 1000;
 const RECORDING_READY_POLL_MS = 3000;
 const RECORDING_READY_MAX_RETRY = 20;
 let recordingDecisionTimer: number | null = null;
+const pendingRecordingAction = ref<'download' | 'discard' | null>(null);
 
 const formatLiveTime = (time: string | null | undefined): string => {
   if (!time) {
@@ -282,6 +281,64 @@ const startWindowTip = computed(() => {
   return t('live.panel.liveAutoEndTip', {time: formatLiveTime(liveAutoEndAt.value)});
 });
 
+/**
+ * 从 recordingAssetUrl 中提取 MinIO objectName。
+ * URL 格式如：http(s)://host/sapientiacloud-live-playback/{objectName}
+ */
+const BUCKET_NAME = 'sapientiacloud-live-playback';
+
+function extractObjectName(assetUrl: string): string | null {
+  try {
+    const path = assetUrl.startsWith('http') ? new URL(assetUrl).pathname : assetUrl;
+    const idx = path.indexOf(BUCKET_NAME);
+    if (idx < 0) return null;
+    const name = path.substring(idx + BUCKET_NAME.length).replace(/^\//, '');
+    return name || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 通过路径获取文件信息（objectName、bucketCode 等）。
+ */
+async function resolveRecordingInfo(assetUrl: string) {
+  try {
+    const response = await getFileInfoByPath({
+      filePath: assetUrl,
+      bucketCode: BusinessBucketCodeEnum.LIVE_PLAYBACK
+    }, {
+      meta: {
+        hideBusinessError: true,
+        hideHttpError: true
+      }
+    });
+    const fileInfo = response?.data ?? null;
+    if (!fileInfo || fileInfo.error || !fileInfo.objectName) {
+      return null;
+    }
+    return fileInfo;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 从 recordingAssetUrl 解析出 MinIO objectName。
+ * 优先通过后端接口获取，降级为 URL 路径解析。
+ */
+async function resolveObjectName(assetUrl: string): Promise<string | null> {
+  try {
+    const fileInfo = await resolveRecordingInfo(assetUrl);
+    if (fileInfo?.objectName) {
+      return fileInfo.objectName;
+    }
+    return extractObjectName(assetUrl);
+  } catch (e) {
+    return extractObjectName(assetUrl);
+  }
+}
+
 watch(() => props.show, async (val) => {
   if (val) {
     await loadRoom();
@@ -294,12 +351,25 @@ watch(() => props.show, async (val) => {
 
 const handleClose = () => emit('close');
 
-async function loadRoom() {
+function getSilentRequestMeta() {
+  return {
+    meta: {
+      hideBusinessError: true,
+      hideHttpError: true
+    }
+  };
+}
+
+async function loadRoom(silent = false) {
   loading.value = true;
   room.value = null;
   try {
-    await loadCourseRecord();
-    const res: any = await getLatestLiveRoom(props.courseId ?? null, props.classroomId ?? null);
+    await loadCourseRecord(silent);
+    const res: any = await getLatestLiveRoom(
+      props.courseId ?? null,
+      props.classroomId ?? null,
+      silent ? getSilentRequestMeta() : undefined
+    ).catch(() => null);
     const data = res?.data ?? null;
 
     if (!data || !data.id) {
@@ -317,7 +387,7 @@ async function loadRoom() {
     room.value = data;
     const cid = room.value?.courseId ?? props.courseId ?? null;
     if (cid) {
-      await loadCourse(cid);
+      await loadCourse(cid, silent);
     } else {
       courseInfo.value = null;
     }
@@ -326,14 +396,17 @@ async function loadRoom() {
   }
 }
 
-async function loadCourseRecord() {
+async function loadCourseRecord(silent = false) {
   const recordId = props.classroomId ?? null;
   if (!recordId) {
     courseRecord.value = null;
     return;
   }
 
-  const res: any = await getCourseRecordById(recordId).catch(() => null);
+  const res: any = await getCourseRecordById(
+    recordId,
+    silent ? getSilentRequestMeta() : undefined
+  ).catch(() => null);
   courseRecord.value = res?.data ?? null;
 }
 
@@ -341,12 +414,17 @@ async function onCreateSuccess() {
   await loadRoom();
 }
 
-async function loadCourse(courseId: string) {
-  const res: any = await getCourseById(courseId).catch((error) => {
+async function loadCourse(courseId: string, silent = false) {
+  const res: any = await getCourseById(
+    courseId,
+    silent ? getSilentRequestMeta() : undefined
+  ).catch((error) => {
     courseInfo.value = null;
-    errorHandler.handleError(error, 'load_course', {
-      showNotification: false
-    });
+    if (!silent) {
+      errorHandler.handleError(error, 'load_course', {
+        showNotification: false
+      });
+    }
     return null;
   });
   if (res?.data) {
@@ -358,18 +436,27 @@ async function endLive() {
   if (!room.value || !room.value.id) return;
   const roomId = room.value.id;
   ending.value = true;
-  await endLiveRoom(roomId).then(async (res: any) => {
-    await loadRoom();
-    const endedRoom = res?.data ?? null;
-    if (endedRoom?.recordingEnabled === 1) {
-      scheduleRecordingDecision(roomId, 0);
+  stopStatusPolling();
+  const activeRoomId = livePiPStore.activeSession?.roomId ?? null;
+
+  if (activeRoomId === roomId) {
+    try {
+      await livePiPStore.forceDisconnect();
+    } catch {
+      // Ignore local cleanup failures and still end the live room on the server.
     }
+  }
+
+  await endLiveRoom(roomId).then(async () => {
+    await loadRoom(true);
+    showEndLiveRecordingDialog();
   }).catch((error) => {
     errorHandler.handleError(error, 'end_live', {
       showNotification: true,
       allowRetry: true,
       onRetry: endLive
     });
+    startStatusPolling();
   }).finally(() => {
     ending.value = false;
   });
@@ -383,20 +470,34 @@ function scheduleRecordingDecision(roomId: string, attempt: number) {
 }
 
 async function checkRecordingDecision(roomId: string, attempt: number) {
-  await getLiveRoomById(roomId).then(async (res: any) => {
+  await getLiveRoomById(roomId, {
+    meta: {
+      hideBusinessError: true,
+      hideHttpError: true
+    }
+  }).then(async (res: any) => {
     const latestRoom = res?.data ?? null;
     if (!latestRoom || latestRoom.id !== roomId) {
       return;
     }
     room.value = latestRoom;
-    const recordingUrl = latestRoom.recordingAssetUrl ?? null;
-    if (!recordingUrl) {
+    const assetUrl = latestRoom.recordingAssetUrl ?? null;
+    if (!assetUrl) {
+      if (attempt + 1 < RECORDING_READY_MAX_RETRY) {
+        scheduleRecordingDecision(roomId, attempt + 1);
+      }
       return;
     }
-    const ready = await isRecordingReady(recordingUrl);
-    if (ready) {
+    const objectName = await resolveObjectName(assetUrl);
+    if (objectName) {
       stopRecordingDecisionPolling();
-      openRecordingDecisionDialog(roomId, recordingUrl);
+      const action = pendingRecordingAction.value;
+      pendingRecordingAction.value = null;
+      if (action === 'download') {
+        await startRecordingDownload(objectName);
+      } else if (action === 'discard') {
+        await discardRecording(roomId);
+      }
       return;
     }
     if (attempt + 1 < RECORDING_READY_MAX_RETRY) {
@@ -409,26 +510,13 @@ async function checkRecordingDecision(roomId: string, attempt: number) {
   });
 }
 
-function isRecordingReady(recordingUrl: string): Promise<boolean> {
-  return fetch(recordingUrl, {
-    method: 'HEAD',
-    cache: 'no-store'
-  }).then((response) => {
-    return response.ok;
-  }, () => {
-    return false;
-  });
-}
-
-function openRecordingDecisionDialog(roomId: string, recordingUrl: string) {
+function showEndLiveRecordingDialog() {
+  if (!room.value || room.value.recordingEnabled !== 1) return;
+  // Only show dialog if recording was actually started during the live session
+  // egressStatus: 0=NOT_RECORDING, 1=RECORDING, 2=STOPPING, 3=STOPPED, 4=FAILED
+  if (!room.value.egressStatus) return;
   const {dialog, message} = getGlobalApis();
-  if (!dialog) {
-    startRecordingDownload(recordingUrl);
-    if (message) {
-      message.success(t('live.panel.recordingDownloadStarted'));
-    }
-    return;
-  }
+  if (!dialog) return;
 
   dialog.warning({
     title: t('live.panel.recordingDecisionTitle'),
@@ -438,26 +526,50 @@ function openRecordingDecisionDialog(roomId: string, recordingUrl: string) {
     closable: false,
     maskClosable: false,
     onPositiveClick: () => {
-      startRecordingDownload(recordingUrl);
+      pendingRecordingAction.value = 'download';
       if (message) {
-        message.success(t('live.panel.recordingDownloadStarted'));
+        message.info(t('live.panel.recordingDownloadStarted'));
       }
+      scheduleRecordingDecision(room.value!.id, 0);
     },
     onNegativeClick: () => {
-      void discardRecording(roomId);
+      pendingRecordingAction.value = 'discard';
+      scheduleRecordingDecision(room.value!.id, 0);
     }
   });
 }
 
-function startRecordingDownload(recordingUrl: string) {
-  const link = document.createElement('a');
-  link.href = recordingUrl;
-  link.target = '_blank';
-  link.rel = 'noopener noreferrer';
-  link.download = '';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+/**
+ * 通过预签名 URL 直接从 MinIO 下载录制文件，避免后端代理大文件超时。
+ */
+async function startRecordingDownload(objectName: string) {
+  const {message} = getGlobalApis();
+  try {
+    // 1. 获取预签名 URL
+    const urlRes: any = await getFileUrl({
+      objectName,
+      bucketCode: BusinessBucketCodeEnum.LIVE_PLAYBACK
+    }, {
+      meta: {hideBusinessError: true, hideHttpError: true}
+    });
+    const presignedUrl = urlRes?.data ?? null;
+    if (!presignedUrl) {
+      if (message) message.error(t('live.panel.recordingDownloadFailed'));
+      return;
+    }
+
+    // 2. 直接从 MinIO 下载
+    const link = document.createElement('a');
+    link.href = presignedUrl;
+    link.download = objectName.split('/').pop() || 'recording.mp4';
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    if (message) message.success(t('live.panel.recordingDownloadStarted'));
+  } catch (e) {
+    if (message) message.error(t('live.panel.recordingDownloadFailed'));
+  }
 }
 
 async function discardRecording(roomId: string) {
@@ -602,7 +714,7 @@ function startStatusPolling() {
   // 每10秒检查一次房间状态
   statusPollingTimer = window.setInterval(async () => {
     if (props.classroomId) {
-      await loadRoom();
+      await loadRoom(true);
       if (room.value?.status === LiveRoomStatusEnum.LIVE && liveAutoEndAt.value) {
         const latestEnd = parseLiveTime(liveAutoEndAt.value);
         if (latestEnd && Date.now() > latestEnd.getTime() && !ending.value) {

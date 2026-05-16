@@ -75,8 +75,8 @@ export function getDefaultLiveRoomPageQueryDTO(): Partial<LiveRoomPageQueryDTO> 
 /**
  * 根据直播房间ID获取详情
  */
-export function getLiveRoomById(id: string) {
-    return http.get<LiveRoomVO>(`/live/live-room/${id}`)
+export function getLiveRoomById(id: string, config?: any) {
+    return http.get<LiveRoomVO>(`/live/live-room/${id}`, undefined, config)
 }
 
 /**
@@ -146,8 +146,8 @@ export function heartbeatLiveRoom(data: LiveRoomSessionDTO) {
 /**
  * 退出直播并释放会话
  */
-export function leaveLiveRoom(data: LiveRoomSessionDTO) {
-    return http.post<boolean>('/live/live-room/leave', data)
+export function leaveLiveRoom(data: LiveRoomSessionDTO, config?: any) {
+    return http.post<boolean>('/live/live-room/leave', data, config)
 }
 
 /**
@@ -205,8 +205,8 @@ export function getActiveLiveRoom(courseId?: string | null, classroomId?: string
 /**
  * 获取当前课堂/课程的最新房间（不按状态过滤）
  */
-export function getLatestLiveRoom(courseId?: string | null, classroomId?: string | null) {
-    return http.get<LiveRoomVO>('/live/live-room/latest', {courseId, classroomId})
+export function getLatestLiveRoom(courseId?: string | null, classroomId?: string | null, config?: any) {
+    return http.get<LiveRoomVO>('/live/live-room/latest', {courseId, classroomId}, config)
 }
 
 /**

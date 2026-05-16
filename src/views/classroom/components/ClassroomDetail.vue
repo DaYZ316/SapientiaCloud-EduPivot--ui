@@ -461,6 +461,9 @@ const validateEndTime = () => {
   } else if (startTime.value && endTime.value <= startTime.value) {
     errors.endTime = t('classroom.detail.endTimeAfterStartTime')
     return false
+  } else if (startTime.value && endTime.value - startTime.value > 120 * 60 * 1000) {
+    errors.endTime = t('classroom.detail.durationExceedsLimit')
+    return false
   } else {
     errors.endTime = ''
     return true
@@ -472,7 +475,8 @@ const isFormValid = computed(() => {
       courseDescription.value.trim().length <= 200 &&
       startTime.value !== null &&
       endTime.value !== null &&
-      endTime.value > startTime.value
+      endTime.value > startTime.value &&
+      (endTime.value - startTime.value) <= 120 * 60 * 1000
 })
 
 // 教室大小变化处理

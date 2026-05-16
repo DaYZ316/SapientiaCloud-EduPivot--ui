@@ -110,6 +110,7 @@ export default {
         endTimePlaceholder: 'Please select course end time',
         endTimeRequired: 'Please select course end time',
         endTimeAfterStartTime: 'End time must be later than start time',
+        durationExceedsLimit: 'Total course duration cannot exceed 120 minutes',
         enterClassroomTitle: 'Course Created Successfully',
         enterClassroomContent: 'The course has been created successfully. Would you like to enter the smart classroom now?',
         stayHere: 'Stay Here',

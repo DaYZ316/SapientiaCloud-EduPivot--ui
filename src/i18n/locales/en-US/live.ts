@@ -62,7 +62,8 @@ export default {
         recordingDiscard: 'Discard',
         recordingDiscarded: 'The latest recording has been discarded',
         recordingDiscardFailed: 'Failed to discard the latest recording',
-        recordingDownloadStarted: 'Recording download started'
+        recordingDownloadStarted: 'Recording download started',
+        recordingDownloadFailed: 'Recording download failed, please try again later'
     },
     sse: {
         connecting: 'Connecting to SSE...',

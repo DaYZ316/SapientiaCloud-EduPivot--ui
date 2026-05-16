@@ -607,7 +607,9 @@ export function useQuestionGeneration(
             messageId: generatedMessage.id,
             questions,
             activeIndex: 0,
-            panelTitle: generatedMessage.metadata?.paperName ?? null,
+            panelTitle: typeof generatedMessage.metadata?.paperName === 'string'
+                ? generatedMessage.metadata.paperName
+                : null,
             mode: completedMode
         })
 
@@ -1076,7 +1078,9 @@ export function useQuestionGeneration(
             messageId: generatedMessage.id,
             questions,
             activeIndex: 0,
-            panelTitle: generatedMessage.metadata?.paperName ?? null,
+            panelTitle: typeof generatedMessage.metadata?.paperName === 'string'
+                ? generatedMessage.metadata.paperName
+                : null,
             mode: activeTraceGenerationMode.value === 'paper' ? 'paper' : 'question'
         })
         return true

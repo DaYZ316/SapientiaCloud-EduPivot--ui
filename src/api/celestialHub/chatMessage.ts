@@ -27,7 +27,10 @@ export function getDefaultChatRequestDTO(): ChatRequestDTO {
         temperature: null,
         maxTokens: null,
         attachments: null,
-        fileReferences: null
+        fileReferences: null,
+        resendSourceUserMessageId: null,
+        resendSourceAssistantMessageId: null,
+        resendSourceRequestId: null
     }
 }
 

@@ -12,6 +12,7 @@ import {
 } from '@/api/celestialHub/chatMessage'
 import {addChatSession, getChatSessionById, getUserSessions} from '@/api/celestialHub/chatSession'
 import {useChatScroll} from '@/views/celestialHub/composables/useChatScroll'
+import {setVariantSelection} from '@/views/celestialHub/composables/useChatResendVariants'
 import {useUserStore} from '@/store'
 
 const RAG_PREFERENCE_STORAGE_KEY = 'celestialHub_useRag'
@@ -22,6 +23,15 @@ type StreamUpdateController = {
     finish: () => void
     hasContent: () => boolean
     dispose: () => void
+}
+
+type StreamRequestOptions = {
+    fileReferences?: FileReference[] | null
+    responseVariantGroupId?: string | null
+    responseVariantIndex?: number | null
+    resendSourceUserMessageId?: string | null
+    resendSourceAssistantMessageId?: string | null
+    resendSourceRequestId?: string | null
 }
 
 const resolveStoredUseRag = (): boolean => {
@@ -233,7 +243,7 @@ export function useCelestialChat() {
         isLoading.value = false
     }
 
-    const startStreamRequest = async (messageContent: string, externalFileReferences: FileReference[] | null = null) => {
+    const startStreamRequest = async (messageContent: string, options: StreamRequestOptions = {}) => {
         if (!messageContent.trim() || isLoading.value) {
             return
         }
@@ -256,23 +266,48 @@ export function useCelestialChat() {
             }
         }
 
-        const currentFileReferences = externalFileReferences ?? fileReferences.value
+        const requestId = createRequestId()
+        currentRequestId.value = requestId
+        const resendRequest = Boolean(
+            options.resendSourceUserMessageId
+            || options.resendSourceAssistantMessageId
+            || options.resendSourceRequestId
+        )
+        const currentFileReferences = options.fileReferences ?? fileReferences.value
+        const responseVariantGroupId = options.responseVariantGroupId ?? requestId
 
-        const userMessage: ChatMessage = {
-            role: 0,
-            content,
-            sessionId: activeSessionId.value,
-            messageType: 0,
-            metadata: currentFileReferences ? {fileReferences: currentFileReferences} : null
+        if (!resendRequest) {
+            const userMessage: ChatMessage = {
+                role: 0,
+                content,
+                sessionId: activeSessionId.value,
+                messageType: 0,
+                requestId,
+                metadata: {
+                    ...(currentFileReferences ? {fileReferences: currentFileReferences} : {}),
+                    responseVariantGroupId,
+                    responseVariantSourceRequestId: requestId
+                }
+            }
+            messages.value.push(userMessage)
+        } else if (responseVariantGroupId) {
+            setVariantSelection(messages.value, responseVariantGroupId, options.responseVariantIndex ?? 0)
         }
-        messages.value.push(userMessage)
 
         const assistantMessage: ChatMessage = {
             id: null,
             role: 1,
             content: '',
             sessionId: activeSessionId.value,
-            messageType: 0
+            messageType: 0,
+            requestId,
+            metadata: {
+                responseVariantGroupId,
+                responseVariantIndex: options.responseVariantIndex ?? 0,
+                responseVariantSourceUserMessageId: options.resendSourceUserMessageId ?? null,
+                responseVariantSourceAssistantMessageId: options.resendSourceAssistantMessageId ?? null,
+                responseVariantSourceRequestId: resendRequest ? (options.resendSourceRequestId ?? null) : requestId
+            }
         }
         messages.value.push(assistantMessage)
 
@@ -286,12 +321,12 @@ export function useCelestialChat() {
         chatRequest.useRag = useRag.value === true
         chatRequest.stream = true
         chatRequest.fileReferences = currentFileReferences
-
-        const requestId = createRequestId()
         chatRequest.requestId = requestId
-        currentRequestId.value = requestId
+        chatRequest.resendSourceUserMessageId = options.resendSourceUserMessageId ?? null
+        chatRequest.resendSourceAssistantMessageId = options.resendSourceAssistantMessageId ?? null
+        chatRequest.resendSourceRequestId = options.resendSourceRequestId ?? null
 
-        if (!externalFileReferences) {
+        if (!options.fileReferences) {
             fileReferences.value = null
         }
 
@@ -355,8 +390,8 @@ export function useCelestialChat() {
         await startStreamRequest(content)
     }
 
-    const resendMessage = async (messageContent: string, externalFileReferences: FileReference[] | null = null) => {
-        await startStreamRequest(messageContent, externalFileReferences)
+    const resendMessage = async (messageContent: string, options: StreamRequestOptions = {}) => {
+        await startStreamRequest(messageContent, options)
     }
 
     const selectSession = async (session: ChatSessionVO) => {

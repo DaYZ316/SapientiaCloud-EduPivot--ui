@@ -13,6 +13,25 @@
     />
     <div v-else-if="!isThinking && contentHasKatex" class="ai-content" v-html="sanitizedContent"></div>
     <div v-else class="ai-content-empty">正在思考...</div>
+    <div v-if="variantCount > 1" class="variant-pager">
+      <button
+          :disabled="isStreaming || selectedVariantIndex <= 0"
+          class="variant-pager__button"
+          type="button"
+          @click="handleVariantChange(selectedVariantIndex - 1)"
+      >
+        ‹
+      </button>
+      <span class="variant-pager__text">{{ selectedVariantIndex + 1 }} / {{ variantCount }}</span>
+      <button
+          :disabled="isStreaming || selectedVariantIndex >= variantCount - 1"
+          class="variant-pager__button"
+          type="button"
+          @click="handleVariantChange(selectedVariantIndex + 1)"
+      >
+        ›
+      </button>
+    </div>
     <div v-if="!isThinking && !isStreaming" class="message-actions">
       <n-tooltip trigger="hover">
         <template #trigger>
@@ -90,7 +109,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   feedback: [messageId: string, feedback: number]
   copy: []
-  resend: []
+  resend: [message: ChatMessage]
+  'variant-change': [payload: { message: ChatMessage; variantIndex: number }]
   'virtual-teacher': [message: ChatMessage]
 }>()
 
@@ -115,6 +135,22 @@ const isPositiveFeedback = computed(() => {
 
 const isNegativeFeedback = computed(() => {
   return props.message.isFeedback === -1
+})
+
+const variantCount = computed(() => {
+  const count = props.message.metadata?.responseVariantCount
+  if (typeof count === 'number' && Number.isFinite(count) && count > 0) {
+    return count
+  }
+  return 1
+})
+
+const selectedVariantIndex = computed(() => {
+  const selected = props.message.metadata?.responseVariantSelectedIndex
+  if (typeof selected === 'number' && Number.isFinite(selected) && selected >= 0) {
+    return Math.min(selected, Math.max(variantCount.value - 1, 0))
+  }
+  return Math.max(variantCount.value - 1, 0)
 })
 
 const resolvedAudioActionStatus = computed(() => {
@@ -181,7 +217,14 @@ const handleCopy = () => {
 
 // 重新发送当前问答。
 const handleResend = () => {
-  emit('resend')
+  emit('resend', props.message)
+}
+
+const handleVariantChange = (variantIndex: number) => {
+  emit('variant-change', {
+    message: props.message,
+    variantIndex
+  })
 }
 
 const handleVirtualTeacher = () => {
@@ -311,6 +354,39 @@ const handleVirtualTeacher = () => {
       &.is-failed {
         color: var(--error-color);
       }
+    }
+  }
+
+  .variant-pager {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 2px;
+    padding-left: 6px;
+
+    &__button {
+      border: none;
+      background: transparent;
+      color: var(--text-secondary-color);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0;
+      transition: color 0.2s ease;
+
+      &:hover:not(:disabled) {
+        color: var(--color-primary);
+      }
+
+      &:disabled {
+        cursor: not-allowed;
+        opacity: 0.45;
+      }
+    }
+
+    &__text {
+      font-size: 12px;
+      color: var(--text-secondary-color);
+      letter-spacing: 0.02em;
     }
   }
 }
